@@ -1,4 +1,4 @@
-package com.codingclub.coursehub
+package com.codingclubiitg.coursehub
 
 import io.flutter.embedding.android.FlutterActivity
 
