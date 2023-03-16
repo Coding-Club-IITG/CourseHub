@@ -6,9 +6,10 @@ import 'package:coursehub/widgets/browse_screen/bread_crumbs.dart';
 import 'package:coursehub/widgets/browse_screen/folder_explorer.dart';
 
 class BrowseScreen extends StatefulWidget {
+  final String courseCode;
   final Function(int a) callback;
 
-  const BrowseScreen({super.key, required this.callback});
+  const BrowseScreen({super.key, required this.callback, required this.courseCode});
   @override
   State<StatefulWidget> createState() => _BrowseScreen();
 }
@@ -44,7 +45,7 @@ class _BrowseScreen extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Map<dynamic, dynamic> data = HiveStore.coursesData['ee206'];
+    Map<dynamic, dynamic> data = HiveStore.coursesData[widget.courseCode.toLowerCase()];
 
     List<String> pathArgs = path.split("/");
 

@@ -5,7 +5,12 @@ import '../database/hive_store.dart';
 import '../widgets/home_screen/course_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final Function(String code) setBrowseCourseCodeCallback;
+  final Function(int a) returnToPageCallback;
+  const HomeScreen(
+      {super.key,
+      required this.setBrowseCourseCodeCallback,
+      required this.returnToPageCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +55,8 @@ class HomeScreen extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 26.0),
-                child:
-                    Text("MY COURSES", style: Themes.theme.textTheme.bodyMedium),
+                child: Text("MY COURSES",
+                    style: Themes.theme.textTheme.bodyMedium),
               ),
               Expanded(
                 child: Padding(
@@ -64,9 +69,16 @@ class HomeScreen extends StatelessWidget {
                     mainAxisSpacing: 16.0,
                     childAspectRatio: 1.25,
                     shrinkWrap: true,
-                    children: user.courses.map((e) {
-                      return CourseCard(course: e);
-                    }).toList(),
+                    children: user.courses.map(
+                      (e) {
+                        return CourseCard(
+                          course: e,
+                          setBrowseCourseCodeCallback:
+                              setBrowseCourseCodeCallback,
+                          returnToPageCallback: returnToPageCallback,
+                        );
+                      },
+                    ).toList(),
                   ),
                 ),
               ),

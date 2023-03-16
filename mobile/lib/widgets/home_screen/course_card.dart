@@ -7,27 +7,50 @@ import '../../models/course.dart';
 
 class CourseCard extends StatelessWidget {
   final Course course;
-  const CourseCard({super.key, required this.course});
+  final Function(String code) setBrowseCourseCodeCallback;
+  final Function(int a) returnToPageCallback;
+  const CourseCard(
+      {super.key,
+      required this.course,
+      required this.setBrowseCourseCodeCallback,
+      required this.returnToPageCallback});
 
   @override
   Widget build(BuildContext context) {
-   
-
     return FutureBuilder<bool>(
-        future: isCourseAvailable(course.code),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return AvailableCard(
-              course: course,
-              isAvailable: snapshot.data ?? false,
-            );
-          } else {
-            return AvailableCard(
-              course: course,
-              isAvailable: true,
-            );
-          }
-        });
+      future: isCourseAvailable(course.code),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return InkWell(
+            child: Ink(
+              child: AvailableCard(
+                course: course,
+                isAvailable: snapshot.data ?? false,
+              ),
+            ),
+            onTap: () {
+              if (snapshot.data ?? false) {
+                setBrowseCourseCodeCallback(course.code);
+                returnToPageCallback(1);
+              }
+            },
+          );
+        } else {
+          return InkWell(
+            child: Ink(
+              child: AvailableCard(
+                course: course,
+                isAvailable: true,
+              ),
+            ),
+            onTap: () {
+              setBrowseCourseCodeCallback(course.code);
+              returnToPageCallback(1);
+            },
+          );
+        }
+      },
+    );
   }
 }
 
@@ -41,7 +64,7 @@ class AvailableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: isAvailable
-          ? hexToColor(course.color ?? '') 
+          ? hexToColor(course.color ?? '')
           : const Color.fromRGBO(99, 99, 99, 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
