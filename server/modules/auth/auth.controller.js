@@ -27,6 +27,26 @@ export const loginHandler = (req, res) => {
         `https://login.microsoftonline.com/850aa78d-94e1-4bc6-9cf3-8c11b530701c/oauth2/v2.0/authorize?client_id=${clientid}&response_type=code&redirect_uri=${redirect_uri}&scope=offline_access%20user.read&state=12345`
     );
 };
+export const guestLoginHanlder = async (req, res, next) => {
+    const guest = await User.findOne({ email: "guest@coursehubiitg.in" });
+    if (!guest) return next(new AppError(500, "Something went wrong."));
+    const token = guest.generateJWT();
+    res.json({ token });
+};
+// export const makeGuestHanlder = async (req, res, next) => {
+//     const user = await User.create({
+//         name: "Guest",
+//         email: "guest@coursehubiitg.in",
+//         rollNumber: 123456789,
+//         semester: 2,
+//         degree: "BTECH",
+//         courses: [],
+//         department: "Guest Login",
+//         favourites: [],
+//     });
+//     res.send(user);
+// };
+
 const fetchCourses = async (rollNumber) => {
     var config = {
         method: "post",
@@ -110,7 +130,7 @@ export const redirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect",
+        redirect_uri: "http://localhost:8080/api/auth/login/redirect",
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
@@ -188,7 +208,7 @@ export const mobileRedirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect/mobile",
+        redirect_uri: "http://localhost:8080/api/auth/login/redirect/mobile",
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
