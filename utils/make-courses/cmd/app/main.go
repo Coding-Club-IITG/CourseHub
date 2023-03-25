@@ -69,7 +69,7 @@ func main() {
 			"name": row[1],
 		})
 		parsed := bytes.NewBuffer(postBody)
-		resp, err := http.Post("https://www.coursehubiitg.in/api/search/feed", "application/json", parsed)
+		resp, err := http.Post("http://localhost:8080/api/search/feed", "application/json", parsed)
 		if err != nil {
 			log.Fatal(err)
 		}

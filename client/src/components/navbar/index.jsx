@@ -12,7 +12,7 @@ const NavBar = () => {
     const dispatch = useDispatch();
     const handleLogout = () => {
         dispatch(LogoutUser());
-        window.location = "https://www.coursehubiitg.in/api/auth/logout";
+        window.location = "http://localhost:8080/api/auth/logout";
     };
     return (
         <nav className="navbar">

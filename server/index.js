@@ -21,6 +21,7 @@ import adminRoutes from "./modules/admin/admin.routes.js";
 
 const app = express();
 const PORT = config.port;
+app.use(cors());
 
 app.use(express.static("static"));
 import path from "path";

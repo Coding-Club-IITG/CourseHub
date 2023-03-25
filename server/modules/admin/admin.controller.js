@@ -117,6 +117,53 @@ async function makeCourseById(req, res, next) {
     return res.json({ created: true });
 }
 
+async function getCourseFolder(req, res, next) {
+    const { code } = req.params;
+    const existingCourse = await CourseModel.findOne({ code: code.toLowerCase() })
+        .populate({
+            path: "children",
+            select: "-__v",
+            populate: {
+                path: "children",
+                select: "-__v",
+                populate: {
+                    strictPopulate: false,
+                    path: "children",
+                    select: "-__v",
+                    populate: {
+                        strictPopulate: false,
+                        path: "children",
+                        select: "-__v",
+                        populate: {
+                            strictPopulate: false,
+                            path: "children",
+                            select: "-__v",
+                            populate: {
+                                strictPopulate: false,
+                                path: "children",
+                                select: "-__v",
+                                populate: {
+                                    strictPopulate: false,
+                                    path: "children",
+                                    select: "-__v",
+                                    populate: {
+                                        strictPopulate: false,
+                                        path: "children",
+                                        select: "-__v",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        })
+        .select("-__v");
+    console.log(existingCourse);
+    if (!existingCourse) return next(new AppError(404, "Course not found"));
+    return res.json(existingCourse);
+}
+
 export default {
     createAdmin,
     getAdmin,
@@ -126,4 +173,5 @@ export default {
     getDBCourses,
     deleteCourseByCode,
     makeCourseById,
+    getCourseFolder,
 };

@@ -25,5 +25,6 @@ router.get("/onedrivecourses", isAdmin, catchAsync(adminController.getOnedriveCo
 router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));
 router.delete("/course/:code", isAdmin, catchAsync(adminController.deleteCourseByCode));
 router.post("/course", isAdmin, catchAsync(adminController.makeCourseById));
+router.get("/course/:code", catchAsync(adminController.getCourseFolder));
 
 export default router;
