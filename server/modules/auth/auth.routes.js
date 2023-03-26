@@ -7,10 +7,13 @@ import {
     mobileRedirectHandler,
     loginHandler,
     logoutHandler,
+    guestLoginHanlder,
 } from "./auth.controller.js";
 
 //not used
 router.get("/login", loginHandler);
+// router.get("/make/guest", makeGuestHanlder);
+router.get("/login/guest", guestLoginHanlder);
 
 router.get("/login/redirect/", catchAsync(redirectHandler));
 router.get("/login/redirect/mobile", catchAsync(mobileRedirectHandler));

@@ -191,7 +191,7 @@ const Contributions = () => {
                         allowMultiple={true}
                         maxFiles={40}
                         server={{
-                            url: "https://www.coursehubiitg.in/api/contribution/upload",
+                            url: "http://localhost:8080/api/contribution/upload",
                             process: {
                                 headers: {
                                     "contribution-id": contributionId,
