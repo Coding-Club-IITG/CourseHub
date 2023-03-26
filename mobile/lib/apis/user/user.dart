@@ -8,7 +8,7 @@ Future<void> getCurrentUser() async {
   final header = await getAccessToken();
 
   if (header == 'error') {
-    throw ('error');
+    throw ('token not found');
   }
   try {
     final resp = await http.get(
@@ -18,9 +18,9 @@ Future<void> getCurrentUser() async {
 
     final body = jsonDecode(resp.body);
 
+
     var box = await Hive.openBox('coursehub-data');
     box.put('user', body);
-
   } catch (e) {
     rethrow;
   }

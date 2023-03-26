@@ -19,4 +19,10 @@ class HiveStore {
   static List<Contribution> getContribution() {
     return contribution.map((e) => Contribution.fromJson(e)).toList();
   }
+
+  static clearHiveData() {
+    userData = {};
+    contribution = [];
+    coursesData = {};
+  }
 }

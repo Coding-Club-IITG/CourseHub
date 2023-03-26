@@ -5,16 +5,17 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
+import '../../controllers/set_hive_store.dart';
 import '../../database/hive_store.dart';
 import '../../models/user.dart';
-import '../authentication/login.dart';
+
 import '../protected.dart';
 
 
 Future<void> getContribution() async {
   final token = await getAccessToken();
   if (token == 'error') {
-    throw ('e');
+    throw ('token not found');
   } else {
     final res = await http.get(
       Uri.parse(MiscellaneousEndpoints.contributionList),
@@ -34,7 +35,7 @@ Future<void> contributeData(File? file, String year, String courseCode,
     String folder, String description) async {
   final token = await getAccessToken();
   if (token == 'error') {
-    throw ('e');
+    throw ('token not found');
   } else {
     try {
       User user = HiveStore.getUserDetails();
@@ -55,12 +56,10 @@ Future<void> contributeData(File? file, String year, String courseCode,
       final response = await request.send();
 
       final res = await http.Response.fromStream(response);
-      if (res.statusCode == 200) {
+
         await getContribution();
         await setHiveStore();
-      } else {
-        throw ("e");
-      }
+     
     } catch (e) {
       rethrow;
     }

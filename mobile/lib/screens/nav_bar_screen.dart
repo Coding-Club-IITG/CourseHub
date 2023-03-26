@@ -33,11 +33,10 @@ class _NavBarScreen extends State<NavBarScreen> {
 
   void setBrowseCourseCodeCallback(String code) {
     courseCode = code;
-    screens[1] =
-      BrowseScreen(
-        callback: returnToPageCallback,
-        courseCode: courseCode,
-      );
+    screens[1] = BrowseScreen(
+      callback: returnToPageCallback,
+      courseCode: courseCode,
+    );
   }
 
   void hideSearch() {
@@ -98,39 +97,47 @@ class _NavBarScreen extends State<NavBarScreen> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
                   color: Colors.black,
-                  child: !_isSearched ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        flex: 10,
-                        child: GestureDetector(
-                          onTap: () => logoutHandler(context),
-                          child: Text(
-                            'CourseHub',
-                            style: Themes.theme.textTheme.displayMedium,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isSearched = true;
-                            });
-                          },
-                          child: SvgPicture.asset(
-                            'assets/search.svg',
-                            colorFilter: const ColorFilter.mode(
-                                Colors.white, BlendMode.srcIn),
-                          ),
-                        ),
-                      )
-                    ],
-                  ) : Container(),
+                  child: !_isSearched
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              flex: 10,
+                              child: Text(
+                                'CourseHub',
+                                style: Themes.theme.textTheme.displayMedium,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isSearched = true;
+                                  });
+                                },
+                                child: SvgPicture.asset(
+                                  'assets/search.svg',
+                                  colorFilter: const ColorFilter.mode(
+                                      Colors.white, BlendMode.srcIn),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 30,
+                            ),
+                            GestureDetector(
+                                onTap: () => logoutHandler(context),
+                                child: const Icon(
+                                  Icons.logout,
+                                  color: Colors.white,
+                                ))
+                          ],
+                        )
+                      : Container(),
                 ),
                 Expanded(
                   child: Stack(
@@ -245,5 +252,3 @@ class _NavBarScreen extends State<NavBarScreen> {
     );
   }
 }
-
-

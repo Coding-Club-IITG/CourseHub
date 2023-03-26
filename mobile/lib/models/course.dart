@@ -25,7 +25,7 @@ class Course {
         color: json["color"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<dynamic, dynamic> toJson() => {
         "code": code,
         "name": name,
         "color": color,

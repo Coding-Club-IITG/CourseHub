@@ -51,7 +51,7 @@ class User {
         v: json["__v"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<dynamic, dynamic> toJson() => {
         "_id": id,
         "name": name,
         "email": email,

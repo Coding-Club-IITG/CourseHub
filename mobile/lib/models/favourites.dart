@@ -27,7 +27,7 @@ class Favourite {
         id: json["_id"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<dynamic, dynamic> toJson() => {
         "name": name,
         "id": favouriteId,
         "path": path,

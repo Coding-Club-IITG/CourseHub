@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-
         top: Platform.isAndroid,
         child: Stack(
           children: [
@@ -110,28 +109,64 @@ class _LoginScreenState extends State<LoginScreen> {
                                 showSnackBar(
                                     'Successfully Logged In!', context);
                               } catch (e) {
-                                Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) => const LoginScreen(),
-                                    ),
-                                    (route) => false);
+                                setState(() {
+                                  _isLoading = false;
+                                });
 
                                 showSnackBar('Something Went Wrong!', context);
                               }
                             },
                             child: const LoginButton(),
                           ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            try {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              await authenticateGuest();
+                              setState(() {
+                                _isLoading = false;
+                              });
+                              if (!mounted) return;
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const NavBarScreen(),
+                                ),
+                              );
+
+                              showSnackBar('Successfully Logged In!', context);
+                            } catch (e) {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                              showSnackBar('Something Went Wrong!', context);
+                            }
+                          },
+                          child: const Text(
+                            "Login as Guest",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                decoration: TextDecoration.underline),
+                          ),
                         )
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
             Visibility(
               visible: _isLoading,
-              child: const CustomLinearProgress(text:'Loading your courses,favourites and contributions...' ,)
-
+              child: const CustomLinearProgress(
+                text: 'Loading your courses,favourites and contributions...',
+              ),
             )
             //
           ],

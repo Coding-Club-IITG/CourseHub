@@ -35,7 +35,7 @@ class SearchResult {
         codeMatch: json["codeMatch"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<dynamic, dynamic> toJson() => {
         "_id": id,
         "isAvailable": isAvailable,
         "name": name,

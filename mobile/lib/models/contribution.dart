@@ -56,7 +56,7 @@ class Contribution {
         year: json["year"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<dynamic, dynamic> toJson() => {
         "_id": id,
         "contributionId": contributionId,
         "fileName": List<dynamic>.from(fileName.map((x) => x)),

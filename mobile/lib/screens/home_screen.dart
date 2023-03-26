@@ -1,4 +1,6 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
+import 'package:coursehub/widgets/home_screen/add_course_dialog.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
@@ -62,23 +64,67 @@ class HomeScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 26.0, vertical: 19.0),
-                  child: GridView.count(
+                  child: GridView.builder(
                     physics: const BouncingScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 23.0,
-                    mainAxisSpacing: 16.0,
-                    childAspectRatio: 1.25,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 23.0,
+                            mainAxisSpacing: 16.0,
+                            childAspectRatio: 1.25),
                     shrinkWrap: true,
-                    children: user.courses.map(
-                      (e) {
+                    itemCount: user.courses.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index < user.courses.length) {
                         return CourseCard(
-                          course: e,
+                          course: user.courses[index],
                           setBrowseCourseCodeCallback:
                               setBrowseCourseCodeCallback,
                           returnToPageCallback: returnToPageCallback,
                         );
-                      },
-                    ).toList(),
+                      } else {
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                barrierColor:
+                                    const Color.fromRGBO(0, 0, 0, 0.8),
+                                builder: (context) => const AddCourseDialog(),
+                              );
+                            },
+                            splashColor: Colors.white10,
+                            child: Container(
+                              margin: const EdgeInsets.all(
+                                  0.6), // otherwise ditted border seems faded on some side on iphone
+                              child: DottedBorder(
+                                strokeWidth: 1,
+                                color: Colors.white,
+                                dashPattern: const [6],
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.add,
+                                        color: Colors.white,
+                                        size: 36,
+                                      ),
+                                      Text(
+                                        'Add Course',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
                   ),
                 ),
               ),

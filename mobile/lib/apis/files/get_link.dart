@@ -9,7 +9,7 @@ import '../protected.dart';
 Future<String> getPreviewLink(String id) async {
   final token = await getAccessToken();
   if (token == 'error') {
-    throw ('e');
+    throw ('token not found');
   }
   try {
     final res = await http.get(

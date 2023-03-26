@@ -1,16 +1,20 @@
+import 'dart:convert';
+
+import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
-
+import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
+import '../../controllers/set_hive_store.dart';
 import '../../database/hive_store.dart';
 import '../../models/user.dart';
 import '../../screens/login_screen.dart';
 import '../contributions/contribution.dart';
-import '../courses/get_courses.dart';
+import '../courses/add_courses.dart';
 import '../protected.dart';
 import '../user/user.dart';
 
@@ -44,16 +48,19 @@ Future<void> authenticate() async {
 
 Future<void> logoutHandler(context) async {
   final prefs = await SharedPreferences.getInstance();
-  prefs.clear();
-
   final box = await Hive.openBox('coursehub-data');
+
+  prefs.clear();
   box.clear();
+  HiveStore.clearHiveData();
+  CacheStore.clearCacheStore();
 
   Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
-      (route) => false);
+    MaterialPageRoute(
+      builder: (context) => const LoginScreen(),
+    ),
+    (route) => false,
+  );
 }
 
 Future<bool> isLoggedIn() async {
@@ -67,9 +74,31 @@ Future<bool> isLoggedIn() async {
   }
 }
 
-Future<void> setHiveStore() async {
-  final box = await Hive.openBox('coursehub-data');
-  HiveStore.userData = box.get('user') ?? {};
-  HiveStore.contribution = box.get('contribution') ?? [];
-  HiveStore.coursesData = box.get('courses-data') ?? {};
+Future<void> authenticateGuest() async {
+  try {
+    final result = await http.get(Uri.parse(MiscellaneousEndpoints.guestLogin));
+
+    final accessToken = jsonDecode(result.body)['token'];
+
+    final prefs = await SharedPreferences.getInstance();
+
+    if (accessToken == null) {
+      throw ('access token not found');
+    }
+
+    prefs.setString('access_token', accessToken);
+    await getCurrentUser();
+    await getContribution();
+    await setHiveStore();
+
+    final user = User.fromJson(HiveStore.userData);
+    for (var i = 0; i < user.courses.length; i++) {
+      await getUserCourses(user.courses[i].code);
+    }
+    await setHiveStore();
+  } on PlatformException catch (_) {
+    rethrow;
+  } catch (e) {
+    rethrow;
+  }
 }

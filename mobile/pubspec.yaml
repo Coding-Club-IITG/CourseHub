@@ -46,19 +46,10 @@ dependencies:
   hive: any
   hive_flutter: any
   file_picker: ^5.2.5
-  intl: ^0.18.0
   animated_text_kit: ^4.2.2
   dotted_border: ^2.0.0+3
   dropdown_search: ^5.0.6
   flutter_custom_tabs: ^1.0.4
-  change_app_package_name: ^1.1.0
-
-
-
-
-
-
-
 
 
 dev_dependencies:
