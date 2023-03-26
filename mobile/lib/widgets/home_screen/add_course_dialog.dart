@@ -1,9 +1,16 @@
 import 'package:coursehub/apis/courses/add_courses.dart';
 import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/controllers/set_hive_store.dart';
+import 'package:coursehub/screens/nav_bar_screen.dart';
+import 'package:coursehub/screens/splash_screen.dart';
+import 'package:coursehub/widgets/nav_bar/search_card.dart';
 import 'package:flutter/material.dart';
 
+import '../../apis/courses/search_course.dart';
+import '../../models/search_result.dart';
+import '../common/custom_snackbar.dart';
+
 class AddCourseDialog extends StatefulWidget {
+  
   const AddCourseDialog({super.key});
 
   @override
@@ -12,13 +19,43 @@ class AddCourseDialog extends StatefulWidget {
 
 class _AddCourseDialogState extends State<AddCourseDialog> {
   bool _isEnabled = false;
+  bool _isSearched = false;
+
   final _courseController = TextEditingController();
   final _courseNode = FocusNode();
+
+  List<SearchResult> searchResult = [];
+  bool? _found;
+
+  Future<void> search(value) async {
+    try {
+      final res = await searchCourse(value.toString().trim());
+
+      setState(() {
+        _found = res['found'];
+      });
+
+      List<dynamic> results = res['results'];
+
+      setState(() {
+        if (_found ?? false) {
+          searchResult = results.map((e) => SearchResult.fromJson(e)).toList();
+        }
+      });
+
+      setState(() {
+        _isSearched = true;
+      });
+    } catch (e) {
+      showSnackBar('Something went wrong!', context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
         elevation: 50,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 5),
         backgroundColor: Colors.transparent,
         child: GestureDetector(
           onTap: () {
@@ -47,7 +84,9 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                       width: 20,
                     ),
                     Expanded(
-                      child: TextFormField(
+                      child: TextField(
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: (value) async => await search(value),
                         controller: _courseController,
                         focusNode: _courseNode,
                         onChanged: (value) {
@@ -82,7 +121,51 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                   ],
                 ),
                 const SizedBox(
-                  height: 30,
+                  height: 15,
+                ),
+                Visibility(
+                  visible: _isSearched,
+                  child: _found ?? false
+                      ? SizedBox(
+                          height: 150,
+                          child: ListView.builder(
+                            itemCount: searchResult.length,
+                            itemBuilder: (context, index) => SearchCard(
+                              isAvailable: searchResult[index].isAvailable,
+                              courseCode: searchResult[index].code,
+                              courseName: searchResult[index].name,
+                              callback: () async {
+                                try {
+                                  await addUserCourses(searchResult[index].code,
+                                      searchResult[index].name);
+
+                                  if (!mounted) return;
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (context) => const SplashScreen(),
+                                      ),
+                                      (route) => false);
+                                  showSnackBar(
+                                      "Course Succesfully added", context);
+
+                    
+                                } catch (e) {
+                                  showSnackBar(
+                                      "Something Went Wrong!", context);
+                                }
+                              },
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            'No results found!',
+                            style: Themes.darkTextTheme.displaySmall,
+                          ),
+                        ),
+                ),
+                const SizedBox(
+                  height: 15,
                 ),
                 Material(
                   color: _isEnabled ? Themes.kYellow : Colors.grey,
@@ -91,11 +174,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                     onTap: !_isEnabled
                         ? null
                         : () async {
-                            try {
-                              await addUserCourses('', '');
-                            } catch (e) {
-                              print(e);
-                            }
+                            await search(_courseController.text);
                           },
                     child: SizedBox(
                       height: 50,

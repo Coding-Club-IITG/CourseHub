@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Column(
               children: [
                 Expanded(
-                  flex: 4,
+                  flex: 7,
                   child: Row(
                     children: [
                       const Spacer(
@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         vertical: 20, horizontal: 16),
@@ -78,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         const Expanded(
+                          flex: 4,
                           child: Text(
                             'Your go-to platform for all your academic needs. Get access to past papers, lecture slides, assignments, tutorials, notes and more to help you ace your exams',
                             textAlign: TextAlign.left,
@@ -88,7 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 10,),
+                        
+                        
                         Expanded(
+                          flex: 4,
                           child: GestureDetector(
                             onTap: () async {
                               try {
@@ -119,41 +124,44 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: const LoginButton(),
                           ),
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        GestureDetector(
-                          onTap: () async {
-                            try {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              await authenticateGuest();
-                              setState(() {
-                                _isLoading = false;
-                              });
-                              if (!mounted) return;
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const NavBarScreen(),
-                                ),
-                              );
+                       const Spacer(flex: 1,),
 
-                              showSnackBar('Successfully Logged In!', context);
-                            } catch (e) {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                              showSnackBar('Something Went Wrong!', context);
-                            }
-                          },
-                          child: const Text(
-                            "Login as Guest",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                decoration: TextDecoration.underline),
+                       
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: () async {
+                              try {
+                                setState(() {
+                                  _isLoading = true;
+                                });
+                                await authenticateGuest();
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                                if (!mounted) return;
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) => const NavBarScreen(),
+                                  ),
+                                );
+                        
+                                showSnackBar('Successfully Logged In!', context);
+                              } catch (e) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                                showSnackBar('Something Went Wrong!', context);
+                              }
+                            },
+                            child: const Text(
+                              "Login as Guest",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  decoration: TextDecoration.underline),
+                            ),
                           ),
                         )
                       ],

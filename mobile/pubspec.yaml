@@ -50,6 +50,8 @@ dependencies:
   dotted_border: ^2.0.0+3
   dropdown_search: ^5.0.6
   flutter_custom_tabs: ^1.0.4
+  intl: ^0.18.0
+
 
 
 dev_dependencies:

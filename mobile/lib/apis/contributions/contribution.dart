@@ -55,7 +55,7 @@ Future<void> contributeData(File? file, String year, String courseCode,
 
       final response = await request.send();
 
-      final res = await http.Response.fromStream(response);
+       await http.Response.fromStream(response);
 
         await getContribution();
         await setHiveStore();

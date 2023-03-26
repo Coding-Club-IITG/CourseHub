@@ -57,7 +57,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   onSubmitted: (value) async {
                     await search(value);
                   },
+                  textInputAction: TextInputAction.search,
                   controller: _searchController,
+                  keyboardType: TextInputType.name,
                   cursorColor: Colors.grey,
                   decoration: const InputDecoration(
                     hintText: 'Search Courses',
@@ -106,6 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               isAvailable: searchResult[index].isAvailable,
                               courseCode: searchResult[index].code,
                               courseName: searchResult[index].name,
+                              callback: (){},
                             ),
                             itemCount: searchResult.length,
                           )

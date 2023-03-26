@@ -23,7 +23,7 @@ Future<void> getUserCourses(String code) async {
     }
     box.put('courses-data', data);
   } catch (e) {
-    print(e);
+
     rethrow;
   }
 }
@@ -32,10 +32,10 @@ Future<void> addUserCourses(String code, String courseName) async {
   final token = await getAccessToken();
 
   try {
-    final res = await http.post(
+     await http.post(
       Uri.parse(CoursesEndpoints.addCourse),
       body: jsonEncode(
-        {'code': 'ee206', 'name': 'analog circuits'},
+        {'code': code, 'name': courseName.toLowerCase()},
       ),
       headers: {'Authorization': token, 'content-type': 'application/json'},
     );
