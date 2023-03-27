@@ -1,4 +1,6 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
+import 'package:coursehub/models/contribution.dart';
+import 'package:coursehub/models/user.dart';
 import "package:flutter/material.dart";
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';
@@ -6,15 +8,28 @@ import '../widgets/profile_screen/semester_card.dart';
 
 import '../database/hive_store.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final user = HiveStore.getUserDetails();
-    final branch = calculateBranch(user.rollNumber);
-    final contributionList = HiveStore.getContribution();
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
+class _ProfileScreenState extends State<ProfileScreen> {
+  late final User user;
+  late final  String branch;
+  late final List<Contribution> contributionList;
+
+  @override
+  void initState() {
+    user = HiveStore.getUserDetails();
+    branch = calculateBranch(user.rollNumber);
+    contributionList = HiveStore.getContribution();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

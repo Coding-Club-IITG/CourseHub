@@ -1,6 +1,5 @@
 import 'package:coursehub/apis/courses/add_courses.dart';
 import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/screens/nav_bar_screen.dart';
 import 'package:coursehub/screens/splash_screen.dart';
 import 'package:coursehub/widgets/nav_bar/search_card.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import '../../models/search_result.dart';
 import '../common/custom_snackbar.dart';
 
 class AddCourseDialog extends StatefulWidget {
-  
   const AddCourseDialog({super.key});
 
   @override
@@ -86,7 +84,13 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                     Expanded(
                       child: TextField(
                         textInputAction: TextInputAction.search,
-                        onSubmitted: (value) async => await search(value),
+                        onSubmitted: (value) async {
+                          try {
+                            await search(value);
+                          } catch (e) {
+                            showSnackBar('Something went wrong!', context);
+                          }
+                        },
                         controller: _courseController,
                         focusNode: _courseNode,
                         onChanged: (value) {
@@ -142,13 +146,12 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                   if (!mounted) return;
                                   Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
-                                        builder: (context) => const SplashScreen(),
+                                        builder: (context) =>
+                                            const SplashScreen(),
                                       ),
                                       (route) => false);
                                   showSnackBar(
                                       "Course Succesfully added", context);
-
-                    
                                 } catch (e) {
                                   showSnackBar(
                                       "Something Went Wrong!", context);
@@ -174,7 +177,11 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                     onTap: !_isEnabled
                         ? null
                         : () async {
-                            await search(_courseController.text);
+                            try {
+                              await search(_courseController.text);
+                            } catch (e) {
+                              showSnackBar('Something went wrong!', context);
+                            }
                           },
                     child: SizedBox(
                       height: 50,

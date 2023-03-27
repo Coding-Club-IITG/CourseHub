@@ -6,8 +6,12 @@ class YearDiv extends StatelessWidget {
   final Function(String a) callback;
   final List<String> availableYears;
   final String year;
-  const YearDiv(
-      {super.key, required this.callback, required this.availableYears,required this.year});
+  const YearDiv({
+    super.key,
+    required this.callback,
+    required this.availableYears,
+    required this.year,
+  });
 
   @override
   Widget build(BuildContext context) {

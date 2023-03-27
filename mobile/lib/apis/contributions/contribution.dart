@@ -11,23 +11,25 @@ import '../../models/user.dart';
 
 import '../protected.dart';
 
-
 Future<void> getContribution() async {
   final token = await getAccessToken();
-  if (token == 'error') {
-    throw ('token not found');
-  } else {
-    final res = await http.get(
-      Uri.parse(MiscellaneousEndpoints.contributionList),
-      headers: {"Authorization": token},
-    );
 
+  try {
+    if (token == 'error') {
+      throw ('token not found');
+    } else {
+      final res = await http.get(
+        Uri.parse(MiscellaneousEndpoints.contributionList),
+        headers: {"Authorization": token},
+      );
 
-    final body = jsonDecode(res.body);
-  
+      final body = jsonDecode(res.body);
 
-    final box = await Hive.openBox('coursehub-data');
-    box.put('contribution', body);
+      final box = await Hive.openBox('coursehub-data');
+      box.put('contribution', body);
+    }
+  } catch (e) {
+    rethrow;
   }
 }
 
@@ -55,11 +57,10 @@ Future<void> contributeData(File? file, String year, String courseCode,
 
       final response = await request.send();
 
-       await http.Response.fromStream(response);
+      await http.Response.fromStream(response);
 
-        await getContribution();
-        await setHiveStore();
-     
+      await getContribution();
+      await setHiveStore();
     } catch (e) {
       rethrow;
     }

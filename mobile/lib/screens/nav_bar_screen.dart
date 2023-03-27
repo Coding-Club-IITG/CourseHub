@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../apis/authentication/login.dart';
 import '../constants/themes.dart';
-import '../database/hive_store.dart';
 import '../screens/browse_screen.dart';
 import '../screens/contribute_screen.dart';
 import '../screens/favourites_screen.dart';
@@ -23,20 +22,12 @@ class NavBarScreen extends StatefulWidget {
 class _NavBarScreen extends State<NavBarScreen> {
   int _currentPageNumber = 0;
   bool _isSearched = false;
-  String courseCode = "cs206";
+  late List<Widget> screens;
 
   void returnToPageCallback(int a) {
     setState(() {
       _currentPageNumber = a;
     });
-  }
-
-  void setBrowseCourseCodeCallback(String code) {
-    courseCode = code;
-    screens[1] = BrowseScreen(
-      callback: returnToPageCallback,
-      courseCode: courseCode,
-    );
   }
 
   void hideSearch() {
@@ -45,35 +36,16 @@ class _NavBarScreen extends State<NavBarScreen> {
     });
   }
 
-  List<Widget> screens = [
-    HomeScreen(
-      setBrowseCourseCodeCallback: (String code) {},
-      returnToPageCallback: (int a) {},
-    ),
-    BrowseScreen(
-      callback: (int a) {},
-      courseCode: "cs206",
-    ),
-    ContributeScreen(
-      callback: (int a) {},
-    ),
-    const FavouritesScreen(),
-    const ProfileScreen(),
-  ];
 
   @override
   void initState() {
     super.initState();
-    final user = HiveStore.getUserDetails();
-    courseCode = user.courses[0].code;
     screens = [
       HomeScreen(
-        setBrowseCourseCodeCallback: setBrowseCourseCodeCallback,
         returnToPageCallback: returnToPageCallback,
       ),
       BrowseScreen(
         callback: returnToPageCallback,
-        courseCode: courseCode,
       ),
       ContributeScreen(
         callback: returnToPageCallback,

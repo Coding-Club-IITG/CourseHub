@@ -55,7 +55,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 flex: 6,
                 child: TextField(
                   onSubmitted: (value) async {
-                    await search(value);
+                    try {
+                      await search(value);
+                    } catch (e) {
+                      showSnackBar('Something went wrong', context);
+                    }
                   },
                   textInputAction: TextInputAction.search,
                   controller: _searchController,
@@ -73,7 +77,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 flex: 1,
                 child: GestureDetector(
                   onTap: () async {
-                    await search(_searchController.text);
+                    try {
+                      await search(_searchController.text);
+                    } catch (e) {
+                      showSnackBar('Something went wrong!', context);
+                    }
                   },
                   child: SvgPicture.asset(
                     'assets/search.svg',
@@ -108,7 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               isAvailable: searchResult[index].isAvailable,
                               courseCode: searchResult[index].code,
                               courseName: searchResult[index].name,
-                              callback: (){},
+                              callback: () {},
                             ),
                             itemCount: searchResult.length,
                           )

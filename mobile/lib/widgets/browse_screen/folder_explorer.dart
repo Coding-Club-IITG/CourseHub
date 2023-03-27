@@ -1,3 +1,9 @@
+import 'dart:developer';
+
+import 'package:coursehub/apis/files/get_link.dart';
+import 'package:coursehub/constants/themes.dart';
+import 'package:coursehub/database/hive_store.dart';
+import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -60,6 +66,10 @@ class FolderExplorer extends StatelessWidget {
         itemBuilder: (context, index) {
           String name = data["children"][index]["name"];
 
+          bool isFavourite = HiveStore.getUserDetails().favourites.any(
+                (element) => element.name == name,
+              );
+
           return Column(
             children: [
               Padding(
@@ -73,6 +83,11 @@ class FolderExplorer extends StatelessWidget {
                       width: 30.0,
                       height: 40.0,
                       color: const Color(0xFFD9D9D9),
+                      child: CircleAvatar(
+                        child: Image.network(
+                          data["children"][index]["thumbnail"],
+                        ),
+                      ),
                     ),
                     const SizedBox(
                       width: 12.0,
@@ -85,7 +100,6 @@ class FolderExplorer extends StatelessWidget {
                             name,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontFamily: "ProximaNova",
                               fontWeight: FontWeight.w500,
                               fontSize: 18.0,
                               color: Colors.black,
@@ -96,18 +110,6 @@ class FolderExplorer extends StatelessWidget {
                           ),
                           Row(
                             children: const [
-                              Text(
-                                "PDF", //TODO
-                                style: TextStyle(
-                                  fontFamily: "ProximaNova",
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 14.0,
-                                  color: Color(0xFF585858),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 8.0,
-                              ),
                               Text(
                                 "by",
                                 style: TextStyle(
@@ -135,94 +137,114 @@ class FolderExplorer extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
-                        onTap: () {
-                           //TODO
-                        },
-                        child: const Icon(
-                          Icons.arrow_downward,
-                          size: 30.0,
-                          color: Color(
-                              0x7F000000), // TODO change colour on download
-                        )),
-                    PopupMenuButton(
-                      splashRadius: 1,
-                      icon: const Icon(
-                        Icons.more_vert,
+                      onTap: () async {
+                        // final res = await getDownloadLink(
+                        //     data["children"][index]["id"]);
+
+                        showSnackBar('Download Feature Coming soon!', context);
+                      },
+                      child: const Icon(
+                        Icons.download_for_offline_outlined,
                         size: 30.0,
+                        color: Color.fromRGBO(0, 0, 0, 0.75),
                       ),
-                      onSelected: (value) {
-                        if (value == '/fav') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              action: SnackBarAction(
-                                label: "UNDO",
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          behavior: SnackBarBehavior.floating,
-                                          margin:
-                                              EdgeInsets.only(bottom: 125.0),
-                                          duration: Duration(seconds: 1),
-                                          content: Text('UNDO SUCCESSFUL!')));
-                                },
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                              margin: const EdgeInsets.only(bottom: 125.0),
-                              duration: const Duration(seconds: 1),
-                              content: const Text('Added to Favourites!'),
-                            ),
-                          );
-                          // TODO
-                        } else if (value == '/share') {
-                          String link = "link";
-                          Clipboard.setData(ClipboardData(
-                            text: link,
-                          )).then((_) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    behavior: SnackBarBehavior.floating,
-                                    margin: EdgeInsets.only(bottom: 125.0),
-                                    duration: Duration(seconds: 1),
-                                    content: Text(
-                                        'Share link copied to your clipboard!')));
-                          });
-                          // TODO
-                        }
-                      },
-                      itemBuilder: (BuildContext bc) {
-                        return [
-                          PopupMenuItem(
-                            value: '/fav',
-                            child: Row(
-                              children: const [
-                                Text("Favourite"),
-                                Spacer(),
-                                Icon(
-                                  Icons.star,
-                                  size: 30.0,
-                                  color: Color(0x7F000000),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: '/share',
-                            child: Row(
-                              children: const [
-                                Text("Share"),
-                                Spacer(),
-                                Icon(
-                                  Icons.share,
-                                  size: 30.0,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ];
-                      },
                     ),
                     const SizedBox(
-                      width: 10.0,
+                      width: 10,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        showSnackBar('Add to favourites Coming soon!', context);
+                      },
+                      child: !isFavourite
+                          ? const Icon(
+                              Icons.star_border_outlined,
+                              color: Color.fromRGBO(0, 0, 0, 0.75),
+                              size: 30,
+                            )
+                          : const Icon(
+                              Icons.star_purple500_sharp,
+                              color: Themes.kYellow,
+                              size: 30,
+                            ),
+                    ),
+
+                    // PopupMenuButton(
+                    //   splashRadius: 1,
+                    //   icon: const Icon(
+                    //     Icons.more_vert,
+                    //     size: 30.0,
+                    //   ),
+                    //   onSelected: (value) {
+                    //     if (value == '/fav') {
+                    //       ScaffoldMessenger.of(context).showSnackBar(
+                    //         SnackBar(
+                    //           action: SnackBarAction(
+                    //             label: "UNDO",
+                    //             onPressed: () {
+                    //               ScaffoldMessenger.of(context).showSnackBar(
+                    //                 const SnackBar(
+                    //                   behavior: SnackBarBehavior.floating,
+                    //                   margin: EdgeInsets.only(bottom: 125.0),
+                    //                   duration: Duration(seconds: 1),
+                    //                   content: Text('UNDO SUCCESSFUL!'),
+                    //                 ),
+                    //               );
+                    //             },
+                    //           ),
+                    //           behavior: SnackBarBehavior.floating,
+                    //           margin: const EdgeInsets.only(bottom: 125.0),
+                    //           duration: const Duration(seconds: 1),
+                    //           content: const Text('Added to Favourites!'),
+                    //         ),
+                    //       );
+                    //       // TODO
+                    //     } else if (value == '/share') {
+                    //       String link = "link";
+                    //       Clipboard.setData(ClipboardData(
+                    //         text: link,
+                    //       )).then(
+                    //         (_) {
+                    //           showSnackBar(
+                    //               'Share Link copied to clipboard!', context);
+                    //         },
+                    //       );
+                    //     }
+                    //   },
+                    //   itemBuilder: (BuildContext bc) {
+                    //     return [
+                    //       PopupMenuItem(
+                    //         value: '/fav',
+                    //         child: Row(
+                    //           children: const [
+                    //             Text("Favourite"),
+                    //             Spacer(),
+                    //             Icon(
+                    //               Icons.star,
+                    //               size: 30.0,
+                    //               color: Color(0x7F000000),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //       PopupMenuItem(
+                    //         value: '/share',
+                    //         child: Row(
+                    //           children: const [
+                    //             Text("Share"),
+                    //             Spacer(),
+                    //             Icon(
+                    //               Icons.share,
+                    //               size: 30.0,
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ];
+                    //   },
+                    // ),
+                    const SizedBox(
+                      width: 15.0,
                     ),
                   ],
                 ),

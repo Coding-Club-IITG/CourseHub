@@ -7,12 +7,11 @@ import '../../models/course.dart';
 
 class CourseCard extends StatelessWidget {
   final Course course;
-  final Function(String code) setBrowseCourseCodeCallback;
+
   final Function(int a) returnToPageCallback;
   const CourseCard({
     super.key,
     required this.course,
-    required this.setBrowseCourseCodeCallback,
     required this.returnToPageCallback,
   });
 
@@ -31,7 +30,7 @@ class CourseCard extends StatelessWidget {
             ),
             onTap: () {
               if (snapshot.data ?? false) {
-                setBrowseCourseCodeCallback(course.code);
+                CacheStore.saveBrowsedCourse(course.code);
                 returnToPageCallback(1);
               }
             },
@@ -45,7 +44,8 @@ class CourseCard extends StatelessWidget {
               ),
             ),
             onTap: () {
-              setBrowseCourseCodeCallback(course.code);
+              CacheStore.saveBrowsedCourse(course.code);
+
               returnToPageCallback(1);
             },
           );
@@ -65,7 +65,8 @@ class AvailableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: isAvailable
-          ? CacheStore.courseColor[course.code] ?? const Color.fromRGBO(99, 99, 99, 1)
+          ? CacheStore.courseColor[course.code] ??
+              const Color.fromRGBO(99, 99, 99, 1)
           : const Color.fromRGBO(99, 99, 99, 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +87,9 @@ class AvailableCard extends StatelessWidget {
                   ),
                 ),
                 Visibility(
-                  visible: CacheStore.courseColor[course.code]==null ? true :!isAvailable,
+                  visible: CacheStore.courseColor[course.code] == null
+                      ? true
+                      : !isAvailable,
                   child: Text(
                     'UNAVAILABLE',
                     style: Themes.darkTextTheme.labelSmall,

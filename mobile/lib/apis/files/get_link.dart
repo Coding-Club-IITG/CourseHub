@@ -22,3 +22,21 @@ Future<String> getPreviewLink(String id) async {
     rethrow;
   }
 }
+
+Future<String> getDownloadLink(String id) async {
+  final token = await getAccessToken();
+  if (token == 'error') {
+    throw ('token not found');
+  }
+  try {
+    final res = await http.get(
+      Uri.parse('${FileEndpoints.download}$id'),
+      headers: {"Authorization": token},
+    );
+
+    return jsonDecode(res.body)['url'];
+  } catch (e) {
+    rethrow;
+  }
+
+}

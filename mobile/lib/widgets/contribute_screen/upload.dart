@@ -1,3 +1,4 @@
+import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
@@ -35,41 +36,45 @@ class _UploadState extends State<Upload> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        FilePickerResult? result = await FilePicker.platform.pickFiles();
+        try {
+          FilePickerResult? result = await FilePicker.platform.pickFiles();
 
-        if (result != null) {
-          // ignore: unused_local_variable
-          File file = File(result.files.single.path ?? '');
-          widget.callback(file);
-          int length = basename(file.path).length;
-          String name = basename(file.path);
+          if (result != null) {
+            File file = File(result.files.single.path ?? '');
+            widget.callback(file);
+            int length = basename(file.path).length;
+            String name = basename(file.path);
 
-          if (length >= 20) {
-            name = '${basename(file.path).substring(0, 15)} ... ${basename(file.path).substring(length - 4, length)}';
-          }
+            if (length >= 20) {
+              name =
+                  '${basename(file.path).substring(0, 15)} ... ${basename(file.path).substring(length - 4, length)}';
+            }
 
-          setState(() {
-            center = Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                SizedBox(
-                  child: Text(
-                    name,
-                    style: Themes.darkTextTheme.bodyLarge,
+            setState(() {
+              center = Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
                   ),
-                ),
-              ],
-            );
-          });
-        } else {
-          widget.callback(null);
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  SizedBox(
+                    child: Text(
+                      name,
+                      style: Themes.darkTextTheme.bodyLarge,
+                    ),
+                  ),
+                ],
+              );
+            });
+          } else {
+            widget.callback(null);
+          }
+        } catch (e) {
+          showSnackBar('Something went wrong', context);
         }
       },
       child: DottedBorder(

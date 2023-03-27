@@ -33,7 +33,7 @@ String calculateBranch(int rollNumber) {
     case "03":
       return "Mechanical Engineering";
     default:
-      return branchCode;
+      return "Unknown Branch";
   }
 }
 

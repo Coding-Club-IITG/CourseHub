@@ -5,8 +5,8 @@ import 'package:hive_flutter/adapters.dart';
 import '../screens/splash_screen.dart';
 import './constants/themes.dart';
 
-//TODO: Do skl caching for android and ios flutter and bundle the apk
-//TODO: ERROR HANDLING EVERWHERW
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();

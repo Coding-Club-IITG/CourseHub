@@ -45,7 +45,7 @@ class FavouriteCard extends StatelessWidget {
           await _launchUrl(link);
           callback();
         } catch (e) {
-          showSnackBar('Something Wnet Wrong!', context);
+          showSnackBar('Something Went Wrong!', context);
         }
       },
       // color: Colors.black,

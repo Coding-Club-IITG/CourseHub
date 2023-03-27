@@ -1,6 +1,6 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
+import 'package:coursehub/models/favourites.dart';
 import 'package:flutter/material.dart';
-
 
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
@@ -16,6 +16,7 @@ class FavouritesScreen extends StatefulWidget {
 
 class _FavouritesScreenState extends State<FavouritesScreen> {
   var _isLoading = false;
+  late final List<Favourite> favourites;
 
   void setloading() {
     setState(() {
@@ -24,9 +25,13 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final favourites = HiveStore.getFavourites();
+  void initState() {
+    favourites = HiveStore.getFavourites();
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: CustomFadeInAnimation(
         child: favourites.isEmpty
@@ -34,8 +39,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
             : Stack(
                 children: [
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 30),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -85,9 +90,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                     ),
                   ),
                   Visibility(
-                    visible: _isLoading,
-                    child: const CustomLinearProgress(text: 'Generating Preview Link',)
-                  )
+                      visible: _isLoading,
+                      child: const CustomLinearProgress(
+                        text: 'Generating Preview Link',
+                      ))
                 ],
               ),
       ),
