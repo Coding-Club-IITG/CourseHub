@@ -43,14 +43,19 @@ dependencies:
   local_auth_android: ^1.0.18
   http: ^0.13.5
   flutter_svg: ^2.0.1
-  hive: any
-  hive_flutter: any
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
   file_picker: ^5.2.5
   animated_text_kit: ^4.2.2
   dotted_border: ^2.0.0+3
   dropdown_search: ^5.0.6
   flutter_custom_tabs: ^1.0.4
   intl: ^0.18.0
+  path_provider: ^2.0.14
+  open_filex: ^4.3.2
+  flutter_easyloading: ^3.0.5
+  path: ^1.8.2
+
 
 
 

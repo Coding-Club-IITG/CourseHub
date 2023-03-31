@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:coursehub/controllers/set_hive_store.dart';
 import 'package:hive/hive.dart';
 import '../../constants/endpoints.dart';
 import 'package:http/http.dart' as http;
@@ -18,10 +19,63 @@ Future<void> getCurrentUser() async {
 
     final body = jsonDecode(resp.body);
 
-
     var box = await Hive.openBox('coursehub-data');
     box.put('user', body);
   } catch (e) {
+    rethrow;
+  }
+}
+
+Future<void> addFavourites(
+    String name, String id, String path, String code) async {
+  final header = await getAccessToken();
+
+  if (header == 'error') {
+    throw ('token not found');
+  }
+  try {
+    final res = await http.post(
+      Uri.parse(UserEndpoints.addFav),
+      body: jsonEncode({"name": name, "id": id, "path": path, "code": code}),
+      headers: {
+        'Authorization': header,
+        'content-type': 'application/json',
+      },
+    );
+    final body = jsonDecode(res.body);
+
+    var box = await Hive.openBox('coursehub-data');
+    box.put('user', body);
+    await setHiveStore();
+  } catch (e) {
+
+    rethrow;
+  }
+}
+
+Future<void> removeFavourites(String id) async {
+  final header = await getAccessToken();
+
+  if (header == 'error') {
+    throw ('token not found');
+  }
+  try {
+    final res = await http.delete(
+      Uri.parse('${UserEndpoints.removeFav}$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Charset': 'utf-8',
+        'Authorization': header
+      },
+    );
+
+    final body = jsonDecode(res.body);
+    var box = await Hive.openBox('coursehub-data');
+    box.put('user', body);
+
+    await setHiveStore();
+  } catch (e) {
+
     rethrow;
   }
 }

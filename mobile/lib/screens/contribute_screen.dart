@@ -64,8 +64,8 @@ class _ContributeScreenState extends State<ContributeScreen> {
         children: [
           CustomFadeInAnimation(
             child: Padding(
-              padding:
-                  const EdgeInsets.only(top: 30, left: 30, right: 30, bottom: 35),
+              padding: const EdgeInsets.only(
+                  top: 30, left: 30, right: 30, bottom: 35),
               child: Form(
                 key: _key,
                 child: Column(
@@ -145,6 +145,9 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                     context);
                                 widget.callback(4);
                               } catch (e) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
                                 showSnackBar('Something Went Wrong!', context);
                               }
                             }
@@ -175,9 +178,10 @@ class _ContributeScreenState extends State<ContributeScreen> {
             ),
           ),
           Visibility(
-            visible: _isLoading,
-            child: const CustomLinearProgress(text: 'Uploading Your Contributions',)
-          )
+              visible: _isLoading,
+              child: const CustomLinearProgress(
+                text: 'Uploading Your Contributions',
+              ))
         ],
       ),
     );

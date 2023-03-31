@@ -1,5 +1,6 @@
+import 'package:coursehub/controllers/url_launcher.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../apis/files/get_link.dart';
 import '../../constants/themes.dart';
@@ -10,41 +11,28 @@ class FavouriteCard extends StatelessWidget {
   final String address;
   final String name;
   final String id;
-  final Function callback;
+  final Function setLoadingCallback;
   const FavouriteCard({
     super.key,
     required this.index,
     required this.address,
     required this.name,
     required this.id,
-    required this.callback,
+    required this.setLoadingCallback,
   });
 
-  Future<void> _launchUrl(String url) async {
-    callback();
-    await launch(url,
-        customTabsOption: CustomTabsOption(
-          animation: CustomTabsSystemAnimation.fade(),
-          toolbarColor: Colors.black,
-          showPageTitle: true,
-          enableDefaultShare: false,
-        ),
-        safariVCOption: const SafariViewControllerOption(
-            preferredBarTintColor: Colors.black,
-            preferredControlTintColor: Colors.white));
-    callback();
-  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
         try {
-          callback();
+          setLoadingCallback();
           final link = await getPreviewLink(id);
-          await _launchUrl(link);
-          callback();
+          await launchUrl(link);
+          setLoadingCallback();
         } catch (e) {
+          setLoadingCallback();
           showSnackBar('Something Went Wrong!', context);
         }
       },

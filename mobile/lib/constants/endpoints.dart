@@ -25,8 +25,8 @@ class FileEndpoints {
 
 class UserEndpoints {
   static const String currentUser = '$baseUrl/user/';
-  static const String addFav = '$baseUrl/user/favourite/';
-  static const String removeFav = '$baseUrl/user/favourite/';
+  static const String addFav = '$baseUrl/user/favourites/';
+  static const String removeFav = '$baseUrl/user/favourites/';
 }
 
 class AuthEndpoints {

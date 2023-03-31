@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
 
+
 Future<void> getUserCourses(String code) async {
   try {
     final response =
@@ -23,7 +24,6 @@ Future<void> getUserCourses(String code) async {
     }
     box.put('courses-data', data);
   } catch (e) {
-
     rethrow;
   }
 }
@@ -32,7 +32,7 @@ Future<void> addUserCourses(String code, String courseName) async {
   final token = await getAccessToken();
 
   try {
-     await http.post(
+    await http.post(
       Uri.parse(CoursesEndpoints.addCourse),
       body: jsonEncode(
         {'code': code, 'name': courseName.toLowerCase()},
@@ -40,6 +40,7 @@ Future<void> addUserCourses(String code, String courseName) async {
       headers: {'Authorization': token, 'content-type': 'application/json'},
     );
     await getCurrentUser();
+    await getUserCourses(code);
     await setHiveStore();
   } catch (e) {
     rethrow;

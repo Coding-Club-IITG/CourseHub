@@ -66,7 +66,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                               String myPath =
                                   "${favourites[index].path.split("/")[1]} > ${favourites[index].path.split("/")[2]}";
                               return FavouriteCard(
-                                callback: setloading,
+                                setLoadingCallback: setloading,
                                 id: favourites[index].favouriteId,
                                 index: favourites[index].code.toUpperCase(),
                                 address: myPath,
