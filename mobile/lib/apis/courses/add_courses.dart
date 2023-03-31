@@ -29,6 +29,8 @@ Future<void> getUserCourses(String code) async {
 }
 
 Future<void> addUserCourses(String code, String courseName) async {
+
+  
   final token = await getAccessToken();
 
   try {
