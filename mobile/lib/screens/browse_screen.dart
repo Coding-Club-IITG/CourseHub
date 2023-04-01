@@ -1,3 +1,5 @@
+
+
 import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
 import 'package:coursehub/constants/themes.dart';
@@ -118,8 +120,13 @@ class _BrowseScreen extends State<BrowseScreen> {
               }
               navigationCrumbs.removeLast();
 
-              return Container(
-                color: Colors.white,
+              return WillPopScope(
+                onWillPop: () async {
+                  level -= 2;
+                  removeFromPath(level);
+
+                  return false;
+                },
                 child: Column(
                   children: [
                     Expanded(

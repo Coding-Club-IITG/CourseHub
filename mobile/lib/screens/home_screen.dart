@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 26.0, vertical: 19.0),
                   child: GridView.builder(
-                    physics: const BouncingScrollPhysics(),
+                    physics: const AlwaysScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             splashColor: Colors.white10,
                             child: Container(
                               margin: const EdgeInsets.all(
-                                  0.6), // otherwise ditted border seems faded on some side on iphone
+                                  0.6), // otherwise dotted border seems faded on some side on iphone
                               child: DottedBorder(
                                 strokeWidth: 1,
                                 color: Colors.white,

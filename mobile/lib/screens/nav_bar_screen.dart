@@ -60,6 +60,7 @@ class _NavBarScreen extends State<NavBarScreen> {
     return Scaffold(
       appBar: const EmptyAppBar(),
       resizeToAvoidBottomInset: false,
+      
       body: SafeArea(
         child: Stack(
           children: [

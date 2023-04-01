@@ -1,7 +1,6 @@
 import 'package:coursehub/apis/courses/add_courses.dart';
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/database/hive_store.dart';
-import 'package:coursehub/models/course.dart';
 import 'package:coursehub/screens/splash_screen.dart';
 import 'package:coursehub/widgets/common/custom_linear_progress.dart';
 import 'package:coursehub/widgets/nav_bar/search_card.dart';
