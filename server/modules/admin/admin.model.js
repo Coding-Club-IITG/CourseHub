@@ -23,6 +23,13 @@ export const makeCourseValidationSchema = Joi.object({
     code: Joi.string().required(),
 });
 
+export const approveContributionSchema = Joi.object({
+    contributionId: Joi.string().required(),
+    fileId: Joi.string().required(),
+    folderId: Joi.string().required(),
+    name: Joi.string().required(),
+});
+
 const AdminSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },

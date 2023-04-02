@@ -1,4 +1,31 @@
 import fs from "fs";
+import { getAccessToken } from "../onedrive/onedrive.routes.js";
+import axios from "axios";
+export async function moveFile(fileId, folderId, name) {
+    const accessToken = await getAccessToken();
+    var headers = {
+        Authorization: `Bearer ${accessToken}`,
+        Host: "graph.microsoft.com",
+    };
+    var url = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}`;
+    var config = {
+        method: "patch",
+        url: url,
+        headers: headers,
+        data: {
+            parentReference: {
+                id: folderId,
+            },
+            name: name,
+        },
+    };
+    const response = await axios.patch(config.url, config.data, {
+        headers: config.headers,
+    });
+
+    return response?.data;
+}
+
 function formatCourseAdmin(course) {
     const root = course.children;
     const ret = [];
@@ -256,4 +283,4 @@ const data = {
     ],
     books: [],
 };
-formatCourseAdmin(data);
+// formatCourseAdmin(data);
