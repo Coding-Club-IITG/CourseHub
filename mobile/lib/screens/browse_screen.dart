@@ -1,5 +1,6 @@
 
 
+import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
 import 'package:coursehub/constants/themes.dart';
@@ -127,54 +128,60 @@ class _BrowseScreen extends State<BrowseScreen> {
 
                   return false;
                 },
-                child: Column(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        color: Themes.kYellow,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          itemBuilder: (context, index) =>
-                              navigationCrumbs[index],
-                          itemCount: navigationCrumbs.length,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                        color: Themes.kYellow,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Text(
-                            currentTitle,
-                            overflow: TextOverflow.ellipsis,
-                            style: Themes.darkTextTheme.displayLarge,
+                child:
+                
+                
+                
+                 CustomFadeInAnimation(
+                   child: Column(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          color: Themes.kYellow,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemBuilder: (context, index) =>
+                                navigationCrumbs[index],
+                            itemCount: navigationCrumbs.length,
                           ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 20,
-                      child: FolderExplorer(
-                        data: dataToShow,
-                        callback: addToPathCallback,
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          color: Themes.kYellow,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              currentTitle,
+                              overflow: TextOverflow.ellipsis,
+                              style: Themes.darkTextTheme.displayLarge,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: YearDiv(
-                        callback: handleClick,
-                        availableYears: availableYears,
-                        year: year,
+                      Expanded(
+                        flex: 20,
+                        child: FolderExplorer(
+                          data: dataToShow,
+                          callback: addToPathCallback,
+                        ),
                       ),
-                    )
-                  ],
-                ),
+                      Expanded(
+                        flex: 3,
+                        child: YearDiv(
+                          callback: handleClick,
+                          availableYears: availableYears,
+                          year: year,
+                        ),
+                      )
+                    ],
+                                 ),
+                 ),
               );
             } else {
               return Center(

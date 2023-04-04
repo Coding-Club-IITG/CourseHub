@@ -1,6 +1,7 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/models/favourites.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
@@ -52,29 +53,42 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           height: 10.0,
                         ),
                         Expanded(
-                          child: GridView.builder(
-                            physics: const ScrollPhysics(
-                                parent: BouncingScrollPhysics()),
-                            itemCount: favourites.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 10.0,
-                                    mainAxisSpacing: 2.0,
-                                    childAspectRatio: 1.2),
-                            itemBuilder: (context, index) {
-                              String myPath =
-                                  "${favourites[index].path.split("/")[1]} > ${favourites[index].path.split("/")[2]}";
-                              return FavouriteCard(
-                                setLoadingCallback: setloading,
-                                id: favourites[index].favouriteId,
-                                index: favourites[index].code.toUpperCase(),
-                                address: myPath,
-                                name: favourites[index].name.length >= 30
-                                    ? "${favourites[index].name.substring(0, 30)} ...${favourites[index].name.substring(favourites[index].name.length - 4, favourites[index].name.length)}"
-                                    : favourites[index].name,
-                              );
-                            },
+                          child: AnimationLimiter(
+                            child: GridView.count(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10.0,
+                              mainAxisSpacing: 2.0,
+                              childAspectRatio: 1.2,
+                              children: List.generate(
+                                favourites.length,
+                                (int index) {
+                                  String myPath =
+                                      "${favourites[index].path.split("/")[1]} > ${favourites[index].path.split("/")[2]}";
+                                  return AnimationConfiguration.staggeredGrid(
+                                    columnCount: 2,
+                                    position: index,
+                                    duration: const Duration(milliseconds: 375),
+                                    child: ScaleAnimation(
+                                      scale: 0.5,
+                                      child: FadeInAnimation(
+                                        child: FavouriteCard(
+                                          setLoadingCallback: setloading,
+                                          id: favourites[index].favouriteId,
+                                          index: favourites[index]
+                                              .code
+                                              .toUpperCase(),
+                                          address: myPath,
+                                          name: favourites[index].name.length >=
+                                                  30
+                                              ? "${favourites[index].name.substring(0, 30)} ...${favourites[index].name.substring(favourites[index].name.length - 4, favourites[index].name.length)}"
+                                              : favourites[index].name,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         ),
                         Visibility(

@@ -2,6 +2,7 @@ import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/models/contribution.dart';
 import 'package:coursehub/models/user.dart';
 import "package:flutter/material.dart";
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';
 import '../widgets/profile_screen/semester_card.dart';
@@ -17,7 +18,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final User user;
-  late final  String branch;
+  late final String branch;
   late final List<Contribution> contributionList;
 
   @override
@@ -114,12 +115,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 20),
-                    child: ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) => ContributionCard(
-                        contribution: contributionList[index],
+                    child: AnimationLimiter(
+                      child: ListView.builder(
+                        itemCount: contributionList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: ContributionCard(
+                                  contribution: contributionList[index],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      itemCount: contributionList.length,
                     ),
                   ),
                 )
