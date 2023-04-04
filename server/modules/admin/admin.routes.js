@@ -21,10 +21,11 @@ router.post("/otp", catchAsync(adminController.generateOTPHandler));
 router.post("/login", catchAsync(adminController.login));
 
 router.get("/", isAdmin, catchAsync(adminController.getAdmin));
-router.get("/onedrivecourses", isAdmin, catchAsync(adminController.getOnedriveCourses));
+router.get("/onedrivecourses", catchAsync(adminController.getOnedriveCourses));
 router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));
 router.delete("/course/:code", isAdmin, catchAsync(adminController.deleteCourseByCode));
 router.post("/course", isAdmin, catchAsync(adminController.makeCourseById));
 router.get("/course/:code", catchAsync(adminController.getCourseFolder));
+router.post("/approveFile", catchAsync(adminController.uploadToFolder));
 
 export default router;

@@ -10,10 +10,12 @@ import { getAllCourseIds, visitCourseById } from "../onedrive/onedrive.routes.js
 import SearchResults from "../search/search.model.js";
 import Admin, {
     adminValidationSchema,
+    approveContributionSchema,
     generateCodeValidaitionSchema,
     loginValidationSchema,
     makeCourseValidationSchema,
 } from "./admin.model.js";
+import { moveFile } from "./admin.utils.js";
 
 async function createAdmin(req, res, next) {
     const { body } = req;
@@ -117,6 +119,18 @@ async function makeCourseById(req, res, next) {
     return res.json({ created: true });
 }
 
+async function uploadToFolder(req, res, next) {
+    const { body } = req;
+    try {
+        await approveContributionSchema.validateAsync(body);
+    } catch (error) {
+        return next(new AppError(400, error.details));
+    }
+    const { contributionId, fileId, folderId, name } = body;
+    const resp = await moveFile(fileId, folderId, name);
+    return res.json(resp);
+}
+
 async function getCourseFolder(req, res, next) {
     const { code } = req.params;
     const existingCourse = await CourseModel.findOne({ code: code.toLowerCase() })
@@ -174,4 +188,5 @@ export default {
     deleteCourseByCode,
     makeCourseById,
     getCourseFolder,
+    uploadToFolder,
 };
