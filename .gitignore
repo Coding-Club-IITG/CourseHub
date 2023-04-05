@@ -1,5 +1,6 @@
 node_modules
 file-server
+dist
 .env
 
 access-token.token
