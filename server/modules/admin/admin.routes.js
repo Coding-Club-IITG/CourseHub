@@ -26,6 +26,6 @@ router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));
 router.delete("/course/:code", isAdmin, catchAsync(adminController.deleteCourseByCode));
 router.post("/course", isAdmin, catchAsync(adminController.makeCourseById));
 router.get("/course/:code", catchAsync(adminController.getCourseFolder));
-router.post("/approveFile", catchAsync(adminController.uploadToFolder));
+router.post("/contribution/approve", catchAsync(adminController.uploadToFolder));
 
 export default router;

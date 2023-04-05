@@ -15,7 +15,7 @@ import Admin, {
     loginValidationSchema,
     makeCourseValidationSchema,
 } from "./admin.model.js";
-import { moveFile } from "./admin.utils.js";
+import { moveAllFolderFiles, moveFile } from "./admin.utils.js";
 
 async function createAdmin(req, res, next) {
     const { body } = req;
@@ -126,8 +126,9 @@ async function uploadToFolder(req, res, next) {
     } catch (error) {
         return next(new AppError(400, error.details));
     }
-    const { contributionId, fileId, folderId, name } = body;
-    const resp = await moveFile(fileId, folderId, name);
+    const { contributionId, fromFolderId, toFolderId } = body;
+    const resp = await moveAllFolderFiles(fromFolderId, toFolderId);
+    // mark contribution approved
     return res.json(resp);
 }
 

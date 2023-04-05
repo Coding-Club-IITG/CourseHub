@@ -1,6 +1,28 @@
 import fs from "fs";
 import { getAccessToken } from "../onedrive/onedrive.routes.js";
 import axios from "axios";
+
+export async function moveAllFolderFiles(fromFolderId, toFolderId) {
+    const accessToken = await getAccessToken();
+    var headers = {
+        Authorization: `Bearer ${accessToken}`,
+        Host: "graph.microsoft.com",
+    };
+    var url = `https://graph.microsoft.com/v1.0/me/drive/items/${fromFolderId}/children`;
+    var config = {
+        method: "get",
+        url: url,
+        headers: headers,
+    };
+    const response = await axios.get(config.url, {
+        headers: config.headers,
+    });
+    // console.log(response.data.value);
+    response.data.value.map(async (file) => {
+        await moveFile(file.id, toFolderId, file.name);
+    });
+}
+
 export async function moveFile(fileId, folderId, name) {
     const accessToken = await getAccessToken();
     var headers = {

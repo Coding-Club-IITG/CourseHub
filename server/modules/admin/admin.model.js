@@ -25,9 +25,8 @@ export const makeCourseValidationSchema = Joi.object({
 
 export const approveContributionSchema = Joi.object({
     contributionId: Joi.string().required(),
-    fileId: Joi.string().required(),
-    folderId: Joi.string().required(),
-    name: Joi.string().required(),
+    fromFolderId: Joi.string().required(),
+    toFolderId: Joi.string().required(),
 });
 
 const AdminSchema = new mongoose.Schema({
