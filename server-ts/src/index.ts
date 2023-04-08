@@ -4,9 +4,13 @@ import dotenv from "dotenv";
 import mainRouter from "./main-router";
 import { errorHandler } from "./middlewares/error-handler";
 import { DatabaseConnectionError } from "./errors/database-connection-error";
+import cookieSession from "cookie-session";
+import "express-async-errors";
+
 dotenv.config();
 
 export const app = express();
+app.use(cookieSession({ signed: false }));
 
 async function startServer() {
   if (!process.env.MONGO_URI) {
