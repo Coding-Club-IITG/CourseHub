@@ -51,7 +51,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-         manifestPlaceholders +=[appAuthRedirectScheme: 'coursehub']
+         manifestPlaceholders +=[appAuthRedirectScheme: 'placeholder-text']
         
     }
 
