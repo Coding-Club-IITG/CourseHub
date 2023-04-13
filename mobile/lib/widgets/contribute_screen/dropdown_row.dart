@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../constants/all_courses.dart';
 import '../../constants/themes.dart';
 import '../../constants/years_sections.dart';
-import '../../controllers/letter_capitalizer.dart';
+import '../../utilities/letter_capitalizer.dart';
 
 class DropdownRow extends StatefulWidget {
   final String label;

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:coursehub/controllers/set_hive_store.dart';
+import 'package:coursehub/utilities/set_hive_store.dart';
 import 'package:hive/hive.dart';
 import '../../constants/endpoints.dart';
 import 'package:http/http.dart' as http;

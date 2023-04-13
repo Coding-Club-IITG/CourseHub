@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         top: Platform.isAndroid,
+        bottom: Platform.isAndroid,
         child: Stack(
           children: [
             Container(
@@ -72,61 +73,65 @@ class _LoginScreenState extends State<LoginScreen> {
                 Expanded(
                   flex: 2,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 16),
+                    padding: const EdgeInsets.only(
+                        top: 20, left: 16,right: 16),
                     color: Themes.kYellow,
                     child: Column(
                       children: [
                         const Expanded(
-                          flex: 4,
+                          flex: 3,
                           child: Text(
                             'Your go-to platform for all your academic needs. Get access to past papers, lecture slides, assignments, tutorials, notes and more to help you ace your exams',
                             textAlign: TextAlign.left,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Colors.black,
-                              fontSize: 14.0,
+                              fontSize: 13.0,
+                            ),
+                          ),
+                        ),
+                     
+                   
+                        Expanded(
+                          flex: 3,
+                          child: Material(
+                            color: Colors.black,
+                            child: InkWell(
+                              splashColor: Colors.white,
+                              onTap: () async {
+                                try {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+                                  await authenticate();
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                  if (!mounted) return;
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (context) => const NavBarScreen(),
+                                    ),
+                                  );
+                          
+                                  showSnackBar(
+                                      'Successfully Logged In!', context);
+                                } catch (e) {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                          
+                                  showSnackBar('Something Went Wrong!', context);
+                                }
+                              },
+                              child: const LoginButton(),
                             ),
                           ),
                         ),
                         const SizedBox(height: 10,),
-                        
-                        
-                        Expanded(
-                          flex: 4,
-                          child: GestureDetector(
-                            onTap: () async {
-                              try {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                await authenticate();
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                                if (!mounted) return;
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                    builder: (context) => const NavBarScreen(),
-                                  ),
-                                );
+                
 
-                                showSnackBar(
-                                    'Successfully Logged In!', context);
-                              } catch (e) {
-                                setState(() {
-                                  _isLoading = false;
-                                });
 
-                                showSnackBar('Something Went Wrong!', context);
-                              }
-                            },
-                            child: const LoginButton(),
-                          ),
-                        ),
-                       const Spacer(flex: 1,),
-
-                       
                         Expanded(
                           flex: 2,
                           child: GestureDetector(
@@ -163,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: TextDecoration.underline),
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/validation.dart';
+import '../../utilities/validation.dart';
 
 class CustomTextformfield extends StatelessWidget {
   final TextEditingController controller;

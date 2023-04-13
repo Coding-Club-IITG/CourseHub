@@ -8,7 +8,7 @@ class LoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      color: Colors.black,
+
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

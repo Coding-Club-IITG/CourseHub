@@ -9,7 +9,7 @@ import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
-import '../../controllers/set_hive_store.dart';
+import '../../utilities/set_hive_store.dart';
 import '../../database/hive_store.dart';
 import '../../models/user.dart';
 import '../../screens/login_screen.dart';

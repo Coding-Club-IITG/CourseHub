@@ -1,6 +1,7 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/models/contribution.dart';
 import 'package:coursehub/models/user.dart';
+import 'package:coursehub/widgets/common/nav_bar.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../constants/themes.dart';
@@ -10,7 +11,16 @@ import '../widgets/profile_screen/semester_card.dart';
 import '../database/hive_store.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  final Function(int a) returnToPageCallback;
+
+
+
+  const ProfileScreen({super.key,
+    required this.returnToPageCallback,
+  });
+
+  
+
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -36,13 +46,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          NavBar(searchCallback: widget.returnToPageCallback,),
           Stack(
             alignment: Alignment.bottomCenter,
             children: [
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(
-                    left: 30, top: 30, right: 20, bottom: 0),
+                    left: 30, top: 10, right: 20, bottom: 0),
                 color: Colors.black,
                 child: CustomFadeInAnimation(
                   child: Column(
@@ -79,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 5,
                       ),
                       const SizedBox(
                         height: 25,

@@ -3,11 +3,14 @@ import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
 import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/controllers/downloader.dart';
+import 'package:coursehub/utilities/downloader.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/models/favourites.dart';
+import 'package:coursehub/utilities/file_size.dart';
+import 'package:coursehub/utilities/letter_capitalizer.dart';
 import 'package:coursehub/widgets/common/custom_linear_progress.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
+import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
@@ -16,7 +19,7 @@ import 'package:open_filex/open_filex.dart';
 
 import 'package:path_provider/path_provider.dart';
 
-import '../../controllers/url_launcher.dart';
+import '../../utilities/url_launcher.dart';
 
 class FolderExplorer extends StatefulWidget {
   final Map<dynamic, dynamic> data;
@@ -38,31 +41,47 @@ class _FolderExplorerState extends State<FolderExplorer> {
       List<Widget> folders = [];
       for (var e in widget.data["children"]) {
         folders.add(
-          Ink(
-            child: InkWell(
-              onTap: () => widget.callback(e["name"]),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Stack(
-                  children: [
-                    SvgPicture.asset(
-                      "assets/folder_card.svg",
-                      width: double.infinity,
+          SplashOnPressed(
+            onPressed: () {
+              widget.callback(e["name"]);
+            },
+            splashColor: Colors.grey,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Stack(
+                children: [
+                  SvgPicture.asset(
+                    "assets/folder_card.svg",
+                    width: double.infinity,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 20.0, 20, 0),
+                    child: Text(
+                      e["name"],
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 20.0, 0, 0),
+                  ),
+                  Align(
+                    alignment: const Alignment(0.7,0.9),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 1, 10),
                       child: Text(
-                        e["name"],
+                        widget.data["course"].toString().toUpperCase(),
                         style: const TextStyle(
-                          fontFamily: "ProximaNova",
-                          fontSize: 18.0,
+                          fontSize: 14.0,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                          color: Colors.black54,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -145,6 +164,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                   if (snapshot.hasData) {
                                     bool isDownloaded = snapshot.data ?? false;
                                     return Material(
+                                      color: Colors.transparent,
                                       child: InkWell(
                                         onTap: () async {
                                           if (isDownloaded) {
@@ -181,38 +201,42 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                             }
                                           }
                                         },
-                                        splashColor: Themes.kYellow,
+                                        splashColor: Colors.grey,
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
                                               vertical: 16.0),
-                                          decoration: const BoxDecoration(
-                                              border:
-                                                  Border(bottom: BorderSide())),
                                           child: Row(
                                             children: [
                                               const SizedBox(
                                                 width: 12.0,
                                               ),
-                                              SizedBox(
-                                                width: 30.0,
-                                                height: 40.0,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      const Color.fromRGBO(
-                                                          254, 207, 111, 0.5),
-                                                  child: Image.network(
-                                                    widget.data["children"]
-                                                        [index]["thumbnail"],
-                                                    errorBuilder: (context,
-                                                        error, stackTrace) {
-                                                      return const Icon(
-                                                        Icons
-                                                            .filter_b_and_w_sharp,
-                                                        color: Color.fromRGBO(
-                                                            0, 0, 0, 0.75),
-                                                      );
-                                                    },
-                                                  ),
+                                              Container(
+                                                width: 48.0,
+                                                height: 48.0,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                        141,
+                                                        141,
+                                                        141,
+                                                        1,
+                                                      ),
+                                                      width: 0.7),
+                                                ),
+                                                child: Image.network(
+                                                  widget.data["children"][index]
+                                                      ["thumbnail"],
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return const Icon(
+                                                      Icons
+                                                          .filter_b_and_w_sharp,
+                                                      color: Color.fromRGBO(
+                                                          0, 0, 0, 0.75),
+                                                    );
+                                                  },
                                                 ),
                                               ),
                                               const SizedBox(
@@ -224,14 +248,31 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      name,
+                                                      letterCapitalizer(name),
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       style: const TextStyle(
                                                         fontWeight:
-                                                            FontWeight.w500,
-                                                        fontSize: 18.0,
+                                                            FontWeight.w400,
+                                                        fontSize: 15.0,
                                                         color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 4,
+                                                    ),
+                                                    Text(
+                                                      '${name.split('.').last.toUpperCase()} • ${fileSize(widget.data["children"][index]["size"])}',
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            "ProximaNova",
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        fontSize: 12.0,
+                                                        color:
+                                                            Color(0xFF585858),
                                                       ),
                                                     ),
                                                     const Text(
@@ -241,7 +282,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                             "ProximaNova",
                                                         fontWeight:
                                                             FontWeight.w400,
-                                                        fontSize: 14.0,
+                                                        fontSize: 12.0,
                                                         color:
                                                             Color(0xFF585858),
                                                       ),

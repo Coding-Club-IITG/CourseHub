@@ -1,15 +1,21 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/models/favourites.dart';
+import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
 import '../widgets/common/custom_linear_progress.dart';
-import '../widgets/favourite_screen/favourite_card.dart';
+import '../widgets/favourite_screen/favourite_tile.dart';
 
 class FavouritesScreen extends StatefulWidget {
-  const FavouritesScreen({super.key});
+  final Function(int a) returnToPageCallback;
+
+  const FavouritesScreen({
+    super.key,
+    required this.returnToPageCallback,
+  });
 
   @override
   State<FavouritesScreen> createState() => _FavouritesScreenState();
@@ -34,82 +40,78 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomFadeInAnimation(
-        child: favourites.isEmpty
-            ? const EmptyList()
-            : Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          NavBar(
+            searchCallback: widget.returnToPageCallback,
+          ),
+          Expanded(
+            child: CustomFadeInAnimation(
+              child: favourites.isEmpty
+                  ? const EmptyList()
+                  : Stack(
                       children: [
-                        Text(
-                          "FAVOURITES",
-                          style: Themes.darkTextTheme.displayLarge,
-                        ),
-                        const SizedBox(
-                          height: 10.0,
-                        ),
-                        Expanded(
-                          child: AnimationLimiter(
-                            child: GridView.count(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 10.0,
-                              mainAxisSpacing: 2.0,
-                              childAspectRatio: 1.2,
-                              children: List.generate(
-                                favourites.length,
-                                (int index) {
-                                  String myPath =
-                                      "${favourites[index].path.split("/")[1]} > ${favourites[index].path.split("/")[2]}";
-                                  return AnimationConfiguration.staggeredGrid(
-                                    columnCount: 2,
-                                    position: index,
-                                    duration: const Duration(milliseconds: 375),
-                                    child: ScaleAnimation(
-                                      scale: 0.5,
-                                      child: FadeInAnimation(
-                                        child: FavouriteCard(
-                                          setLoadingCallback: setloading,
-                                          id: favourites[index].favouriteId,
-                                          index: favourites[index]
-                                              .code
-                                              .toUpperCase(),
-                                          address: myPath,
-                                          name: favourites[index].name.length >=
-                                                  30
-                                              ? "${favourites[index].name.substring(0, 30)} ...${favourites[index].name.substring(favourites[index].name.length - 4, favourites[index].name.length)}"
-                                              : favourites[index].name,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 20, horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              
+                              const SizedBox(
+                                height: 10.0,
                               ),
-                            ),
+                              Expanded(
+                                child: AnimationLimiter(
+                                  child: ListView.builder(
+                                      itemCount: favourites.length + 1,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                    
+
+                                        if (index >= favourites.length) {
+                                          return Center(
+                                            child: Image.asset(
+                                              'assets/favourites.png',
+                                              height: 280,
+                                            ),
+                                          );
+                                        } else {
+                                          return AnimationConfiguration
+                                              .staggeredList(
+                                            position: index,
+                                            duration: const Duration(
+                                                milliseconds: 375),
+                                            child: SlideAnimation(
+                                              verticalOffset: 50.0,
+                                              child: FadeInAnimation(
+                                                child: FavouriteTile(
+                                                  setLoadingCallback:
+                                                      setloading,
+                                                  favourite: favourites[index],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }),
+                                ),
+                              ),
+                             
+                            ],
                           ),
                         ),
                         Visibility(
-                          visible: favourites.length <= 4,
-                          child: Center(
-                            child: Image.asset(
-                              'assets/favourites.png',
-                              height: 280,
-                            ),
+                          visible: _isLoading,
+                          child: const CustomLinearProgress(
+                            text: 'Generating Preview Link',
                           ),
                         )
                       ],
                     ),
-                  ),
-                  Visibility(
-                      visible: _isLoading,
-                      child: const CustomLinearProgress(
-                        text: 'Generating Preview Link',
-                      ))
-                ],
-              ),
+            ),
+          ),
+        ],
       ),
     );
   }

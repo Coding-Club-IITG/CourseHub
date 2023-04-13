@@ -24,8 +24,8 @@ class BreadCrumb extends StatelessWidget {
               child: Text(
                 name,
                 style: const TextStyle(
-                  color: Colors.black,
-                  decorationColor: Colors.black,
+                  color: Colors.white,
+                  decorationColor: Colors.white,
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.w400,
                   fontSize: 18.0,
@@ -36,7 +36,7 @@ class BreadCrumb extends StatelessWidget {
           const SizedBox(
             width: 8.0,
           ),
-          const Icon(Icons.chevron_right),
+          const Icon(Icons.chevron_right,color: Colors.white,),
         ],
       ),
     );

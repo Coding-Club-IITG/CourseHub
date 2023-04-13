@@ -1,0 +1,10 @@
+<svg width="50" height="40" viewBox="0 0 50 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 39V1H41.8193L49.2968 8.52597V39H1Z" fill="#F1F3DA"/>
+<path d="M49.2968 8.52597V39H1V1H41.8193M49.2968 8.52597L41.8193 1M49.2968 8.52597H41.8193V1" stroke="black" stroke-width="0.268315"/>
+<line x1="4" y1="9.87742" x2="45.9226" y2="9.87742" stroke="black" stroke-opacity="0.35" stroke-width="0.245161"/>
+<line x1="4" y1="15.8774" x2="45.9226" y2="15.8774" stroke="black" stroke-opacity="0.35" stroke-width="0.245161"/>
+<line x1="4" y1="21.8774" x2="45.9226" y2="21.8774" stroke="black" stroke-opacity="0.35" stroke-width="0.245161"/>
+<line x1="4" y1="27.8774" x2="45.9226" y2="27.8774" stroke="black" stroke-opacity="0.35" stroke-width="0.245161"/>
+<line x1="4" y1="33.8774" x2="45.9226" y2="33.8774" stroke="black" stroke-opacity="0.35" stroke-width="0.245161"/>
+<path d="M23.2787 17.8197L25.3443 13L27.4098 17.8197L32.6885 18.2787L28.6721 21.8361L29.9344 27L25.3443 24.2459L20.7541 27L22.0164 21.8361L18 18.2787L23.2787 17.8197Z" fill="black" fill-opacity="0.2" stroke="black" stroke-width="0.27"/>
+</svg>

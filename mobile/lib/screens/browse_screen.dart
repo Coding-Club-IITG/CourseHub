@@ -3,7 +3,6 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
-import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/widgets/browse_screen/year_div.dart';
 import 'package:coursehub/widgets/browse_screen/bread_crumbs.dart';
@@ -135,11 +134,12 @@ class _BrowseScreen extends State<BrowseScreen> {
                  CustomFadeInAnimation(
                    child: Column(
                     children: [
+                       
                       Expanded(
                         flex: 2,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          color: Themes.kYellow,
+                          color: Colors.black,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             physics: const BouncingScrollPhysics(),
@@ -149,19 +149,28 @@ class _BrowseScreen extends State<BrowseScreen> {
                           ),
                         ),
                       ),
+                     
                       Expanded(
                         flex: 2,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 18),
-                          color: Themes.kYellow,
+                          color: Colors.black,
                           child: SizedBox(
                             width: double.infinity,
                             child: Text(
                               currentTitle,
                               overflow: TextOverflow.ellipsis,
-                              style: Themes.darkTextTheme.displayLarge,
+                              style: const TextStyle(fontSize: 24,color: Colors.white,fontWeight: FontWeight.w700),
                             ),
                           ),
+                        ),
+                      ),
+                       Expanded(
+                        flex: 3,
+                        child: YearDiv(
+                          callback: handleClick,
+                          availableYears: availableYears,
+                          year: year,
                         ),
                       ),
                       Expanded(
@@ -171,14 +180,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                           callback: addToPathCallback,
                         ),
                       ),
-                      Expanded(
-                        flex: 3,
-                        child: YearDiv(
-                          callback: handleClick,
-                          availableYears: availableYears,
-                          year: year,
-                        ),
-                      )
+                     
                     ],
                                  ),
                  ),

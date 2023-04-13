@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../constants/themes.dart';
-
 class YearDiv extends StatelessWidget {
   final Function(String a) callback;
   final List<String> availableYears;
@@ -15,47 +13,48 @@ class YearDiv extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    availableYears.sort((b, a) => a.compareTo(b));
     return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
-      child: Row(
-        children: [
-          Text(
-            'YEAR',
-            style: Themes.theme.textTheme.labelMedium,
-          ),
-          const Spacer(),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-            color: Colors.white,
-            child: Row(
-              children: [
-                Text(
-                  year,
-                  style: const TextStyle(
-                    color: Colors.black,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            child: Material(
+              color: availableYears[index] == year ? Colors.black : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(0),
+                side: const BorderSide(color: Colors.black, width: 0.5),
+              ),
+              child: InkWell(
+                onTap: () {
+                  callback(availableYears[index]);
+                },
+                splashColor: Colors.grey,
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Center(
+                    child: Text(
+                      availableYears[index],
+                      style: TextStyle(
+                        fontWeight: availableYears[index] == year
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                        fontSize: 14,
+                        color: availableYears[index] != year
+                            ? Colors.black
+                            : Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-                PopupMenuButton<String>(
-                  onSelected: callback,
-                  itemBuilder: (context) {
-                    return availableYears.map((String choice) {
-                      return PopupMenuItem<String>(
-                        value: choice,
-                        child: Text(choice),
-                      );
-                    }).toList();
-                  },
-                  child: const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          );
+        },
+        itemCount: availableYears.length,
       ),
     );
   }

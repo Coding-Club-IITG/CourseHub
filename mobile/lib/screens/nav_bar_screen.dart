@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import '../apis/authentication/login.dart';
+
 import '../constants/themes.dart';
 import '../screens/browse_screen.dart';
 import '../screens/contribute_screen.dart';
@@ -19,27 +18,28 @@ class NavBarScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _NavBarScreen();
 }
 
-class _NavBarScreen extends State<NavBarScreen> {
+class _NavBarScreen extends State<NavBarScreen>
+    with SingleTickerProviderStateMixin {
   int _currentPageNumber = 0;
-  bool _isSearched = false;
+
   late List<Widget> screens;
+  late AnimationController _controller;
 
   void returnToPageCallback(int a) {
     setState(() {
+      if (_currentPageNumber == 2) _controller.reverse(from: 0.75);
       _currentPageNumber = a;
     });
   }
 
-  void hideSearch() {
-    setState(() {
-      _isSearched = false;
-    });
-  }
-
-
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      upperBound: 0.5,
+    );
     screens = [
       HomeScreen(
         returnToPageCallback: returnToPageCallback,
@@ -50,9 +50,18 @@ class _NavBarScreen extends State<NavBarScreen> {
       ContributeScreen(
         callback: returnToPageCallback,
       ),
-      const FavouritesScreen(),
-      const ProfileScreen(),
+      FavouritesScreen(returnToPageCallback: returnToPageCallback),
+      ProfileScreen(
+        returnToPageCallback: returnToPageCallback,
+      ),
+      SearchScreen(callback: () {})
     ];
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
   }
 
   @override
@@ -60,152 +69,134 @@ class _NavBarScreen extends State<NavBarScreen> {
     return Scaffold(
       appBar: const EmptyAppBar(),
       resizeToAvoidBottomInset: false,
-      
+      backgroundColor: Colors.white,
+      drawer: Drawer(
+        // Add a ListView to the drawer. This ensures the user can scroll
+        // through the options in the drawer if there isn't enough vertical
+        // space to fit everything.
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text('Drawer Header'),
+            ),
+            ListTile(
+              title: const Text('Item 1'),
+              onTap: () {
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text('Item 2'),
+              onTap: () {
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-                  color: Colors.black,
-                  child: !_isSearched
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              flex: 10,
-                              child: Text(
-                                'CourseHub',
-                                style: Themes.theme.textTheme.displayMedium,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _isSearched = true;
-                                  });
-                                },
-                                child: SvgPicture.asset(
-                                  'assets/search.svg',
-                                  colorFilter: const ColorFilter.mode(
-                                      Colors.white, BlendMode.srcIn),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 30,
-                            ),
-                            GestureDetector(
-                                onTap: () => logoutHandler(context),
-                                child: const Icon(
-                                  Icons.logout,
-                                  color: Colors.white,
-                                ))
-                          ],
-                        )
-                      : Container(),
+                Expanded(child: screens[_currentPageNumber]),
+                const SizedBox(
+                  height: 60,
                 ),
-                Expanded(
+              ],
+            ),
+            Column(
+              children: [
+                const Spacer(),
+                SizedBox(
+                  height: 90.0,
                   child: Stack(
                     children: [
                       Column(
                         children: [
-                          Expanded(child: screens[_currentPageNumber]),
-                          const SizedBox(
-                            height: 60,
-                          ),
+                          const Spacer(),
+                          Container(
+                            height: 68.0,
+                            color: const Color.fromRGBO(254, 207, 111, 1),
+                          )
                         ],
                       ),
-                      Column(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const Spacer(),
-                          SizedBox(
-                            height: 90.0,
-                            child: Stack(
-                              children: [
-                                Column(
-                                  children: [
-                                    const Spacer(),
-                                    Container(
-                                      height: 68.0,
-                                      color: const Color.fromRGBO(
-                                          254, 207, 111, 1),
-                                    )
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    NavBarIcon(
-                                        pageChangeCallback:
-                                            returnToPageCallback,
-                                        isSelected: _currentPageNumber == 0,
-                                        label: 'Home'),
-                                    NavBarIcon(
-                                        pageChangeCallback:
-                                            returnToPageCallback,
-                                        isSelected: _currentPageNumber == 1,
-                                        label: 'Browse'),
-                                    Column(
-                                      children: [
-                                        Ink(
-                                          child: InkWell(
-                                            onTap: () {
-                                              setState(() {
-                                                _currentPageNumber = 2;
-                                              });
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.white,
-                                                border: Border.all(
-                                                    color: Colors.black,
-                                                    width: 2.0),
-                                              ),
-                                              child: const Padding(
-                                                padding: EdgeInsets.all(16.0),
-                                                child: Icon(
-                                                  Icons.add,
-                                                  color: Colors.black,
-                                                  size: 24.0,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Text("Contribute",
-                                            style:
-                                                Themes.darkTextTheme.bodySmall),
-                                        const SizedBox(
-                                          height: 8.0,
-                                        )
-                                      ],
+                          NavBarIcon(
+                              pageChangeCallback: returnToPageCallback,
+                              isSelected: _currentPageNumber == 0,
+                              label: 'Home'),
+                          NavBarIcon(
+                              pageChangeCallback: returnToPageCallback,
+                              isSelected: _currentPageNumber == 1,
+                              label: 'Browse'),
+                          Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    if (_currentPageNumber != 2) {
+                                      _controller.forward(from: 0.0);
+                                    } else {
+                                      _controller.reverse(from: 0.75);
+                                    }
+                                    if (_currentPageNumber == 2) {
+                                      _currentPageNumber = 0;
+                                    } else {
+                                      _currentPageNumber = 2;
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2.0),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: RotationTransition(
+                                      turns: Tween(begin: 0.0, end: 0.75)
+                                          .animate(_controller),
+                                      child: const Icon(
+                                        Icons.add,
+                                        color: Colors.black,
+                                        size: 32.0,
+                                      ),
                                     ),
-                                    NavBarIcon(
-                                        pageChangeCallback:
-                                            returnToPageCallback,
-                                        isSelected: _currentPageNumber == 3,
-                                        label: 'Favourites'),
-                                    NavBarIcon(
-                                        pageChangeCallback:
-                                            returnToPageCallback,
-                                        isSelected: _currentPageNumber == 4,
-                                        label: 'Profile')
-                                  ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const Spacer(),
+                              Text("Contribute",
+                                  style: Themes.darkTextTheme.bodySmall),
+                              const SizedBox(
+                                height: 8.0,
+                              )
+                            ],
                           ),
+                          NavBarIcon(
+                              pageChangeCallback: returnToPageCallback,
+                              isSelected: _currentPageNumber == 3,
+                              label: 'Favourites'),
+                          NavBarIcon(
+                              pageChangeCallback: returnToPageCallback,
+                              isSelected: _currentPageNumber == 4,
+                              label: 'Profile')
                         ],
                       ),
                     ],
@@ -213,12 +204,6 @@ class _NavBarScreen extends State<NavBarScreen> {
                 ),
               ],
             ),
-            Visibility(
-              visible: _isSearched,
-              child: SearchScreen(
-                callback: hideSearch,
-              ),
-            )
           ],
         ),
       ),
