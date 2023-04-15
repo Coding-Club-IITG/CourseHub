@@ -47,30 +47,37 @@ class FavouriteTile extends StatelessWidget {
           showSnackBar('Something Went Wrong!', context);
         }
       },
-      child: ListTile(
-        leading: SvgPicture.asset('assets/favourite_file.svg'),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              path,
-              style: const TextStyle(
-                fontSize: 12,
-                overflow: TextOverflow.ellipsis,
-                fontWeight: FontWeight.w400,
-                color: Color.fromRGBO(37, 37, 37, 1),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: ListTile(
+          leading: SvgPicture.asset('assets/favourite_file.svg'),
+          
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            
+            children: [
+              Text(
+                path,
+                maxLines: 2,
+                style: const TextStyle(
+                  fontSize: 12,
+                  overflow: TextOverflow.ellipsis,
+                  fontWeight: FontWeight.w400,
+                  color: Color.fromRGBO(37, 37, 37, 1),
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Text(
-              letterCapitalizer(favourite.name.split('.')[0]),
-              style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
-            ),
-          ],
+              const SizedBox(
+                height: 5,
+              ),
+              Text(
+                letterCapitalizer(favourite.name.split('.')[0]),
+                style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+              ),
+                 
+            ],
+          ),
+          trailing: const Icon(Icons.more_vert_rounded),
         ),
-        trailing: const Icon(Icons.more_vert_rounded),
       ),
     );
   }

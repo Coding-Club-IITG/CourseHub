@@ -82,7 +82,7 @@ class _UploadState extends State<Upload> {
         color: widget.color,
         dashPattern: const [6],
         child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40), child: center),
+            padding: const EdgeInsets.symmetric(vertical: 30), child: center),
       ),
     );
   }
