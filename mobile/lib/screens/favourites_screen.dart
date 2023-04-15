@@ -24,6 +24,7 @@ class FavouritesScreen extends StatefulWidget {
 class _FavouritesScreenState extends State<FavouritesScreen> {
   var _isLoading = false;
   late final List<Favourite> favourites;
+  bool _groupByCourses = false;
 
   void setloading() {
     setState(() {
@@ -45,6 +46,39 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
           NavBar(
             searchCallback: widget.returnToPageCallback,
           ),
+          const SizedBox(
+            height: 10,
+          ),
+          Row(
+            children: [
+              const SizedBox(
+                width: 15,
+              ),
+              Checkbox(
+                value: _groupByCourses,
+                fillColor: MaterialStateProperty.all(Colors.transparent),
+                side: MaterialStateBorderSide.resolveWith(
+                  (states) => const BorderSide(width: 2.0, color: Colors.black),
+                ),
+                checkColor: Colors.black,
+                onChanged: (_) => {
+                  setState(
+                    () {
+                      _groupByCourses = !_groupByCourses;
+                    },
+                  )
+                },
+              ),
+           
+              const Text(
+                'Group By Course',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black),
+              )
+            ],
+          ),
           Expanded(
             child: CustomFadeInAnimation(
               child: favourites.isEmpty
@@ -53,11 +87,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 20),
+                              vertical: 10, horizontal: 12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              
                               const SizedBox(
                                 height: 10.0,
                               ),
@@ -67,8 +100,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                       itemCount: favourites.length + 1,
                                       itemBuilder:
                                           (BuildContext context, int index) {
-                                    
-
                                         if (index >= favourites.length) {
                                           return Center(
                                             child: Image.asset(
@@ -97,7 +128,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                       }),
                                 ),
                               ),
-                             
                             ],
                           ),
                         ),

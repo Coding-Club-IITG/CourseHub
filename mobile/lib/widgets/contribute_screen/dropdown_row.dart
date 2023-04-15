@@ -57,12 +57,15 @@ class _DropdownRowState extends State<DropdownRow> {
               flex: 6,
               child: DropdownButtonFormField(
                 decoration: const InputDecoration(
+                
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                   hintText: 'Describe you content...',
+                  
                   hintStyle: TextStyle(
                     color: Color.fromRGBO(140, 142, 151, 1),
                     fontWeight: FontWeight.w500,
+                    height: 0.1,
                     fontSize: 14,
                   ),
                   errorBorder: OutlineInputBorder(

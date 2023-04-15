@@ -11,6 +11,7 @@ import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:coursehub/widgets/contribute_screen/custom_textformfield.dart';
 import 'package:coursehub/widgets/contribute_screen/dropdown_row.dart';
 import 'package:coursehub/widgets/contribute_screen/upload.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ContributeScreen extends StatefulWidget {
   final Function(int a) callback;
@@ -65,11 +66,10 @@ class _ContributeScreenState extends State<ContributeScreen> {
         children: [
           Column(
             children: [
-              NavBar(searchCallback: (searchCallback){}),
+              NavBar(searchCallback: (searchCallback) {}),
               CustomFadeInAnimation(
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                      top: 30, left: 30, right: 30, bottom: 35),
+                  padding: const EdgeInsets.only(top: 10, left: 30, right: 30),
                   child: Form(
                     key: _key,
                     child: SingleChildScrollView(
@@ -104,7 +104,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                             callback: _onYearChange,
                           ),
                           const SizedBox(
-                            height: 20,
+                            height: 15,
                           ),
                           Text(
                             'DESCRIPTION',
@@ -117,7 +117,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                             controller: _descriptionController,
                           ),
                           const SizedBox(
-                            height: 20,
+                            height: 10,
                           ),
                           Upload(
                             color: color,
@@ -142,8 +142,12 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                       setState(() {
                                         _isLoading = true;
                                       });
-                                      await contributeData(file, _year, _course,
-                                          _section, _descriptionController.text);
+                                      await contributeData(
+                                          file,
+                                          _year,
+                                          _course,
+                                          _section,
+                                          _descriptionController.text);
                                       if (!mounted) return;
                                       setState(() {
                                         _isLoading = false;
@@ -167,7 +171,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                 }
                               },
                               child: Container(
-                                height: 50,
+                                height: 45,
                                 decoration: BoxDecoration(
                                     color: Colors.transparent,
                                     border: Border.all(
@@ -187,6 +191,11 @@ class _ContributeScreenState extends State<ContributeScreen> {
                   ),
                 ),
               ),
+              Expanded(
+                  child: SvgPicture.asset(
+                'assets/contribute.svg',
+                width: double.infinity,
+              ))
             ],
           ),
           Visibility(

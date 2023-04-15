@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
@@ -121,15 +123,20 @@ class _BrowseScreen extends State<BrowseScreen> {
               return WillPopScope(
                 onWillPop: () async {
                   level -= 2;
-                  removeFromPath(level);
 
-                  return false;
+                  if (level <=0) {
+                    widget.callback(0);
+                    return false;
+                  } else {
+                    removeFromPath(level);
+                    return false;
+                  }
                 },
                 child: CustomFadeInAnimation(
                   child: Column(
                     children: [
                       Expanded(
-                        flex: 5,
+                        flex: 4,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           color: Colors.black,
@@ -139,6 +146,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                                 height: 10,
                               ),
                               Expanded(
+                                flex: 2,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
                                   physics: const BouncingScrollPhysics(),
@@ -147,8 +155,8 @@ class _BrowseScreen extends State<BrowseScreen> {
                                   itemCount: navigationCrumbs.length,
                                 ),
                               ),
-                              SizedBox(
-                                width: double.infinity,
+                              Expanded(
+                                flex: 2,
                                 child: Row(
                                   children: [
                                     const SizedBox(
@@ -166,8 +174,9 @@ class _BrowseScreen extends State<BrowseScreen> {
                                 ),
                               ),
                               const SizedBox(
-                                height: 20,
-                              )
+                                height: 10,
+                              ),
+
                             ],
                           ),
                         ),
