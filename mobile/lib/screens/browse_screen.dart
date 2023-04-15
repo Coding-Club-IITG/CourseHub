@@ -1,5 +1,3 @@
-
-
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
@@ -127,45 +125,54 @@ class _BrowseScreen extends State<BrowseScreen> {
 
                   return false;
                 },
-                child:
-                
-                
-                
-                 CustomFadeInAnimation(
-                   child: Column(
+                child: CustomFadeInAnimation(
+                  child: Column(
                     children: [
-                       
                       Expanded(
-                        flex: 2,
+                        flex: 5,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           color: Colors.black,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            itemBuilder: (context, index) =>
-                                navigationCrumbs[index],
-                            itemCount: navigationCrumbs.length,
+                          child: Column(
+                            children: [
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  itemBuilder: (context, index) =>
+                                      navigationCrumbs[index],
+                                  itemCount: navigationCrumbs.length,
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
+                                    Text(
+                                      currentTitle,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontSize: 24,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              )
+                            ],
                           ),
                         ),
                       ),
-                     
                       Expanded(
-                        flex: 2,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          color: Colors.black,
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Text(
-                              currentTitle,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 24,color: Colors.white,fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ),
-                      ),
-                       Expanded(
                         flex: 3,
                         child: YearDiv(
                           callback: handleClick,
@@ -180,10 +187,9 @@ class _BrowseScreen extends State<BrowseScreen> {
                           callback: addToPathCallback,
                         ),
                       ),
-                     
                     ],
-                                 ),
-                 ),
+                  ),
+                ),
               );
             } else {
               return Center(
