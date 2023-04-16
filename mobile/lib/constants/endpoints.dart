@@ -5,7 +5,7 @@ class MiscellaneousEndpoints {
       '$baseUrl/exam'; //Needs params : semester_number
   static const String contributionList = '$baseUrl/contribution/';
   static const String guestLogin = '$baseUrl/auth/login/guest/';
-
+  static const String funFacts = '$baseUrl/miscellaneous/fun-facts/';
 }
 
 class CoursesEndpoints {
@@ -13,7 +13,8 @@ class CoursesEndpoints {
   static const String searchAvailable =
       '$baseUrl/search/available/'; // Needs params :course_code
   static const String course = '$baseUrl/course/'; //Needs params : course_code
-  static const String addCourse = '$baseUrl/user/course/'; //Needs params : code ,name
+  static const String addCourse =
+      '$baseUrl/user/course/'; //Needs params : code ,name
 }
 
 class FileEndpoints {

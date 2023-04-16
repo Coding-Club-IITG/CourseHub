@@ -61,12 +61,20 @@ class AvailableCard extends StatelessWidget {
   const AvailableCard(
       {super.key, required this.course, required this.isAvailable});
 
+      
+
   @override
   Widget build(BuildContext context) {
+
+    String? color = course.color!.replaceAll('#', '0xff');
+    
+
+    
+
     return Container(
+
       color: isAvailable
-          ? CacheStore.courseColor[course.code] ??
-              const Color.fromRGBO(99, 99, 99, 1)
+          ? Color(int.parse(color))
           : const Color.fromRGBO(99, 99, 99, 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +95,7 @@ class AvailableCard extends StatelessWidget {
                   ),
                 ),
                 Visibility(
-                  visible: CacheStore.courseColor[course.code] == null
+                  visible: CacheStore.courseAvailability[course.code] == null
                       ? true
                       : !isAvailable,
                   child: Text(

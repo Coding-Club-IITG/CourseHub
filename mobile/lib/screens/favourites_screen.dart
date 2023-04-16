@@ -1,8 +1,12 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
+import 'package:coursehub/constants/all_courses.dart';
 import 'package:coursehub/models/favourites.dart';
+import 'package:coursehub/utilities/letter_capitalizer.dart';
+import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
@@ -38,111 +42,142 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     super.initState();
   }
 
+  Future<bool> _isCourseGrouped() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('courseGrouped') ?? false;
+    } catch (e) {
+      showSnackBar('Something Went Wrong!', context);
+      rethrow;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          NavBar(
-            searchCallback: widget.returnToPageCallback,
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          Row(
-            children: [
-              const SizedBox(
-                width: 15,
-              ),
-              Checkbox(
-                value: _groupByCourses,
-                fillColor: MaterialStateProperty.all(Colors.transparent),
-                side: MaterialStateBorderSide.resolveWith(
-                  (states) => const BorderSide(width: 2.0, color: Colors.black),
+      body: FutureBuilder<bool>(
+          future: _isCourseGrouped(),
+          builder: (context, snapshot) {
+            _groupByCourses = snapshot.data ?? false;
+            return Column(
+              children: [
+                NavBar(
+                  searchCallback: widget.returnToPageCallback,
                 ),
-                checkColor: Colors.black,
-                onChanged: (_) => {
-                  setState(
-                    () {
-                      _groupByCourses = !_groupByCourses;
-                    },
-                  )
-                },
-              ),
-           
-              const Text(
-                'Group By Course',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black),
-              )
-            ],
-          ),
-          Expanded(
-            child: CustomFadeInAnimation(
-              child: favourites.isEmpty
-                  ? const EmptyList()
-                  : Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 15,
+                    ),
+                    Checkbox(
+                      value: _groupByCourses,
+                      fillColor: MaterialStateProperty.all(Colors.transparent),
+                      side: MaterialStateBorderSide.resolveWith(
+                        (states) =>
+                            const BorderSide(width: 2.0, color: Colors.black),
+                      ),
+                      checkColor: Colors.black,
+                      onChanged: (value) async {
+                        final prefs = await SharedPreferences.getInstance();
+
+                        prefs.setBool('courseGrouped', value ?? false);
+                        setState(
+                          () {
+                            _groupByCourses = !_groupByCourses;
+                          },
+                        );
+                      },
+                    ),
+                    const Text(
+                      'Group By Course',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black),
+                    )
+                  ],
+                ),
+                Expanded(
+                  child: CustomFadeInAnimation(
+                    child: favourites.isEmpty
+                        ? const EmptyList()
+                        : Stack(
                             children: [
-                              const SizedBox(
-                                height: 10.0,
-                              ),
-                              Expanded(
-                                child: AnimationLimiter(
-                                  child: ListView.builder(
-                                      itemCount: favourites.length + 1,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        if (index >= favourites.length) {
-                                          return Center(
-                                            child: Image.asset(
-                                              'assets/favourites.png',
-                                              height: 280,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(
+                                      height: 10.0,
+                                    ),
+                                    _groupByCourses
+                                        ? GroupedCourses(
+                                            setLoadingCallback: setloading,
+                                          )
+                                        : Expanded(
+                                            child: AnimationLimiter(
+                                              child: ListView.builder(
+                                                  itemCount:
+                                                      favourites.length + 1,
+                                                  itemBuilder:
+                                                      (BuildContext context,
+                                                          int index) {
+                                                    if (index >=
+                                                        favourites.length) {
+                                                      return Center(
+                                                        child: Image.asset(
+                                                          'assets/favourites.png',
+                                                          height: 280,
+                                                        ),
+                                                      );
+                                                    } else {
+                                                      return AnimationConfiguration
+                                                          .staggeredList(
+                                                        position: index,
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    375),
+                                                        child: SlideAnimation(
+                                                          verticalOffset: 50.0,
+                                                          child:
+                                                              FadeInAnimation(
+                                                            child:
+                                                                FavouriteTile(
+                                                              setLoadingCallback:
+                                                                  setloading,
+                                                              favourite:
+                                                                  favourites[
+                                                                      index],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  }),
                                             ),
-                                          );
-                                        } else {
-                                          return AnimationConfiguration
-                                              .staggeredList(
-                                            position: index,
-                                            duration: const Duration(
-                                                milliseconds: 375),
-                                            child: SlideAnimation(
-                                              verticalOffset: 50.0,
-                                              child: FadeInAnimation(
-                                                child: FavouriteTile(
-                                                  setLoadingCallback:
-                                                      setloading,
-                                                  favourite: favourites[index],
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      }),
+                                          ),
+                                  ],
                                 ),
                               ),
+                              Visibility(
+                                visible: _isLoading,
+                                child: const CustomLinearProgress(
+                                  text: 'Generating Preview Link',
+                                ),
+                              )
                             ],
                           ),
-                        ),
-                        Visibility(
-                          visible: _isLoading,
-                          child: const CustomLinearProgress(
-                            text: 'Generating Preview Link',
-                          ),
-                        )
-                      ],
-                    ),
-            ),
-          ),
-        ],
-      ),
+                  ),
+                ),
+              ],
+            );
+          }),
     );
   }
 }
@@ -181,6 +216,86 @@ class EmptyList extends StatelessWidget {
             width: 300,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class GroupedCourses extends StatelessWidget {
+  final Function setLoadingCallback;
+
+  const GroupedCourses({super.key, required this.setLoadingCallback});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Favourite> favourites = HiveStore.getFavourites();
+
+    Map<String, List<Favourite>> groupedFavourites = {};
+
+    for (var fav in favourites) {
+      if (groupedFavourites[fav.code.toLowerCase()] != null) {
+        groupedFavourites[fav.code.toLowerCase()]!.add(fav);
+      } else {
+        groupedFavourites[fav.code.toLowerCase()] = [fav];
+      }
+    }
+
+    return Expanded(
+      child: AnimationLimiter(
+        child: ListView.builder(
+            itemCount: groupedFavourites.length,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) {
+              String key = groupedFavourites.keys.elementAt(index);
+
+              final course =
+                  courses.firstWhere((course) => course['code'] == key);
+
+              List<Widget> children = [];
+
+              children.add(
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 15,
+                    ),
+                    Text(
+                      '${key.toUpperCase()}: ${letterCapitalizer(course['name'] ?? ' ')}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black),
+                    ),
+                  ],
+                ),
+              );
+
+              for (var fav in groupedFavourites[key]!) {
+                {
+                  children.add(FavouriteTile(
+                      favourite: fav, setLoadingCallback: setLoadingCallback));
+                }
+              }
+
+              children.add(const SizedBox(
+                height: 20,
+              ));
+
+              return AnimationConfiguration.staggeredList(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: children,
+                    ),
+                  ),
+                ),
+              );
+            }),
       ),
     );
   }

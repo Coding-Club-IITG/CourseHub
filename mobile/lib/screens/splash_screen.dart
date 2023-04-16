@@ -1,4 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:coursehub/apis/miscellaneous/funfacts.dart';
 import 'package:flutter/material.dart';
 import '../apis/authentication/login.dart';
 import 'login_screen.dart';
@@ -19,7 +20,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 2), () async {});
+    await Future.delayed(const Duration(seconds: 2), () async {
+      getFunFacts(fetchAgain: true);
+    });
 
     if (!mounted) return;
     Navigator.pushReplacement(

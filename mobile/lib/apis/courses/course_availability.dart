@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:math';
 
-import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:http/http.dart' as http;
 
@@ -19,7 +17,7 @@ Future<bool> isCourseAvailable(String coursecode) async {
 
     if (result['found']) {
       CacheStore.courseAvailability[coursecode] = true;
-      CacheStore.courseColor[coursecode] = colors[Random().nextInt(6)];
+
       return true;
     } else {
       CacheStore.courseAvailability[coursecode] = false;

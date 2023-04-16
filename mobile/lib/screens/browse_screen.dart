@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:coursehub/animations/fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';

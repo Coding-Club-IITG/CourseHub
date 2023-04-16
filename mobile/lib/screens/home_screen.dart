@@ -1,4 +1,5 @@
 import 'package:coursehub/animations/fade_in_animation.dart';
+
 import 'package:coursehub/models/user.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:coursehub/widgets/home_screen/add_course_dialog.dart';
@@ -40,8 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-           NavBar(searchCallback: widget.returnToPageCallback),
-            
+              NavBar(searchCallback: widget.returnToPageCallback),
               Row(
                 children: [
                   const SizedBox(
@@ -90,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: List.generate(
                       user.courses.length + 1,
                       (int index) {
+                       
                         return AnimationConfiguration.staggeredGrid(
                           columnCount: 2,
                           position: index,
