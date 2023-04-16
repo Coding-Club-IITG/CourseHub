@@ -74,7 +74,7 @@ class _UploadState extends State<Upload> {
             widget.callback(null);
           }
         } catch (e) {
-          showSnackBar('Something went wrong', context);
+          showSnackBar('Something went wrong !', context);
         }
       },
       child: DottedBorder(

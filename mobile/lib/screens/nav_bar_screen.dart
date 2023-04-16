@@ -1,3 +1,4 @@
+import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/themes.dart';
@@ -26,6 +27,9 @@ class _NavBarScreen extends State<NavBarScreen>
   late AnimationController _controller;
 
   void returnToPageCallback(int a) {
+    if (a != 1) {
+      CacheStore.isTempCourse = false;
+    }
     setState(() {
       if (_currentPageNumber == 2) _controller.reverse(from: 0.75);
       _currentPageNumber = a;
@@ -54,7 +58,9 @@ class _NavBarScreen extends State<NavBarScreen>
       ProfileScreen(
         returnToPageCallback: returnToPageCallback,
       ),
-      SearchScreen(callback: () {})
+       SearchScreen(
+        returnToPageCallback: returnToPageCallback,
+      )
     ];
   }
 

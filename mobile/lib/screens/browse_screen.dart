@@ -9,7 +9,9 @@ import 'package:coursehub/widgets/browse_screen/folder_explorer.dart';
 class BrowseScreen extends StatefulWidget {
   final Function(int a) callback;
 
-  const BrowseScreen({super.key, required this.callback});
+
+  const BrowseScreen(
+      {super.key, required this.callback});
   @override
   State<StatefulWidget> createState() => _BrowseScreen();
 }
@@ -55,8 +57,13 @@ class _BrowseScreen extends State<BrowseScreen> {
                 CacheStore.courseAvailability[courseCode] ?? false;
 
             if (isAvailable) {
-              Map<dynamic, dynamic> data =
-                  HiveStore.coursesData[courseCode.toLowerCase()];
+              Map<dynamic, dynamic> data;
+
+              if (CacheStore.isTempCourse) {
+                data = CacheStore.tempCourseData;
+              } else {
+                data = HiveStore.coursesData[courseCode.toLowerCase()];
+              }
 
               List<String> pathArgs = path.split("/");
 
@@ -122,7 +129,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                 onWillPop: () async {
                   level -= 2;
 
-                  if (level <=0) {
+                  if (level <= 0) {
                     widget.callback(0);
                     return false;
                   } else {
@@ -174,7 +181,6 @@ class _BrowseScreen extends State<BrowseScreen> {
                               const SizedBox(
                                 height: 10,
                               ),
-
                             ],
                           ),
                         ),

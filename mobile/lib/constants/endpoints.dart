@@ -15,6 +15,7 @@ class CoursesEndpoints {
   static const String course = '$baseUrl/course/'; //Needs params : course_code
   static const String addCourse =
       '$baseUrl/user/course/'; //Needs params : code ,name
+  static const String isCourseUpdated = '$baseUrl/course/isUpdated/';
 }
 
 class FileEndpoints {

@@ -47,7 +47,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool('courseGrouped') ?? false;
     } catch (e) {
-      showSnackBar('Something Went Wrong!', context);
+      showSnackBar('Something Went Wrong !', context);
       rethrow;
     }
   }

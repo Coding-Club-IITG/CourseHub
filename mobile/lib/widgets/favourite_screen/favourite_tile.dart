@@ -44,7 +44,7 @@ class FavouriteTile extends StatelessWidget {
           setLoadingCallback();
         } catch (e) {
           setLoadingCallback();
-          showSnackBar('Something Went Wrong!', context);
+          showSnackBar('Something Went Wrong !', context);
         }
       },
       child: Padding(

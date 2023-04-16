@@ -38,6 +38,7 @@ Future<void> authenticate() async {
     for (var i = 0; i < user.courses.length; i++) {
       await getUserCourses(user.courses[i].code);
     }
+    await prefs.setString('fetchDate', DateTime.now().toString());
     await setHiveStore();
   } on PlatformException catch (_) {
     rethrow;

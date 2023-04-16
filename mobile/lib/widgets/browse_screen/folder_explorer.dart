@@ -196,7 +196,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                 _isLoading = false;
                                               });
                                               showSnackBar(
-                                                  'Something Went Wrong!',
+                                                  'Something Went Wrong !',
                                                   context);
                                             }
                                           }
@@ -349,7 +349,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                     });
                                                   } catch (e) {
                                                     showSnackBar(
-                                                        'Something Went Wrong!',
+                                                        'Something Went Wrong !',
                                                         context);
                                                   }
                                                 },
@@ -385,7 +385,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       return;
                                                     } catch (e) {
                                                       showSnackBar(
-                                                          'Something went wrong!',
+                                                          'Something went wrong !',
                                                           context);
                                                       return;
                                                     }
@@ -408,7 +408,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       return;
                                                     } catch (e) {
                                                       showSnackBar(
-                                                          'Something went wrong!',
+                                                          'Something went wrong !',
                                                           context);
                                                       return;
                                                     }

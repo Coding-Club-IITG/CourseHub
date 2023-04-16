@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _isLoading = false;
                                   });
                           
-                                  showSnackBar('Something Went Wrong!', context);
+                                  showSnackBar('Something Went Wrong !', context);
                                 }
                               },
                               child: const LoginButton(),
@@ -156,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 setState(() {
                                   _isLoading = false;
                                 });
-                                showSnackBar('Something Went Wrong!', context);
+                                showSnackBar('Something Went Wrong !', context);
                               }
                             },
                             child: const Text(

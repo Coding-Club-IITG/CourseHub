@@ -46,7 +46,7 @@ Future<Uint8List> downloader(String link) async {
       }
       completer.complete(bytes);
     }, onError: (e) {
-      EasyLoading.showError('Something Went Wrong');
+      EasyLoading.showError('Something Went Wrong !');
       completer.completeError(e);
     });
   });

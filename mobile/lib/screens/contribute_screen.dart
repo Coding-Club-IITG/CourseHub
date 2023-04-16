@@ -161,7 +161,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                         _isLoading = false;
                                       });
                                       showSnackBar(
-                                          'Something Went Wrong!', context);
+                                          'Something Went Wrong !', context);
                                     }
                                   }
                                 } else if (file == null) {

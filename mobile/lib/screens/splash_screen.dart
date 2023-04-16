@@ -1,4 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:coursehub/apis/courses/is_course_updated.dart';
 import 'package:coursehub/apis/miscellaneous/funfacts.dart';
 import 'package:flutter/material.dart';
 import '../apis/authentication/login.dart';
@@ -20,9 +21,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 2), () async {
-      getFunFacts(fetchAgain: true);
-    });
+    await Future.wait([
+      getFunFacts(fetchAgain: true),
+      isCourseUpdated(),
+    ]);
 
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -56,9 +58,12 @@ class _SplashScreenState extends State<SplashScreen> {
           style: const TextStyle(
               fontSize: 50.0, fontWeight: FontWeight.w700, color: Colors.white),
           child: AnimatedTextKit(
+            totalRepeatCount: 1,
             animatedTexts: [
-              TypewriterAnimatedText('CourseHub',
-                  speed: const Duration(milliseconds: 100)),
+              TypewriterAnimatedText(
+                'CourseHub',
+                speed: const Duration(milliseconds: 100),
+              ),
             ],
           ),
         ),

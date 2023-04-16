@@ -94,7 +94,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                               try {
                                 await search(value);
                               } catch (e) {
-                                showSnackBar('Something went wrong!', context);
+                                showSnackBar('Something went wrong !', context);
                               }
                             },
                             controller: _courseController,
@@ -144,6 +144,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                   isAvailable: searchResult[index].isAvailable,
                                   courseCode: searchResult[index].code,
                                   courseName: searchResult[index].name,
+                                  isTempCourse: false,
                                   callback: () async {
                                     try {
                                       final user = HiveStore.getUserDetails();
@@ -183,7 +184,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                           "Course Succesfully added", context);
                                     } catch (e) {
                                       showSnackBar(
-                                          "Something Went Wrong!", context);
+                                          "Something Went Wrong !", context);
                                     }
                                   },
                                 ),
@@ -210,7 +211,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                   await search(_courseController.text);
                                 } catch (e) {
                                   showSnackBar(
-                                      'Something went wrong!', context);
+                                      'Something went wrong !', context);
                                 }
                               },
                         child: SizedBox(

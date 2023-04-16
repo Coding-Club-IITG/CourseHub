@@ -1,19 +1,25 @@
 import 'dart:convert';
 import 'package:coursehub/apis/protected.dart';
 import 'package:coursehub/apis/user/user.dart';
+import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/utilities/set_hive_store.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
 
-
-Future<void> getUserCourses(String code) async {
+Future<void> getUserCourses(String code, {bool isTempCourse = false}) async {
   try {
     final response =
         await http.get(Uri.parse('${CoursesEndpoints.course}$code/'));
 
     var decodedResponse = jsonDecode(response.body);
+
+    if (isTempCourse) {
+      CacheStore.tempCourseData = decodedResponse;
+
+      return;
+    }
 
     var box = await Hive.openBox('coursehub-data');
     Map<dynamic, dynamic> data = box.get('courses-data') ?? {};
@@ -29,8 +35,6 @@ Future<void> getUserCourses(String code) async {
 }
 
 Future<void> addUserCourses(String code, String courseName) async {
-
-  
   final token = await getAccessToken();
 
   try {
