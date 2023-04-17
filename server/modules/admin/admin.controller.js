@@ -67,9 +67,9 @@ async function login(req, res, next) {
         return next(new AppError(400, error.details));
     }
     const user = await Admin.findOne({ username: body.username });
-    if (!user) return next(new AppError(403, "Invalid OTP!"));
+    if (!user) return next(new AppError(403, "Invalid OTP! Alerting the admin."));
     const match = await verifyOTP(user.email, body.otp);
-    if (!match) return next(new AppError(403, "Invalid OTP!"));
+    if (!match) return next(new AppError(403, "Invalid OTP! Alerting the admin."));
     const token = await signAdminJWT(user._id.toString());
     return res.json({
         loginSuccessful: true,

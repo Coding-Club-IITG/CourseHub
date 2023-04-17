@@ -35,7 +35,7 @@ export async function generateOTP(username, email) {
         otp: newOtp,
     });
     // send email
-    sendEmail(email, "[COURSEHUB] CourseHub Admin Login OTP", `Your OTP is ${newOtp}`);
+    // sendEmail(email, "[COURSEHUB] CourseHub Admin Login OTP", `Your OTP is ${newOtp}`);
     return otp;
 }
 
@@ -43,15 +43,15 @@ export async function verifyOTP(email, otp) {
     const otpFromDB = await OTP.findOne({ email: email });
     if (!otpFromDB) return false;
     if (otp !== otpFromDB.otp) {
-        sendEmail(
-            email,
-            "[COURSEHUB] Login attempt",
-            "Login attempt using your credentials but wrong OTP"
-        );
+        // sendEmail(
+        //     email,
+        //     "[COURSEHUB] Login attempt",
+        //     "Login attempt using your credentials but wrong OTP"
+        // );
         await OTP.deleteMany({ email: email });
         return false;
     }
     await OTP.deleteMany({ email: email });
-    sendEmail(email, "[COURSEHUB] Login successful", "Loggedin Successfully");
+    // sendEmail(email, "[COURSEHUB] Login successful", "Loggedin Successfully");
     return true;
 }
