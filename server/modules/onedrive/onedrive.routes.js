@@ -430,7 +430,7 @@ async function generateAccessToken() {
     return response.data;
 }
 
-async function getRequest(url, headers) {
+export async function getRequest(url, headers) {
     //var data = qs.stringify(params);
     var config = {
         method: "get",

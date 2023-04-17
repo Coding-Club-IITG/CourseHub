@@ -1,5 +1,5 @@
 import fs from "fs";
-import { getAccessToken } from "../onedrive/onedrive.routes.js";
+import { getAccessToken, getRequest } from "../onedrive/onedrive.routes.js";
 import axios from "axios";
 
 export async function moveAllFolderFiles(fromFolderId, toFolderId) {
@@ -46,6 +46,16 @@ export async function moveFile(fileId, folderId, name) {
     });
 
     return response?.data;
+}
+export async function getFolderVisitLink(folderName) {
+    var access_token = await getAccessToken();
+    var headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    var url = `https://graph.microsoft.com/v1.0/me/drive/root:/CourseHub Contributions/${folderName}:/`;
+    var data = await getRequest(url, headers);
+    return data["webUrl"];
 }
 
 function formatCourseAdmin(course) {

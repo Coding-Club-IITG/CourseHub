@@ -23,9 +23,10 @@ router.post("/login", catchAsync(adminController.login));
 router.get("/", isAdmin, catchAsync(adminController.getAdmin));
 router.get("/onedrivecourses", catchAsync(adminController.getOnedriveCourses));
 router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));
-router.delete("/course/:code", isAdmin, catchAsync(adminController.deleteCourseByCode));
+router.delete("/course/:code", catchAsync(adminController.deleteCourseByCode));
 router.post("/course", isAdmin, catchAsync(adminController.makeCourseById));
 router.get("/course/:code", catchAsync(adminController.getCourseFolder));
 router.post("/contribution/approve", catchAsync(adminController.uploadToFolder));
+router.get("/contribution/visit/:folderName", catchAsync(adminController.getFolderLink));
 
 export default router;

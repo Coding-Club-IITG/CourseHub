@@ -15,7 +15,7 @@ import Admin, {
     loginValidationSchema,
     makeCourseValidationSchema,
 } from "./admin.model.js";
-import { moveAllFolderFiles, moveFile } from "./admin.utils.js";
+import { getFolderVisitLink, moveAllFolderFiles, moveFile } from "./admin.utils.js";
 
 async function createAdmin(req, res, next) {
     const { body } = req;
@@ -178,6 +178,12 @@ async function getCourseFolder(req, res, next) {
     if (!existingCourse) return next(new AppError(404, "Course not found"));
     return res.json(existingCourse);
 }
+async function getFolderLink(req, res, next) {
+    const { folderName } = req.params;
+
+    const visitLink = await getFolderVisitLink(folderName);
+    return res.json({ link: visitLink });
+}
 
 export default {
     createAdmin,
@@ -190,4 +196,5 @@ export default {
     makeCourseById,
     getCourseFolder,
     uploadToFolder,
+    getFolderLink,
 };
