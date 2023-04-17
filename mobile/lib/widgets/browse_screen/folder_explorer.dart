@@ -276,7 +276,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       ),
                                                     ),
                                                     const Text(
-                                                      "by Atharva Tagalpallewar",
+                                                      "Anonymous",
                                                       style: TextStyle(
                                                         fontFamily:
                                                             "ProximaNova",
