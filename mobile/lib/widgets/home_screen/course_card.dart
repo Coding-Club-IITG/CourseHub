@@ -62,20 +62,16 @@ class AvailableCard extends StatelessWidget {
     Color color = const Color.fromRGBO(99, 99, 99, 1);
 
     if (isAvailable) {
-      if (CacheStore.courseColor[course.code]!=null) {
-
+      if (CacheStore.courseColor[course.code.toLowerCase()] == null) {
         int a = CacheStore.courseColor.length;
         CacheStore.courseColor[course.code.toLowerCase()] =
             colors[a % colors.length];
         color = colors[a % colors.length];
       }
-    } else {
-    print(CacheStore.courseColor);
-    print(course.name.toUpperCase());
-      color = CacheStore.courseColor[course.code.toLowerCase()] ?? Colors.red;
-
-    }
-
+      else {
+        color = CacheStore.courseColor[course.code.toLowerCase()] ?? color;
+      }
+    } 
 
     return Container(
       color: color,

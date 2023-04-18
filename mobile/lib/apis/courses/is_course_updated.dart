@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:coursehub/apis/protected.dart';
 import 'package:coursehub/constants/endpoints.dart';
@@ -29,18 +30,19 @@ Future<void> isCourseUpdated() async {
     );
 
     final response = jsonDecode(res.body);
+    log(response.toString());
 
-    if (!response['updated']) {
-      return;
-    } else {
-      List<dynamic> courses = response['data'];
+    // if (!response['updated']) {
+    //   return;
+    // } else {
+    //   List<dynamic> courses = response['data'];
 
-      for (var course in courses) {
-        await getUserCourses(course);
-      }
+    //   for (var course in courses) {
+    //     await getUserCourses(course);
+    //   }
 
-      await setHiveStore();
-    }
+    //   await setHiveStore();
+    // }
   } catch (e) {
     print(e);
   }
