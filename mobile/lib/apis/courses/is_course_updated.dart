@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:coursehub/apis/protected.dart';
 import 'package:coursehub/constants/endpoints.dart';
 import 'package:coursehub/utilities/set_hive_store.dart';
@@ -43,6 +42,6 @@ Future<void> isCourseUpdated() async {
       await setHiveStore();
     }
   } catch (e) {
-    rethrow;
+    print(e);
   }
 }

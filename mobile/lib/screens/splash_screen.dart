@@ -21,10 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await Future.wait([
-      getFunFacts(fetchAgain: true),
-      isCourseUpdated(),
-    ]);
+    await getFunFacts(fetchAgain: true);
+    await isCourseUpdated();
 
     if (!mounted) return;
     Navigator.pushReplacement(

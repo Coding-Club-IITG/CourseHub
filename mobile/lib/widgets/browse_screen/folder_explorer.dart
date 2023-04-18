@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:developer';
 
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
@@ -68,7 +69,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                     ),
                   ),
                   Align(
-                    alignment: const Alignment(0.7,0.9),
+                    alignment: const Alignment(0.7, 0.9),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 1, 10),
                       child: Text(
