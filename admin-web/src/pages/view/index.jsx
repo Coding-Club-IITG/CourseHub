@@ -34,9 +34,11 @@ const ViewPage = () => {
     <div className="container p-4">
       <p className="display-5">Contribution Details</p>
       {loading && (
-        <div className="alert alert-success">
-          <h4>Loading visit link...</h4>
-          <ul className="my-0">{/* <li key="NetworkError">Loading link.</li> */}</ul>
+        <div className="alert alert-secondary">
+          <h4>Generating visit link</h4>
+          <ul className="my-0">
+            <li key="NetworkError">This may take upto 30 seconds.</li>
+          </ul>
         </div>
       )}
       {data ? (
@@ -72,13 +74,13 @@ const ViewPage = () => {
               </tbody>
             </table>
             <button
-              className="btn btn-success mb-2 me-2"
+              className="btn btn-primary mb-2 me-2"
               onClick={() => generateFolderLink(data.contributionId)}
             >
               Visit Files
             </button>
             <button
-              className="btn btn-primary mb-2"
+              className="btn btn-secondary mb-2"
               onClick={() => {
                 navigate("/");
               }}
@@ -105,7 +107,9 @@ const ViewPage = () => {
                   data-bs-parent="#accordionExample"
                 >
                   <div class="accordion-body">
-                    <button className="btn btn-success">Approve</button>
+                    <button className="btn btn-success" onClick={() => navigate(`/approve/${id}`)}>
+                      Approve
+                    </button>
                     <button className="btn btn-danger m-2">Delete</button>
                   </div>
                 </div>
