@@ -1,15 +1,18 @@
 import 'package:coursehub/database/hive_store.dart';
+import 'package:flutter/material.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheStore {
   static Map<String, bool> courseAvailability = {};
+  static Map<String, Color> courseColor = {};
   static dynamic tempCourseData = {};
   static bool isTempCourse = false;
 
   static clearCacheStore() {
     courseAvailability = {};
     tempCourseData = {};
+    courseColor = {};
   }
 
   static Future<String> getBrowsedCourse() async {

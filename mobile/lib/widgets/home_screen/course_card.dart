@@ -37,17 +37,13 @@ class CourseCard extends StatelessWidget {
           );
         } else {
           return InkWell(
+            onTap: null,
             child: Ink(
               child: AvailableCard(
                 course: course,
-                isAvailable: true,
+                isAvailable: false,
               ),
             ),
-            onTap: () {
-              CacheStore.saveBrowsedCourse(course.code);
-
-              returnToPageCallback(1);
-            },
           );
         }
       },
@@ -61,21 +57,24 @@ class AvailableCard extends StatelessWidget {
   const AvailableCard(
       {super.key, required this.course, required this.isAvailable});
 
-      
-
   @override
   Widget build(BuildContext context) {
+    Color color = const Color.fromRGBO(99, 99, 99, 1);
 
-    String? color = course.color!.replaceAll('#', '0xff');
-    
-
-    
+    if (isAvailable) {
+      if (CacheStore.courseColor[course.code.toLowerCase()] == null) {
+        int a = CacheStore.courseColor.length;
+        CacheStore.courseColor[course.code.toLowerCase()] =
+            colors[a % colors.length];
+        color = colors[a % colors.length];
+      }
+      else {
+        color = CacheStore.courseColor[course.code.toLowerCase()] ?? color;
+      }
+    } 
 
     return Container(
-
-      color: isAvailable
-          ? Color(int.parse(color))
-          : const Color.fromRGBO(99, 99, 99, 1),
+      color: color,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
