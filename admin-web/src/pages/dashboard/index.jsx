@@ -13,7 +13,7 @@ const DashboardPage = () => {
   async function fetchContributions() {
     sessionStorage.removeItem("contributions");
     const resp = await doRequest();
-    console.log(resp);
+    // console.log(resp);
     if (resp) {
       setContributions(resp);
       sessionStorage.setItem("contributions", JSON.stringify(resp));
@@ -63,25 +63,26 @@ const DashboardPage = () => {
         </thead>
         <tbody>
           {contributions.map((c, idx) => {
-            return (
-              <tr key={c._id}>
-                <th scope="row">{idx}</th>
-                <td>{c.courseCode}</td>
-                <td>{c.description}</td>
-                <td>{c.folder}</td>
-                <td>{c.year}</td>
-                <td>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => {
-                      navigate(`/view/${idx}`);
-                    }}
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            );
+            if (!c.approved)
+              return (
+                <tr key={c._id}>
+                  <th scope="row">{idx}</th>
+                  <td>{c.courseCode}</td>
+                  <td>{c.description}</td>
+                  <td>{c.folder}</td>
+                  <td>{c.year}</td>
+                  <td>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        navigate(`/view/${idx}`);
+                      }}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              );
           })}
         </tbody>
       </table>

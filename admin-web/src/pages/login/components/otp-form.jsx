@@ -22,7 +22,7 @@ const OTPForm = ({ user }) => {
   async function handleLogin() {
     setDisabled(true);
     const resp = await doRequest();
-    console.log(resp);
+    // console.log(resp);
     if (!resp) setDisabled(false);
     if (resp.loginSuccessful === true) {
       sessionStorage.setItem("token", resp.token);

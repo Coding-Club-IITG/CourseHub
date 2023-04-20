@@ -25,7 +25,7 @@ export const makeCourseValidationSchema = Joi.object({
 
 export const approveContributionSchema = Joi.object({
     contributionId: Joi.string().required(),
-    fromFolderId: Joi.string().required(),
+    courseCode: Joi.string().required(),
     toFolderId: Joi.string().required(),
 });
 

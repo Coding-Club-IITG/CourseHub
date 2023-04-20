@@ -28,5 +28,6 @@ router.post("/course", isAdmin, catchAsync(adminController.makeCourseById));
 router.get("/course/:code", catchAsync(adminController.getCourseFolder));
 router.post("/contribution/approve", catchAsync(adminController.uploadToFolder));
 router.get("/contribution/visit/:folderName", catchAsync(adminController.getFolderLink));
+router.get("/contribution/id/:folderName", catchAsync(adminController.getFolderId));
 
 export default router;

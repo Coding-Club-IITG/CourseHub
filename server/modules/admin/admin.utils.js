@@ -57,6 +57,16 @@ export async function getFolderVisitLink(folderName) {
     var data = await getRequest(url, headers);
     return data["webUrl"];
 }
+export async function getFolderIdByName(folderName) {
+    var access_token = await getAccessToken();
+    var headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    var url = `https://graph.microsoft.com/v1.0/me/drive/root:/CourseHub Contributions/${folderName}:/`;
+    var data = await getRequest(url, headers);
+    return data["id"];
+}
 
 function formatCourseAdmin(course) {
     const root = course.children;
