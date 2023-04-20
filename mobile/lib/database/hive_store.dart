@@ -16,7 +16,7 @@ class HiveStore {
     return userFav.map((e) => Favourite.fromJson(e)).toList();
   }
 
-  static List<Contribution> getContribution() {
+  static List<Contribution>getContribution(){
     return contribution.map((e) => Contribution.fromJson(e)).toList();
   }
 

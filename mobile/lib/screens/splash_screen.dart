@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
             animatedTexts: [
               TypewriterAnimatedText(
                 'CourseHub',
-                speed: const Duration(milliseconds: 100),
+                speed: const Duration(milliseconds: 150),
               ),
             ],
           ),

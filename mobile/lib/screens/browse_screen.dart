@@ -141,14 +141,14 @@ class _BrowseScreen extends State<BrowseScreen> {
                   child: Column(
                     children: [
                       Expanded(
-                        flex: 4,
+                        flex: 5,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           color: Colors.black,
                           child: Column(
                             children: [
                               const SizedBox(
-                                height: 10,
+                                height: 20,
                               ),
                               Expanded(
                                 flex: 2,

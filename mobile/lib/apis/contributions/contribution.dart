@@ -33,7 +33,7 @@ Future<void> getContribution() async {
   }
 }
 
-Future<void> contributeData(File? file, String year, String courseCode,
+Future<void> contributeData(List<File?> files, String year, String courseCode,
     String folder, String description) async {
   final token = await getAccessToken();
   if (token == 'error') {
@@ -51,9 +51,11 @@ Future<void> contributeData(File? file, String year, String courseCode,
       request.fields['description'] = description;
       request.headers['authorization'] = token;
 
-      http.MultipartFile multipartFile =
-          await http.MultipartFile.fromPath('files', file!.path);
-      request.files.add(multipartFile);
+      for (var file in files) {
+        http.MultipartFile multipartFile =
+            await http.MultipartFile.fromPath('files', file!.path);
+        request.files.add(multipartFile);
+      }
 
       final response = await request.send();
 

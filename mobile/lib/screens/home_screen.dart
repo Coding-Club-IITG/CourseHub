@@ -82,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     horizontal: 26.0, vertical: 19.0),
                 child: AnimationLimiter(
                   child: GridView.count(
+                    physics:const BouncingScrollPhysics(),
                     shrinkWrap: true,
                     crossAxisCount: 2,
                     crossAxisSpacing: 23.0,
