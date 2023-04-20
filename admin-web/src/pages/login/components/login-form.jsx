@@ -25,7 +25,7 @@ const LoginForm = ({ setOtpGenerated, setUser }) => {
     setDisabled(true);
     setBtnDisabled(true);
     const resp = await doRequest();
-    console.log(resp);
+    // console.log(resp);
     if (!resp) {
       setDisabled(false);
       setBtnDisabled(true);

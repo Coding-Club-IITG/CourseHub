@@ -26,7 +26,7 @@ const ViewPage = () => {
 
   useEffect(() => {
     const data = JSON.parse(sessionStorage.getItem("contributions"));
-    console.log(data[id]);
+    // console.log(data[id]);
     setData(data[id]);
   }, []);
 

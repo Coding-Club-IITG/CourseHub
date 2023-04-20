@@ -66,13 +66,22 @@ const ApprovePage = () => {
         </div>
       )}
       {approved && (
-        <div className="alert alert-success">
-          <h4>Done!</h4>
-          <ul className="my-0">
-            <li key="NetworkError">Approved successfully.</li>
-            <li key="NetworkError">Thanks!</li>
-          </ul>
-        </div>
+        <>
+          <div className="alert alert-success">
+            <h4>Done!</h4>
+            <ul className="my-0">
+              <li key="NetworkError">Approved successfully.</li>
+              <li key="NetworkError">Thanks!</li>
+            </ul>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => (window.location = "/")}
+            disabled={movingFiles}
+          >
+            Go Back
+          </button>
+        </>
       )}
       {!data && (
         <div className="alert alert-success">
@@ -97,7 +106,7 @@ const ApprovePage = () => {
         </>
       )}
 
-      {data && data?.children && !movingFiles && (
+      {data && data?.children && !movingFiles && !approved && (
         <>
           <p className="h4">Select Folder</p>
           <div className="row">

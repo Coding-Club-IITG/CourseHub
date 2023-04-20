@@ -6,6 +6,7 @@ import {
     generateOTP,
 } from "../auth-admin/auth-admin.services.js";
 import CourseModel, { FileModel, FolderModel } from "../course/course.model.js";
+import Contribution from "../contribution/contribution.model.js";
 import { getAllCourseIds, visitCourseById } from "../onedrive/onedrive.routes.js";
 import SearchResults from "../search/search.model.js";
 import Admin, {
@@ -152,6 +153,7 @@ async function uploadToFolder(req, res, next) {
         await SearchResults.updateOne({ code: courseCode.toLowerCase() }, { isAvailable: false });
     }
     await visitCourseById(courseId);
+    await Contribution.updateOne({ contributionId: contributionId }, { approved: true });
     return res.json({ approved: true });
 }
 
