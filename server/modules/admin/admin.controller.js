@@ -15,7 +15,12 @@ import Admin, {
     loginValidationSchema,
     makeCourseValidationSchema,
 } from "./admin.model.js";
-import { getFolderVisitLink, moveAllFolderFiles, moveFile } from "./admin.utils.js";
+import {
+    getFolderIdByName,
+    getFolderVisitLink,
+    moveAllFolderFiles,
+    moveFile,
+} from "./admin.utils.js";
 
 async function createAdmin(req, res, next) {
     const { body } = req;
@@ -126,10 +131,28 @@ async function uploadToFolder(req, res, next) {
     } catch (error) {
         return next(new AppError(400, error.details));
     }
-    const { contributionId, fromFolderId, toFolderId } = body;
-    const resp = await moveAllFolderFiles(fromFolderId, toFolderId);
+    const { contributionId, toFolderId, courseCode } = body;
+    const _fromFolderId = await getFolderIdByName(contributionId);
+
+    const resp = await moveAllFolderFiles(_fromFolderId, toFolderId);
     // mark contribution approved
-    return res.json(resp);
+    const allCourses = await getAllCourseIds();
+
+    const courseIdObj = allCourses.find(
+        (course) => course.name.split("-")[0].trim().toLowerCase() === courseCode.toLowerCase()
+    );
+    const courseId = courseIdObj.id;
+    const search = await SearchResults.findOne({ code: courseCode.toLowerCase() });
+    if (search) {
+        await CourseModel.deleteOne({ code: courseCode.toLowerCase() });
+        await FolderModel.deleteMany({ course: courseCode.toLowerCase() });
+        await FileModel.deleteMany({
+            course: `${courseCode.toLowerCase()} - ${search.name.toLowerCase()}`,
+        });
+        await SearchResults.updateOne({ code: courseCode.toLowerCase() }, { isAvailable: false });
+    }
+    await visitCourseById(courseId);
+    return res.json({ approved: true });
 }
 
 async function getCourseFolder(req, res, next) {
@@ -184,6 +207,12 @@ async function getFolderLink(req, res, next) {
     const visitLink = await getFolderVisitLink(folderName);
     return res.json({ link: visitLink });
 }
+async function getFolderId(req, res, next) {
+    const { folderName } = req.params;
+
+    const id = await getFolderIdByName(folderName);
+    return res.json({ id: id });
+}
 
 export default {
     createAdmin,
@@ -197,4 +226,5 @@ export default {
     getCourseFolder,
     uploadToFolder,
     getFolderLink,
+    getFolderId,
 };

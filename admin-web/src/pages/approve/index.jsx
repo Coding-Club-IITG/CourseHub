@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import useRequest from "../../hooks/useRequest";
 import FolderController from "./components/folder-controller";
+import axios from "axios";
 const ApprovePage = () => {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [movingFiles, setMovingFiles] = useState(false);
+  const [approved, setApproved] = useState(false);
+  const [approveErrors, setApproveErrors] = useState(false);
 
   const [selectedFolder, setSelectedFolder] = useState(null);
 
@@ -23,6 +26,23 @@ const ApprovePage = () => {
     getCourseData();
   }, []);
 
+  async function finalApprove(contributionId, toFolderId) {
+    const resp = await axios.post("http://localhost:8080/api/admin/contribution/approve", {
+      contributionId,
+      toFolderId,
+      courseCode: courseData.courseCode.toLowerCase(),
+    });
+    console.log(resp);
+    if (resp?.data?.approved) {
+      setApproved(true);
+      setMovingFiles(false);
+      setApproveErrors(false);
+    } else {
+      setMovingFiles(false);
+      setApproveErrors(true);
+    }
+  }
+
   return (
     <div className="container p-3">
       {errors}
@@ -33,6 +53,24 @@ const ApprovePage = () => {
           <ul className="my-0">
             <li key="NetworkError">Please wait while server is approving the contribution.</li>
             <li key="NetworkError">This may take upto 2 minutes.</li>
+          </ul>
+        </div>
+      )}
+      {approveErrors && (
+        <div className="alert alert-danger">
+          <h4>Something went wrong!</h4>
+          <ul className="my-0">
+            <li key="NetworkError">Something went wrong on the server.</li>
+            <li key="NetworkError">Please try again.</li>
+          </ul>
+        </div>
+      )}
+      {approved && (
+        <div className="alert alert-success">
+          <h4>Done!</h4>
+          <ul className="my-0">
+            <li key="NetworkError">Approved successfully.</li>
+            <li key="NetworkError">Thanks!</li>
           </ul>
         </div>
       )}
@@ -74,6 +112,9 @@ const ApprovePage = () => {
                 className={`btn btn-success me-2`}
                 disabled={!selectedFolder}
                 onClick={() => {
+                  // console.log(selectedFolder.id);
+                  // console.log(courseData.contributionId);
+                  finalApprove(courseData.contributionId, selectedFolder.id);
                   setMovingFiles(true);
                   setSelectedFolder(null);
                 }}
