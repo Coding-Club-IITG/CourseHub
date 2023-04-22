@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 import '../../constants/endpoints.dart';
 import '../../utilities/set_hive_store.dart';
@@ -39,11 +40,13 @@ Future<void> contributeData(List<File?> files, String year, String courseCode,
   if (token == 'error') {
     throw ('token not found');
   } else {
+    var uuid = const Uuid();
+    var v1 = uuid.v4();
     try {
       User user = HiveStore.getUserDetails();
       final request = http.MultipartRequest(
           "POST", Uri.parse(ContributionEndpoints.fileUpload));
-      request.fields['contributionId'] = user.rollNumber.toString();
+      request.fields['contributionId'] = v1;
       request.fields['year'] = year;
       request.fields['uploadedBy'] = user.id;
       request.fields['courseCode'] = courseCode.toLowerCase();

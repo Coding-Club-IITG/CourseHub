@@ -10,8 +10,7 @@ import '../widgets/common/custom_snackbar.dart';
 import '../widgets/nav_bar/search_card.dart';
 
 class SearchScreen extends StatefulWidget {
-  final Function(int a) returnToPageCallback;
-  const SearchScreen({super.key,required this.returnToPageCallback});
+  const SearchScreen({super.key});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -53,6 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
             return Container();
           }
 
+
           return Stack(
             alignment: Alignment.bottomCenter,
             children: [
@@ -64,7 +64,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: Colors.white,
                 child: Column(
                   children: AnimationConfiguration.toStaggeredList(
-                    duration: const Duration(milliseconds: 375),
+                    duration: const Duration(milliseconds: 200),
                     childAnimationBuilder: (widget) => SlideAnimation(
                       horizontalOffset: 50.0,
                       child: FadeInAnimation(
@@ -81,7 +81,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                 try {
                                   await search(value);
                                 } catch (e) {
-                                  showSnackBar('Something went wrong !', context);
+                                  showSnackBar(
+                                      'Something went wrong !', context);
                                 }
                               },
                               textInputAction: TextInputAction.search,
@@ -139,8 +140,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                 maxLines: 2,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500),
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               )
                             : found ?? false
                                 ? ListView.builder(
@@ -151,7 +153,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                           searchResult[index].isAvailable,
                                       courseCode: searchResult[index].code,
                                       courseName: searchResult[index].name,
-                                      callback: widget.returnToPageCallback,
+                                      callback: null,
                                     ),
                                     itemCount: searchResult.length,
                                   )
@@ -178,7 +180,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                             Text(
                               snapshot.data![Random()
-                                      .nextInt(snapshot.data!.length - 1)]
+                                      .nextInt(snapshot.data!.length)]
                                   .toString(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(

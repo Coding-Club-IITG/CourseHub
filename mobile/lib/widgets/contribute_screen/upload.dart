@@ -51,18 +51,17 @@ class _UploadState extends State<Upload> {
                   File file = files[index];
                   int length = basename(file.path).length;
                   String name = basename(file.path);
-              
+
                   if (length >= 20) {
                     name =
                         '${basename(file.path).substring(0, 15)} ... ${basename(file.path).substring(length - 4, length)}';
                   }
-              
+
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                     
-                        
                       children: [
                         const Icon(
                           Icons.check_circle,

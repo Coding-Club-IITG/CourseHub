@@ -5,8 +5,10 @@ import '../../utilities/validation.dart';
 class CustomTextformfield extends StatelessWidget {
   final TextEditingController controller;
 
-
-  const CustomTextformfield({super.key, required this.controller});
+  const CustomTextformfield({
+    super.key,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class CustomTextformfield extends StatelessWidget {
       validator: descriptionValidator,
       cursorColor: const Color.fromRGBO(140, 142, 151, 1),
       decoration: const InputDecoration(
-        contentPadding: EdgeInsets.only(top: 20,left: 20,right: 5,bottom: 5),
+        contentPadding: EdgeInsets.only(top: 20, left: 20, right: 5, bottom: 5),
         hintText: 'Describe you content...',
         hintStyle: TextStyle(
           color: Color.fromRGBO(140, 142, 151, 1),

@@ -2,16 +2,18 @@ import 'package:coursehub/apis/authentication/login.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants/themes.dart';
+import '../../providers/navigation_provider.dart';
 
 class MenuDrawer extends StatelessWidget {
-  final Function(int a) pageChangeCallback;
-
-  const MenuDrawer({super.key, required this.pageChangeCallback});
+  const MenuDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
+
     return Drawer(
       width: 250,
       backgroundColor: Colors.black,
@@ -36,7 +38,7 @@ class MenuDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
               onPressed: () {
-                pageChangeCallback(6);
+                navigationProvider.changePageNumber(6);
                 Navigator.of(context).pop();
               },
               title: 'Exam Schedule'),
@@ -44,6 +46,7 @@ class MenuDrawer extends StatelessWidget {
               icon: const Icon(
                 Icons.leaderboard_outlined,
                 color: Colors.white,
+                
               ),
               onPressed: () {
                 showSnackBar('This feature coming soon !', context);
@@ -66,7 +69,8 @@ class MenuDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
               onPressed: () {
-                showSnackBar('This feature coming soon !', context);
+                navigationProvider.changePageNumber(8);
+
                 Navigator.of(context).pop();
               },
               title: 'Feedback/ Bugs'),
@@ -76,7 +80,8 @@ class MenuDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
               onPressed: () {
-                pageChangeCallback(7);
+                navigationProvider.changePageNumber(7);
+
                 Navigator.of(context).pop();
               },
               title: 'Team'),

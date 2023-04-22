@@ -11,16 +11,9 @@ import '../widgets/profile_screen/semester_card.dart';
 import '../database/hive_store.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final Function(int a) returnToPageCallback;
-
-
-
-  const ProfileScreen({super.key,
-    required this.returnToPageCallback,
+  const ProfileScreen({
+    super.key,
   });
-
-  
-
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -46,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          NavBar(searchCallback: widget.returnToPageCallback,),
+         const NavBar(),
           Stack(
             alignment: Alignment.bottomCenter,
             children: [

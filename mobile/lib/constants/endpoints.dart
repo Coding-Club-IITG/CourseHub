@@ -6,6 +6,7 @@ class MiscellaneousEndpoints {
   static const String contributionList = '$baseUrl/contribution/';
   static const String guestLogin = '$baseUrl/auth/login/guest/';
   static const String funFacts = '$baseUrl/miscellaneous/fun-facts/';
+  static const String getTimetable = '$baseUrl/timetable/';
 }
 
 class CoursesEndpoints {
