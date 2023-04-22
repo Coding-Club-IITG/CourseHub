@@ -1,0 +1,5344 @@
+[
+  {
+    "code": "BM511H",
+    "room": "3003",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "all": true
+  },
+  {
+    "code": "BM512H",
+    "room": "L1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 18,
+    "all": true
+  },
+  {
+    "code": "BM513H",
+    "room": "3003",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 18,
+    "all": true
+  },
+  {
+    "code": "BM514H",
+    "room": "3003",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 18,
+    "all": true
+  },
+  {
+    "code": "BM515H",
+    "room": "3003",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 17,
+    "all": true
+  },
+  {
+    "code": "BT202M",
+    "room": "3003",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 6,
+    "all": true
+  },
+  {
+    "code": "BT206",
+    "room": "2201",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "backloggers": true
+  },
+  {
+    "code": "BT206",
+    "room": "2201",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210106001,
+    "to": 210106043
+  },
+  {
+    "code": "BT206",
+    "room": "2203",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210106044,
+    "to": 210106085
+  },
+  {
+    "code": "BT207",
+    "room": "3101",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "backloggers": true
+  },
+  {
+    "code": "BT207",
+    "room": "3101",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 200106039,
+    "to": 210106024
+  },
+  {
+    "code": "BT207",
+    "room": "3102",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 210106025,
+    "to": 210106050
+  },
+  {
+    "code": "BT207",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210106051,
+    "to": 210106085
+  },
+  {
+    "code": "BT208",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210106001,
+    "to": 210106043
+  },
+  {
+    "code": "BT208",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210106044,
+    "to": 210106085
+  },
+  {
+    "code": "BT209",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "backloggers": true
+  },
+  {
+    "code": "BT209",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210106001,
+    "to": 210106042
+  },
+  {
+    "code": "BT209",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210106043,
+    "to": 210106085
+  },
+  {
+    "code": "BT302M",
+    "room": "3003",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 2,
+    "all": true
+  },
+  {
+    "code": "BT305",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "backloggers": true
+  },
+  {
+    "code": "BT305",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200106001,
+    "to": 200106041
+  },
+  {
+    "code": "BT305",
+    "room": "2202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 200106042,
+    "to": 200106074
+  },
+  {
+    "code": "BT306",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200106001,
+    "to": 200106042
+  },
+  {
+    "code": "BT306",
+    "room": "2204",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 200106043,
+    "to": 200106074
+  },
+  {
+    "code": "BT307",
+    "room": "2201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200106001,
+    "to": 200106042
+  },
+  {
+    "code": "BT307",
+    "room": "2202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 200106043,
+    "to": 200106074
+  },
+  {
+    "code": "BT307",
+    "room": "2202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "individual": 224156011
+  },
+  {
+    "code": "BT308",
+    "room": "1201",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200106001,
+    "to": 200106036
+  },
+  {
+    "code": "BT308",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 200106037,
+    "to": 200106074
+  },
+  {
+    "code": "BT308",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "individual": 214107016
+  },
+  {
+    "code": "BT502",
+    "room": "3101",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 224106001,
+    "to": 224106025
+  },
+  {
+    "code": "BT502",
+    "room": "3102",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 224106026,
+    "to": 224106043
+  },
+  {
+    "code": "BT502",
+    "room": "3102",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 226106008,
+    "to": 226106112
+  },
+  {
+    "code": "BT504",
+    "room": "2101",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 224106001,
+    "to": 224106024
+  },
+  {
+    "code": "BT504",
+    "room": "2102",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "from": 224106025,
+    "to": 224106043
+  },
+  {
+    "code": "BT504",
+    "room": "2102",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "from": 226106009,
+    "to": 226106111
+  },
+  {
+    "code": "BT522",
+    "room": "3003",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 11,
+    "all": true
+  },
+  {
+    "code": "BT523",
+    "room": "3003",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "BT524",
+    "room": "3003",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "BT601",
+    "room": "4201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 200106001,
+    "to": 200106049
+  },
+  {
+    "code": "BT601",
+    "room": "4202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 200106050,
+    "to": 200106074
+  },
+  {
+    "code": "BT601",
+    "room": "4202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 226106025,
+    "to": 226152104
+  },
+  {
+    "code": "BT607",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 190106003,
+    "to": 190106057
+  },
+  {
+    "code": "BT607",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 190106058,
+    "to": 190106075
+  },
+  {
+    "code": "BT607",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 224106002,
+    "to": 224111010
+  },
+  {
+    "code": "BT607",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 226106005,
+    "to": 226152104
+  },
+  {
+    "code": "BT608",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "BT608",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 200106002,
+    "to": 200106072
+  },
+  {
+    "code": "BT608",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 224106003,
+    "to": null
+  },
+  {
+    "code": "BT608",
+    "room": "4G1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 224106027,
+    "to": 224106041
+  },
+  {
+    "code": "BT608",
+    "room": "4G1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 226106014,
+    "to": 226152104
+  },
+  {
+    "code": "BT616",
+    "room": "3003",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 19,
+    "all": true
+  },
+  {
+    "code": "BT619",
+    "room": "3003",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 16,
+    "all": true
+  },
+  {
+    "code": "BT624",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "all": true
+  },
+  {
+    "code": "BT630",
+    "room": "3003",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "BT634",
+    "room": "1201",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "BT634",
+    "room": "1201",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190106002,
+    "to": 190106036
+  },
+  {
+    "code": "BT634",
+    "room": "1202",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190106037,
+    "to": 190106072
+  },
+  {
+    "code": "BT634",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 190106074,
+    "to": 190106075
+  },
+  {
+    "code": "BT634",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 224106004,
+    "to": 224111010
+  },
+  {
+    "code": "BT634",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 226106004,
+    "to": 226106113
+  },
+  {
+    "code": "BT638",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 190106002,
+    "to": 190106051
+  },
+  {
+    "code": "BT638",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 190106052,
+    "to": 190106075
+  },
+  {
+    "code": "BT638",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 224106004,
+    "to": 224106037
+  },
+  {
+    "code": "BT638",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 226106102,
+    "to": 226159101
+  },
+  {
+    "code": "BT640",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 9,
+    "all": true
+  },
+  {
+    "code": "BT651",
+    "room": "3003",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 11,
+    "all": true
+  },
+  {
+    "code": "CE201",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "individual": 200104014
+  },
+  {
+    "code": "CE201",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210104001,
+    "to": 210104036
+  },
+  {
+    "code": "CE201",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210104037,
+    "to": 210104080
+  },
+  {
+    "code": "CE201",
+    "room": "L4",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210104081,
+    "to": 210104118
+  },
+  {
+    "code": "CE205",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "backloggers": true
+  },
+  {
+    "code": "CE205",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210104001,
+    "to": 210104033
+  },
+  {
+    "code": "CE205",
+    "room": "L3",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210104034,
+    "to": 210104077
+  },
+  {
+    "code": "CE205",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210104078,
+    "to": 210104118
+  },
+  {
+    "code": "CE206",
+    "room": "L1",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "backloggers": true
+  },
+  {
+    "code": "CE206",
+    "room": "L1",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 210104001,
+    "to": 210104031
+  },
+  {
+    "code": "CE206",
+    "room": "L2",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210104032,
+    "to": 210104075
+  },
+  {
+    "code": "CE206",
+    "room": "L3",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210104077,
+    "to": 210104118
+  },
+  {
+    "code": "CE220",
+    "room": "L2",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "backloggers": true
+  },
+  {
+    "code": "CE220",
+    "room": "L2",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210104001,
+    "to": 210104037
+  },
+  {
+    "code": "CE220",
+    "room": "L3",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210104038,
+    "to": 210104082
+  },
+  {
+    "code": "CE220",
+    "room": "L4",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210104083,
+    "to": 210104118
+  },
+  {
+    "code": "CE222",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "backloggers": true
+  },
+  {
+    "code": "CE222",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210104001,
+    "to": 210104034
+  },
+  {
+    "code": "CE222",
+    "room": "L3",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210104035,
+    "to": 210104080
+  },
+  {
+    "code": "CE222",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210104081,
+    "to": 210104118
+  },
+  {
+    "code": "CE222",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "individual": null
+  },
+  {
+    "code": "CE308",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "backloggers": true
+  },
+  {
+    "code": "CE308",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200104001,
+    "to": 200104039
+  },
+  {
+    "code": "CE308",
+    "room": "L3",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200104040,
+    "to": 200104083
+  },
+  {
+    "code": "CE308",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200104084,
+    "to": 200104118
+  },
+  {
+    "code": "CE309",
+    "room": "5201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "backloggers": true
+  },
+  {
+    "code": "CE309",
+    "room": "5201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 200104001,
+    "to": 200104028
+  },
+  {
+    "code": "CE309",
+    "room": "5202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 200104029,
+    "to": 200104058
+  },
+  {
+    "code": "CE309",
+    "room": "5203",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 200104059,
+    "to": 200104088
+  },
+  {
+    "code": "CE309",
+    "room": "5204",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 200104089,
+    "to": 200104118
+  },
+  {
+    "code": "CE320",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "backloggers": true
+  },
+  {
+    "code": "CE320",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200104001,
+    "to": 200104038
+  },
+  {
+    "code": "CE320",
+    "room": "L3",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200104039,
+    "to": 200104079
+  },
+  {
+    "code": "CE320",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 200104080,
+    "to": 200104118
+  },
+  {
+    "code": "CE322",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "backloggers": true
+  },
+  {
+    "code": "CE322",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "from": 200104001,
+    "to": 200104034
+  },
+  {
+    "code": "CE322",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200104035,
+    "to": 200104076
+  },
+  {
+    "code": "CE322",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200104077,
+    "to": 200104118
+  },
+  {
+    "code": "CE322",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "individual": null
+  },
+  {
+    "code": "CE324",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "backloggers": true
+  },
+  {
+    "code": "CE324",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 200104001,
+    "to": 200104036
+  },
+  {
+    "code": "CE324",
+    "room": "L2",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200104037,
+    "to": 200104079
+  },
+  {
+    "code": "CE324",
+    "room": "L3",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 200104080,
+    "to": 200104118
+  },
+  {
+    "code": "CE504",
+    "room": "3202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "all": true
+  },
+  {
+    "code": "CE510",
+    "room": "4202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "all": true
+  },
+  {
+    "code": "CE511",
+    "room": "3202",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "all": true
+  },
+  {
+    "code": "CE524",
+    "room": "4201",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "all": true
+  },
+  {
+    "code": "CE525",
+    "room": "3202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "all": true
+  },
+  {
+    "code": "CE533",
+    "room": "4G1",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "all": true
+  },
+  {
+    "code": "CE555",
+    "room": "5001",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 224104001,
+    "to": 224104117
+  },
+  {
+    "code": "CE555",
+    "room": "5002",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "from": 224104118,
+    "to": 224104622
+  },
+  {
+    "code": "CE555",
+    "room": "5002",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "individual": 226104005
+  },
+  {
+    "code": "CE555",
+    "room": "5002",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "individual": null
+  },
+  {
+    "code": "CE556",
+    "room": "4202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "CE559",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "all": true
+  },
+  {
+    "code": "CE562",
+    "room": "4201",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 23,
+    "all": true
+  },
+  {
+    "code": "CE570",
+    "room": "4202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "all": true
+  },
+  {
+    "code": "CE573",
+    "room": "4201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "all": true
+  },
+  {
+    "code": "CE583",
+    "room": "5201",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190104001,
+    "to": 190104030
+  },
+  {
+    "code": "CE583",
+    "room": "5202",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190104031,
+    "to": 190104065
+  },
+  {
+    "code": "CE583",
+    "room": "5203",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190104067,
+    "to": 190104096
+  },
+  {
+    "code": "CE583",
+    "room": "5204",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 190104097,
+    "to": 190104101
+  },
+  {
+    "code": "CE583",
+    "room": "5204",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 224104501,
+    "to": 224104519
+  },
+  {
+    "code": "CE584",
+    "room": "4G1",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 21,
+    "all": true
+  },
+  {
+    "code": "CE594",
+    "room": "4201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 190104012,
+    "to": 190104075
+  },
+  {
+    "code": "CE594",
+    "room": "4202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190104077,
+    "to": 190104099
+  },
+  {
+    "code": "CE594",
+    "room": "4202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 224104001,
+    "to": 224104011
+  },
+  {
+    "code": "CE594",
+    "room": "4202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 226104106,
+    "to": 226104109
+  },
+  {
+    "code": "CE594",
+    "room": "4202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "individual": null
+  },
+  {
+    "code": "CE595",
+    "room": "4201",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 15,
+    "all": true
+  },
+  {
+    "code": "CE606",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "all": true
+  },
+  {
+    "code": "CE607",
+    "room": "4G1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 12,
+    "all": true
+  },
+  {
+    "code": "CE608",
+    "room": "4G2",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 6,
+    "all": true
+  },
+  {
+    "code": "CE609",
+    "room": "5205",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "CE612",
+    "room": "4G1",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 19,
+    "all": true
+  },
+  {
+    "code": "CE614",
+    "room": "3003",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "CE615",
+    "room": "4202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "CE616",
+    "room": "L3",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 190101001,
+    "to": 190104063
+  },
+  {
+    "code": "CE616",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 190104065,
+    "to": 190123002
+  },
+  {
+    "code": "CE616",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 224104404,
+    "to": 224104427
+  },
+  {
+    "code": "CE616",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 226104007,
+    "to": 226104113
+  },
+  {
+    "code": "CE618",
+    "room": "4201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "CE622",
+    "room": "4G1",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "all": true
+  },
+  {
+    "code": "CE623",
+    "room": "3202",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "all": true
+  },
+  {
+    "code": "CE628",
+    "room": "4G1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 6,
+    "all": true
+  },
+  {
+    "code": "CE641",
+    "room": "4G1",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 13,
+    "all": true
+  },
+  {
+    "code": "CE643",
+    "room": "4G1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "all": true
+  },
+  {
+    "code": "CE646",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "all": true
+  },
+  {
+    "code": "CE648",
+    "room": "4201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "all": true
+  },
+  {
+    "code": "CE661",
+    "room": "4G1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "all": true
+  },
+  {
+    "code": "CH211",
+    "room": "4201",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210122002,
+    "to": 210122035
+  },
+  {
+    "code": "CH211",
+    "room": "4202",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210122036,
+    "to": 210122065
+  },
+  {
+    "code": "CH222",
+    "room": "2202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210122002,
+    "to": 210122034
+  },
+  {
+    "code": "CH222",
+    "room": "2204",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 210122035,
+    "to": 210122065
+  },
+  {
+    "code": "CH224",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "CH224",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210122002,
+    "to": 210122031
+  },
+  {
+    "code": "CH224",
+    "room": "4202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210122032,
+    "to": 210122065
+  },
+  {
+    "code": "CH233",
+    "room": "4201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210122002,
+    "to": 210122034
+  },
+  {
+    "code": "CH233",
+    "room": "4202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 210122035,
+    "to": 210122065
+  },
+  {
+    "code": "CH323",
+    "room": "4201",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200122001,
+    "to": 200122035
+  },
+  {
+    "code": "CH323",
+    "room": "4202",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200122037,
+    "to": 200122065
+  },
+  {
+    "code": "CH332",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "CH332",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200122001,
+    "to": 200122032
+  },
+  {
+    "code": "CH332",
+    "room": "4202",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 200122035,
+    "to": 200122065
+  },
+  {
+    "code": "CH335",
+    "room": "2203",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200122001,
+    "to": 200122035
+  },
+  {
+    "code": "CH335",
+    "room": "2204",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200122037,
+    "to": 200122065
+  },
+  {
+    "code": "CH400",
+    "room": "2201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 222122001,
+    "to": 222122034
+  },
+  {
+    "code": "CH400",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 222122035,
+    "to": 222122059
+  },
+  {
+    "code": "CH411",
+    "room": "2201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 222122001,
+    "to": 222122032
+  },
+  {
+    "code": "CH411",
+    "room": "2202",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 222122033,
+    "to": 222122059
+  },
+  {
+    "code": "CH418",
+    "room": "3101",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 190106014,
+    "to": 190122027
+  },
+  {
+    "code": "CH418",
+    "room": "3102",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 190122029,
+    "to": 190122057
+  },
+  {
+    "code": "CH419",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "backloggers": true
+  },
+  {
+    "code": "CH419",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "from": 200102002,
+    "to": 200102051
+  },
+  {
+    "code": "CH419",
+    "room": "L2",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200102052,
+    "to": 200102113
+  },
+  {
+    "code": "CH419",
+    "room": "L3",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200102117,
+    "to": 200106053
+  },
+  {
+    "code": "CH419",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200106054,
+    "to": 200107038
+  },
+  {
+    "code": "CH419",
+    "room": "1G1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 200107039,
+    "to": 200107070
+  },
+  {
+    "code": "CH419",
+    "room": "1G2",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 200107075,
+    "to": 200108022
+  },
+  {
+    "code": "CH419",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200108023,
+    "to": 200108071
+  },
+  {
+    "code": "CH419",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200108073,
+    "to": 200122008
+  },
+  {
+    "code": "CH419",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 200122011,
+    "to": 200122065
+  },
+  {
+    "code": "CH421",
+    "room": "2201",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 222122001,
+    "to": 222122034
+  },
+  {
+    "code": "CH421",
+    "room": "2202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 222122035,
+    "to": 222122059
+  },
+  {
+    "code": "CH428",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 190122001,
+    "to": 190122027
+  },
+  {
+    "code": "CH428",
+    "room": "3102",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 190122029,
+    "to": 190122057
+  },
+  {
+    "code": "CH432",
+    "room": "4201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 222122001,
+    "to": 222122030
+  },
+  {
+    "code": "CH432",
+    "room": "4202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 222122031,
+    "to": 222122059
+  },
+  {
+    "code": "CH433",
+    "room": "2202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 222122001,
+    "to": 222122030
+  },
+  {
+    "code": "CH433",
+    "room": "2204",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 222122031,
+    "to": 222122059
+  },
+  {
+    "code": "CH437",
+    "room": "3101",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 190122001,
+    "to": 190122032
+  },
+  {
+    "code": "CH437",
+    "room": "3102",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 190122033,
+    "to": 190122057
+  },
+  {
+    "code": "CH438",
+    "room": "3003",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 3,
+    "all": true
+  },
+  {
+    "code": "CH613",
+    "room": "3101",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 212122001,
+    "to": 212122042
+  },
+  {
+    "code": "CH613",
+    "room": "3102",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 212122044,
+    "to": 212122060
+  },
+  {
+    "code": "CH613",
+    "room": "3102",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 226122022,
+    "to": 226159102
+  },
+  {
+    "code": "CH617",
+    "room": "3003",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 19,
+    "all": true
+  },
+  {
+    "code": "CH618",
+    "room": "3003",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "CH621",
+    "room": "3101",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 212122001,
+    "to": 212122026
+  },
+  {
+    "code": "CH621",
+    "room": "3102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "from": 212122029,
+    "to": 212122060
+  },
+  {
+    "code": "CH621",
+    "room": "3102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "individual": 226122112
+  },
+  {
+    "code": "CH623",
+    "room": "3003",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 19,
+    "all": true
+  },
+  {
+    "code": "CH627",
+    "room": "4201",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "all": true
+  },
+  {
+    "code": "CH629",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "CH631",
+    "room": "3003",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 3,
+    "all": true
+  },
+  {
+    "code": "CH639",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "all": true
+  },
+  {
+    "code": "CH644",
+    "room": "3003",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 11,
+    "all": true
+  },
+  {
+    "code": "CL205",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210107001,
+    "to": 210107043
+  },
+  {
+    "code": "CL205",
+    "room": "2202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210107044,
+    "to": 210107075
+  },
+  {
+    "code": "CL205",
+    "room": "2204",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210107076,
+    "to": 210107104
+  },
+  {
+    "code": "CL206",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210107001,
+    "to": 210107043
+  },
+  {
+    "code": "CL206",
+    "room": "2202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210107044,
+    "to": 210107075
+  },
+  {
+    "code": "CL206",
+    "room": "2204",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210107076,
+    "to": 210107104
+  },
+  {
+    "code": "CL207",
+    "room": "Deptt CC",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 94,
+    "all": true
+  },
+  {
+    "code": "CL208",
+    "room": "2201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "backloggers": true
+  },
+  {
+    "code": "CL208",
+    "room": "2201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210107001,
+    "to": 210107043
+  },
+  {
+    "code": "CL208",
+    "room": "2202",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210107044,
+    "to": 210107076
+  },
+  {
+    "code": "CL208",
+    "room": "2204",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 210107077,
+    "to": 210107104
+  },
+  {
+    "code": "CL209",
+    "room": "2201",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "backloggers": true
+  },
+  {
+    "code": "CL209",
+    "room": "2201",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210107001,
+    "to": 210107041
+  },
+  {
+    "code": "CL209",
+    "room": "2202",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210107042,
+    "to": 210107072
+  },
+  {
+    "code": "CL209",
+    "room": "2203",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "from": 210107073,
+    "to": 210107104
+  },
+  {
+    "code": "CL304",
+    "room": "3101",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107001,
+    "to": 200107030
+  },
+  {
+    "code": "CL304",
+    "room": "3102",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107031,
+    "to": 200107056
+  },
+  {
+    "code": "CL304",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200107057,
+    "to": 200107100
+  },
+  {
+    "code": "CL305",
+    "room": "3101",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107001,
+    "to": 200107030
+  },
+  {
+    "code": "CL305",
+    "room": "3102",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107031,
+    "to": 200107056
+  },
+  {
+    "code": "CL305",
+    "room": "3202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200107057,
+    "to": 200107100
+  },
+  {
+    "code": "CL306",
+    "room": "3101",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107001,
+    "to": 200107030
+  },
+  {
+    "code": "CL306",
+    "room": "3102",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107031,
+    "to": 200107056
+  },
+  {
+    "code": "CL306",
+    "room": "3202",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200107057,
+    "to": 200107100
+  },
+  {
+    "code": "CL503",
+    "room": "1202",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 224107001,
+    "to": 224107104
+  },
+  {
+    "code": "CL503",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 224107105,
+    "to": 224107214
+  },
+  {
+    "code": "CL503",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "individual": 226154002
+  },
+  {
+    "code": "CL504",
+    "room": "L3",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 224107001,
+    "to": 224107109
+  },
+  {
+    "code": "CL504",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 224107110,
+    "to": 224107214
+  },
+  {
+    "code": "CL505",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "all": true
+  },
+  {
+    "code": "CL506",
+    "room": "3202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "all": true
+  },
+  {
+    "code": "CL514",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "all": true
+  },
+  {
+    "code": "CL612",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "individual": 170107054
+  },
+  {
+    "code": "CL612",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 190101001,
+    "to": 190101044
+  },
+  {
+    "code": "CL612",
+    "room": "L2",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 190101046,
+    "to": 190101107
+  },
+  {
+    "code": "CL612",
+    "room": "L3",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 190101111,
+    "to": 190103036
+  },
+  {
+    "code": "CL612",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 190103037,
+    "to": 190103109
+  },
+  {
+    "code": "CL612",
+    "room": "1G1",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 190103111,
+    "to": 190104048
+  },
+  {
+    "code": "CL612",
+    "room": "1G2",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 190104049,
+    "to": 190106040
+  },
+  {
+    "code": "CL612",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190106042,
+    "to": 190108061
+  },
+  {
+    "code": "CL612",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190108062,
+    "to": 190122046
+  },
+  {
+    "code": "CL612",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 190122048,
+    "to": 190123063
+  },
+  {
+    "code": "CL612",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 200108021,
+    "to": 200108040
+  },
+  {
+    "code": "CL617",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "backloggers": true
+  },
+  {
+    "code": "CL617",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "from": 190107001,
+    "to": 190107034
+  },
+  {
+    "code": "CL617",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 190107036,
+    "to": 190107075
+  },
+  {
+    "code": "CL617",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 190107077,
+    "to": 190107086
+  },
+  {
+    "code": "CL617",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 224107003,
+    "to": 224107214
+  },
+  {
+    "code": "CL617",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 226107016,
+    "to": 226151002
+  },
+  {
+    "code": "CL618",
+    "room": "4201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "backloggers": true
+  },
+  {
+    "code": "CL618",
+    "room": "4201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 190107001,
+    "to": 190107044
+  },
+  {
+    "code": "CL618",
+    "room": "4202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "from": 190107045,
+    "to": 190107086
+  },
+  {
+    "code": "CL618",
+    "room": "4202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "from": 226107001,
+    "to": 226107015
+  },
+  {
+    "code": "CL622",
+    "room": "3003",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 8,
+    "all": true
+  },
+  {
+    "code": "CL625",
+    "room": "5001",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 23,
+    "from": 190101009,
+    "to": 190103090
+  },
+  {
+    "code": "CL625",
+    "room": "5002",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 190103092,
+    "to": 190123058
+  },
+  {
+    "code": "CL625",
+    "room": "5002",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 200106056,
+    "to": 200107085
+  },
+  {
+    "code": "CL625",
+    "room": "5002",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 224107209,
+    "to": 224159011
+  },
+  {
+    "code": "CL625",
+    "room": "5002",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 226107003,
+    "to": 226107015
+  },
+  {
+    "code": "CL626",
+    "room": "3003",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "CL628",
+    "room": "2201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "backloggers": true
+  },
+  {
+    "code": "CL628",
+    "room": "2201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 200107001,
+    "to": 200107063
+  },
+  {
+    "code": "CL628",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 200107064,
+    "to": 200107099
+  },
+  {
+    "code": "CL628",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 224107004,
+    "to": 224107207
+  },
+  {
+    "code": "CL628",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 226107008,
+    "to": 226152008
+  },
+  {
+    "code": "CL633",
+    "room": "4G1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 190107001,
+    "to": 190107044
+  },
+  {
+    "code": "CL633",
+    "room": "4G2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "from": 190107045,
+    "to": 190107084
+  },
+  {
+    "code": "CL633",
+    "room": "4G2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "individual": 224107206
+  },
+  {
+    "code": "CL643",
+    "room": "Deptt CC",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "all": true
+  },
+  {
+    "code": "CL650",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 190107001,
+    "to": 190107026
+  },
+  {
+    "code": "CL650",
+    "room": "3102",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 190107027,
+    "to": 190107056
+  },
+  {
+    "code": "CL650",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 190107057,
+    "to": 190107084
+  },
+  {
+    "code": "CL650",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 224107008,
+    "to": 224107213
+  },
+  {
+    "code": "CL653",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190107034,
+    "to": 190107085
+  },
+  {
+    "code": "CL653",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200107004,
+    "to": 200107100
+  },
+  {
+    "code": "CL653",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "individual": 214107012
+  },
+  {
+    "code": "CL653",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 224107002,
+    "to": 224107026
+  },
+  {
+    "code": "CL653",
+    "room": "3102",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "from": 224107027,
+    "to": 224107214
+  },
+  {
+    "code": "CL653",
+    "room": "3102",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "individual": 226107009
+  },
+  {
+    "code": "CL654",
+    "room": "5003",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 21,
+    "all": true
+  },
+  {
+    "code": "CS205",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "backloggers": true
+  },
+  {
+    "code": "CS205",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210101001,
+    "to": 210101029
+  },
+  {
+    "code": "CS205",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210101030,
+    "to": 210101063
+  },
+  {
+    "code": "CS205",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210101064,
+    "to": 210101097
+  },
+  {
+    "code": "CS205",
+    "room": "L4",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 210101098,
+    "to": 210101126
+  },
+  {
+    "code": "CS205",
+    "room": "L4",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 226201001,
+    "to": 226201004
+  },
+  {
+    "code": "CS206M",
+    "room": "4201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102004,
+    "to": 210102114
+  },
+  {
+    "code": "CS206M",
+    "room": "4202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102115,
+    "to": 210150022
+  },
+  {
+    "code": "CS207",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210101001,
+    "to": 210101036
+  },
+  {
+    "code": "CS207",
+    "room": "2202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210101037,
+    "to": 210101065
+  },
+  {
+    "code": "CS207",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210101066,
+    "to": 210101101
+  },
+  {
+    "code": "CS207",
+    "room": "2204",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210101102,
+    "to": 210101126
+  },
+  {
+    "code": "CS207",
+    "room": "2204",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 226201001,
+    "to": 226201004
+  },
+  {
+    "code": "CS223",
+    "room": "L1",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "backloggers": true
+  },
+  {
+    "code": "CS223",
+    "room": "L1",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210101001,
+    "to": 210101020
+  },
+  {
+    "code": "CS223",
+    "room": "L2",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210101021,
+    "to": 210101056
+  },
+  {
+    "code": "CS223",
+    "room": "L3",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210101057,
+    "to": 210101092
+  },
+  {
+    "code": "CS223",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210101093,
+    "to": 210123001
+  },
+  {
+    "code": "CS223",
+    "room": "1201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210123002,
+    "to": 210123029
+  },
+  {
+    "code": "CS223",
+    "room": "1202",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210123030,
+    "to": 210123059
+  },
+  {
+    "code": "CS223",
+    "room": "1205",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 210123060,
+    "to": 210123084
+  },
+  {
+    "code": "CS245",
+    "room": "L1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "CS245",
+    "room": "L1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210101001,
+    "to": 210101024
+  },
+  {
+    "code": "CS245",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210101025,
+    "to": 210101058
+  },
+  {
+    "code": "CS245",
+    "room": "L3",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 210101059,
+    "to": 210101091
+  },
+  {
+    "code": "CS245",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 210101092,
+    "to": 210101124
+  },
+  {
+    "code": "CS245",
+    "room": "1201",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 210101125,
+    "to": 210123025
+  },
+  {
+    "code": "CS245",
+    "room": "1202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 210123026,
+    "to": 210123054
+  },
+  {
+    "code": "CS245",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210123055,
+    "to": 210123084
+  },
+  {
+    "code": "CS245",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 224156011,
+    "to": 224159020
+  },
+  {
+    "code": "CS345",
+    "room": "2201",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "backloggers": true
+  },
+  {
+    "code": "CS345",
+    "room": "2201",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200101001,
+    "to": 200101034
+  },
+  {
+    "code": "CS345",
+    "room": "2202",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200101036,
+    "to": 200101066
+  },
+  {
+    "code": "CS345",
+    "room": "2203",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200101067,
+    "to": 200101104
+  },
+  {
+    "code": "CS345",
+    "room": "2204",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 200101105,
+    "to": 200121010
+  },
+  {
+    "code": "CS345",
+    "room": "2204",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 26,
+    "from": 210106017,
+    "to": 210122041
+  },
+  {
+    "code": "CS350M",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 200102008,
+    "to": 200108011
+  },
+  {
+    "code": "CS350M",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 200108016,
+    "to": 200108073
+  },
+  {
+    "code": "CS350M",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 224156002,
+    "to": 224156016
+  },
+  {
+    "code": "CS350M",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 226201001,
+    "to": 226201004
+  },
+  {
+    "code": "CS361",
+    "room": "2201",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200101001,
+    "to": 200101039
+  },
+  {
+    "code": "CS361",
+    "room": "2202",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200101040,
+    "to": 200101070
+  },
+  {
+    "code": "CS361",
+    "room": "2203",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200101071,
+    "to": 200101107
+  },
+  {
+    "code": "CS361",
+    "room": "2204",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 200101108,
+    "to": 200101125
+  },
+  {
+    "code": "CS361",
+    "room": "2204",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 210103057,
+    "to": 210122041
+  },
+  {
+    "code": "CS361",
+    "room": "2204",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "individual": 224024009
+  },
+  {
+    "code": "CS361",
+    "room": "2204",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 224159010,
+    "to": 224159011
+  },
+  {
+    "code": "CS503",
+    "room": "4G1",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 4,
+    "all": true
+  },
+  {
+    "code": "CS509",
+    "room": "3101",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 190101005,
+    "to": 190102054
+  },
+  {
+    "code": "CS509",
+    "room": "3102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 190102060,
+    "to": 190123070
+  },
+  {
+    "code": "CS509",
+    "room": "3102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 200101001,
+    "to": 200101062
+  },
+  {
+    "code": "CS509",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 200101063,
+    "to": 200101125
+  },
+  {
+    "code": "CS509",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "individual": 224101023
+  },
+  {
+    "code": "CS509",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "individual": 226123004
+  },
+  {
+    "code": "CS528",
+    "room": "2101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190101025,
+    "to": 190101097
+  },
+  {
+    "code": "CS528",
+    "room": "2101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200101001,
+    "to": 200101021
+  },
+  {
+    "code": "CS528",
+    "room": "2102",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200101022,
+    "to": 200101048
+  },
+  {
+    "code": "CS528",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200101049,
+    "to": 200101088
+  },
+  {
+    "code": "CS528",
+    "room": "2202",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200101089,
+    "to": 200101120
+  },
+  {
+    "code": "CS528",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200101121,
+    "to": 200101125
+  },
+  {
+    "code": "CS528",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "individual": 214156007
+  },
+  {
+    "code": "CS528",
+    "room": "2203",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 224101001,
+    "to": null
+  },
+  {
+    "code": "CS528",
+    "room": "2204",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 224101040,
+    "to": 224156020
+  },
+  {
+    "code": "CS549",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "backloggers": true
+  },
+  {
+    "code": "CS549",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "from": 190101002,
+    "to": 190101044
+  },
+  {
+    "code": "CS549",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 190101045,
+    "to": 190101100
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 190101101,
+    "to": 190101109
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200101002,
+    "to": 200101122
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "individual": 214156007
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "individual": 216101106
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "individual": 222123049
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 224101005,
+    "to": null
+  },
+  {
+    "code": "CS549",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 226101001,
+    "to": 226101005
+  },
+  {
+    "code": "CS564",
+    "room": "3003",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "CS570",
+    "room": "3101",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190101001,
+    "to": 190101064
+  },
+  {
+    "code": "CS570",
+    "room": "3102",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190101065,
+    "to": 190101108
+  },
+  {
+    "code": "CS570",
+    "room": "3102",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200101002,
+    "to": 200101030
+  },
+  {
+    "code": "CS570",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 200101058,
+    "to": 200101095
+  },
+  {
+    "code": "CS570",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 224101007,
+    "to": 224161018
+  },
+  {
+    "code": "CS570",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 226101002,
+    "to": 226155001
+  },
+  {
+    "code": "CS570",
+    "room": "3202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "individual": 226201002
+  },
+  {
+    "code": "CS577",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "individual": 180101026
+  },
+  {
+    "code": "CS577",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 190101003,
+    "to": 190101060
+  },
+  {
+    "code": "CS577",
+    "room": "L2",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 190101061,
+    "to": 190123064
+  },
+  {
+    "code": "CS577",
+    "room": "L3",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 200101003,
+    "to": 200101054
+  },
+  {
+    "code": "CS577",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 200101056,
+    "to": 200102040
+  },
+  {
+    "code": "CS577",
+    "room": "1G1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 200102042,
+    "to": 200122030
+  },
+  {
+    "code": "CS577",
+    "room": "1G1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "individual": 224101001
+  },
+  {
+    "code": "CS577",
+    "room": "1G2",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 224101002,
+    "to": 224101029
+  },
+  {
+    "code": "CS577",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 224101030,
+    "to": 224101057
+  },
+  {
+    "code": "CS577",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 224101058,
+    "to": 224161021
+  },
+  {
+    "code": "CS577",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 226101001,
+    "to": 226101005
+  },
+  {
+    "code": "CS577",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 226201001,
+    "to": 226201004
+  },
+  {
+    "code": "DA214",
+    "room": "L1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "all": true
+  },
+  {
+    "code": "DA221",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "all": true
+  },
+  {
+    "code": "DA221M",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210101001,
+    "to": 210102040
+  },
+  {
+    "code": "DA221M",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "from": 210103076,
+    "to": 210123084
+  },
+  {
+    "code": "DA221M",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "individual": 222123049
+  },
+  {
+    "code": "DA243",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "DA244",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 26,
+    "all": true
+  },
+  {
+    "code": "DA526",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 190101008,
+    "to": 190123069
+  },
+  {
+    "code": "DA526",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "individual": 206141019
+  },
+  {
+    "code": "DA526",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "individual": 210122053
+  },
+  {
+    "code": "DA526",
+    "room": "2201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 224101001,
+    "to": 224101027
+  },
+  {
+    "code": "DA526",
+    "room": "2202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 224101029,
+    "to": 224101061
+  },
+  {
+    "code": "DA526",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 224101062,
+    "to": 224161006
+  },
+  {
+    "code": "DA526",
+    "room": "2204",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 224161007,
+    "to": 224161021
+  },
+  {
+    "code": "DA526",
+    "room": "2204",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "individual": 224357008
+  },
+  {
+    "code": "DA526",
+    "room": "2204",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 226102009,
+    "to": null
+  },
+  {
+    "code": "DA623",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "backloggers": true
+  },
+  {
+    "code": "DA623",
+    "room": "3101",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 190101002,
+    "to": 190101072
+  },
+  {
+    "code": "DA623",
+    "room": "3102",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 190101074,
+    "to": 190102023
+  },
+  {
+    "code": "DA623",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 190102050,
+    "to": 190123040
+  },
+  {
+    "code": "DA623",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 200121002,
+    "to": 200121054
+  },
+  {
+    "code": "DA623",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "individual": 206107032
+  },
+  {
+    "code": "DA623",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "individual": 226102024
+  },
+  {
+    "code": "DA623",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 226102024,
+    "to": 226150102
+  },
+  {
+    "code": "DA671",
+    "room": "2101",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "individual": 186102113
+  },
+  {
+    "code": "DA671",
+    "room": "2101",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190101008,
+    "to": 190101104
+  },
+  {
+    "code": "DA671",
+    "room": "2102",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190101105,
+    "to": 190104090
+  },
+  {
+    "code": "DA671",
+    "room": "2201",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 190104091,
+    "to": 190123062
+  },
+  {
+    "code": "DA671",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190123065,
+    "to": 190123069
+  },
+  {
+    "code": "DA671",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200102008,
+    "to": 200102116
+  },
+  {
+    "code": "DA671",
+    "room": "2203",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200104093,
+    "to": 200123002
+  },
+  {
+    "code": "DA671",
+    "room": "2204",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 23,
+    "from": 200123006,
+    "to": 200123081
+  },
+  {
+    "code": "DA671",
+    "room": "2204",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 23,
+    "from": 224156001,
+    "to": 224156020
+  },
+  {
+    "code": "DA671",
+    "room": "2204",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 23,
+    "from": 226150005,
+    "to": 226150102
+  },
+  {
+    "code": "DD203",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "backloggers": true
+  },
+  {
+    "code": "DD203",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210205001,
+    "to": 210205027
+  },
+  {
+    "code": "DD203",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 210205028,
+    "to": 210205060
+  },
+  {
+    "code": "DD212",
+    "room": "1202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "DD212",
+    "room": "1202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210205001,
+    "to": 210205026
+  },
+  {
+    "code": "DD212",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210205027,
+    "to": 210205060
+  },
+  {
+    "code": "DD213",
+    "room": "1201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "DD213",
+    "room": "1201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210205001,
+    "to": 210205026
+  },
+  {
+    "code": "DD213",
+    "room": "1205",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210205027,
+    "to": 210205060
+  },
+  {
+    "code": "DD215",
+    "room": "1201",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210205001,
+    "to": 210205028
+  },
+  {
+    "code": "DD215",
+    "room": "1205",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210205029,
+    "to": 210205060
+  },
+  {
+    "code": "DD220M",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "all": true
+  },
+  {
+    "code": "DD302",
+    "room": "1G1",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 5,
+    "all": true
+  },
+  {
+    "code": "DD311",
+    "room": "1201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "DD311",
+    "room": "1201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200205001,
+    "to": 200205028
+  },
+  {
+    "code": "DD311",
+    "room": "1202",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200205029,
+    "to": 200205054
+  },
+  {
+    "code": "DD312",
+    "room": "1201",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "DD312",
+    "room": "1201",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200205001,
+    "to": 200205030
+  },
+  {
+    "code": "DD312",
+    "room": "1202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 23,
+    "from": 200205031,
+    "to": 200205054
+  },
+  {
+    "code": "DD320M",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "DD324",
+    "room": "L4",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "DD411",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "DD411",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 190205001,
+    "to": 190205027
+  },
+  {
+    "code": "DD411",
+    "room": "1202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 190205028,
+    "to": 190205056
+  },
+  {
+    "code": "DD509",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 224205001,
+    "to": 224205033
+  },
+  {
+    "code": "DD509",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "from": 224209001,
+    "to": 224209029
+  },
+  {
+    "code": "DD509",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "from": 226105002,
+    "to": 226105005
+  },
+  {
+    "code": "DD517",
+    "room": "1201",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 2,
+    "all": true
+  },
+  {
+    "code": "DD521",
+    "room": "1G1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 200205002,
+    "to": 200205037
+  },
+  {
+    "code": "DD521",
+    "room": "1G2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 17,
+    "from": 200205039,
+    "to": 200205054
+  },
+  {
+    "code": "DD521",
+    "room": "1G2",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 17,
+    "from": 224205004,
+    "to": 224205026
+  },
+  {
+    "code": "DD523",
+    "room": "1G1",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 14,
+    "all": true
+  },
+  {
+    "code": "DD532",
+    "room": "1201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "DD532",
+    "room": "1201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 190205001,
+    "to": 190205027
+  },
+  {
+    "code": "DD532",
+    "room": "1205",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 190205028,
+    "to": 190205056
+  },
+  {
+    "code": "DD532",
+    "room": "1205",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 214205002,
+    "to": 214205028
+  },
+  {
+    "code": "DD532",
+    "room": "1205",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "individual": 226105101
+  },
+  {
+    "code": "DD536",
+    "room": "1202",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 1,
+    "all": true
+  },
+  {
+    "code": "DD547",
+    "room": "1205",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "all": true
+  },
+  {
+    "code": "DD548",
+    "room": "1205",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "all": true
+  },
+  {
+    "code": "DD549",
+    "room": "1205",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "all": true
+  },
+  {
+    "code": "DD552",
+    "room": "1201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 9,
+    "all": true
+  },
+  {
+    "code": "DD554",
+    "room": "1202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 8,
+    "all": true
+  },
+  {
+    "code": "DD555",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 15,
+    "all": true
+  },
+  {
+    "code": "DD557",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 9,
+    "all": true
+  },
+  {
+    "code": "DD606",
+    "room": "1G2",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 1,
+    "all": true
+  },
+  {
+    "code": "DD607",
+    "room": "L1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 2,
+    "all": true
+  },
+  {
+    "code": "DD705",
+    "room": "1G1",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "DM503",
+    "room": "4G2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "DM504",
+    "room": "4201",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "DM514",
+    "room": "1G2",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 6,
+    "all": true
+  },
+  {
+    "code": "DM515",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "EE206",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "backloggers": true
+  },
+  {
+    "code": "EE206",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "from": 210102001,
+    "to": 210102034
+  },
+  {
+    "code": "EE206",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210102035,
+    "to": 210102080
+  },
+  {
+    "code": "EE206",
+    "room": "L3",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210102081,
+    "to": 210102118
+  },
+  {
+    "code": "EE206",
+    "room": "L4",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210102119,
+    "to": 210108030
+  },
+  {
+    "code": "EE206",
+    "room": "1G1",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 210108031,
+    "to": 210108057
+  },
+  {
+    "code": "EE206",
+    "room": "1G2",
+    "dateAndTime": "26-02-2023 (9:00-11:00)",
+    "nStudents": 19,
+    "from": 210108058,
+    "to": 210108076
+  },
+  {
+    "code": "EE213M",
+    "room": "3202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "all": true
+  },
+  {
+    "code": "EE230",
+    "room": "L1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "EE230",
+    "room": "L1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210102001,
+    "to": 210102032
+  },
+  {
+    "code": "EE230",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210102033,
+    "to": 210102077
+  },
+  {
+    "code": "EE230",
+    "room": "L3",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210102078,
+    "to": 210102117
+  },
+  {
+    "code": "EE230",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210102118,
+    "to": 210108028
+  },
+  {
+    "code": "EE230",
+    "room": "1G1",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 210108030,
+    "to": 210108052
+  },
+  {
+    "code": "EE230",
+    "room": "1G2",
+    "dateAndTime": "27-02-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 210108054,
+    "to": 210108076
+  },
+  {
+    "code": "EE250",
+    "room": "2101",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "backloggers": true
+  },
+  {
+    "code": "EE250",
+    "room": "2101",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102001,
+    "to": 210102028
+  },
+  {
+    "code": "EE250",
+    "room": "2102",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102029,
+    "to": 210102057
+  },
+  {
+    "code": "EE250",
+    "room": "2201",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210102060,
+    "to": 210102103
+  },
+  {
+    "code": "EE250",
+    "room": "2202",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210102104,
+    "to": 210108003
+  },
+  {
+    "code": "EE250",
+    "room": "2203",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210108004,
+    "to": 210108047
+  },
+  {
+    "code": "EE250",
+    "room": "2204",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 27,
+    "from": 210108048,
+    "to": 210108076
+  },
+  {
+    "code": "EE252",
+    "room": "2101",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "backloggers": true
+  },
+  {
+    "code": "EE252",
+    "room": "2101",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102001,
+    "to": 210102029
+  },
+  {
+    "code": "EE252",
+    "room": "2102",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102030,
+    "to": 210102060
+  },
+  {
+    "code": "EE252",
+    "room": "2201",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210102061,
+    "to": 210102104
+  },
+  {
+    "code": "EE252",
+    "room": "2202",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210102105,
+    "to": 210108004
+  },
+  {
+    "code": "EE252",
+    "room": "2203",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210108005,
+    "to": 210108048
+  },
+  {
+    "code": "EE252",
+    "room": "2204",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "from": 210108049,
+    "to": 210108076
+  },
+  {
+    "code": "EE252",
+    "room": "2204",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "individual": null
+  },
+  {
+    "code": "EE252",
+    "room": "2204",
+    "dateAndTime": "28-02-2023 (9:00-11:00)",
+    "nStudents": 28,
+    "individual": null
+  },
+  {
+    "code": "EE322M",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "all": true
+  },
+  {
+    "code": "EE332",
+    "room": "2101",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "backloggers": true
+  },
+  {
+    "code": "EE332",
+    "room": "2101",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200102001,
+    "to": 200102025
+  },
+  {
+    "code": "EE332",
+    "room": "2102",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200102026,
+    "to": 200102052
+  },
+  {
+    "code": "EE332",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200102053,
+    "to": 200102090
+  },
+  {
+    "code": "EE332",
+    "room": "2204",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "from": 200102091,
+    "to": 200102118
+  },
+  {
+    "code": "EE334",
+    "room": "2101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "backloggers": true
+  },
+  {
+    "code": "EE334",
+    "room": "2101",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200102001,
+    "to": 200102024
+  },
+  {
+    "code": "EE334",
+    "room": "2102",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 200102025,
+    "to": 200102051
+  },
+  {
+    "code": "EE334",
+    "room": "2201",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 200102052,
+    "to": 200102089
+  },
+  {
+    "code": "EE334",
+    "room": "2202",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 200102090,
+    "to": 200102118
+  },
+  {
+    "code": "EE335",
+    "room": "5001",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "EE335",
+    "room": "5001",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 200102002,
+    "to": 200102033
+  },
+  {
+    "code": "EE335",
+    "room": "5002",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 200102034,
+    "to": 200102068
+  },
+  {
+    "code": "EE335",
+    "room": "5003",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 20,
+    "from": 200102069,
+    "to": 200102090
+  },
+  {
+    "code": "EE335",
+    "room": "5004",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 200102091,
+    "to": 200108001
+  },
+  {
+    "code": "EE335",
+    "room": "5005",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 200108002,
+    "to": 200108038
+  },
+  {
+    "code": "EE335",
+    "room": "5006",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 200108039,
+    "to": 200108073
+  },
+  {
+    "code": "EE336",
+    "room": "5001",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "all": true
+  },
+  {
+    "code": "EE352",
+    "room": "L1",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "backloggers": true
+  },
+  {
+    "code": "EE352",
+    "room": "L1",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 200102001,
+    "to": 200102043
+  },
+  {
+    "code": "EE352",
+    "room": "L2",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200102044,
+    "to": 200102092
+  },
+  {
+    "code": "EE352",
+    "room": "L3",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200102093,
+    "to": 200108026
+  },
+  {
+    "code": "EE352",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200108027,
+    "to": 200108073
+  },
+  {
+    "code": "EE360",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "backloggers": true
+  },
+  {
+    "code": "EE360",
+    "room": "2203",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200108001,
+    "to": 200108041
+  },
+  {
+    "code": "EE360",
+    "room": "2204",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200108042,
+    "to": 200108073
+  },
+  {
+    "code": "EE370",
+    "room": "L3",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "backloggers": true
+  },
+  {
+    "code": "EE370",
+    "room": "L3",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 200108001,
+    "to": 200108038
+  },
+  {
+    "code": "EE370",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 200108039,
+    "to": 200108073
+  },
+  {
+    "code": "EE390",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "backloggers": true
+  },
+  {
+    "code": "EE390",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 200102001,
+    "to": 200102034
+  },
+  {
+    "code": "EE390",
+    "room": "L2",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200102035,
+    "to": 200102073
+  },
+  {
+    "code": "EE390",
+    "room": "L3",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200102074,
+    "to": 200102112
+  },
+  {
+    "code": "EE390",
+    "room": "L4",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 200102113,
+    "to": 200108036
+  },
+  {
+    "code": "EE390",
+    "room": "1201",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200108037,
+    "to": 200108068
+  },
+  {
+    "code": "EE390",
+    "room": "1205",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 200108069,
+    "to": 200108073
+  },
+  {
+    "code": "EE390",
+    "room": "1205",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 222122042,
+    "to": 222122047
+  },
+  {
+    "code": "EE390",
+    "room": "1205",
+    "dateAndTime": "02-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 224102305,
+    "to": 224159020
+  },
+  {
+    "code": "EE512",
+    "room": "L2",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "all": true
+  },
+  {
+    "code": "EE515",
+    "room": "2101",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "all": true
+  },
+  {
+    "code": "EE516",
+    "room": "3003",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 19,
+    "all": true
+  },
+  {
+    "code": "EE522",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "all": true
+  },
+  {
+    "code": "EE525",
+    "room": "2102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "all": true
+  },
+  {
+    "code": "EE526",
+    "room": "3202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "all": true
+  },
+  {
+    "code": "EE533",
+    "room": "L1",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "all": true
+  },
+  {
+    "code": "EE535",
+    "room": "2101",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 18,
+    "all": true
+  },
+  {
+    "code": "EE540",
+    "room": "3003",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 14,
+    "all": true
+  },
+  {
+    "code": "EE549",
+    "room": "2102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 11,
+    "all": true
+  },
+  {
+    "code": "EE553",
+    "room": "L3",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 13,
+    "all": true
+  },
+  {
+    "code": "EE554",
+    "room": "2102",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 10,
+    "all": true
+  },
+  {
+    "code": "EE557",
+    "room": "5004",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 12,
+    "all": true
+  },
+  {
+    "code": "EE562",
+    "room": "L4",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "all": true
+  },
+  {
+    "code": "EE580",
+    "room": "2101",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 16,
+    "all": true
+  },
+  {
+    "code": "EE592",
+    "room": "2101",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 21,
+    "all": true
+  },
+  {
+    "code": "EE595H",
+    "room": "L2",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 19,
+    "all": true
+  },
+  {
+    "code": "EE602",
+    "room": "L3",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "backloggers": true
+  },
+  {
+    "code": "EE602",
+    "room": "L3",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 190102003,
+    "to": 190102100
+  },
+  {
+    "code": "EE602",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 190102104,
+    "to": 190108064
+  },
+  {
+    "code": "EE602",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "individual": 196103007
+  },
+  {
+    "code": "EE602",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "individual": 206103023
+  },
+  {
+    "code": "EE602",
+    "room": "L4",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "individual": 226302001
+  },
+  {
+    "code": "EE613",
+    "room": "5004",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 12,
+    "all": true
+  },
+  {
+    "code": "EE620",
+    "room": "2201",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 190102001,
+    "to": 190102083
+  },
+  {
+    "code": "EE620",
+    "room": "2202",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 190102084,
+    "to": 190108069
+  },
+  {
+    "code": "EE620",
+    "room": "2203",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 190108070,
+    "to": 190108071
+  },
+  {
+    "code": "EE620",
+    "room": "2203",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 224102301,
+    "to": 224102511
+  },
+  {
+    "code": "EE620",
+    "room": "2203",
+    "dateAndTime": "03-03-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 226102009,
+    "to": 226150003
+  },
+  {
+    "code": "EE622",
+    "room": "2201",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "all": true
+  },
+  {
+    "code": "EE624",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "EE624",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 190102010,
+    "to": 190108050
+  },
+  {
+    "code": "EE624",
+    "room": "1202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 190108054,
+    "to": 190108057
+  },
+  {
+    "code": "EE624",
+    "room": "1202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 25,
+    "from": 224102301,
+    "to": 224102324
+  },
+  {
+    "code": "EE626",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "backloggers": true
+  },
+  {
+    "code": "EE626",
+    "room": "L2",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 190102001,
+    "to": 190102065
+  },
+  {
+    "code": "EE626",
+    "room": "L3",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 38,
+    "from": 190102066,
+    "to": 190108007
+  },
+  {
+    "code": "EE626",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 190108021,
+    "to": 190108071
+  },
+  {
+    "code": "EE626",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 224102001,
+    "to": 224102511
+  },
+  {
+    "code": "EE626",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "individual": 224358004
+  },
+  {
+    "code": "EE626",
+    "room": "L4",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 226102008,
+    "to": 226102022
+  },
+  {
+    "code": "EE632",
+    "room": "3003",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 18,
+    "all": true
+  },
+  {
+    "code": "EE633",
+    "room": "L1",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 34,
+    "from": 190102001,
+    "to": 190102096
+  },
+  {
+    "code": "EE633",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 190102098,
+    "to": 190108071
+  },
+  {
+    "code": "EE633",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 224102001,
+    "to": 224102019
+  },
+  {
+    "code": "EE633",
+    "room": "L2",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "individual": 226102008
+  },
+  {
+    "code": "EE640",
+    "room": "3003",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "EE643",
+    "room": "3202",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 6,
+    "all": true
+  },
+  {
+    "code": "EE647",
+    "room": "L1",
+    "dateAndTime": "01-03-2023 (14:00-16:00)",
+    "nStudents": 27,
+    "all": true
+  },
+  {
+    "code": "EE665",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "EE665",
+    "room": "1201",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190102008,
+    "to": 190108004
+  },
+  {
+    "code": "EE665",
+    "room": "1202",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190108005,
+    "to": 190108051
+  },
+  {
+    "code": "EE665",
+    "room": "1205",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 190108053,
+    "to": 190108065
+  },
+  {
+    "code": "EE665",
+    "room": "1205",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 224102101,
+    "to": 224102510
+  },
+  {
+    "code": "EE665",
+    "room": "1205",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 224351012,
+    "to": 224351014
+  },
+  {
+    "code": "EE665",
+    "room": "1205",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 226102101,
+    "to": 226151105
+  },
+  {
+    "code": "EE665",
+    "room": "1205",
+    "dateAndTime": "26-02-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "individual": 226302001
+  },
+  {
+    "code": "EE676",
+    "room": "L1",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "backloggers": true
+  },
+  {
+    "code": "EE676",
+    "room": "L1",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 31,
+    "from": 190102007,
+    "to": 190102064
+  },
+  {
+    "code": "EE676",
+    "room": "L2",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 190102065,
+    "to": 190108010
+  },
+  {
+    "code": "EE676",
+    "room": "L3",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 36,
+    "from": 190108011,
+    "to": 190108056
+  },
+  {
+    "code": "EE676",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 190108057,
+    "to": 190108070
+  },
+  {
+    "code": "EE676",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 224102101,
+    "to": 224102115
+  },
+  {
+    "code": "EE676",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "from": 226102101,
+    "to": 226151105
+  },
+  {
+    "code": "EE676",
+    "room": "L4",
+    "dateAndTime": "27-02-2023 (14:00-16:00)",
+    "nStudents": 29,
+    "individual": 226302001
+  },
+  {
+    "code": "EE721",
+    "room": "2102",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 6,
+    "all": true
+  },
+  {
+    "code": "EN667",
+    "room": "3003",
+    "dateAndTime": "01-03-2023 (9:00-11:00)",
+    "nStudents": 16,
+    "all": true
+  },
+  {
+    "code": "EN671",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "individual": 180106045
+  },
+  {
+    "code": "EN671",
+    "room": "L1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 31,
+    "from": 190101015,
+    "to": 190102042
+  },
+  {
+    "code": "EN671",
+    "room": "L2",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 190102043,
+    "to": 190103040
+  },
+  {
+    "code": "EN671",
+    "room": "L3",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 190103043,
+    "to": 190104001
+  },
+  {
+    "code": "EN671",
+    "room": "L4",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 190104002,
+    "to": 190107003
+  },
+  {
+    "code": "EN671",
+    "room": "1G1",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 190107004,
+    "to": 190107042
+  },
+  {
+    "code": "EN671",
+    "room": "1201",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 190107043,
+    "to": 190108005
+  },
+  {
+    "code": "EN671",
+    "room": "1202",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 190108009,
+    "to": 190122035
+  },
+  {
+    "code": "EN671",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 190122043,
+    "to": 190123061
+  },
+  {
+    "code": "EN671",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 224154002,
+    "to": 224154010
+  },
+  {
+    "code": "EN671",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 224351001,
+    "to": 224351015
+  },
+  {
+    "code": "EN671",
+    "room": "1205",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 226103106,
+    "to": 226158101
+  },
+  {
+    "code": "EN674",
+    "room": "1205",
+    "dateAndTime": "28-02-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "all": true
+  },
+  {
+    "code": "EN697",
+    "room": "3003",
+    "dateAndTime": "02-03-2023 (9:00-11:00)",
+    "nStudents": 15,
+    "all": true
+  },
+  {
+    "code": "HS116",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "backloggers": true
+  },
+  {
+    "code": "HS116",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210101030,
+    "to": 210104040
+  },
+  {
+    "code": "HS116",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210104047,
+    "to": 210106081
+  },
+  {
+    "code": "HS116",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210106082,
+    "to": 210123044
+  },
+  {
+    "code": "HS116",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210205001,
+    "to": 210205015
+  },
+  {
+    "code": "HS125",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210101001,
+    "to": 210103052
+  },
+  {
+    "code": "HS125",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210103059,
+    "to": 210107099
+  },
+  {
+    "code": "HS125",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210108070,
+    "to": 210150023
+  },
+  {
+    "code": "HS128",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210101014,
+    "to": 210102080
+  },
+  {
+    "code": "HS128",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210102088,
+    "to": 210104012
+  },
+  {
+    "code": "HS128",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210104106,
+    "to": 210123052
+  },
+  {
+    "code": "HS128",
+    "room": "2204",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 210123054,
+    "to": 210150014
+  },
+  {
+    "code": "HS128",
+    "room": "2204",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 22,
+    "from": 210205002,
+    "to": 210205059
+  },
+  {
+    "code": "HS134",
+    "room": "3101",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "backloggers": true
+  },
+  {
+    "code": "HS134",
+    "room": "3101",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 210101029,
+    "to": 210106035
+  },
+  {
+    "code": "HS134",
+    "room": "3102",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 24,
+    "from": 210106038,
+    "to": 210121035
+  },
+  {
+    "code": "HS134",
+    "room": "3202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 29,
+    "from": 210121040,
+    "to": 210205060
+  },
+  {
+    "code": "HS135",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "backloggers": true
+  },
+  {
+    "code": "HS135",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210101013,
+    "to": 210103024
+  },
+  {
+    "code": "HS135",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 38,
+    "from": 210103035,
+    "to": 210107039
+  },
+  {
+    "code": "HS135",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210107041,
+    "to": 210150015
+  },
+  {
+    "code": "HS135",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210205040,
+    "to": 210205056
+  },
+  {
+    "code": "HS136",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "backloggers": true
+  },
+  {
+    "code": "HS136",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 37,
+    "from": 210101009,
+    "to": 210103122
+  },
+  {
+    "code": "HS136",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210103124,
+    "to": 210107042
+  },
+  {
+    "code": "HS136",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210107043,
+    "to": 210150012
+  },
+  {
+    "code": "HS138",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 33,
+    "from": 210101002,
+    "to": 210103057
+  },
+  {
+    "code": "HS138",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210103087,
+    "to": 210108067
+  },
+  {
+    "code": "HS138",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210108073,
+    "to": 210150017
+  },
+  {
+    "code": "HS138",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210205010,
+    "to": 210205055
+  },
+  {
+    "code": "HS155",
+    "room": "1201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210101003,
+    "to": 210102015
+  },
+  {
+    "code": "HS155",
+    "room": "1202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210102016,
+    "to": 210108036
+  },
+  {
+    "code": "HS155",
+    "room": "1205",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 34,
+    "from": 210108047,
+    "to": 210150022
+  },
+  {
+    "code": "HS156",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "backloggers": true
+  },
+  {
+    "code": "HS156",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 30,
+    "from": 210101025,
+    "to": 210104042
+  },
+  {
+    "code": "HS156",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 25,
+    "from": 210104050,
+    "to": 210107011
+  },
+  {
+    "code": "HS156",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 32,
+    "from": 210107021,
+    "to": 210121053
+  },
+  {
+    "code": "HS156",
+    "room": "2204",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 210121057,
+    "to": 210150018
+  },
+  {
+    "code": "HS156",
+    "room": "2204",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 23,
+    "from": 210205019,
+    "to": 210205057
+  },
+  {
+    "code": "HS161",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "backloggers": true
+  },
+  {
+    "code": "HS161",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 36,
+    "from": 210101016,
+    "to": 210106033
+  },
+  {
+    "code": "HS161",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210106067,
+    "to": 210122063
+  },
+  {
+    "code": "HS161",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (9:00-11:00)",
+    "nStudents": 35,
+    "from": 210205004,
+    "to": 210205042
+  },
+  {
+    "code": "HS207",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "individual": 180205001
+  },
+  {
+    "code": "HS207",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 190101009,
+    "to": 190103060
+  },
+  {
+    "code": "HS207",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 190103094,
+    "to": 190106042
+  },
+  {
+    "code": "HS207",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 32,
+    "from": 190106049,
+    "to": 190122009
+  },
+  {
+    "code": "HS207",
+    "room": "2204",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 190122010,
+    "to": 190205054
+  },
+  {
+    "code": "HS216",
+    "room": "2201",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 190101001,
+    "to": 190103104
+  },
+  {
+    "code": "HS216",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190103105,
+    "to": 190108020
+  },
+  {
+    "code": "HS216",
+    "room": "2203",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 33,
+    "from": 190108033,
+    "to": 190205052
+  },
+  {
+    "code": "HS222",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "individual": 180107072
+  },
+  {
+    "code": "HS222",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "individual": 180205037
+  },
+  {
+    "code": "HS222",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 30,
+    "from": 190101095,
+    "to": 190121008
+  },
+  {
+    "code": "HS222",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 21,
+    "from": 190121016,
+    "to": 190123058
+  },
+  {
+    "code": "HS222",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 21,
+    "from": 190205019,
+    "to": 190205055
+  },
+  {
+    "code": "HS232M",
+    "room": "3003",
+    "dateAndTime": "03-03-2023 (9:00-11:00)",
+    "nStudents": 7,
+    "all": true
+  },
+  {
+    "code": "HS233",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "backloggers": true
+  },
+  {
+    "code": "HS233",
+    "room": "L1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 190101038,
+    "to": 190104036
+  },
+  {
+    "code": "HS233",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 22,
+    "from": 190104038,
+    "to": 190123061
+  },
+  {
+    "code": "HS235",
+    "room": "1G1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 190101015,
+    "to": 190122018
+  },
+  {
+    "code": "HS235",
+    "room": "1G2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 16,
+    "from": 190122023,
+    "to": 190123065
+  },
+  {
+    "code": "HS235",
+    "room": "1G2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 16,
+    "from": 190205001,
+    "to": 190205049
+  },
+  {
+    "code": "HS239",
+    "room": "1G1",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 24,
+    "from": 190101006,
+    "to": 190121005
+  },
+  {
+    "code": "HS239",
+    "room": "1G2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 16,
+    "from": 190121010,
+    "to": 190123071
+  },
+  {
+    "code": "HS239",
+    "room": "1G2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 16,
+    "individual": 190205004
+  },
+  {
+    "code": "HS242",
+    "room": "L2",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 190101002,
+    "to": 190103062
+  },
+  {
+    "code": "HS242",
+    "room": "L3",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 37,
+    "from": 190103078,
+    "to": 190107008
+  },
+  {
+    "code": "HS242",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 190107022,
+    "to": 190123047
+  },
+  {
+    "code": "HS242",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "from": 190205005,
+    "to": 190205056
+  },
+  {
+    "code": "HS242",
+    "room": "L4",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 35,
+    "individual": 226141102
+  },
+  {
+    "code": "HS244",
+    "room": "2202",
+    "dateAndTime": "04-03-2023 (14:00-16:00)",
+    "nStudents": 28,
+    "from": 190101008,
+    "to": 190102101
+  }
+]
