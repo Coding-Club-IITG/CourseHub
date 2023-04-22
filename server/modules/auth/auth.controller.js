@@ -47,7 +47,7 @@ export const guestLoginHanlder = async (req, res, next) => {
 //     res.send(user);
 // };
 
-const fetchCourses = async (rollNumber) => {
+export const fetchCourses = async (rollNumber) => {
     var config = {
         method: "post",
         url: "https://academic.iitg.ac.in/sso/gen/student2.jsp",
