@@ -41,8 +41,15 @@ PODS:
     - Flutter
   - Firebase/CoreOnly (10.7.0):
     - FirebaseCore (= 10.7.0)
+  - Firebase/DynamicLinks (10.7.0):
+    - Firebase/CoreOnly
+    - FirebaseDynamicLinks (~> 10.7.0)
   - firebase_core (2.10.0):
     - Firebase/CoreOnly (= 10.7.0)
+    - Flutter
+  - firebase_dynamic_links (5.1.1):
+    - Firebase/DynamicLinks (= 10.7.0)
+    - firebase_core
     - Flutter
   - FirebaseCore (10.7.0):
     - FirebaseCoreInternal (~> 10.0)
@@ -50,6 +57,8 @@ PODS:
     - GoogleUtilities/Logger (~> 7.8)
   - FirebaseCoreInternal (10.8.0):
     - "GoogleUtilities/NSData+zlib (~> 7.8)"
+  - FirebaseDynamicLinks (10.7.0):
+    - FirebaseCore (~> 10.0)
   - Flutter (1.0.0)
   - flutter_appauth (0.0.1):
     - AppAuth (= 1.6.0)
@@ -74,6 +83,8 @@ PODS:
   - SDWebImage (5.15.5):
     - SDWebImage/Core (= 5.15.5)
   - SDWebImage/Core (5.15.5)
+  - share_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -84,6 +95,7 @@ PODS:
 DEPENDENCIES:
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_dynamic_links (from `.symlinks/plugins/firebase_dynamic_links/ios`)
   - Flutter (from `Flutter`)
   - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
   - flutter_custom_tabs (from `.symlinks/plugins/flutter_custom_tabs/ios`)
@@ -91,6 +103,7 @@ DEPENDENCIES:
   - local_auth_ios (from `.symlinks/plugins/local_auth_ios/ios`)
   - open_filex (from `.symlinks/plugins/open_filex/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
   - uni_links (from `.symlinks/plugins/uni_links/ios`)
 
@@ -102,6 +115,7 @@ SPEC REPOS:
     - Firebase
     - FirebaseCore
     - FirebaseCoreInternal
+    - FirebaseDynamicLinks
     - GoogleUtilities
     - PromisesObjC
     - SDWebImage
@@ -112,6 +126,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/file_picker/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_dynamic_links:
+    :path: ".symlinks/plugins/firebase_dynamic_links/ios"
   Flutter:
     :path: Flutter
   flutter_appauth:
@@ -126,6 +142,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/open_filex/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/ios"
   uni_links:
@@ -138,8 +156,10 @@ SPEC CHECKSUMS:
   file_picker: ce3938a0df3cc1ef404671531facef740d03f920
   Firebase: 0219acf760880eeec8ce479895bd7767466d9f81
   firebase_core: 18d44f087248303a4a8f05d0099a000c46e3c77a
+  firebase_dynamic_links: 464b974eeb7a5b4b7c970062c49a3e39ff924f47
   FirebaseCore: e317665b9d744727a97e623edbbed009320afdd7
   FirebaseCoreInternal: fa2899eb1f340054858d289e5a0fb935a0a74e52
+  FirebaseDynamicLinks: 16a8fae3697fba66fed7a1d646fe59f30d42aa31
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_appauth: 525652bda90e43ca5eb7ed748ecc106b79d1f5a1
   flutter_custom_tabs: 7a10a08686955cb748e5d26e0ae586d30689bf89
@@ -150,6 +170,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   SDWebImage: fd7e1a22f00303e058058278639bf6196ee431fe
+  share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
   shared_preferences_foundation: 986fc17f3d3251412d18b0265f9c64113a8c2472
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
   uni_links: d97da20c7701486ba192624d99bffaaffcfc298a

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -18,18 +20,17 @@ class NavBar extends StatelessWidget {
           GestureDetector(
             onTap: () {
               Scaffold.of(context).openDrawer();
+              log('DRAWER OPENING INITIALIZED');
             },
             child: const Icon(
               Icons.menu_rounded,
               color: Colors.white,
             ),
           ),
-         
           Text(
             'CourseHub',
             style: Themes.theme.textTheme.displayMedium,
           ),
-  
           GestureDetector(
             onTap: () {
               searchCallback(5);
@@ -40,7 +41,6 @@ class NavBar extends StatelessWidget {
                   const ColorFilter.mode(Colors.white, BlendMode.srcIn),
             ),
           ),
-         
         ],
       ),
     );

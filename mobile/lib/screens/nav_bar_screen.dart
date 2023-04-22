@@ -1,8 +1,7 @@
-
-
 import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/screens/exam_screen.dart';
+import 'package:coursehub/screens/team_screen.dart';
 import 'package:coursehub/widgets/common/menu_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -66,7 +65,11 @@ class _NavBarScreen extends State<NavBarScreen>
       ),
       SearchScreen(
         returnToPageCallback: returnToPageCallback,
-      )
+      ),
+     ExamScreen(
+      returnToPageCallback: returnToPageCallback,
+     ),
+     const TeamScreen()
     ];
   }
 
@@ -82,14 +85,14 @@ class _NavBarScreen extends State<NavBarScreen>
       appBar: const EmptyAppBar(),
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
-      drawer: const MenuDrawer(),
+      drawer: MenuDrawer( pageChangeCallback: returnToPageCallback,),
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
-                Expanded(child: ExamScreen()),
-                // Expanded(child: screens[_currentPageNumber]),
+                Expanded(child: screens[_currentPageNumber]),
+                // Expanded(child: TeamScreen()),
                 const SizedBox(
                   height: 60,
                 ),

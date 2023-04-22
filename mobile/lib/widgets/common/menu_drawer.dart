@@ -1,25 +1,33 @@
 import 'package:coursehub/apis/authentication/login.dart';
+import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../constants/themes.dart';
 
 class MenuDrawer extends StatelessWidget {
-  const MenuDrawer({super.key});
+  final Function(int a) pageChangeCallback;
+
+  const MenuDrawer({super.key, required this.pageChangeCallback});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      width: 250,
       backgroundColor: Colors.black,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.black,
-            ),
-            child: Text(
-              'CourseHub',
-              style: TextStyle(fontSize: 32),
+          const SizedBox(
+            height: 200,
+            child: DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.black,
+              ),
+              child: Text(
+                'CourseHub',
+                style: TextStyle(fontSize: 32),
+              ),
             ),
           ),
           MenuItems(
@@ -27,35 +35,50 @@ class MenuDrawer extends StatelessWidget {
                 Icons.library_books_outlined,
                 color: Colors.white,
               ),
-              onPressed: () {},
+              onPressed: () {
+                pageChangeCallback(6);
+                Navigator.of(context).pop();
+              },
               title: 'Exam Schedule'),
           MenuItems(
               icon: const Icon(
                 Icons.leaderboard_outlined,
                 color: Colors.white,
               ),
-              onPressed: () {},
+              onPressed: () {
+                showSnackBar('This feature coming soon !', context);
+                Navigator.of(context).pop();
+              },
               title: 'Leaderboard'),
           MenuItems(
               icon: const Icon(
                 Icons.handshake_outlined,
                 color: Colors.white,
               ),
-              onPressed: () {},
+              onPressed: () {
+                showSnackBar('This feature coming soon !', context);
+                Navigator.of(context).pop();
+              },
               title: 'Special Thanks'),
           MenuItems(
               icon: const Icon(
                 Icons.feedback_outlined,
                 color: Colors.white,
               ),
-              onPressed: () {},
+              onPressed: () {
+                showSnackBar('This feature coming soon !', context);
+                Navigator.of(context).pop();
+              },
               title: 'Feedback/ Bugs'),
           MenuItems(
               icon: const Icon(
                 Icons.people_alt_outlined,
                 color: Colors.white,
               ),
-              onPressed: () {},
+              onPressed: () {
+                pageChangeCallback(7);
+                Navigator.of(context).pop();
+              },
               title: 'Team'),
           const Spacer(),
           const Padding(
@@ -69,9 +92,7 @@ class MenuDrawer extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             child: Row(
               children: [
-                Image.asset(
-                  'assets/cc_logo.png',
-                ),
+                SvgPicture.asset('assets/cc_logo.svg'),
                 const SizedBox(
                   width: 10,
                 ),
@@ -242,7 +263,6 @@ class MenuItems extends StatelessWidget {
       ),
       onTap: () {
         onPressed();
-        Navigator.pop(context);
       },
     );
   }

@@ -1,11 +1,13 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/providers/cache_provider.dart';
-import 'package:coursehub/utilities/downloader.dart';
+import 'package:coursehub/apis/files/downloader.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/models/favourites.dart';
+import 'package:coursehub/utilities/dynamic_links.dart';
 import 'package:coursehub/utilities/file_size.dart';
 import 'package:coursehub/utilities/letter_capitalizer.dart';
 import 'package:coursehub/widgets/common/custom_linear_progress.dart';
@@ -19,6 +21,7 @@ import 'package:open_filex/open_filex.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class FolderExplorer extends StatefulWidget {
   final Map<dynamic, dynamic> data;
@@ -187,9 +190,11 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       widget.data["children"]
                                                           [index]["id"]);
 
-                                              setState(() {
-                                                _isLoading = false;
-                                              });
+                                              setState(
+                                                () {
+                                                  _isLoading = false;
+                                                },
+                                              );
 
                                               cacheProvider
                                                   .setIsDownloading(true);
@@ -297,8 +302,8 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                         fontWeight:
                                                             FontWeight.w400,
                                                         fontSize: 12.0,
-                                                        color:
-                                                            Color(0xFF585858),
+                                                        color: Color.fromRGBO(
+                                                            88, 88, 88, 1),
                                                       ),
                                                     ),
                                                     const Text(
@@ -309,8 +314,8 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                         fontWeight:
                                                             FontWeight.w400,
                                                         fontSize: 12.0,
-                                                        color:
-                                                            Color(0xFF585858),
+                                                        color: Color.fromRGBO(
+                                                            88, 88, 88, 1),
                                                       ),
                                                     ),
                                                   ],
@@ -320,11 +325,47 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                 width: 20,
                                               ),
                                               Visibility(
-                                                  visible: isDownloaded,
+                                                visible: isDownloaded,
+                                                child: Container(
+                                                  transform:
+                                                      Matrix4.translationValues(
+                                                          0, 2, 0),
                                                   child: const Icon(
-                                                    Icons.check_circle,
+                                                    Icons.check_circle_rounded,
                                                     color: Colors.green,
-                                                  )),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                width: 20,
+                                              ),
+                                              GestureDetector(
+                                                onTap: () async {
+                                                  try {
+                                                    String address =
+                                                        '${widget.data['_id']}/';
+                                                    final shareLink =
+                                                        await FirebaseDynamicLink
+                                                            .createDynamicLink(
+                                                      name.toLowerCase(),
+                                                      widget.data['course'],
+                                                      address,
+                                                    );
+
+                                                    await Share.share(shareLink,
+                                                        subject:
+                                                            '$name \n CourseHub');
+                                                  } catch (e) {
+                                                    showSnackBar(
+                                                        'Something went Wrong !',
+                                                        context);
+                                                  }
+                                                },
+                                                child: const Icon(
+                                                  Icons.ios_share_rounded,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
                                               const SizedBox(
                                                 width: 10,
                                               ),

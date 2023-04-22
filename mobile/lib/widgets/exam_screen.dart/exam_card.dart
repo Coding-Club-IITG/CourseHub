@@ -1,7 +1,6 @@
 import 'package:coursehub/constants/themes.dart';
 import 'package:flutter/material.dart';
 
-
 class ExamCard extends StatelessWidget {
   const ExamCard({super.key});
 
@@ -24,13 +23,30 @@ class ExamCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text(
-                    '3 PM to 6 PM',
-                    style: TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.w400),
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '3',
+                          style: Themes.darkTextTheme.bodyMedium,
+                        ),
+                        TextSpan(
+                          text: ' PM to ',
+                          style: Themes.darkTextTheme.bodySmall,
+                        ),
+                        TextSpan(
+                          text: '6',
+                          style: Themes.darkTextTheme.bodyMedium,
+                        ),
+                        TextSpan(
+                          text: ' PM',
+                          style: Themes.darkTextTheme.bodySmall
+                        ),
+                      ],
+                    ),
                   ),
-                  Icon(Icons.access_time_sharp)
+                  const Icon(Icons.access_time_sharp)
                 ],
               ),
             ),
@@ -52,7 +68,9 @@ class ExamCard extends StatelessWidget {
                   transform: Matrix4.translationValues(-5, 0, 0),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,),
+                      const Icon(
+                        Icons.location_on_outlined,
+                      ),
                       Text(
                         '4202 (Core 4)',
                         style: Themes.darkTextTheme.bodySmall,
