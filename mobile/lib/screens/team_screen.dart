@@ -1,0 +1,209 @@
+import 'package:coursehub/constants/team.dart';
+import 'package:coursehub/widgets/common/nav_bar.dart';
+import 'package:coursehub/widgets/team_screen/photo_frame.dart';
+import 'package:coursehub/widgets/team_screen/team_footer.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
+class TeamScreen extends StatelessWidget {
+  const TeamScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> teamFrame = [];
+
+    for (int i = 0; i < team.length; i++) {
+      var e = team[i];
+      if (i % 2 == 0) {
+        teamFrame.add(
+          LeftAlignedFrame(
+            name: e['name'] ?? '',
+            role: e['role'] ?? '',
+            socials: {
+              'github': e['github'] ?? '',
+              'instagram': e['instagram'] ?? '',
+              'linkedin': e['linkedin'] ?? '',
+            },
+            image: e['imageUrl'] ?? '',
+          ),
+        );
+      } else {
+        teamFrame.add(
+          RightAlignedFrame(
+            name: e['name'] ?? '',
+            role: e['role'] ?? '',
+            socials: {
+              'github': e['github'] ?? '',
+              'instagram': e['instagram'] ?? '',
+              'linkedin': e['linkedin'] ?? '',
+            },
+            image: e['imageUrl'] ?? '',
+          ),
+        );
+      }
+    }
+
+    List<Widget> children = [];
+    children.add(NavBar(searchCallback: (int a) {}));
+
+    children.add(
+      Container(
+        transform: Matrix4.translationValues(0.0, -10.0, 0.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+        child: Column(
+          children: teamFrame,
+        ),
+      ),
+    );
+    children.add(const TeamFooter());
+
+    return Ink(
+        color: Colors.black,
+        child: SingleChildScrollView(
+          child: AnimationLimiter(
+            child: Column(
+              children: AnimationConfiguration.toStaggeredList(
+                duration: const Duration(milliseconds: 375),
+                childAnimationBuilder: (widget) => FadeInAnimation(
+                  child: widget,
+                ),
+                children: children,
+              ),
+            ),
+          ),
+        ));
+  }
+}
+
+class RightAlignedFrame extends StatelessWidget {
+  final String name;
+  final String role;
+  final Map<String, String> socials;
+  final String image;
+
+  const RightAlignedFrame({
+    super.key,
+    required this.name,
+    required this.role,
+    required this.socials,
+    required this.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          SlideAnimation(
+            horizontalOffset: -50,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  name,
+                  style:
+                      const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Text(
+                  role.toUpperCase(),
+                  style: const TextStyle(
+                      color: Color.fromRGBO(201, 201, 201, 1), fontSize: 14),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 40,
+          ),
+          SlideAnimation(
+            horizontalOffset: 50,
+            child: Container(
+              transform: Matrix4.rotationZ(0.1552),
+              child: PhotoFrame(
+                photo: image,
+                socials: socials,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class LeftAlignedFrame extends StatelessWidget {
+  final String name;
+  final String role;
+  final Map<String, String> socials;
+  final String image;
+  const LeftAlignedFrame({
+    super.key,
+    required this.name,
+    required this.role,
+    required this.socials,
+    required this.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 15),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SlideAnimation(
+            horizontalOffset: -50,
+            child: Container(
+              transform: Matrix4.rotationZ(-0.1552),
+              child: PhotoFrame(
+                photo: image,
+                socials: socials,
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 40,
+          ),
+          SlideAnimation(
+            horizontalOffset: 50,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  name,
+                  style:
+                      const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Text(
+                  role.toUpperCase(),
+                  style: const TextStyle(
+                      color: Color.fromRGBO(201, 201, 201, 1), fontSize: 14),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}

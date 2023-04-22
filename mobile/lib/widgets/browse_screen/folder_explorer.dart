@@ -1,12 +1,13 @@
-import 'dart:io';
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
 import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/utilities/downloader.dart';
+import 'package:coursehub/providers/cache_provider.dart';
+import 'package:coursehub/apis/files/downloader.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/models/favourites.dart';
+import 'package:coursehub/utilities/dynamic_links.dart';
 import 'package:coursehub/utilities/file_size.dart';
 import 'package:coursehub/utilities/letter_capitalizer.dart';
 import 'package:coursehub/widgets/common/custom_linear_progress.dart';
@@ -19,8 +20,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:open_filex/open_filex.dart';
 
 import 'package:path_provider/path_provider.dart';
-
-import '../../utilities/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class FolderExplorer extends StatefulWidget {
   final Map<dynamic, dynamic> data;
@@ -34,10 +35,10 @@ class FolderExplorer extends StatefulWidget {
 
 class _FolderExplorerState extends State<FolderExplorer> {
   bool _isLoading = false;
-  bool _isDownloading = false;
 
   @override
   Widget build(BuildContext context) {
+    final cacheProvider = context.read<CacheProvider>();
     if (widget.data["childType"] == "Folder") {
       List<Widget> folders = [];
       for (var e in widget.data["children"]) {
@@ -184,18 +185,47 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                               setState(() {
                                                 _isLoading = true;
                                               });
-                                              final link = await getPreviewLink(
+                                              final link =
+                                                  await getDownloadLink(
+                                                      widget.data["children"]
+                                                          [index]["id"]);
+
+                                              setState(
+                                                () {
+                                                  _isLoading = false;
+                                                },
+                                              );
+
+                                              cacheProvider
+                                                  .setIsDownloading(true);
+                                              final fileName =
                                                   widget.data["children"][index]
-                                                      ["id"]);
+                                                      ["name"];
+
+                                              final filedata = await downloader(
+                                                link,
+                                              );
+
+                                              final tempDirectory =
+                                                  await getApplicationDocumentsDirectory();
+
+                                              File file = File(
+                                                  '${tempDirectory.path}/$fileName');
+                                              final raf = file.openSync(
+                                                  mode: FileMode.write);
+                                              raf.writeFromSync(filedata);
+                                              await raf.close();
+
+                                              await OpenFilex.open(file.path);
+                                              cacheProvider
+                                                  .setIsDownloading(false);
 
                                               setState(() {
-                                                _isLoading = false;
+                                                isDownloaded = true;
                                               });
-                                              await launchUrl(link);
                                             } catch (e) {
-                                              setState(() {
-                                                _isLoading = false;
-                                              });
+                                              cacheProvider
+                                                  .setIsDownloading(false);
                                               showSnackBar(
                                                   'Something Went Wrong !',
                                                   context);
@@ -272,8 +302,8 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                         fontWeight:
                                                             FontWeight.w400,
                                                         fontSize: 12.0,
-                                                        color:
-                                                            Color(0xFF585858),
+                                                        color: Color.fromRGBO(
+                                                            88, 88, 88, 1),
                                                       ),
                                                     ),
                                                     const Text(
@@ -284,8 +314,8 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                         fontWeight:
                                                             FontWeight.w400,
                                                         fontSize: 12.0,
-                                                        color:
-                                                            Color(0xFF585858),
+                                                        color: Color.fromRGBO(
+                                                            88, 88, 88, 1),
                                                       ),
                                                     ),
                                                   ],
@@ -294,78 +324,47 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                               const SizedBox(
                                                 width: 20,
                                               ),
+                                              Visibility(
+                                                visible: isDownloaded,
+                                                child: Container(
+                                                  transform:
+                                                      Matrix4.translationValues(
+                                                          0, 2, 0),
+                                                  child: const Icon(
+                                                    Icons.check_circle_rounded,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                width: 20,
+                                              ),
                                               GestureDetector(
                                                 onTap: () async {
-                                                  if (isDownloaded) {
-                                                    showSnackBar(
-                                                        'File Already Downloaded!',
-                                                        context);
-                                                    return;
-                                                  }
-                                                  if (_isDownloading) {
-                                                    showSnackBar(
-                                                        'Wait for the current download to get finished!',
-                                                        context);
-                                                    return;
-                                                  }
                                                   try {
-                                                    setState(() {
-                                                      _isLoading = true;
-                                                    });
-                                                    final link =
-                                                        await getDownloadLink(
-                                                            widget.data[
-                                                                    "children"]
-                                                                [index]["id"]);
-
-                                                    setState(() {
-                                                      _isLoading = false;
-                                                    });
-
-                                                    setState(() {
-                                                      _isDownloading = true;
-                                                    });
-                                                    final fileName =
-                                                        widget.data["children"]
-                                                            [index]["name"];
-
-                                                    final filedata =
-                                                        await downloader(
-                                                      link,
+                                                    String address =
+                                                        '${widget.data['_id']}/';
+                                                    final shareLink =
+                                                        await FirebaseDynamicLink
+                                                            .createDynamicLink(
+                                                      name.toLowerCase(),
+                                                      widget.data['course'],
+                                                      address,
                                                     );
 
-                                                    final tempDirectory =
-                                                        await getApplicationDocumentsDirectory();
-                                                    File file = File(
-                                                        '${tempDirectory.path}/$fileName');
-                                                    final raf = file.openSync(
-                                                        mode: FileMode.write);
-                                                    raf.writeFromSync(filedata);
-                                                    await raf.close();
-
-                                                    await OpenFilex.open(
-                                                        file.path);
-                                                    setState(() {
-                                                      _isDownloading = false;
-                                                    });
+                                                    await Share.share(shareLink,
+                                                        subject:
+                                                            '$name \n CourseHub');
                                                   } catch (e) {
                                                     showSnackBar(
-                                                        'Something Went Wrong !',
+                                                        'Something went Wrong !',
                                                         context);
                                                   }
                                                 },
-                                                child: isDownloaded
-                                                    ? const Icon(
-                                                        Icons.check_circle,
-                                                        color: Colors.green,
-                                                      )
-                                                    : const Icon(
-                                                        Icons
-                                                            .download_for_offline_outlined,
-                                                        size: 30.0,
-                                                        color: Color.fromRGBO(
-                                                            0, 0, 0, 0.75),
-                                                      ),
+                                                child: const Icon(
+                                                  Icons.ios_share_rounded,
+                                                  color: Colors.black,
+                                                ),
                                               ),
                                               const SizedBox(
                                                 width: 10,
@@ -452,14 +451,6 @@ class _FolderExplorerState extends State<FolderExplorer> {
             visible: _isLoading,
             child: const CustomLinearProgress(text: 'Loading ...'),
           ),
-          Visibility(
-            visible: _isDownloading,
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: const Color.fromRGBO(255, 255, 255, 0.9),
-            ),
-          )
         ],
       );
     }

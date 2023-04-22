@@ -1,13 +1,16 @@
 import 'dart:convert';
-import 'dart:developer';
 
+
+import 'package:coursehub/apis/courses/add_courses.dart';
 import 'package:coursehub/apis/protected.dart';
+import 'package:coursehub/apis/user/user.dart';
 import 'package:coursehub/constants/endpoints.dart';
-import 'package:coursehub/utilities/set_hive_store.dart';
+import 'package:coursehub/models/course.dart';
+import 'package:coursehub/models/user.dart';
+
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-
-import 'add_courses.dart';
 
 Future<void> isCourseUpdated() async {
   try {
@@ -30,20 +33,37 @@ Future<void> isCourseUpdated() async {
     );
 
     final response = jsonDecode(res.body);
-    log(response.toString());
 
-    // if (!response['updated']) {
-    //   return;
-    // } else {
-    //   List<dynamic> courses = response['data'];
 
-    //   for (var course in courses) {
-    //     await getUserCourses(course);
-    //   }
+    if (response['updated']) {
+      List updatedCourses = response['updatedCourses'];
 
-    //   await setHiveStore();
-    // }
+      for (var course in updatedCourses) {
+        await getUserCourses(course);
+      }
+    }
+
+    List<Course> subscribedCourses = (response['subscribedCourses'] as List)
+        .map((e) => Course.fromJson(e))
+        .toList();
+
+    var box = await Hive.openBox('coursehub-data');
+
+    User user = User.fromJson(box.get('user') ?? {});
+    List<Course> toBeAdded = [];
+
+    for (var course in subscribedCourses) {
+      if (!user.courses.any((element) => element.code == course.code)) {
+        toBeAdded.add(course);
+      }
+    }
+
+    for (var element in toBeAdded) {
+      await getUserCourses(element.code);
+    }
+
+    await getCurrentUser();
   } catch (e) {
-    print(e);
+    print(e.toString());
   }
 }

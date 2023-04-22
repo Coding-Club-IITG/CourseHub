@@ -1,11 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
  xmlns:tools="http://schemas.android.com/tools"
     package="com.codingclub.coursehub">
-     <supports-screens android:smallScreens="true"
-                      android:normalScreens="true"
-                      android:largeScreens="false"
-                      android:xlargeScreens="false"/>
-    
+     <uses-feature android:name="android.hardware.telephony" required="true"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -35,19 +31,6 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-             <intent-filter android:autoVerify="true">
-              <action android:name="android.intent.action.VIEW" />
-              <category android:name="android.intent.category.DEFAULT" />
-              <category android:name="android.intent.category.BROWSABLE" />
-        
-              <data
-                android:scheme="https"
-                android:host="e886-14-139-196-12.in.ngrok.io"
-                android:pathPattern="/action" />
-            </intent-filter>
-
-          
-
         </activity>
          <activity android:name="com.linusu.flutter_web_auth.CallbackActivity" 
          android:exported="true" 

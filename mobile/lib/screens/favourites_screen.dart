@@ -1,4 +1,4 @@
-import 'package:coursehub/animations/fade_in_animation.dart';
+import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/constants/all_courses.dart';
 import 'package:coursehub/models/favourites.dart';
 import 'package:coursehub/utilities/letter_capitalizer.dart';

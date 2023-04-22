@@ -1,5 +1,10 @@
 import 'package:coursehub/database/cache_store.dart';
+import 'package:coursehub/providers/cache_provider.dart';
+import 'package:coursehub/screens/exam_screen.dart';
+import 'package:coursehub/screens/team_screen.dart';
+import 'package:coursehub/widgets/common/menu_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../constants/themes.dart';
 import '../screens/browse_screen.dart';
@@ -58,9 +63,13 @@ class _NavBarScreen extends State<NavBarScreen>
       ProfileScreen(
         returnToPageCallback: returnToPageCallback,
       ),
-       SearchScreen(
+      SearchScreen(
         returnToPageCallback: returnToPageCallback,
-      )
+      ),
+     ExamScreen(
+      returnToPageCallback: returnToPageCallback,
+     ),
+     const TeamScreen()
     ];
   }
 
@@ -76,47 +85,14 @@ class _NavBarScreen extends State<NavBarScreen>
       appBar: const EmptyAppBar(),
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
-      drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text('Drawer Header'),
-            ),
-            ListTile(
-              title: const Text('Item 1'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Item 2'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: MenuDrawer( pageChangeCallback: returnToPageCallback,),
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
                 Expanded(child: screens[_currentPageNumber]),
+                // Expanded(child: TeamScreen()),
                 const SizedBox(
                   height: 60,
                 ),
@@ -209,6 +185,18 @@ class _NavBarScreen extends State<NavBarScreen>
                   ),
                 ),
               ],
+            ),
+            Consumer<CacheProvider>(
+              builder: (context, cacheprovider, child) {
+                return Visibility(
+                  visible: cacheprovider.isDownloading,
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: const Color.fromRGBO(255, 255, 255, 0.9),
+                  ),
+                );
+              },
             ),
           ],
         ),

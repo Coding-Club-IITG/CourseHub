@@ -33,7 +33,7 @@ class User {
   String degree;
   List<Course> courses;
   String department;
-  List<dynamic> favourites;
+  List<Favourite> favourites;
   int v;
 
   factory User.fromJson(Map<dynamic, dynamic> json) => User(
@@ -60,7 +60,7 @@ class User {
         "degree": degree,
         "courses": List<dynamic>.from(courses.map((x) => x.toJson())),
         "department": department,
-        "favourites": List<dynamic>.from(favourites.map((x) => x)),
+        "favourites": List<dynamic>.from(favourites.map((x) => x.toJson())),
         "__v": v,
       };
 }

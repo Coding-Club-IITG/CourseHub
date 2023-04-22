@@ -1,4 +1,4 @@
-import 'package:coursehub/animations/fade_in_animation.dart';
+import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/models/contribution.dart';
 import 'package:coursehub/models/user.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
