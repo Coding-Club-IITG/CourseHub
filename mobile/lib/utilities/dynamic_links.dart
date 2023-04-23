@@ -19,40 +19,43 @@ class FirebaseDynamicLink {
           packageName: "com.codingclub.coursehub",
         ),
         iosParameters: const IOSParameters(
-            bundleId: "com.codingclub.coursehub", appStoreId: '6446239049'),
+          bundleId: "com.codingclub.coursehub",
+          appStoreId: '6447286863',
+        ),
       );
       final dynamicLink =
           await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
-
 
       return dynamicLink.shortUrl.toString();
     } catch (e) {
       rethrow;
     }
   }
-}
 
-Future<void> handleInitialLink() async {
-  final PendingDynamicLinkData? initialLink =
-      await FirebaseDynamicLinks.instance.getInitialLink();
+  static Future<void> handleInitialLink() async {
+    final PendingDynamicLinkData? initialLink =
+        await FirebaseDynamicLinks.instance.getInitialLink();
 
-  if (initialLink != null) {
-    final Uri deepLink = initialLink.link;
-    log(deepLink.toString());
+    if (initialLink != null) {
+      final Uri deepLink = initialLink.link;
+      log(deepLink.toString());
 
-    // Example of using the dynamic link to push the user to a different screen
-
-    // Navigator.pushNamed(context, deepLink.path);
-  }
-
-  FirebaseDynamicLinks.instance.onLink.listen(
-    (pendingDynamicLinkData) {
-      // Set up the `onLink` event listener next as it may be received here
-      final Uri deepLink = pendingDynamicLinkData.link;
       // Example of using the dynamic link to push the user to a different screen
-      // Navigator.pushNamed(context, deepLink.path);
 
-      log(deepLink.toString() + 'LISTENING TO DATA');
-    },
-  );
+      // Navigator.pushNamed(context, deepLink.path);
+    }
+
+    FirebaseDynamicLinks.instance.onLink.listen(
+      (pendingDynamicLinkData) {
+        // Set up the `onLink` event listener next as it may be received here
+        final Uri deepLink = pendingDynamicLinkData.link;
+        // Example of using the dynamic link to push the user to a different screen
+        // Navigator.pushNamed(context, deepLink.path);
+
+        log('${deepLink}LISTENING TO DATA');
+      },
+    );
+  }
 }
+
+

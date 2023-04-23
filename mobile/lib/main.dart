@@ -1,4 +1,5 @@
 import 'package:coursehub/providers/cache_provider.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/utilities/dynamic_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -14,7 +15,7 @@ import './constants/themes.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await handleInitialLink();
+  await FirebaseDynamicLink.handleInitialLink();
   await Hive.initFlutter();
 
   runApp(
@@ -22,6 +23,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(
           create: (context) => CacheProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => NavigationProvider(),
         )
       ],
       child: const MyApp(),

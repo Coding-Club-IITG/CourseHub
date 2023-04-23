@@ -1,3 +1,6 @@
+import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:provider/provider.dart';
+
 import '../common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 import '../../constants/themes.dart';
@@ -5,12 +8,13 @@ import '../../constants/themes.dart';
 class NavBarIcon extends StatefulWidget {
   final bool isSelected;
   final String label;
-  final Function(int a) pageChangeCallback;
+  final AnimationController controller;
+
   const NavBarIcon({
     super.key,
+    required this.controller,
     required this.isSelected,
     required this.label,
-    required this.pageChangeCallback,
   });
 
   @override
@@ -69,17 +73,22 @@ class _NavBarIconState extends State<NavBarIcon>
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
+
     return Column(
       children: [
         const Spacer(),
-        
         SplashOnPressed(
           splashColor: const Color.fromRGBO(0, 0, 0, 0.4),
           onPressed: () {
             // _controller.reset();
             // _controller.forward();
 
-            widget.pageChangeCallback(serialNo());
+            if (navigationProvider.currentPageNumber == 2) {
+              widget.controller.reverse(from: 0.75);
+            }
+
+            navigationProvider.changePageNumber(serialNo());
           },
           child: AnimatedBuilder(
               animation: _controller,

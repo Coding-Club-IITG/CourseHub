@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_svg/svg.dart';
 
-class PhotoFrame extends StatelessWidget {
+class PhotoFrame extends StatefulWidget {
   final String photo;
   final Map<String, String> socials;
   const PhotoFrame({
@@ -13,6 +13,31 @@ class PhotoFrame extends StatelessWidget {
     required this.socials,
     required this.photo,
   });
+
+  @override
+  State<PhotoFrame> createState() => _PhotoFrameState();
+}
+
+class _PhotoFrameState extends State<PhotoFrame> {
+  late Image image;
+
+  @override
+  void initState() {
+    image = Image.network(
+      widget.photo,
+      fit: BoxFit.fill,
+      errorBuilder: (context, error, stackTrace) => Image.asset(
+        'assets/placeholder_dp.png',
+      ),
+    );
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    precacheImage(image.image, context);
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +61,7 @@ class PhotoFrame extends StatelessWidget {
                 width: 1.12,
               ),
             ),
-            child: Image.network(
-              photo,
-              fit: BoxFit.fill,
-              errorBuilder: (context, error, stackTrace) => Image.asset(
-                'assets/placeholder_dp.png',
-              ),
-            ),
+            child: image,
           ),
           const SizedBox(
             height: 10,
@@ -52,7 +71,14 @@ class PhotoFrame extends StatelessWidget {
             children: [
               SplashOnPressed(
                 onPressed: () async {
-                  await launchUrl(socials['github'] ?? '');
+                  if (widget.socials['github']!.isEmpty) {
+                    showSnackBar(
+                      'This guy is not so geeky to have a github account 🤪 !',
+                      context,
+                    );
+                    return;
+                  }
+                  await launchUrl(widget.socials['github'] ?? '');
                 },
                 splashColor: Colors.grey,
                 child: Container(
@@ -66,14 +92,14 @@ class PhotoFrame extends StatelessWidget {
               ),
               SplashOnPressed(
                 onPressed: () async {
-                  if (socials['instagram']!.isEmpty) {
+                  if (widget.socials['instagram']!.isEmpty) {
                     showSnackBar(
                       'This guy is too busy to have an instagram handle 🤪 !',
                       context,
                     );
                     return;
                   }
-                  await launchUrl(socials['instagram'] ?? '');
+                  await launchUrl(widget.socials['instagram'] ?? '');
                 },
                 splashColor: Colors.grey,
                 child: Container(
@@ -87,7 +113,7 @@ class PhotoFrame extends StatelessWidget {
               ),
               SplashOnPressed(
                 onPressed: () async {
-                  await launchUrl(socials['linkedin'] ?? '');
+                  await launchUrl(widget.socials['linkedin'] ?? '');
                 },
                 splashColor: Colors.grey,
                 child: Container(

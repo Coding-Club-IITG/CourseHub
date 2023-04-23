@@ -9,7 +9,7 @@ class CustomFadeInAnimation extends StatelessWidget {
 
     return TweenAnimationBuilder(
       tween: Tween<double>(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 375),
       builder: (context, value, child) {
         return Opacity(
           opacity: value,

@@ -1,8 +1,10 @@
 import 'package:coursehub/constants/themes.dart';
+
 import 'package:flutter/material.dart';
 
 class ExamCard extends StatelessWidget {
-  const ExamCard({super.key});
+  final dynamic exam;
+  const ExamCard({super.key,required this.exam});
 
   @override
   Widget build(BuildContext context) {
@@ -28,21 +30,19 @@ class ExamCard extends StatelessWidget {
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: '3',
+                          text: '9',
                           style: Themes.darkTextTheme.bodyMedium,
                         ),
                         TextSpan(
-                          text: ' PM to ',
+                          text: ' AM to ',
                           style: Themes.darkTextTheme.bodySmall,
                         ),
                         TextSpan(
-                          text: '6',
+                          text: '11',
                           style: Themes.darkTextTheme.bodyMedium,
                         ),
                         TextSpan(
-                          text: ' PM',
-                          style: Themes.darkTextTheme.bodySmall
-                        ),
+                            text: ' AM', style: Themes.darkTextTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -57,11 +57,12 @@ class ExamCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'CL304',
+                  exam['code'],
                   style: Themes.darkTextTheme.bodySmall,
                 ),
                 Text(
-                  'Transport Phenomenon',
+                  exam['name'],
+                  overflow: TextOverflow.ellipsis,
                   style: Themes.darkTextTheme.bodyLarge,
                 ),
                 Container(
@@ -72,7 +73,7 @@ class ExamCard extends StatelessWidget {
                         Icons.location_on_outlined,
                       ),
                       Text(
-                        '4202 (Core 4)',
+                        exam['location'],
                         style: Themes.darkTextTheme.bodySmall,
                       ),
                     ],

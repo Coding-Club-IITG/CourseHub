@@ -1,21 +1,26 @@
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
+import 'package:coursehub/apis/miscellaneous/get_exam_details.dart';
 import 'package:coursehub/constants/themes.dart';
+import 'package:coursehub/models/exam_details.dart';
+import 'package:coursehub/screens/DUMMYDATA.dart';
+
+import 'package:coursehub/widgets/common/custom_linear_progress.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:coursehub/widgets/exam_screen.dart/exam_card.dart';
 import 'package:coursehub/widgets/exam_screen.dart/exam_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:intl/intl.dart';
 
 class ExamScreen extends StatelessWidget {
-  final Function(int a) returnToPageCallback;
-  const ExamScreen({super.key, required this.returnToPageCallback});
+  const ExamScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        NavBar(searchCallback: returnToPageCallback),
+        const NavBar(),
         const SizedBox(
           height: 20,
         ),
@@ -34,56 +39,74 @@ class ExamScreen extends StatelessWidget {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: AnimationLimiter(
-              child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                itemCount: 10,
-                itemBuilder: (context, index) {
-                  return AnimationConfiguration.staggeredList(
-                    position: index,
-                    duration: const Duration(milliseconds: 375),
-                    child: SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text('SAT',
-                                        style: Themes.darkTextTheme.bodySmall),
-                                    const Text(
-                                      '11',
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w700),
-                                    ),
-                                    Text('APRIL',
-                                        style: Themes.darkTextTheme.bodySmall),
-                                  ],
+              child: FutureBuilder<List<ExamDetails>>(
+                  future: getExamDetails(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: dummyData.length,
+                        itemBuilder: (context, index) {
+                          var data = dummyData[index];
+
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Text(data['day'] ?? '',
+                                                style: Themes
+                                                    .darkTextTheme.bodySmall),
+                                            Text(
+                                              data['date'] ?? '',
+                                              style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 32,
+                                                  fontWeight: FontWeight.w700),
+                                            ),
+                                            Text(data['month'] ?? '',
+                                                style: Themes
+                                                    .darkTextTheme.bodySmall),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 8,
+                                        child: ExamCard(
+                                          exam: data,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const Expanded(
-                                flex: 8,
-                                child: ExamCard(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      return const CustomLinearProgress(
+                          text: 'Loading your exam details !');
+                    }
+                  }),
             ),
           ),
         ),

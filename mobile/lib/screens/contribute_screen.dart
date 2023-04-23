@@ -1,7 +1,7 @@
-
 import 'dart:io';
 
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
+import 'package:coursehub/widgets/common/custom_button.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:coursehub/apis/contributions/contribution.dart';
@@ -13,10 +13,12 @@ import 'package:coursehub/widgets/contribute_screen/custom_textformfield.dart';
 import 'package:coursehub/widgets/contribute_screen/dropdown_row.dart';
 import 'package:coursehub/widgets/contribute_screen/upload.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/navigation_provider.dart';
 
 class ContributeScreen extends StatefulWidget {
-  final Function(int a) callback;
-  const ContributeScreen({super.key, required this.callback});
+  const ContributeScreen({super.key});
 
   @override
   State<ContributeScreen> createState() => _ContributeScreenState();
@@ -47,7 +49,6 @@ class _ContributeScreenState extends State<ContributeScreen> {
   }
 
   void _onFileUpload(List<File> files) {
-
     if (files.isEmpty) {
       setState(() {
         color = Colors.red;
@@ -62,13 +63,15 @@ class _ContributeScreenState extends State<ContributeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Column(
             children: [
-              NavBar(searchCallback: (searchCallback) {}),
+              const NavBar(),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -131,12 +134,9 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                Material(
-                                  color: Themes.kYellow,
-                                  child: InkWell(
-                                    splashColor:
-                                        const Color.fromRGBO(0, 0, 0, 0.1),
-                                    onTap: () async {
+                                CustomButton(
+                                    title: 'Submit',
+                                    onPressed: () async {
                                       if (_key.currentState!.validate()) {
                                         if (_files.isEmpty) {
                                           setState(() {
@@ -161,7 +161,9 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                             showSnackBar(
                                                 'You\'ve successfully contributed to CourseHub! 🎉',
                                                 context);
-                                            widget.callback(4);
+
+                                            navigationProvider
+                                                .changePageNumber(4);
                                           } catch (e) {
                                             setState(() {
                                               _isLoading = false;
@@ -176,22 +178,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                           color = Colors.red;
                                         });
                                       }
-                                    },
-                                    child: Container(
-                                      height: 45,
-                                      decoration: BoxDecoration(
-                                          color: Colors.transparent,
-                                          border: Border.all(
-                                              color: Colors.black, width: 0.5)),
-                                      child: Center(
-                                        child: Text(
-                                          'SUBMIT',
-                                          style: Themes.darkTextTheme.bodyLarge,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                    })
                               ],
                             ),
                           ),

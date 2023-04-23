@@ -2,13 +2,16 @@ import 'package:coursehub/apis/courses/add_courses.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/navigation_provider.dart';
 import '../../utilities/letter_capitalizer.dart';
 
 class SearchCard extends StatefulWidget {
   final bool isAvailable;
   final String courseCode;
   final String courseName;
-  final Function callback;
+  final Function? callback;
+
   final bool isTempCourse;
 
   const SearchCard(
@@ -16,8 +19,12 @@ class SearchCard extends StatefulWidget {
       required this.isAvailable,
       required this.courseCode,
       required this.courseName,
-      required this.callback,
-      required this.isTempCourse});
+      required this.isTempCourse,
+     required this.callback,
+      
+      
+      
+      });
 
   @override
   State<SearchCard> createState() => _SearchCardState();
@@ -26,6 +33,8 @@ class SearchCard extends StatefulWidget {
 class _SearchCardState extends State<SearchCard> {
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 5),
       child: Material(
@@ -41,12 +50,12 @@ class _SearchCardState extends State<SearchCard> {
                       await getUserCourses(widget.courseCode,
                           isTempCourse: true);
                       CacheStore.isTempCourse = true;
-                      widget.callback(1);
+                      navigationProvider.changePageNumber(1);
                     } catch (e) {
                       showSnackBar('Somthing Went Wrong !', context);
                     }
                   } else {
-                    widget.callback();
+                    widget.callback!();
                   }
                 }
               : null,

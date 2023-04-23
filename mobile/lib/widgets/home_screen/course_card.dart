@@ -1,5 +1,7 @@
 import 'package:coursehub/database/cache_store.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../apis/courses/course_availability.dart';
 import '../../constants/themes.dart';
 import '../../utilities/letter_capitalizer.dart';
@@ -8,15 +10,15 @@ import '../../models/course.dart';
 class CourseCard extends StatelessWidget {
   final Course course;
 
-  final Function(int a) returnToPageCallback;
   const CourseCard({
     super.key,
     required this.course,
-    required this.returnToPageCallback,
   });
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
+
     return FutureBuilder<bool>(
       future: isCourseAvailable(course.code),
       builder: (context, snapshot) {
@@ -31,7 +33,7 @@ class CourseCard extends StatelessWidget {
             onTap: () {
               if (snapshot.data ?? false) {
                 CacheStore.saveBrowsedCourse(course.code);
-                returnToPageCallback(1);
+                navigationProvider.changePageNumber(1);
               }
             },
           );
@@ -67,11 +69,10 @@ class AvailableCard extends StatelessWidget {
         CacheStore.courseColor[course.code.toLowerCase()] =
             colors[a % colors.length];
         color = colors[a % colors.length];
-      }
-      else {
+      } else {
         color = CacheStore.courseColor[course.code.toLowerCase()] ?? color;
       }
-    } 
+    }
 
     return Container(
       color: color,

@@ -2,7 +2,7 @@ const team = [
   {
     'name': 'Atharva \nTagalpallewar',
     'role': 'team lead & design',
-    'imageUrl': 'https://eufgksvcjbkjnxlkmmkksjbhv.com',
+    'imageUrl': 'https://ik.imagekit.io/d056cmdir/profile_photos/IMG20230415055337_1.jpg?updatedAt=1682187169552',
     'github': 'https://github.com/Atharvat',
     'instagram': 'https://www.instagram.com/atagalpallewar/',
     'linkedin': 'https://www.linkedin.com/in/atharva-tagalpallewar/'
@@ -17,8 +17,8 @@ const team = [
   },
   {
     'name': 'Ankit Das',
-    'role': 'website & backend',
-    'imageUrl': 'https://diuhfgeekhudbjsanlmxSNCDJBAH.com',
+    'role': 'backend & website',
+    'imageUrl': 'https://ik.imagekit.io/d056cmdir/profile_photos/20230422_223621.jpg?updatedAt=1682187079171',
     'github': 'https://github.com/ankitdas09',
     'instagram': '',
     'linkedin': 'https://www.linkedin.com/in/ankit-das-614069229/'
@@ -55,5 +55,13 @@ const team = [
     'instagram': 'https://www.instagram.com/ambesh_dixit_42/',
     'linkedin': 'https://www.linkedin.com/in/ambesh-dixit/'
   },
+  {
+    'name': 'Atishay Jain',
+    'role': 'founder & mentor',
+    'imageUrl':'https://ik.imagekit.io/d056cmdir/profile_photos/1667845481978.jpeg?updatedAt=1682187329745',
+    'github':'',
+    'instagram':'',
+    'linkedin':'https://www.linkedin.com/in/atishaydesign/'
+  }
 
 ];

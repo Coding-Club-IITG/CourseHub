@@ -1,6 +1,7 @@
-import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/providers/cache_provider.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/screens/exam_screen.dart';
+import 'package:coursehub/screens/feedback_screen.dart';
 import 'package:coursehub/screens/team_screen.dart';
 import 'package:coursehub/widgets/common/menu_drawer.dart';
 import 'package:flutter/material.dart';
@@ -26,51 +27,40 @@ class NavBarScreen extends StatefulWidget {
 
 class _NavBarScreen extends State<NavBarScreen>
     with SingleTickerProviderStateMixin {
-  int _currentPageNumber = 0;
-
-  late List<Widget> screens;
+  late List<Widget> screens = [
+    const HomeScreen(),
+    const BrowseScreen(),
+    const ContributeScreen(),
+    const FavouritesScreen(),
+    const ProfileScreen(),
+    const SearchScreen(),
+    const ExamScreen(),
+    const TeamScreen(),
+    FeedBackScreen(),
+  ];
   late AnimationController _controller;
 
-  void returnToPageCallback(int a) {
-    if (a != 1) {
-      CacheStore.isTempCourse = false;
-    }
-    setState(() {
-      if (_currentPageNumber == 2) _controller.reverse(from: 0.75);
-      _currentPageNumber = a;
-    });
-  }
+  // void returnToPageCallback(int a) {
+
+  //   setState(() {
+  //     if (_currentPageNumber == 2) _controller.reverse(from: 0.75);
+  //     _currentPageNumber = a;
+  //   });
+  // }
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
       upperBound: 0.5,
     );
-    screens = [
-      HomeScreen(
-        returnToPageCallback: returnToPageCallback,
-      ),
-      BrowseScreen(
-        callback: returnToPageCallback,
-      ),
-      ContributeScreen(
-        callback: returnToPageCallback,
-      ),
-      FavouritesScreen(returnToPageCallback: returnToPageCallback),
-      ProfileScreen(
-        returnToPageCallback: returnToPageCallback,
-      ),
-      SearchScreen(
-        returnToPageCallback: returnToPageCallback,
-      ),
-     ExamScreen(
-      returnToPageCallback: returnToPageCallback,
-     ),
-     const TeamScreen()
-    ];
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
   }
 
   @override
@@ -81,125 +71,142 @@ class _NavBarScreen extends State<NavBarScreen>
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
     return Scaffold(
+      key: navigationProvider.key,
       appBar: const EmptyAppBar(),
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
-      drawer: MenuDrawer( pageChangeCallback: returnToPageCallback,),
+      drawer: const MenuDrawer(),
       body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(child: screens[_currentPageNumber]),
-                // Expanded(child: TeamScreen()),
-                const SizedBox(
-                  height: 60,
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                const Spacer(),
-                SizedBox(
-                  height: 90.0,
-                  child: Stack(
-                    children: [
-                      Column(
-                        children: [
-                          const Spacer(),
-                          Container(
-                            height: 68.0,
-                            color: const Color.fromRGBO(254, 207, 111, 1),
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          NavBarIcon(
-                              pageChangeCallback: returnToPageCallback,
-                              isSelected: _currentPageNumber == 0,
-                              label: 'Home'),
-                          NavBarIcon(
-                              pageChangeCallback: returnToPageCallback,
-                              isSelected: _currentPageNumber == 1,
-                              label: 'Browse'),
-                          Column(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    if (_currentPageNumber != 2) {
-                                      _controller.forward(from: 0.0);
-                                    } else {
-                                      _controller.reverse(from: 0.75);
-                                    }
-                                    if (_currentPageNumber == 2) {
-                                      _currentPageNumber = 0;
-                                    } else {
-                                      _currentPageNumber = 2;
-                                    }
-                                  });
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    border: Border.all(
-                                        color: Colors.black, width: 2.0),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: RotationTransition(
-                                      turns: Tween(begin: 0.0, end: 0.75)
-                                          .animate(_controller),
-                                      child: const Icon(
-                                        Icons.add,
-                                        color: Colors.black,
-                                        size: 32.0,
+        child: Consumer<NavigationProvider>(
+            builder: (context, navigationProvider, child) {
+          return Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: screens[navigationProvider.currentPageNumber],
+                  ),
+                  // Expanded(child: TeamScreen()),
+                  const SizedBox(
+                    height: 60,
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  const Spacer(),
+                  SizedBox(
+                    height: 90.0,
+                    child: Stack(
+                      children: [
+                        Column(
+                          children: [
+                            const Spacer(),
+                            Container(
+                              height: 68.0,
+                              color: const Color.fromRGBO(254, 207, 111, 1),
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            NavBarIcon(
+                              controller: _controller,
+                                isSelected:
+                                    navigationProvider.currentPageNumber == 0,
+                                label: 'Home'),
+                            NavBarIcon(
+                              controller: _controller,
+                                isSelected:
+                                    navigationProvider.currentPageNumber == 1,
+                                label: 'Browse'),
+                            Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      if (navigationProvider
+                                              .currentPageNumber !=
+                                          2) {
+                                        _controller.forward(from: 0.0);
+                                      } else {
+                                        _controller.reverse(from: 0.75);
+                                      }
+                                      if (navigationProvider
+                                              .currentPageNumber ==
+                                          2) {
+                                        navigationProvider.currentPageNumber =
+                                            0;
+                                      } else {
+                                        navigationProvider.currentPageNumber =
+                                            2;
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      border: Border.all(
+                                          color: Colors.black, width: 2.0),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: RotationTransition(
+                                        turns: Tween(begin: 0.0, end: 0.75)
+                                            .animate(_controller),
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Colors.black,
+                                          size: 32.0,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const Spacer(),
-                              Text("Contribute",
-                                  style: Themes.darkTextTheme.bodySmall),
-                              const SizedBox(
-                                height: 8.0,
-                              )
-                            ],
-                          ),
-                          NavBarIcon(
-                              pageChangeCallback: returnToPageCallback,
-                              isSelected: _currentPageNumber == 3,
-                              label: 'Favourites'),
-                          NavBarIcon(
-                              pageChangeCallback: returnToPageCallback,
-                              isSelected: _currentPageNumber == 4,
-                              label: 'Profile')
-                        ],
-                      ),
-                    ],
+                                const Spacer(),
+                                Text("Contribute",
+                                    style: Themes.darkTextTheme.bodySmall),
+                                const SizedBox(
+                                  height: 8.0,
+                                )
+                              ],
+                            ),
+                            NavBarIcon(
+                              controller: _controller,
+                                isSelected:
+                                    navigationProvider.currentPageNumber == 3,
+                                label: 'Favourites'),
+                            NavBarIcon(
+                              controller:_controller,
+                                isSelected:
+                                    navigationProvider.currentPageNumber == 4,
+                                label: 'Profile')
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Consumer<CacheProvider>(
-              builder: (context, cacheprovider, child) {
-                return Visibility(
-                  visible: cacheprovider.isDownloading,
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: const Color.fromRGBO(255, 255, 255, 0.9),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+                ],
+              ),
+              Consumer<CacheProvider>(
+                builder: (context, cacheprovider, child) {
+                  return Visibility(
+                    visible: cacheprovider.isDownloading,
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: const Color.fromRGBO(255, 255, 255, 0.9),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        }),
       ),
     );
   }

@@ -6,16 +6,15 @@ import 'package:coursehub/widgets/home_screen/add_course_dialog.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
+
 import '../widgets/home_screen/course_card.dart';
 
 class HomeScreen extends StatefulWidget {
-  final Function(int a) returnToPageCallback;
-
   const HomeScreen({
     super.key,
-    required this.returnToPageCallback,
   });
 
   @override
@@ -41,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              NavBar(searchCallback: widget.returnToPageCallback),
+              const NavBar(),
               Row(
                 children: [
                   const SizedBox(
@@ -101,8 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: index < user.courses.length
                                   ? CourseCard(
                                       course: user.courses[index],
-                                      returnToPageCallback:
-                                          widget.returnToPageCallback,
                                     )
                                   : Material(
                                       color: Colors.transparent,

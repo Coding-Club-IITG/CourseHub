@@ -14,11 +14,8 @@ import '../widgets/common/custom_linear_progress.dart';
 import '../widgets/favourite_screen/favourite_tile.dart';
 
 class FavouritesScreen extends StatefulWidget {
-  final Function(int a) returnToPageCallback;
-
   const FavouritesScreen({
     super.key,
-    required this.returnToPageCallback,
   });
 
   @override
@@ -61,9 +58,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
             _groupByCourses = snapshot.data ?? false;
             return Column(
               children: [
-                NavBar(
-                  searchCallback: widget.returnToPageCallback,
-                ),
+                const NavBar(),
                 const SizedBox(
                   height: 10,
                 ),

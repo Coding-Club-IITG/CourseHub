@@ -44,7 +44,7 @@ class TeamScreen extends StatelessWidget {
     }
 
     List<Widget> children = [];
-    children.add(NavBar(searchCallback: (int a) {}));
+
 
     children.add(
       Container(
@@ -58,22 +58,35 @@ class TeamScreen extends StatelessWidget {
     children.add(const TeamFooter());
 
     return Ink(
-        color: Colors.black,
-        child: SingleChildScrollView(
-          child: AnimationLimiter(
-            child: Column(
-              children: AnimationConfiguration.toStaggeredList(
+      color: Colors.black,
+      child: AnimationLimiter(
+      child: Column(
+        children: [
+          const NavBar(),
+          Expanded(
+            child: ListView.builder(
+            itemCount: 2,
+            itemBuilder: (BuildContext context, int index) {
+              return AnimationConfiguration.staggeredList(
+                position: index,
                 duration: const Duration(milliseconds: 375),
-                childAnimationBuilder: (widget) => FadeInAnimation(
-                  child: widget,
-                ),
-                children: children,
-              ),
+                  child: FadeInAnimation(
+                    child: children[index],
+                  ),
+               
+              );
+            },
             ),
           ),
-        ));
+        ],
+      ),
+    ),
+    
+    );
   }
 }
+
+
 
 class RightAlignedFrame extends StatelessWidget {
   final String name;
@@ -106,8 +119,8 @@ class RightAlignedFrame extends StatelessWidget {
                 ),
                 Text(
                   name,
-                  style:
-                      const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 18),
                 ),
                 const SizedBox(
                   height: 8,
@@ -158,7 +171,7 @@ class LeftAlignedFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 15),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -185,8 +198,8 @@ class LeftAlignedFrame extends StatelessWidget {
                 ),
                 Text(
                   name,
-                  style:
-                      const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 18),
                 ),
                 const SizedBox(
                   height: 8,

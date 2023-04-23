@@ -5,13 +5,12 @@ import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/widgets/browse_screen/year_div.dart';
 import 'package:coursehub/widgets/browse_screen/bread_crumbs.dart';
 import 'package:coursehub/widgets/browse_screen/folder_explorer.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/navigation_provider.dart';
 
 class BrowseScreen extends StatefulWidget {
-  final Function(int a) callback;
-
-
-  const BrowseScreen(
-      {super.key, required this.callback});
+  const BrowseScreen({super.key});
   @override
   State<StatefulWidget> createState() => _BrowseScreen();
 }
@@ -47,6 +46,8 @@ class _BrowseScreen extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
+
     return FutureBuilder(
         future: CacheStore.getBrowsedCourse(),
         builder: (context, snapshot) {
@@ -95,7 +96,8 @@ class _BrowseScreen extends State<BrowseScreen> {
                     BreadCrumb(
                       name: "Home",
                       level: 0,
-                      callback: (level) => widget.callback(0),
+                      callback: (level) =>
+                          navigationProvider.changePageNumber(0),
                     ),
                   );
                   navigationCrumbs.add(
@@ -130,7 +132,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                   level -= 2;
 
                   if (level <= 0) {
-                    widget.callback(0);
+                    navigationProvider.changePageNumber(0);
                     return false;
                   } else {
                     removeFromPath(level);

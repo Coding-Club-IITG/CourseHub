@@ -29,6 +29,14 @@
             {
               "client_id": "985397852114-3c4u8dhvrhgk4q98kbl46v65ht8lrf3i.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "985397852114-aqosmpgdqvdif2htashvftm172u988i1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.codingclubiitg.coursehub",
+                "app_store_id": "6447286863"
+              }
             }
           ]
         }
