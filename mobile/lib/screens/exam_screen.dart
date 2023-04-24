@@ -10,7 +10,7 @@ import 'package:coursehub/widgets/exam_screen.dart/exam_card.dart';
 import 'package:coursehub/widgets/exam_screen.dart/exam_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:intl/intl.dart';
+
 
 class ExamScreen extends StatelessWidget {
   const ExamScreen({super.key});
