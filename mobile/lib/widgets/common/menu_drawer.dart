@@ -69,8 +69,7 @@ class MenuDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
               onPressed: () {
-                // navigationProvider.changePageNumber(8);
-                showSnackBar('This feature coming soon !', context);
+                navigationProvider.changePageNumber(8);
                 Navigator.of(context).pop();
               },
               title: 'Feedback/ Bugs'),

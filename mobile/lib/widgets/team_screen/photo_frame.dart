@@ -1,11 +1,13 @@
+import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/utilities/url_launcher.dart';
+import 'package:coursehub/widgets/common/custom_linear_progress.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_svg/svg.dart';
 
-class PhotoFrame extends StatefulWidget {
+class PhotoFrame extends StatelessWidget {
   final String photo;
   final Map<String, String> socials;
   const PhotoFrame({
@@ -14,30 +16,6 @@ class PhotoFrame extends StatefulWidget {
     required this.photo,
   });
 
-  @override
-  State<PhotoFrame> createState() => _PhotoFrameState();
-}
-
-class _PhotoFrameState extends State<PhotoFrame> {
-  late Image image;
-
-  @override
-  void initState() {
-    image = Image.network(
-      widget.photo,
-      fit: BoxFit.fill,
-      errorBuilder: (context, error, stackTrace) => Image.asset(
-        'assets/placeholder_dp.png',
-      ),
-    );
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    precacheImage(image.image, context);
-    super.didChangeDependencies();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +39,34 @@ class _PhotoFrameState extends State<PhotoFrame> {
                 width: 1.12,
               ),
             ),
-            child: image,
+            child: Image.network(
+      photo,
+      fit: BoxFit.fill,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            SizedBox(height: 30,),
+            LinearProgressIndicator(
+              color: Themes.kYellow,
+              backgroundColor: Colors.black,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(
+              'Loading us ! 😜 ',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+            ),
+          ],
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => Image.asset(
+        'assets/placeholder_dp.png',
+      ),
+    ),
           ),
           const SizedBox(
             height: 10,
@@ -71,14 +76,14 @@ class _PhotoFrameState extends State<PhotoFrame> {
             children: [
               SplashOnPressed(
                 onPressed: () async {
-                  if (widget.socials['github']!.isEmpty) {
+                  if (socials['github']!.isEmpty) {
                     showSnackBar(
                       'This guy is not so geeky to have a github account 🤪 !',
                       context,
                     );
                     return;
                   }
-                  await launchUrl(widget.socials['github'] ?? '');
+                  await launchUrl(socials['github'] ?? '');
                 },
                 splashColor: Colors.grey,
                 child: Container(
@@ -92,14 +97,14 @@ class _PhotoFrameState extends State<PhotoFrame> {
               ),
               SplashOnPressed(
                 onPressed: () async {
-                  if (widget.socials['instagram']!.isEmpty) {
+                  if (socials['instagram']!.isEmpty) {
                     showSnackBar(
                       'This guy is too busy to have an instagram handle 🤪 !',
                       context,
                     );
                     return;
                   }
-                  await launchUrl(widget.socials['instagram'] ?? '');
+                  await launchUrl(socials['instagram'] ?? '');
                 },
                 splashColor: Colors.grey,
                 child: Container(
@@ -113,7 +118,7 @@ class _PhotoFrameState extends State<PhotoFrame> {
               ),
               SplashOnPressed(
                 onPressed: () async {
-                  await launchUrl(widget.socials['linkedin'] ?? '');
+                  await launchUrl(socials['linkedin'] ?? '');
                 },
                 splashColor: Colors.grey,
                 child: Container(

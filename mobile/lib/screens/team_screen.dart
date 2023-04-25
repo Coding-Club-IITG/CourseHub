@@ -4,6 +4,9 @@ import 'package:coursehub/widgets/team_screen/photo_frame.dart';
 import 'package:coursehub/widgets/team_screen/team_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/navigation_provider.dart';
 
 class TeamScreen extends StatelessWidget {
   const TeamScreen({super.key});
@@ -45,7 +48,6 @@ class TeamScreen extends StatelessWidget {
 
     List<Widget> children = [];
 
-
     children.add(
       Container(
         transform: Matrix4.translationValues(0.0, -10.0, 0.0),
@@ -57,36 +59,39 @@ class TeamScreen extends StatelessWidget {
     );
     children.add(const TeamFooter());
 
-    return Ink(
-      color: Colors.black,
-      child: AnimationLimiter(
-      child: Column(
-        children: [
-          const NavBar(),
-          Expanded(
-            child: ListView.builder(
-            itemCount: 2,
-            itemBuilder: (BuildContext context, int index) {
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                  child: FadeInAnimation(
-                    child: children[index],
+    final navigatorProvider = context.read<NavigationProvider>();
+    return WillPopScope(
+        onWillPop: () async {
+          navigatorProvider.changePageNumber(0);
+          return false;
+        },
+        child: Ink(
+          color: Colors.black,
+          child: AnimationLimiter(
+            child: Column(
+              children: [
+                const NavBar(),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: 2,
+                    physics: const ClampingScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: FadeInAnimation(
+                          child: children[index],
+                        ),
+                      );
+                    },
                   ),
-               
-              );
-            },
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    ),
-    
-    );
+        ));
   }
 }
-
-
 
 class RightAlignedFrame extends StatelessWidget {
   final String name;

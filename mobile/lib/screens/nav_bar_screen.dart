@@ -27,18 +27,18 @@ class NavBarScreen extends StatefulWidget {
 
 class _NavBarScreen extends State<NavBarScreen>
     with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   late List<Widget> screens = [
     const HomeScreen(),
     const BrowseScreen(),
     const ContributeScreen(),
     const FavouritesScreen(),
     const ProfileScreen(),
-    const SearchScreen(),
+    SearchScreen(),
     const ExamScreen(),
     const TeamScreen(),
     FeedBackScreen(),
   ];
-  late AnimationController _controller;
 
   // void returnToPageCallback(int a) {
 
@@ -114,12 +114,12 @@ class _NavBarScreen extends State<NavBarScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             NavBarIcon(
-                              controller: _controller,
+                                controller: _controller,
                                 isSelected:
                                     navigationProvider.currentPageNumber == 0,
                                 label: 'Home'),
                             NavBarIcon(
-                              controller: _controller,
+                                controller: _controller,
                                 isSelected:
                                     navigationProvider.currentPageNumber == 1,
                                 label: 'Browse'),
@@ -176,12 +176,12 @@ class _NavBarScreen extends State<NavBarScreen>
                               ],
                             ),
                             NavBarIcon(
-                              controller: _controller,
+                                controller: _controller,
                                 isSelected:
                                     navigationProvider.currentPageNumber == 3,
                                 label: 'Favourites'),
                             NavBarIcon(
-                              controller:_controller,
+                                controller: _controller,
                                 isSelected:
                                     navigationProvider.currentPageNumber == 4,
                                 label: 'Profile')

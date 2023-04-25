@@ -59,11 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCHu6Y6Pbkg16BKSY4EVFSlIKfSqvsxvpM',
-    appId: '1:985397852114:ios:122f353c8f61f969927a0b',
+    appId: '1:985397852114:ios:214f650a85ad7e5f927a0b',
     messagingSenderId: '985397852114',
     projectId: 'coursehub-cff03',
     storageBucket: 'coursehub-cff03.appspot.com',
-    iosClientId: '985397852114-9qnaibfntne4k5tvjp8ro5rogp4sh5gj.apps.googleusercontent.com',
-    iosBundleId: 'com.codingclub.coursehub',
+    iosClientId: '985397852114-bdnet1fsnhpudgdjf5ofcdh7akrovdbu.apps.googleusercontent.com',
+    iosBundleId: 'com.codingclub.mobile',
   );
 }

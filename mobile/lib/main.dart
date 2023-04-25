@@ -12,12 +12,13 @@ import 'package:provider/provider.dart';
 import '../screens/splash_screen.dart';
 import './constants/themes.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await FirebaseDynamicLink.handleInitialLink();
   await Hive.initFlutter();
 
+  await FirebaseDynamicLink.handleInitialLink();
   runApp(
     MultiProvider(
       providers: [
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
     );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      key: navigatorKey,
       theme: Themes.theme,
       home: const SplashScreen(),
       builder: EasyLoading.init(),
