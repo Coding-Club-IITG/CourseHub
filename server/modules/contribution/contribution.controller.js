@@ -111,6 +111,13 @@ async function GetMyContributions(req, res, next) {
     res.json(myContributions);
 }
 
+async function DeleteContribution(req, res, next) {
+    const { contributionId } = req.params;
+    const deleted = await Contribution.deleteOne({ contributionId });
+    console.log(deleted);
+    res.json({ deleted: true });
+}
+
 async function MobileFileUploadHandler(req, res, next) {
     const payloadSchema = {
         contributionId: Joi.string().required(),
@@ -175,4 +182,5 @@ export default {
     HandleFileUpload,
     GetMyContributions,
     MobileFileUploadHandler,
+    DeleteContribution,
 };

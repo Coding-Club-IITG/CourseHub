@@ -24,6 +24,15 @@ const ViewPage = () => {
     }
   }
 
+  async function deleteContribution(cid) {
+    try {
+      const resp = await axios.delete(`http://localhost:8080/api/contribution/${cid}`);
+      console.log(resp);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     const data = JSON.parse(sessionStorage.getItem("contributions"));
     // console.log(data[id]);
@@ -110,7 +119,14 @@ const ViewPage = () => {
                     <button className="btn btn-success" onClick={() => navigate(`/approve/${id}`)}>
                       Approve
                     </button>
-                    <button className="btn btn-danger m-2">Delete</button>
+                    <button
+                      className="btn btn-danger m-2"
+                      onClick={() => {
+                        deleteContribution(data.contributionId);
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>

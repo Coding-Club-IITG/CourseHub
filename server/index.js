@@ -22,7 +22,7 @@ import timeTableRoutes from "./modules/timetable/timetable.routes.js";
 
 const app = express();
 const PORT = config.port;
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors());
 
 app.use(express.static("static"));
 import path from "path";
