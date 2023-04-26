@@ -1,9 +1,11 @@
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/models/contribution.dart';
 import 'package:coursehub/models/user.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:provider/provider.dart';
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';
 import '../widgets/profile_screen/semester_card.dart';
@@ -34,12 +36,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
+    final navigatorProvider = context.read<NavigationProvider>();
+    return WillPopScope(
+      onWillPop: () async {
+        navigatorProvider.changePageNumber(0);
+
+        return false;
+      },
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-         const NavBar(),
+          const NavBar(),
           Stack(
             alignment: Alignment.bottomCenter,
             children: [

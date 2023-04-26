@@ -70,7 +70,6 @@ class MenuDrawer extends StatelessWidget {
               ),
               onPressed: () {
                 navigationProvider.changePageNumber(8);
-
                 Navigator.of(context).pop();
               },
               title: 'Feedback/ Bugs'),

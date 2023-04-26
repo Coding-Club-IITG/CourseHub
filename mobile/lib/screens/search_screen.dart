@@ -1,50 +1,24 @@
 import 'dart:math';
 
 import 'package:coursehub/apis/miscellaneous/funfacts.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:coursehub/providers/search_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../apis/courses/search_course.dart';
-import '../models/search_result.dart';
+import 'package:provider/provider.dart';
+
 import '../widgets/common/custom_snackbar.dart';
 import '../widgets/nav_bar/search_card.dart';
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+class SearchScreen extends StatelessWidget {
+  SearchScreen({super.key});
 
-  @override
-  State<SearchScreen> createState() => _SearchScreenState();
-}
-
-class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
-  late List<SearchResult> searchResult;
-  bool? found;
-  var text = 'Search by name or course code,\nPress Enter to Search';
-  Future<void> search(value) async {
-    setState(() {
-      text = 'Loading...';
-    });
-    try {
-      final res = await searchCourse(value.toString().trim());
-
-      setState(() {
-        found = res['found'];
-      });
-
-      List<dynamic> results = res['results'];
-      if (found ?? false) {
-        searchResult = results.map((e) => SearchResult.fromJson(e)).toList();
-      }
-
-      text = 'Search by name or course code,\nPress Enter to Search';
-    } catch (e) {
-      showSnackBar('Something went wrong !', context);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
     return FutureBuilder<List<dynamic>>(
         future: getFunFacts(),
         builder: (context, snapshot) {
@@ -52,121 +26,155 @@ class _SearchScreenState extends State<SearchScreen> {
             return Container();
           }
 
-
-          return Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-                width: double.infinity,
-                height: double.infinity,
-                color: Colors.white,
-                child: Column(
-                  children: AnimationConfiguration.toStaggeredList(
-                    duration: const Duration(milliseconds: 200),
-                    childAnimationBuilder: (widget) => SlideAnimation(
-                      horizontalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: widget,
-                      ),
-                    ),
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: TextField(
-                              onSubmitted: (value) async {
-                                try {
-                                  await search(value);
-                                } catch (e) {
-                                  showSnackBar(
-                                      'Something went wrong !', context);
-                                }
-                              },
-                              textInputAction: TextInputAction.search,
-                              controller: _searchController,
-                              keyboardType: TextInputType.name,
-                              cursorColor: Colors.grey,
-                              decoration: InputDecoration(
-                                hintText: 'Search Courses',
-                                suffixIconConstraints: const BoxConstraints(
-                                  maxHeight: 32,
-                                ),
-                                suffixIcon: GestureDetector(
-                                  onTap: () async {
-                                    try {
-                                      await search(_searchController.text);
-                                    } catch (e) {
-                                      showSnackBar(
-                                          'Something went wrong !', context);
-                                    }
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 12),
-                                    child: SvgPicture.asset(
-                                      'assets/search.svg',
-                                      colorFilter: const ColorFilter.mode(
-                                          Colors.black, BlendMode.srcIn),
-                                    ),
-                                  ),
-                                ),
-                                contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(0),
-                                  ),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(0),
-                                  ),
-                                ),
+          return MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (context) => SearchProvider(),
+              )
+            ],
+            child: WillPopScope(
+              onWillPop: () async {
+                navigationProvider.changePageNumber(0);
+                return false;
+              },
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Consumer<SearchProvider>(
+                    builder: (context, searchProvider, child) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 30, horizontal: 20),
+                        width: double.infinity,
+                        height: double.infinity,
+                        color: Colors.white,
+                        child: Column(
+                          children: AnimationConfiguration.toStaggeredList(
+                            duration: const Duration(milliseconds: 200),
+                            childAnimationBuilder: (widget) => SlideAnimation(
+                              horizontalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: widget,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      SizedBox(
-                        height: 200,
-                        child: found == null
-                            ? Text(
-                                text,
-                                maxLines: 2,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )
-                            : found ?? false
-                                ? ListView.builder(
-                                    physics: const BouncingScrollPhysics(),
-                                    itemBuilder: (context, index) => SearchCard(
-                                      isTempCourse: true,
-                                      isAvailable:
-                                          searchResult[index].isAvailable,
-                                      courseCode: searchResult[index].code,
-                                      courseName: searchResult[index].name,
-                                      callback: null,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 6,
+                                    child: TextField(
+                                      onSubmitted: (value) async {
+                                        try {
+                                          await searchProvider.search(value);
+                                        } catch (e) {
+                                          showSnackBar('Something went wrong !',
+                                              context);
+                                        }
+                                      },
+                                      textInputAction: TextInputAction.search,
+                                      controller: _searchController,
+                                      keyboardType: TextInputType.name,
+                                      cursorColor: Colors.grey,
+                                      decoration: InputDecoration(
+                                        hintText: 'Search Courses',
+                                        suffixIconConstraints:
+                                            const BoxConstraints(
+                                          maxHeight: 32,
+                                        ),
+                                        suffixIcon: GestureDetector(
+                                          onTap: () async {
+                                            try {
+                                              await searchProvider.search(
+                                                  _searchController.text);
+                                            } catch (e) {
+                                              showSnackBar(
+                                                  'Something went wrong !',
+                                                  context);
+                                            }
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 12),
+                                            child: SvgPicture.asset(
+                                              'assets/search.svg',
+                                              colorFilter:
+                                                  const ColorFilter.mode(
+                                                      Colors.black,
+                                                      BlendMode.srcIn),
+                                            ),
+                                          ),
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 12),
+                                        enabledBorder: const OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(0),
+                                          ),
+                                        ),
+                                        focusedBorder: const OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(0),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    itemCount: searchResult.length,
-                                  )
-                                : const Text(
-                                    'No Results Found!',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w700),
                                   ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              SizedBox(
+                                height: 200,
+                                child: searchProvider.found == null
+                                    ? Text(
+                                        searchProvider.text,
+                                        maxLines: 2,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      )
+                                    : searchProvider.found ?? false
+                                        ? ListView.builder(
+                                            physics:
+                                                const BouncingScrollPhysics(),
+                                            itemBuilder: (context, index) =>
+                                                SearchCard(
+                                              isTempCourse: true,
+                                              isAvailable: searchProvider
+                                                  .searchResult[index]
+                                                  .isAvailable,
+                                              courseCode: searchProvider
+                                                  .searchResult[index].code,
+                                              courseName: searchProvider
+                                                  .searchResult[index].name,
+                                              callback: null,
+                                            ),
+                                            itemCount: searchProvider
+                                                .searchResult.length,
+                                          )
+                                        : const Text(
+                                            'No Results Found!',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                              ),
+                              const SizedBox(
+                                height: 50,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
                       SizedBox(
                         width: 300,
                         child: Column(
@@ -179,8 +187,8 @@ class _SearchScreenState extends State<SearchScreen> {
                               height: 5,
                             ),
                             Text(
-                              snapshot.data![Random()
-                                      .nextInt(snapshot.data!.length)]
+                              snapshot.data![
+                                      Random().nextInt(snapshot.data!.length)]
                                   .toString(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
@@ -190,23 +198,21 @@ class _SearchScreenState extends State<SearchScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Image.asset(
+                        'assets/search_library.png',
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      )
                     ],
-                  ),
-                ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Image.asset(
-                    'assets/search_library.png',
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(
-                    height: 10,
                   )
                 ],
-              )
-            ],
+              ),
+            ),
           );
         });
   }

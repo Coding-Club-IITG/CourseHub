@@ -1,7 +1,6 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:coursehub/apis/courses/is_course_updated.dart';
 import 'package:coursehub/apis/miscellaneous/funfacts.dart';
-import 'package:coursehub/apis/miscellaneous/get_exam_details.dart';
 import 'package:flutter/material.dart';
 import '../apis/authentication/login.dart';
 import 'login_screen.dart';

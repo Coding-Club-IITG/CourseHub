@@ -1,6 +1,9 @@
 import 'dart:developer';
 
+import 'package:coursehub/main.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:provider/provider.dart';
 
 class FirebaseDynamicLink {
   static Future<String> createDynamicLink(
@@ -38,24 +41,30 @@ class FirebaseDynamicLink {
 
     if (initialLink != null) {
       final Uri deepLink = initialLink.link;
+       for (var element in deepLink.pathSegments) {
+        log(element.toString());
+      }
       log(deepLink.toString());
-
-      // Example of using the dynamic link to push the user to a different screen
-
-      // Navigator.pushNamed(context, deepLink.path);
+      // navigatorKey.currentContext
+      //     ?.read<NavigationProvider>()
+      //     .changePageNumber(1);
     }
 
     FirebaseDynamicLinks.instance.onLink.listen(
       (pendingDynamicLinkData) {
         // Set up the `onLink` event listener next as it may be received here
         final Uri deepLink = pendingDynamicLinkData.link;
+        for (var element in deepLink.pathSegments) {
+          log(element.toString());
+        }
         // Example of using the dynamic link to push the user to a different screen
         // Navigator.pushNamed(context, deepLink.path);
+        // navigatorKey.currentContext
+        //     ?.read<NavigationProvider>()
+        //     .changePageNumber(1);
 
         log('${deepLink}LISTENING TO DATA');
       },
     );
   }
 }
-
-

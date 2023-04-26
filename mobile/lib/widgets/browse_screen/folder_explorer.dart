@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
@@ -17,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:like_button/like_button.dart';
 import 'package:open_filex/open_filex.dart';
 
 import 'package:path_provider/path_provider.dart';
@@ -369,10 +369,14 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                               const SizedBox(
                                                 width: 10,
                                               ),
-                                              GestureDetector(
-                                                onTap: () async {
+                                              LikeButton(
+                                                
+                                                isLiked: isFavourite,
+                                                onTap: (isLiked) async {
                                                   if (!isFavourite) {
                                                     try {
+                                                      isFavourite =
+                                                          !isFavourite;
                                                       await addFavourites(
                                                         name,
                                                         widget.data["children"]
@@ -382,15 +386,16 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       );
 
                                                       setState(() {});
-                                                      return;
+                                                      return isFavourite;
                                                     } catch (e) {
                                                       showSnackBar(
                                                           'Something went wrong !',
                                                           context);
-                                                      return;
                                                     }
                                                   } else {
                                                     try {
+                                                      isFavourite =
+                                                          !isFavourite;
                                                       Favourite fav = HiveStore
                                                               .getUserDetails()
                                                           .favourites
@@ -405,29 +410,29 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       );
 
                                                       setState(() {});
-                                                      return;
+                                                      return isFavourite;
                                                     } catch (e) {
                                                       showSnackBar(
                                                           'Something went wrong !',
                                                           context);
-                                                      return;
                                                     }
                                                   }
                                                 },
-                                                child: !isFavourite
-                                                    ? const Icon(
-                                                        Icons
-                                                            .star_border_outlined,
-                                                        color: Color.fromRGBO(
-                                                            0, 0, 0, 0.75),
-                                                        size: 30,
-                                                      )
-                                                    : const Icon(
-                                                        Icons
-                                                            .star_purple500_sharp,
-                                                        color: Themes.kYellow,
-                                                        size: 30,
-                                                      ),
+                                                likeBuilder: (isLiked) {
+                                                  return isLiked
+                                                      ? const Icon(
+                                                          Icons.star,
+                                                          size: 32,
+                                                          color: Colors
+                                                              .amberAccent,
+                                                        )
+                                                      : const Icon(
+                                                          Icons
+                                                              .star_border_outlined,
+                                                          color: Color.fromRGBO(
+                                                              0, 0, 0, 0.75),
+                                                        );
+                                                },
                                               ),
                                               const SizedBox(
                                                 width: 15.0,
