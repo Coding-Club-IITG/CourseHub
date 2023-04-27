@@ -8,6 +8,7 @@ import multer from "multer";
 export const upload = multer({ dest: "external/mobile" });
 router.get("/", isAuthenticated, ContributionController.GetMyContributions);
 router.get("/all", ContributionController.GetAllContributions);
+router.delete("/:contributionId", ContributionController.DeleteContribution);
 router.post("/", catchAsync(ContributionController.CreateNewContribution));
 router.post("/upload", catchAsync(ContributionController.HandleFileUpload));
 router.post(

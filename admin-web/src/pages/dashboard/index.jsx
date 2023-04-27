@@ -63,10 +63,10 @@ const DashboardPage = () => {
         </thead>
         <tbody>
           {contributions.map((c, idx) => {
-            if (!c.approved)
+            if (!c.approved && c.courseCode)
               return (
                 <tr key={c._id}>
-                  <th scope="row">{idx}</th>
+                  <th scope="row">{idx + 1}</th>
                   <td>{c.courseCode}</td>
                   <td>{c.description}</td>
                   <td>{c.folder}</td>

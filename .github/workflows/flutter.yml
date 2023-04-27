@@ -21,9 +21,7 @@ jobs:
             cd mobile
             flutter clean
             flutter pub get
-            flutter build apk --target-platform android-arm --analyze-size
-            flutter build apk --target-platform android-arm64 --analyze-size
-            flutter build apk --target-platform android-x64 --analyze-size    
+            flutter build apk --release   
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:

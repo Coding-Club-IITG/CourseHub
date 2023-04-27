@@ -10,31 +10,39 @@ fs.createReadStream("data.csv")
   .on("end", () => {
     results.map((res) => {
       let commaSplit = res.rollNo.split(",").filter((i) => i.length > 3);
-      console.log(res.courseCode.replace(" ", ""));
-      console.log(res.roomNo);
-      console.log(res.dateAndTime);
-      console.log(res.nStudents);
+      // console.log(res.courseCode.replace(" ", ""));
+      // console.log(res.roomNo);
+      // console.log(res.dateAndTime);
+      // console.log(res.nStudents);
       commaSplit.map((cs) => {
         let temp = cs.split("+");
         temp.map((t) => {
+          let dateAndTimeArr = res.dateAndTime.split(" ");
+          let dateStr = dateAndTimeArr[0].split("-").reverse().join("-");
+          let date = new Date(dateStr);
+          let time = dateAndTimeArr[1].substring(1);
+          time = time.substring(0, time.length - 1);
+          console.log(time);
           let rollArraysPerCourse = t.split(" ").filter((f) => f.length > 3);
           if (rollArraysPerCourse.length == 1) {
             // either backlogger or single rollnumber
             if (rollArraysPerCourse[0].toLowerCase() == "backloggers") {
-              console.log({ backloggers: true });
+              // console.log({ backloggers: true });
               print.push({
                 code: res.courseCode.replace(" ", ""),
                 room: res.roomNo,
-                dateAndTime: res.dateAndTime,
+                date: date,
+                time: time,
                 nStudents: parseInt(res.nStudents),
                 backloggers: true,
               });
             } else {
-              console.log({ individual: parseInt(rollArraysPerCourse[0].replace("\n", "")) });
+              // console.log({ individual: parseInt(rollArraysPerCourse[0].replace("\n", "")) });
               print.push({
                 code: res.courseCode.replace(" ", ""),
                 room: res.roomNo,
-                dateAndTime: res.dateAndTime,
+                date: date,
+                time: time,
                 nStudents: parseInt(res.nStudents),
                 individual: parseInt(rollArraysPerCourse[0].replace("\n", "")),
               });
@@ -42,23 +50,25 @@ fs.createReadStream("data.csv")
           } else if (rollArraysPerCourse.length == 2) {
             // either all students or from-to
             if (rollArraysPerCourse[0].toLowerCase() == "registered") {
-              console.log({ all: true });
+              // console.log({ all: true });
               print.push({
                 code: res.courseCode.replace(" ", ""),
                 room: res.roomNo,
-                dateAndTime: res.dateAndTime,
+                date: date,
+                time: time,
                 nStudents: parseInt(res.nStudents),
                 all: true,
               });
             } else {
-              console.log({
-                from: parseInt(rollArraysPerCourse[0].replace("\n", "")),
-                to: parseInt(rollArraysPerCourse[1].replace("\n", "")),
-              });
+              // console.log({
+              //   from: parseInt(rollArraysPerCourse[0].replace("\n", "")),
+              //   to: parseInt(rollArraysPerCourse[1].replace("\n", "")),
+              // });
               print.push({
                 code: res.courseCode.replace(" ", ""),
                 room: res.roomNo,
-                dateAndTime: res.dateAndTime,
+                date: date,
+                time: time,
                 nStudents: parseInt(res.nStudents),
                 from: parseInt(rollArraysPerCourse[0].replace("\n", "")),
                 to: parseInt(rollArraysPerCourse[1].replace("\n", "")),
@@ -67,7 +77,7 @@ fs.createReadStream("data.csv")
           }
         });
       });
-      console.log("**********");
+      // console.log("**********");
     });
     // console.log(print);
     // fs.writeFile("test.json", JSON.stringify(print), { encoding: "utf8" }, () => {});

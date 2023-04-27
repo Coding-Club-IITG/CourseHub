@@ -33,20 +33,6 @@ export const guestLoginHanlder = async (req, res, next) => {
     const token = guest.generateJWT();
     res.json({ token });
 };
-// export const makeGuestHanlder = async (req, res, next) => {
-//     const user = await User.create({
-//         name: "Guest",
-//         email: "guest@coursehubiitg.in",
-//         rollNumber: 123456789,
-//         semester: 2,
-//         degree: "BTECH",
-//         courses: [],
-//         department: "Guest Login",
-//         favourites: [],
-//     });
-//     res.send(user);
-// };
-
 export const fetchCourses = async (rollNumber) => {
     var config = {
         method: "post",
@@ -130,7 +116,7 @@ export const redirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "http://localhost:8080/api/auth/login/redirect",
+        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect",
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
@@ -208,7 +194,7 @@ export const mobileRedirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "http://localhost:8080/api/auth/login/redirect/mobile",
+        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect/mobile",
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
