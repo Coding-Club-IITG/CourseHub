@@ -15,7 +15,7 @@ class YearDiv extends StatelessWidget {
   Widget build(BuildContext context) {
     availableYears.sort((b, a) => a.compareTo(b));
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
@@ -43,7 +43,7 @@ class YearDiv extends StatelessWidget {
                             ? FontWeight.w700
                             : FontWeight.w400,
                         fontSize: 14,
-                        color: availableYears[index] != year
+                        color: availableYears[index]!= year
                             ? Colors.black
                             : Colors.white,
                       ),

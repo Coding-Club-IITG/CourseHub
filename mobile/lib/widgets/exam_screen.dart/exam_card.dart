@@ -22,7 +22,7 @@ class ExamCard extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -46,7 +46,7 @@ class ExamCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.access_time_sharp)
+                  const Icon(Icons.access_time_sharp,size: 18,)
                 ],
               ),
             ),
@@ -65,16 +65,25 @@ class ExamCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Themes.darkTextTheme.bodyLarge,
                 ),
+                const SizedBox(height: 2,),
                 Container(
                   transform: Matrix4.translationValues(-5, 0, 0),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.location_on_outlined,
+                        size: 18,
+                      ),
+                      const SizedBox(
+                        width: 2,
                       ),
                       Text(
                         exam['location'],
-                        style: Themes.darkTextTheme.bodySmall,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
+                          )
                       ),
                     ],
                   ),

@@ -25,7 +25,10 @@ Future<Uint8List> downloader(String link) async {
     streamResponse.stream.listen((chunk) {
       final contentLength = streamResponse.contentLength ?? 0;
       double progress = (downloadedBytes / contentLength) * 100;
-      EasyLoading.instance.textStyle = const TextStyle(color: Colors.white,fontWeight: FontWeight.w300,);
+      EasyLoading.instance.textStyle = const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w300,
+      );
       EasyLoading.showProgress(progress / 100,
           status:
               '${progress.toStringAsFixed(2)}% \n ${(downloadedBytes / 1000000).toStringAsFixed(2)}MB out of ${(contentLength / 1000000).toStringAsFixed(2)}MB');
@@ -46,7 +49,7 @@ Future<Uint8List> downloader(String link) async {
       }
       completer.complete(bytes);
     }, onError: (e) {
-      EasyLoading.showError('Something Went Wrong !');
+      EasyLoading.showError('Something Went Wrong!');
       completer.completeError(e);
     });
   });

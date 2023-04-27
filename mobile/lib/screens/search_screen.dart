@@ -44,7 +44,7 @@ class SearchScreen extends StatelessWidget {
                     builder: (context, searchProvider, child) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 30, horizontal: 20),
+                            vertical: 20, horizontal: 20),
                         width: double.infinity,
                         height: double.infinity,
                         color: Colors.white,
@@ -67,8 +67,8 @@ class SearchScreen extends StatelessWidget {
                                         try {
                                           await searchProvider.search(value);
                                         } catch (e) {
-                                          showSnackBar('Something went wrong !',
-                                              context);
+                                          showSnackBar(
+                                              'Something went wrong!', context);
                                         }
                                       },
                                       textInputAction: TextInputAction.search,
@@ -88,7 +88,7 @@ class SearchScreen extends StatelessWidget {
                                                   _searchController.text);
                                             } catch (e) {
                                               showSnackBar(
-                                                  'Something went wrong !',
+                                                  'Something went wrong!',
                                                   context);
                                             }
                                           },
@@ -123,7 +123,7 @@ class SearchScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(
-                                height: 30,
+                                height: 10,
                               ),
                               SizedBox(
                                 height: 200,
@@ -162,9 +162,6 @@ class SearchScreen extends StatelessWidget {
                                                 color: Colors.black,
                                                 fontWeight: FontWeight.w700),
                                           ),
-                              ),
-                              const SizedBox(
-                                height: 50,
                               ),
                             ],
                           ),

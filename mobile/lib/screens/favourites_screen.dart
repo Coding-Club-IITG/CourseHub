@@ -46,7 +46,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool('courseGrouped') ?? false;
     } catch (e) {
-      showSnackBar('Something Went Wrong !', context);
+      showSnackBar('Something Went Wrong!', context);
       rethrow;
     }
   }
@@ -57,7 +57,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     return WillPopScope(
       onWillPop: () async {
         navigatorProvider.changePageNumber(0);
-
         return false;
       },
       child: FutureBuilder<bool>(
@@ -103,6 +102,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                     )
                   ],
                 ),
+            
                 Expanded(
                   child: CustomFadeInAnimation(
                     child: favourites.isEmpty
@@ -110,8 +110,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                         : Stack(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -125,49 +125,35 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                         : Expanded(
                                             child: AnimationLimiter(
                                               child: ListView.builder(
-                                                  itemCount:
-                                                      favourites.length + 1,
+                                                  itemCount: favourites.length,
                                                   itemBuilder:
                                                       (BuildContext context,
                                                           int index) {
-                                                    if (index >=
-                                                        favourites.length) {
-                                                      return Center(
-                                                        child: Image.asset(
-                                                          'assets/favourites.png',
-                                                          height: 280,
-                                                        ),
-                                                      );
-                                                    } else {
-                                                      return AnimationConfiguration
-                                                          .staggeredList(
-                                                        position: index,
-                                                        duration:
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    375),
-                                                        child: SlideAnimation(
-                                                          verticalOffset: 50.0,
-                                                          child:
-                                                              FadeInAnimation(
-                                                            child:
-                                                                FavouriteTile(
-                                                              setLoadingCallback:
-                                                                  setloading,
-                                                              favourite:
-                                                                  favourites[
-                                                                      index],
-                                                            ),
+                                                    return AnimationConfiguration
+                                                        .staggeredList(
+                                                      position: index,
+                                                      duration: const Duration(
+                                                          milliseconds: 375),
+                                                      child: SlideAnimation(
+                                                        verticalOffset: 50.0,
+                                                        child: FadeInAnimation(
+                                                          child: FavouriteTile(
+                                                            setLoadingCallback:
+                                                                setloading,
+                                                            favourite:
+                                                                favourites[
+                                                                    index],
                                                           ),
                                                         ),
-                                                      );
-                                                    }
+                                                      ),
+                                                    );
                                                   }),
                                             ),
                                           ),
                                   ],
                                 ),
                               ),
+                              
                               Visibility(
                                 visible: _isLoading,
                                 child: const CustomLinearProgress(
@@ -178,6 +164,18 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           ),
                   ),
                 ),
+                // const Spacer(),
+                Visibility(
+                  visible: (favourites.length<=4 && _groupByCourses) || (!_groupByCourses && favourites.length<=6),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 15),
+                    child: Image.asset(
+                      'assets/favourites.png',
+                      height: 280,
+                    ),
+                  ),
+                ),
+
               ],
             );
           }),

@@ -14,17 +14,14 @@ class SearchCard extends StatefulWidget {
 
   final bool isTempCourse;
 
-  const SearchCard(
-      {super.key,
-      required this.isAvailable,
-      required this.courseCode,
-      required this.courseName,
-      required this.isTempCourse,
-     required this.callback,
-      
-      
-      
-      });
+  const SearchCard({
+    super.key,
+    required this.isAvailable,
+    required this.courseCode,
+    required this.courseName,
+    required this.isTempCourse,
+    required this.callback,
+  });
 
   @override
   State<SearchCard> createState() => _SearchCardState();
@@ -52,7 +49,7 @@ class _SearchCardState extends State<SearchCard> {
                       CacheStore.isTempCourse = true;
                       navigationProvider.changePageNumber(1);
                     } catch (e) {
-                      showSnackBar('Somthing Went Wrong !', context);
+                      showSnackBar('Somthing Went Wrong!', context);
                     }
                   } else {
                     widget.callback!();
@@ -74,12 +71,12 @@ class _SearchCardState extends State<SearchCard> {
                     child: Text(
                       letterCapitalizer(widget.courseName),
                       style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
+
                     ),
                   ),
                   const Spacer(),
                   Visibility(
-                    visible: !widget.isAvailable,
+                    visible:!widget.isAvailable,
                     child: const Text(
                       'UNAVAILABLE',
                       style: TextStyle(fontSize: 12),

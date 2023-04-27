@@ -1,6 +1,8 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
+import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/widgets/common/custom_button.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +20,8 @@ import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
 
 class ContributeScreen extends StatefulWidget {
-  const ContributeScreen({super.key});
+  final AnimationController controller;
+  const ContributeScreen({super.key, required this.controller});
 
   @override
   State<ContributeScreen> createState() => _ContributeScreenState();
@@ -34,7 +37,6 @@ class _ContributeScreenState extends State<ContributeScreen> {
   var _year = '2023';
   var color = Colors.black;
   var _isLoading = false;
-  List<File> _files = [];
 
   void _onCourseChange(dynamic a) {
     _course = a;
@@ -46,19 +48,6 @@ class _ContributeScreenState extends State<ContributeScreen> {
 
   void _onYearChange(dynamic a) {
     _year = year[a];
-  }
-
-  void _onFileUpload(List<File> files) {
-    if (files.isEmpty) {
-      setState(() {
-        color = Colors.red;
-      });
-    } else {
-      setState(() {
-        color = Colors.black;
-      });
-      _files = files;
-    }
   }
 
   @override
@@ -79,7 +68,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                       CustomFadeInAnimation(
                         child: Padding(
                           padding: const EdgeInsets.only(
-                              top: 10, left: 30, right: 30),
+                              top: 20, left: 30, right: 30),
                           child: Form(
                             key: _key,
                             child: Column(
@@ -112,33 +101,46 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                   callback: _onYearChange,
                                 ),
                                 const SizedBox(
-                                  height: 15,
+                                  height: 20,
                                 ),
                                 Text(
                                   'DESCRIPTION',
                                   style: Themes.darkTextTheme.bodyLarge,
                                 ),
                                 const SizedBox(
-                                  height: 10,
+                                  height: 15,
                                 ),
                                 CustomTextformfield(
                                   controller: _descriptionController,
                                 ),
                                 const SizedBox(
-                                  height: 10,
+                                  height: 20,
                                 ),
                                 Upload(
                                   color: color,
-                                  callback: _onFileUpload,
                                 ),
                                 const SizedBox(
-                                  height: 10,
+                                  height: 20,
                                 ),
                                 CustomButton(
                                     title: 'Submit',
                                     onPressed: () async {
+                                      final files = context
+                                          .read<NavigationProvider>()
+                                          .selectedFiles;
+
+                                      if (files.isEmpty) {
+                                        setState(() {
+                                          color = Colors.red;
+                                        });
+                                        return;
+                                      }
+                                      setState(() {
+                                        color = Colors.black;
+                                      });
+
                                       if (_key.currentState!.validate()) {
-                                        if (_files.isEmpty) {
+                                        if (files.isEmpty) {
                                           setState(() {
                                             color = Colors.red;
                                           });
@@ -149,7 +151,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                               _isLoading = true;
                                             });
                                             await contributeData(
-                                                _files,
+                                                files,
                                                 _year,
                                                 _course,
                                                 _section,
@@ -162,18 +164,22 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                                 'You\'ve successfully contributed to CourseHub! 🎉',
                                                 context);
 
+                                            widget.controller
+                                                .reverse(from: 0.75);
+
                                             navigationProvider
                                                 .changePageNumber(4);
                                           } catch (e) {
+                                            log(e.toString());
                                             setState(() {
                                               _isLoading = false;
                                             });
                                             showSnackBar(
-                                                'Something Went Wrong !',
+                                                'Something Went Wrong!',
                                                 context);
                                           }
                                         }
-                                      } else if (_files.isEmpty) {
+                                      } else if (files.isEmpty) {
                                         setState(() {
                                           color = Colors.red;
                                         });
@@ -185,7 +191,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                         ),
                       ),
                       SizedBox(
-                        height: 200,
+                        height: 180,
                         child: SvgPicture.asset(
                           'assets/contribute.svg',
                           width: double.infinity,

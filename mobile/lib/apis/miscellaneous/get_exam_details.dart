@@ -4,7 +4,6 @@ import 'package:coursehub/apis/protected.dart';
 import 'package:coursehub/constants/endpoints.dart';
 import 'package:coursehub/models/exam_details.dart';
 
-
 import 'package:http/http.dart' as http;
 
 Future<List<ExamDetails>> getExamDetails() async {

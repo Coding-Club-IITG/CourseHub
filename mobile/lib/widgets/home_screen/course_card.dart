@@ -90,7 +90,10 @@ class AvailableCard extends StatelessWidget {
                     padding: const EdgeInsets.all(6.0),
                     child: Text(
                       course.code.toUpperCase(),
-                      style: Themes.theme.textTheme.labelSmall,
+                      style: const TextStyle(
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
                     ),
                   ),
                 ),
@@ -98,9 +101,13 @@ class AvailableCard extends StatelessWidget {
                   visible: CacheStore.courseAvailability[course.code] == null
                       ? true
                       : !isAvailable,
-                  child: Text(
+                  child: const Text(
                     'UNAVAILABLE',
-                    style: Themes.darkTextTheme.labelSmall,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      fontSize:10.0,
+                    ),
                   ),
                 )
               ],
@@ -113,7 +120,11 @@ class AvailableCard extends StatelessWidget {
               letterCapitalizer(course.name),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: Themes.darkTextTheme.displayMedium,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+                fontSize: 16.0,
+              ),
             ),
           ),
         ],

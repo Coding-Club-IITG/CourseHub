@@ -44,22 +44,21 @@ class MenuDrawer extends StatelessWidget {
               title: 'Exam Schedule'),
           MenuItems(
               icon: const Icon(
-                Icons.leaderboard_outlined,
+                Icons.downloading_sharp,
                 color: Colors.white,
-                
               ),
               onPressed: () {
-                showSnackBar('This feature coming soon !', context);
+                showSnackBar('This feature coming soon!', context);
                 Navigator.of(context).pop();
               },
-              title: 'Leaderboard'),
+              title: 'Downloads'),
           MenuItems(
               icon: const Icon(
                 Icons.handshake_outlined,
                 color: Colors.white,
               ),
               onPressed: () {
-                showSnackBar('This feature coming soon !', context);
+                showSnackBar('This feature coming soon!', context);
                 Navigator.of(context).pop();
               },
               title: 'Special Thanks'),
@@ -102,13 +101,20 @@ class MenuDrawer extends StatelessWidget {
                 ),
                 Column(
                   children: const [
-                    Text('Coding Club'),
+                    Text(
+                      'Coding Club',
+                      style: TextStyle(
+                        fontFamily: 'Raleway',
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     SizedBox(
-                      height: 5,
+                      height: 2,
                     ),
                     Text(
                       'IIT Guwahati',
-                      style: TextStyle(fontWeight: FontWeight.w400),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500, fontFamily: 'Raleway'),
                     )
                   ],
                 )

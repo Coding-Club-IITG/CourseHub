@@ -1,5 +1,6 @@
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
+import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/widgets/browse_screen/year_div.dart';
@@ -143,14 +144,14 @@ class _BrowseScreen extends State<BrowseScreen> {
                   child: Column(
                     children: [
                       Expanded(
-                        flex: 5,
+                        flex: 7,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           color: Colors.black,
                           child: Column(
                             children: [
                               const SizedBox(
-                                height: 20,
+                                height: 10,
                               ),
                               Expanded(
                                 flex: 2,
@@ -177,6 +178,20 @@ class _BrowseScreen extends State<BrowseScreen> {
                                           color: Colors.white,
                                           fontWeight: FontWeight.w700),
                                     ),
+                                    const Spacer(),
+                                    SplashOnPressed(
+                                        splashColor: Colors.grey,
+                                        onPressed: () {},
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(6),
+                                          child: Icon(
+                                            Icons.share,
+                                            color: Colors.white,
+                                          ),
+                                        )),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -187,19 +202,28 @@ class _BrowseScreen extends State<BrowseScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(
+                        height: 5,
+                      ),
                       Expanded(
-                        flex: 3,
+                        flex: 5,
                         child: YearDiv(
                           callback: handleClick,
                           availableYears: availableYears,
                           year: year,
                         ),
                       ),
+                      const SizedBox(
+                        height: 5,
+                      ),
                       Expanded(
-                        flex: 20,
-                        child: FolderExplorer(
-                          data: dataToShow,
-                          callback: addToPathCallback,
+                        flex: 40,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: FolderExplorer(
+                            data: dataToShow,
+                            callback: addToPathCallback,
+                          ),
                         ),
                       ),
                     ],

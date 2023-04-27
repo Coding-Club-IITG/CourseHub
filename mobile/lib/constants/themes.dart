@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class Themes {
   static const kYellow = Color.fromRGBO(254, 207, 111, 1);
   static final theme = ThemeData(
-
     primaryColor: kYellow,
     fontFamily: 'ProximaNova',
     splashColor: kYellow,
@@ -14,10 +13,7 @@ class Themes {
         fontSize: 16,
       ),
       labelSmall: TextStyle(
-          fontFamily: 'ProximaNova',
-          fontSize: 14.0,
-          fontWeight: FontWeight.w700,
-          color: Colors.white),
+          fontSize: 14.0, fontWeight: FontWeight.w700, color: Colors.white),
       displayLarge: TextStyle(
           fontWeight: FontWeight.w700, color: Colors.white, fontSize: 28),
       displayMedium: TextStyle(
@@ -65,7 +61,7 @@ class Themes {
       fontSize: 14.0,
     ),
     bodySmall: TextStyle(
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: FontWeight.w400,
       color: Colors.black,
     ),

@@ -1,6 +1,5 @@
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/utilities/url_launcher.dart';
-import 'package:coursehub/widgets/common/custom_linear_progress.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +15,10 @@ class PhotoFrame extends StatelessWidget {
     required this.photo,
   });
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 120,
+      width: 140,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.transparent,
@@ -32,7 +30,8 @@ class PhotoFrame extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            height: 120,
+            width: 120,
+            height: 150,
             decoration: BoxDecoration(
               border: Border.all(
                 color: Colors.white,
@@ -40,33 +39,36 @@ class PhotoFrame extends StatelessWidget {
               ),
             ),
             child: Image.network(
-      photo,
-      fit: BoxFit.fill,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            SizedBox(height: 30,),
-            LinearProgressIndicator(
-              color: Themes.kYellow,
-              backgroundColor: Colors.black,
+              photo,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(
+                      height: 30,
+                    ),
+                    LinearProgressIndicator(
+                      color: Themes.kYellow,
+                      backgroundColor: Colors.black,
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      'Loading us! 😜 ',
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                    ),
+                  ],
+                );
+              },
+              errorBuilder: (context, error, stackTrace) => Image.asset(
+                'assets/placeholder_dp.png',
+              ),
             ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(
-              'Loading us ! 😜 ',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-            ),
-          ],
-        );
-      },
-      errorBuilder: (context, error, stackTrace) => Image.asset(
-        'assets/placeholder_dp.png',
-      ),
-    ),
           ),
           const SizedBox(
             height: 10,
@@ -78,7 +80,7 @@ class PhotoFrame extends StatelessWidget {
                 onPressed: () async {
                   if (socials['github']!.isEmpty) {
                     showSnackBar(
-                      'This guy is not so geeky to have a github account 🤪 !',
+                      'This guy is not so geeky to have a github account 🤪!',
                       context,
                     );
                     return;
@@ -86,20 +88,16 @@ class PhotoFrame extends StatelessWidget {
                   await launchUrl(socials['github'] ?? '');
                 },
                 splashColor: Colors.grey,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                  child: SvgPicture.asset(
-                    'assets/github.svg',
-                    height: 16,
-                  ),
+                child: SvgPicture.asset(
+                  'assets/github.svg',
+                  height: 16,
                 ),
               ),
               SplashOnPressed(
                 onPressed: () async {
                   if (socials['instagram']!.isEmpty) {
                     showSnackBar(
-                      'This guy is too busy to have an instagram handle 🤪 !',
+                      'This guy is too busy to have an instagram handle 🤪!',
                       context,
                     );
                     return;
@@ -107,13 +105,9 @@ class PhotoFrame extends StatelessWidget {
                   await launchUrl(socials['instagram'] ?? '');
                 },
                 splashColor: Colors.grey,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                  child: SvgPicture.asset(
-                    'assets/instagram.svg',
-                    height: 16,
-                  ),
+                child: SvgPicture.asset(
+                  'assets/instagram.svg',
+                  height: 16,
                 ),
               ),
               SplashOnPressed(
@@ -121,13 +115,9 @@ class PhotoFrame extends StatelessWidget {
                   await launchUrl(socials['linkedin'] ?? '');
                 },
                 splashColor: Colors.grey,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                  child: SvgPicture.asset(
-                    'assets/linkedin.svg',
-                    height: 16,
-                  ),
+                child: SvgPicture.asset(
+                  'assets/linkedin.svg',
+                  height: 16,
                 ),
               )
             ],

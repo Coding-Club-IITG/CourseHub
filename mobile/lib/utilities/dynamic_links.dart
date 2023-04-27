@@ -1,13 +1,19 @@
 import 'dart:developer';
 
-import 'package:coursehub/main.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:provider/provider.dart';
 
 class FirebaseDynamicLink {
-  static Future<String> createDynamicLink(
-      String title, String courseCode, String folderId) async {
+  static Future<String> createDynamicLink(String title, String address) async {
+    String newPath = '';
+
+    newPath += address.split(' ')[0];
+
+    for (var i = 1; i < address.split('/').length; i++) {
+      newPath += '/';
+      newPath += address.split('/')[i];
+    }
+
+
     try {
       final dynamicLinkParams = DynamicLinkParameters(
         socialMetaTagParameters: SocialMetaTagParameters(
@@ -15,8 +21,7 @@ class FirebaseDynamicLink {
           imageUrl: Uri.parse(
               "https://ik.imagekit.io/4d3jgzelm/moto.png?updatedAt=1682109389548"),
         ),
-        link: Uri.parse(
-            "https://www.coursehubiitg.in/browse/${courseCode.toLowerCase()}/$folderId"),
+        link: Uri.parse("https://www.coursehubiitg.in/browse/$newPath"),
         uriPrefix: "https://coursehubiitg.page.link",
         androidParameters: const AndroidParameters(
           packageName: "com.codingclub.coursehub",
@@ -41,7 +46,7 @@ class FirebaseDynamicLink {
 
     if (initialLink != null) {
       final Uri deepLink = initialLink.link;
-       for (var element in deepLink.pathSegments) {
+      for (var element in deepLink.pathSegments) {
         log(element.toString());
       }
       log(deepLink.toString());

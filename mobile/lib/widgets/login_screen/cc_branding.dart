@@ -10,29 +10,41 @@ class CCBranding extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
+        const Text(
           'by',
-          style: Themes.theme.textTheme.bodySmall,
+          style: TextStyle(
+              fontFamily: 'Raleway', fontWeight: FontWeight.w500, fontSize: 14) ,
         ),
         const SizedBox(
-          height: 10,
+          height: 15,
         ),
         SvgPicture.asset('assets/cc_logo.svg'),
         const SizedBox(
-          height: 20,
+          height: 15,
         ),
         RichText(
           textAlign: TextAlign.center,
-          text: const TextSpan(children: [
-            TextSpan(
-              text: 'Coding Club\n',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(
-              text: 'IIT Guwahati',
-              style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-            )
-          ]),
+          text: const TextSpan(
+            children: [
+              TextSpan(
+                text: 'Coding Club\n',
+                
+                style: TextStyle(
+                  fontFamily: 'Raleway',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14
+                ),
+              ),
+              TextSpan(
+                text: 'IIT Guwahati',
+                style: TextStyle(
+                  fontFamily: 'Raleway',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                ),
+              )
+            ],
+          ),
         )
       ],
     );

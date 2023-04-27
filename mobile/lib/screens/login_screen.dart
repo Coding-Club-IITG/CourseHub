@@ -50,8 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           color: Colors.black,
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: const [
+                              SizedBox(
+                                height: 50,
+                              ),
                               RotatedBox(
                                 quarterTurns: 1,
                                 child: Text(
@@ -62,7 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                       fontWeight: FontWeight.w700),
                                 ),
                               ),
-                              CCBranding()
+                              Spacer(),
+                              CCBranding(),
+                              SizedBox(
+                                height: 20,
+                              )
                             ],
                           ),
                         ),
@@ -73,13 +79,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 Expanded(
                   flex: 2,
                   child: Container(
-                    padding: const EdgeInsets.only(
-                        top: 20, left: 16,right: 16),
+                    padding:
+                        const EdgeInsets.only(top: 20, left: 16, right: 16),
                     color: Themes.kYellow,
                     child: Column(
                       children: [
                         const Expanded(
-                          flex: 3,
+                          flex: 6,
                           child: Text(
                             'Your go-to platform for all your academic needs. Get access to past papers, lecture slides, assignments, tutorials, notes and more to help you ace your exams',
                             textAlign: TextAlign.left,
@@ -90,10 +96,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                     
-                   
                         Expanded(
-                          flex: 3,
+                          flex: 6,
                           child: Material(
                             color: Colors.black,
                             child: InkWell(
@@ -110,30 +114,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (!mounted) return;
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
-                                      builder: (context) => const NavBarScreen(),
+                                      builder: (context) =>
+                                          const NavBarScreen(),
                                     ),
                                   );
-                          
+
                                   showSnackBar(
                                       'Successfully Logged In!', context);
                                 } catch (e) {
                                   setState(() {
                                     _isLoading = false;
                                   });
-                          
-                                  showSnackBar('Something Went Wrong !', context);
+
+                                  showSnackBar(
+                                      'Something Went Wrong!', context);
                                 }
                               },
                               child: const LoginButton(),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10,),
-                
-
-
+                        const SizedBox(
+                          height: 10,
+                        ),
                         Expanded(
-                          flex: 2,
+                          flex: 3,
                           child: GestureDetector(
                             onTap: () async {
                               try {
@@ -150,13 +155,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     builder: (context) => const NavBarScreen(),
                                   ),
                                 );
-                        
-                                showSnackBar('Successfully Logged In!', context);
+
+                                showSnackBar(
+                                    'Successfully Logged In!', context);
                               } catch (e) {
                                 setState(() {
                                   _isLoading = false;
                                 });
-                                showSnackBar('Something Went Wrong !', context);
+                                showSnackBar('Something Went Wrong!', context);
                               }
                             },
                             child: const Text(
@@ -178,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Visibility(
               visible: _isLoading,
               child: const CustomLinearProgress(
-                text: 'Loading your courses,favourites and contributions...',
+                text: 'Loading your courses, favourites and contributions...',
               ),
             )
             //

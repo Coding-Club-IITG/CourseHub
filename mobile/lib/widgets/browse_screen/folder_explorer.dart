@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
-import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/apis/files/downloader.dart';
 import 'package:coursehub/database/hive_store.dart';
@@ -49,7 +48,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
             },
             splashColor: Colors.grey,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10.0),
               child: Stack(
                 children: [
                   SvgPicture.asset(
@@ -76,9 +75,9 @@ class _FolderExplorerState extends State<FolderExplorer> {
                       child: Text(
                         widget.data["course"].toString().toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 14.0,
+                          fontSize: 15.0,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black54,
+                          color: Color.fromRGBO(0, 0, 0, 0.30),
                         ),
                       ),
                     ),
@@ -90,7 +89,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
         );
       }
       return Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 0),
         child: AnimationLimiter(
           child: GridView.count(
             crossAxisCount: 2,
@@ -127,7 +126,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Nothing in Here !',
+                      'Nothing in Here!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.w400,
@@ -227,23 +226,23 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                               cacheProvider
                                                   .setIsDownloading(false);
                                               showSnackBar(
-                                                  'Something Went Wrong !',
+                                                  'Something Went Wrong!',
                                                   context);
                                             }
                                           }
                                         },
                                         splashColor: Colors.grey,
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 16.0),
+                                          margin: const EdgeInsets.symmetric(
+                                              vertical: 12.0),
                                           child: Row(
                                             children: [
                                               const SizedBox(
                                                 width: 12.0,
                                               ),
                                               Container(
-                                                width: 48.0,
-                                                height: 48.0,
+                                                width: 60.0,
+                                                height: 60.0,
                                                 decoration: BoxDecoration(
                                                   border: Border.all(
                                                       color:
@@ -277,11 +276,11 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                 child: Column(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       letterCapitalizer(name),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
                                                       style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.w400,
@@ -294,14 +293,10 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                     ),
                                                     Text(
                                                       '${name.split('.').last.toUpperCase()} • ${fileSize(widget.data["children"][index]["size"])}',
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
                                                       style: const TextStyle(
-                                                        fontFamily:
-                                                            "ProximaNova",
                                                         fontWeight:
-                                                            FontWeight.w400,
-                                                        fontSize: 12.0,
+                                                            FontWeight.w300,
+                                                        fontSize: 13.0,
                                                         color: Color.fromRGBO(
                                                             88, 88, 88, 1),
                                                       ),
@@ -309,11 +304,9 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                     const Text(
                                                       "Anonymous",
                                                       style: TextStyle(
-                                                        fontFamily:
-                                                            "ProximaNova",
                                                         fontWeight:
-                                                            FontWeight.w400,
-                                                        fontSize: 12.0,
+                                                            FontWeight.w300,
+                                                        fontSize: 13.0,
                                                         color: Color.fromRGBO(
                                                             88, 88, 88, 1),
                                                       ),
@@ -322,7 +315,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                 ),
                                               ),
                                               const SizedBox(
-                                                width: 20,
+                                                width: 10,
                                               ),
                                               Visibility(
                                                 visible: isDownloaded,
@@ -343,12 +336,11 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                 onTap: () async {
                                                   try {
                                                     String address =
-                                                        '${widget.data['_id']}/';
+                                                        widget.data['path'];
                                                     final shareLink =
                                                         await FirebaseDynamicLink
                                                             .createDynamicLink(
                                                       name.toLowerCase(),
-                                                      widget.data['course'],
                                                       address,
                                                     );
 
@@ -357,20 +349,21 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                             '$name \n CourseHub');
                                                   } catch (e) {
                                                     showSnackBar(
-                                                        'Something went Wrong !',
+                                                        'Something went Wrong!',
                                                         context);
                                                   }
                                                 },
                                                 child: const Icon(
-                                                  Icons.ios_share_rounded,
-                                                  color: Colors.black,
+                                                  Icons.share,
+                                                  color: Color.fromRGBO(
+                                                      0, 0, 0, 0.75),
+                                                  size: 24,
                                                 ),
                                               ),
                                               const SizedBox(
                                                 width: 10,
                                               ),
                                               LikeButton(
-                                                
                                                 isLiked: isFavourite,
                                                 onTap: (isLiked) async {
                                                   if (!isFavourite) {
@@ -389,7 +382,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       return isFavourite;
                                                     } catch (e) {
                                                       showSnackBar(
-                                                          'Something went wrong !',
+                                                          'Something went wrong!',
                                                           context);
                                                     }
                                                   } else {
@@ -413,10 +406,11 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       return isFavourite;
                                                     } catch (e) {
                                                       showSnackBar(
-                                                          'Something went wrong !',
+                                                          'Something went wrong!',
                                                           context);
                                                     }
                                                   }
+                                                  return true;
                                                 },
                                                 likeBuilder: (isLiked) {
                                                   return isLiked
@@ -429,6 +423,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       : const Icon(
                                                           Icons
                                                               .star_border_outlined,
+                                                          size: 24,
                                                           color: Color.fromRGBO(
                                                               0, 0, 0, 0.75),
                                                         );

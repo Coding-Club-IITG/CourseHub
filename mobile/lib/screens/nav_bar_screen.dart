@@ -28,16 +28,22 @@ class NavBarScreen extends StatefulWidget {
 class _NavBarScreen extends State<NavBarScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+
+  /*
+  DO NOT CHANGE ORDER OF SCREENS
+  */
   late List<Widget> screens = [
     const HomeScreen(),
     const BrowseScreen(),
-    const ContributeScreen(),
+     ContributeScreen(
+      controller: _controller,
+    ),
     const FavouritesScreen(),
     const ProfileScreen(),
     SearchScreen(),
     const ExamScreen(),
     const TeamScreen(),
-    FeedBackScreen(),
+    const FeedBackScreen(),
   ];
 
   // void returnToPageCallback(int a) {
@@ -89,108 +95,118 @@ class _NavBarScreen extends State<NavBarScreen>
                     child: screens[navigationProvider.currentPageNumber],
                   ),
                   // Expanded(child: TeamScreen()),
-                  const SizedBox(
-                    height: 60,
+                  Visibility(
+                    visible:
+                        context.read<NavigationProvider>().currentPageNumber <
+                            6,
+                    child: const SizedBox(
+                      height: 60,
+                    ),
                   ),
                 ],
               ),
-              Column(
-                children: [
-                  const Spacer(),
-                  SizedBox(
-                    height: 90.0,
-                    child: Stack(
-                      children: [
-                        Column(
-                          children: [
-                            const Spacer(),
-                            Container(
-                              height: 68.0,
-                              color: const Color.fromRGBO(254, 207, 111, 1),
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            NavBarIcon(
-                                controller: _controller,
-                                isSelected:
-                                    navigationProvider.currentPageNumber == 0,
-                                label: 'Home'),
-                            NavBarIcon(
-                                controller: _controller,
-                                isSelected:
-                                    navigationProvider.currentPageNumber == 1,
-                                label: 'Browse'),
-                            Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      if (navigationProvider
-                                              .currentPageNumber !=
-                                          2) {
-                                        _controller.forward(from: 0.0);
-                                      } else {
-                                        _controller.reverse(from: 0.75);
-                                      }
-                                      if (navigationProvider
-                                              .currentPageNumber ==
-                                          2) {
-                                        navigationProvider.currentPageNumber =
-                                            0;
-                                      } else {
-                                        navigationProvider.currentPageNumber =
-                                            2;
-                                      }
-                                    });
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                      border: Border.all(
-                                          color: Colors.black, width: 2.0),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: RotationTransition(
-                                        turns: Tween(begin: 0.0, end: 0.75)
-                                            .animate(_controller),
-                                        child: const Icon(
-                                          Icons.add,
-                                          color: Colors.black,
-                                          size: 32.0,
+              Visibility(
+                visible:
+                    context.read<NavigationProvider>().currentPageNumber < 6,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      height: 90.0,
+                      child: Stack(
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                height: 68.0,
+                                color: Themes.kYellow,
+                              )
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              NavBarIcon(
+                                  controller: _controller,
+                                  isSelected:
+                                      navigationProvider.currentPageNumber == 0,
+                                  label: 'Home'),
+                              NavBarIcon(
+                                  controller: _controller,
+                                  isSelected:
+                                      navigationProvider.currentPageNumber == 1,
+                                  label: 'Browse'),
+                              Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (navigationProvider
+                                                .currentPageNumber !=
+                                            2) {
+                                          _controller.forward(from: 0.0);
+                                        } else {
+                                          _controller.reverse(from: 0.75);
+                                        }
+                                        if (navigationProvider
+                                                .currentPageNumber ==
+                                            2) {
+                                          navigationProvider.currentPageNumber =
+                                              0;
+                                        } else {
+                                          navigationProvider.currentPageNumber =
+                                              2;
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      transform: Matrix4.translationValues(0, -4, 0),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                        border: Border.all(
+                                            color: Colors.black, width: 2.0),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: RotationTransition(
+                                          turns: Tween(begin: 0.0, end: 0.75)
+                                              .animate(_controller),
+                                          child: const Icon(
+                                            Icons.add,
+                                            color: Colors.black,
+                                            size: 32.0,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const Spacer(),
-                                Text("Contribute",
-                                    style: Themes.darkTextTheme.bodySmall),
-                                const SizedBox(
-                                  height: 8.0,
-                                )
-                              ],
-                            ),
-                            NavBarIcon(
-                                controller: _controller,
-                                isSelected:
-                                    navigationProvider.currentPageNumber == 3,
-                                label: 'Favourites'),
-                            NavBarIcon(
-                                controller: _controller,
-                                isSelected:
-                                    navigationProvider.currentPageNumber == 4,
-                                label: 'Profile')
-                          ],
-                        ),
-                      ],
+                                  const Spacer(),
+                                  Text("Contribute",
+                                      style: Themes.darkTextTheme.bodySmall),
+                                  const SizedBox(
+                                    height: 8.0,
+                                  )
+                                ],
+                              ),
+                              NavBarIcon(
+                                  controller: _controller,
+                                  isSelected:
+                                      navigationProvider.currentPageNumber == 3,
+                                  label: 'Favourites'),
+                              NavBarIcon(
+                                  controller: _controller,
+                                  isSelected:
+                                      navigationProvider.currentPageNumber == 4,
+                                  label: 'Profile')
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Consumer<CacheProvider>(
                 builder: (context, cacheprovider, child) {

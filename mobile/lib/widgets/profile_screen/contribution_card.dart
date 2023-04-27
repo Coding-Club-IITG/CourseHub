@@ -13,23 +13,29 @@ class ContributionCard extends StatelessWidget {
     final pathString =
         '${contribution.courseCode.toUpperCase()}  >  ${contribution.year}  >  ${contribution.folder}';
 
+    final newDate = contribution.createdAt.toLocal();
+
     var formatter = DateFormat("MMMM dd, yyyy");
-    String formattedTime =
-        DateFormat('kk:mm:a').format(contribution.createdAt).toLowerCase();
-    String formattedDate = formatter.format(contribution.createdAt);
+    String formattedTime = DateFormat('kk:mm:a').format(newDate).toLowerCase();
+    String formattedDate = formatter.format(newDate);
 
     return Container(
       color: Themes.kYellow,
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.only(top: 20, right: 20, left: 20, bottom: 10),
+      margin: const EdgeInsets.symmetric(vertical: 7),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(pathString,
-                  overflow: TextOverflow.ellipsis,
-                  style: Themes.darkTextTheme.displaySmall),
+              Text(
+                pathString,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
+              ),
             ],
           ),
           Container(
@@ -39,9 +45,16 @@ class ContributionCard extends StatelessWidget {
               maxLines: 2,
               textAlign: TextAlign.start,
               overflow: TextOverflow.ellipsis,
-              style: Themes.darkTextTheme.bodySmall,
+              style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 13),
             ),
           ),
+          const SizedBox(
+            height: 10,
+          ),
+          // Spacer(),
           Row(
             children: [
               Text(
@@ -56,23 +69,17 @@ class ContributionCard extends StatelessWidget {
                 style: Themes.darkTextTheme.bodySmall,
               ),
               const Spacer(),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(0)),
-                  ),
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black,
                 ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Text(
                   contribution.approved ? 'APPROVED' : 'PENDING',
                   style: const TextStyle(
-                    fontFamily: 'Proxima Nova',
                     fontWeight: FontWeight.w700,
-                    fontSize: 11.1,
+                    fontSize: 12,
                   ),
                 ),
               ),

@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import '../common/splash_on_pressed.dart';
@@ -47,15 +50,23 @@ class _NavBarIconState extends State<NavBarIcon>
     super.dispose();
   }
 
-  IconData logo() {
+  Widget logo() {
     if (widget.label == 'Profile') {
-      return widget.isSelected ? Icons.person : Icons.person_outline;
+      return widget.isSelected
+          ? SvgPicture.asset('assets/profile_selected.svg')
+          : SvgPicture.asset('assets/profile.svg');
     } else if (widget.label == 'Favourites') {
-      return widget.isSelected ? Icons.star : Icons.star_outline_sharp;
+      return widget.isSelected
+          ? SvgPicture.asset('assets/favourite_selected.svg')
+          : SvgPicture.asset('assets/favourite.svg');
     } else if (widget.label == 'Browse') {
-      return widget.isSelected ? Icons.folder : Icons.folder_outlined;
+      return widget.isSelected
+          ? SvgPicture.asset('assets/browse_selected.svg')
+          : SvgPicture.asset('assets/browse.svg');
     } else {
-      return widget.isSelected ? Icons.home : Icons.home_outlined;
+      return widget.isSelected
+          ? SvgPicture.asset('assets/home_selected.svg')
+          : SvgPicture.asset('assets/home.svg');
     }
   }
 
@@ -95,11 +106,7 @@ class _NavBarIconState extends State<NavBarIcon>
               builder: (context, _) {
                 return Container(
                   padding: const EdgeInsets.all(4.0),
-                  child: Icon(
-                    logo(),
-                    color: Colors.black,
-                    size: _sizeAnimation.value,
-                  ),
+                  child: logo(),
                 );
               }),
         ),

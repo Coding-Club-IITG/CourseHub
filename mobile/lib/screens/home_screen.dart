@@ -32,127 +32,135 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Ink(
       color: Colors.black,
       child: CustomFadeInAnimation(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const NavBar(),
-              Row(
-                children: [
-                  const SizedBox(
-                    width: 26.0,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          children: [
+            const NavBar(),
+            Padding(
+              padding: const EdgeInsets.only(top: 80),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          "Welcome,",
-                          style: Themes.theme.textTheme.displaySmall,
+                        const SizedBox(
+                          width: 26.0,
                         ),
-                        Text(
-                          user.name,
-                          style: Themes.theme.textTheme.bodyLarge,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Welcome,",
+                              style: Themes.theme.textTheme.displaySmall,
+                            ),
+                            Text(
+                              user.name,
+                              style: Themes.theme.textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Image.asset(
+                          "assets/home_books.png",
+                          width: 140,
                         ),
                       ],
                     ),
-                  ),
-                  Image.asset(
-                    "assets/home_books.png",
-                    width: 140,
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 26.0,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 26.0),
-                child: Text("MY COURSES",
-                    style: Themes.theme.textTheme.bodyMedium),
-              ),
-              Expanded(
-                  child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 26.0, vertical: 19.0),
-                child: AnimationLimiter(
-                  child: GridView.count(
-                    physics: const BouncingScrollPhysics(),
-                    shrinkWrap: true,
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 23.0,
-                    mainAxisSpacing: 16.0,
-                    childAspectRatio: 1.25,
-                    children: List.generate(
-                      user.courses.length + 1,
-                      (int index) {
-                        return AnimationConfiguration.staggeredGrid(
-                          columnCount: 2,
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: ScaleAnimation(
-                            scale: 0.5,
-                            child: FadeInAnimation(
-                              child: index < user.courses.length
-                                  ? CourseCard(
-                                      course: user.courses[index],
-                                    )
-                                  : Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            barrierColor: const Color.fromRGBO(
-                                                0, 0, 0, 0.8),
-                                            builder: (context) =>
-                                                const AddCourseDialog(),
-                                          );
-                                        },
-                                        splashColor: Colors.white10,
-                                        child: Container(
-                                          margin: const EdgeInsets.all(
-                                              0.6), // otherwise dotted border seems faded on some side on iphone
-                                          child: DottedBorder(
-                                            strokeWidth: 1,
-                                            color: Colors.white,
-                                            dashPattern: const [6],
-                                            child: Center(
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: const [
-                                                  Icon(
-                                                    Icons.add,
-                                                    color: Colors.white,
-                                                    size: 36,
+                    const SizedBox(
+                      height: 26.0,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 26.0),
+                      child: Text("MY COURSES",
+                          style: Themes.theme.textTheme.bodyMedium),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 26.0, vertical: 19.0),
+                      child: AnimationLimiter(
+                        child: GridView.count(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 23.0,
+                          mainAxisSpacing: 16.0,
+                          childAspectRatio: 1.25,
+                          children: List.generate(
+                            user.courses.length + 1,
+                            (int index) {
+                              return AnimationConfiguration.staggeredGrid(
+                                columnCount: 2,
+                                position: index,
+                                duration: const Duration(milliseconds: 375),
+                                child: ScaleAnimation(
+                                  scale: 0.5,
+                                  child: FadeInAnimation(
+                                    child: index < user.courses.length
+                                        ? CourseCard(
+                                            course: user.courses[index],
+                                          )
+                                        : Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  barrierColor:
+                                                      const Color.fromRGBO(
+                                                          0, 0, 0, 0.8),
+                                                  builder: (context) =>
+                                                      const AddCourseDialog(),
+                                                );
+                                              },
+                                              splashColor: Colors.white10,
+                                              child: Container(
+                                                margin: const EdgeInsets.all(
+                                                    0.6), // otherwise dotted border seems faded on some side on iphone
+                                                child: DottedBorder(
+                                                  strokeWidth: 1,
+                                                  color: Colors.white,
+                                                  dashPattern: const [6],
+                                                  child: Center(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: const [
+                                                        Icon(
+                                                          Icons.add,
+                                                          color: Colors.white,
+                                                          size: 36,
+                                                        ),
+                                                        Text(
+                                                          'Add Course',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400),
+                                                        )
+                                                      ],
+                                                    ),
                                                   ),
-                                                  Text(
-                                                    'Add Course',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w400),
-                                                  )
-                                                ],
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
-                            ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              )),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

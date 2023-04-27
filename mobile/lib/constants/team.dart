@@ -40,7 +40,7 @@ const team = [
     'linkedin': 'https://www.linkedin.com/in/letsintegreat/'
   },
   {
-    'name': 'Lakshit Shethia',
+    'name': 'Lakshit Sethia',
     'role': 'android & ios app',
     'imageUrl': 'https://ik.imagekit.io/4d3jgzelm/lakshit.jpeg?updatedAt=1682114172270',
     'github': 'https://github.com/yoyobuzz',

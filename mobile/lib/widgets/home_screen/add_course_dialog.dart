@@ -93,7 +93,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                             try {
                               await search(value);
                             } catch (e) {
-                              showSnackBar('Something went wrong !', context);
+                              showSnackBar('Something went wrong!', context);
                             }
                           },
                           controller: _courseController,
@@ -156,7 +156,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                     if (isPresent) {
                                       Navigator.of(context).pop();
                                       showSnackBar(
-                                          'Course Already Added !', context);
+                                          'Course Already Added!', context);
                                       return;
                                     }
 
@@ -183,7 +183,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                         "Course Succesfully added", context);
                                   } catch (e) {
                                     showSnackBar(
-                                        "Something Went Wrong !", context);
+                                        "Something Went Wrong!", context);
                                   }
                                 },
                               ),
@@ -203,13 +203,13 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                     color: _isEnabled ? Themes.kYellow : Colors.grey,
                     child: InkWell(
                       splashColor: const Color.fromRGBO(0, 0, 0, 0.1),
-                      onTap: !_isEnabled
+                      onTap:!_isEnabled
                           ? null
                           : () async {
                               try {
                                 await search(_courseController.text);
                               } catch (e) {
-                                showSnackBar('Something went wrong !', context);
+                                showSnackBar('Something went wrong!', context);
                               }
                             },
                       child: SizedBox(

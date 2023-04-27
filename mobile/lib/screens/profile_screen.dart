@@ -5,6 +5,7 @@ import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';
@@ -49,12 +50,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           const NavBar(),
           Stack(
-            alignment: Alignment.bottomCenter,
+            alignment: Alignment.bottomRight,
             children: [
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(
-                    left: 30, top: 10, right: 20, bottom: 0),
+                    left: 30, top: 20, right: 20, bottom: 0),
                 color: Colors.black,
                 child: CustomFadeInAnimation(
                   child: Column(
@@ -63,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Text(
                         "MY PROFILE",
                         style: TextStyle(
-                          fontFamily: 'ProximaNova',
+       
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                           color: Colors.white,
@@ -77,13 +78,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: Themes.theme.textTheme.displayLarge,
                       ),
                       const SizedBox(
-                        height: 10,
+                        height: 5,
                       ),
                       FittedBox(
                         child: Text(
                           "B.Tech in $branch",
                           style: const TextStyle(
-                            fontFamily: 'ProximaNova',
+       
                             fontWeight: FontWeight.w400,
                             fontSize: 16,
                             color: Colors.white,
@@ -91,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 5,
+                        height: 10,
                       ),
                       const SizedBox(
                         height: 25,
@@ -106,7 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Image.asset(
                 'assets/my_profile.png',
-                fit: BoxFit.scaleDown,
+                fit: BoxFit.fitWidth,
+                // fit: BoxFit.scaleDown,
               ),
             ],
           ),
@@ -115,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               "MY CONTRIBUTIONS",
               style: TextStyle(
-                fontFamily: 'ProximaNova',
+    
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
                 color: Colors.black,
@@ -126,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 20),
+                        horizontal: 20, vertical: 20),
                     child: AnimationLimiter(
                       child: ListView.builder(
                         itemCount: contributionList.length,

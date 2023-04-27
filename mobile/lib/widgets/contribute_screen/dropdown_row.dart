@@ -52,7 +52,7 @@ class _DropdownRowState extends State<DropdownRow> {
           ),
         ),
         Visibility(
-          visible: widget.label != 'COURSE',
+          visible: widget.label!= 'COURSE',
           child: Expanded(
               flex: 6,
               child: DropdownButtonFormField(

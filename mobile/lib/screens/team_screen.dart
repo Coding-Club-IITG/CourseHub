@@ -14,6 +14,11 @@ class TeamScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> teamFrame = [];
+    teamFrame.add(
+      const SizedBox(
+        height: 20,
+      ),
+    );
 
     for (int i = 0; i < team.length; i++) {
       var e = team[i];
@@ -51,7 +56,7 @@ class TeamScreen extends StatelessWidget {
     children.add(
       Container(
         transform: Matrix4.translationValues(0.0, -10.0, 0.0),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           children: teamFrame,
         ),
@@ -110,7 +115,7 @@ class RightAlignedFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 15),
+      transform: Matrix4.translationValues(0, -30, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -175,53 +180,50 @@ class LeftAlignedFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SlideAnimation(
-            horizontalOffset: -50,
-            child: Container(
-              transform: Matrix4.rotationZ(-0.1552),
-              child: PhotoFrame(
-                photo: image,
-                socials: socials,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SlideAnimation(
+          horizontalOffset: -50,
+          child: Container(
+            transform: Matrix4.rotationZ(-0.1552),
+            child: PhotoFrame(
+              photo: image,
+              socials: socials,
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 40,
+        ),
+        SlideAnimation(
+          horizontalOffset: 50,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(
+                height: 20,
               ),
-            ),
+              Text(
+                name,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              Text(
+                role.toUpperCase(),
+                style: const TextStyle(
+                    color: Color.fromRGBO(201, 201, 201, 1), fontSize: 14),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+            ],
           ),
-          const SizedBox(
-            width: 40,
-          ),
-          SlideAnimation(
-            horizontalOffset: 50,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  name,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 18),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                Text(
-                  role.toUpperCase(),
-                  style: const TextStyle(
-                      color: Color.fromRGBO(201, 201, 201, 1), fontSize: 14),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
+        )
+      ],
     );
   }
 }

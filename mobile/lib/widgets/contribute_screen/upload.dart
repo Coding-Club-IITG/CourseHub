@@ -1,17 +1,25 @@
+import 'dart:developer';
+
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants/themes.dart';
 
 class Upload extends StatefulWidget {
-  final Function(List<File> files) callback;
   final Color color;
-  const Upload({super.key, required this.callback, required this.color});
+
+  const Upload({
+    super.key,
+    required this.color,
+  });
 
   @override
   State<Upload> createState() => _UploadState();
@@ -36,57 +44,76 @@ class _UploadState extends State<Upload> {
     return InkWell(
       onTap: () async {
         try {
-          FilePickerResult? result =
-              await FilePicker.platform.pickFiles(allowMultiple: true);
+          if (context.read<NavigationProvider>().currentPageNumber == 8) {
+            final ImagePicker imagePicker = ImagePicker();
+            List<XFile>? imageFileList = [];
 
-          if (result != null) {
-            List<File> files =
-                result.paths.map((path) => File(path ?? '')).toList();
-            widget.callback(files);
+            final List<XFile> selectedImages =
+                await imagePicker.pickMultiImage();
+            if (selectedImages.isNotEmpty) {
+              imageFileList.addAll(selectedImages);
+            }
+            if (!mounted) return;
 
-            setState(() {
-              center = ListView.builder(
-                itemCount: files.length,
-                itemBuilder: (context, index) {
-                  File file = files[index];
-                  int length = basename(file.path).length;
-                  String name = basename(file.path);
+            List<File> imageFiles =
+                selectedImages.map((e) => File(e.path)).toList();
 
-                  if (length >= 20) {
-                    name =
-                        '${basename(file.path).substring(0, 15)} ... ${basename(file.path).substring(length - 4, length)}';
-                  }
-
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        SizedBox(
-                          child: Text(
-                            name,
-                            style: Themes.darkTextTheme.bodyLarge,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            });
+            context.read<NavigationProvider>().addFiles(imageFiles);
           } else {
-            widget.callback([]);
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              allowMultiple: true,
+            );
+
+            if (result != null) {
+              List<File> filesAdded =
+                  result.paths.map((path) => File(path ?? '')).toList();
+              if (!mounted) return;
+              context.read<NavigationProvider>().addFiles(filesAdded);
+            }
           }
+          if (!mounted) return;
+          final files = context.read<NavigationProvider>().selectedFiles;
+
+          setState(() {
+            center = ListView.builder(
+              itemCount: files.length,
+              itemBuilder: (context, index) {
+                File file = files[index];
+                int length = basename(file.path).length;
+                String name = basename(file.path);
+                log(name);
+
+                if (length >= 20) {
+                  name =
+                      '${basename(file.path).substring(0, 15)} ... ${basename(file.path).substring(length - 4, length)}';
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    SizedBox(
+                      child: Text(
+                        context.read<NavigationProvider>().currentPageNumber !=
+                                8
+                            ? name
+                            : 'CH_Feedback ${name.split('image_picker')[1]}',
+                        style: Themes.darkTextTheme.bodyLarge,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          });
         } catch (e) {
-          showSnackBar('Something went wrong !', context);
+          showSnackBar('Something went wrong!', context);
         }
       },
       child: DottedBorder(

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class CacheProvider extends ChangeNotifier {
@@ -7,4 +9,6 @@ class CacheProvider extends ChangeNotifier {
     isDownloading = value;
     notifyListeners();
   }
+
+ 
 }

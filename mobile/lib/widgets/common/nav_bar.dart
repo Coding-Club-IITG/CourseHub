@@ -1,5 +1,3 @@
-
-
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
@@ -21,12 +19,10 @@ class NavBar extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          
           SplashOnPressed(
             splashColor: Colors.grey,
             onPressed: () {
               navigationProvider.key.currentState!.openDrawer();
-        
             },
             child: const SizedBox(
               height: 32,
@@ -38,18 +34,18 @@ class NavBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Text(
+          const Text(
             'CourseHub',
-            style: Themes.theme.textTheme.displayMedium,
+            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
           ),
-          const SizedBox(width: 2,),
-
-          
+          const SizedBox(
+            width: 2,
+          ),
           Visibility(
-            visible: navigationProvider.currentPageNumber==7,
+            visible: navigationProvider.currentPageNumber == 7,
             child: const Text(
               'Team',
-              style: TextStyle(fontSize: 14,color: Themes.kYellow),
+              style: TextStyle(fontSize: 14, color: Themes.kYellow),
             ),
           ),
           const Spacer(),
