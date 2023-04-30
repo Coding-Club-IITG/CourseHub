@@ -55,17 +55,17 @@ class ExamScreen extends StatelessWidget {
                     // transform: Matrix4.translationValues(-10, 0, 0),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10),
-                    child: AnimationLimiter(
-                      child: FutureBuilder<List<ExamDetails>>(
-                        future: getExamDetails(),
-                        builder: (context, snapshot) {
+                    child: FutureBuilder<List<ExamDetails>>(
+                      future: getExamDetails(),
+                      builder: (context, snapshot) {
             
-                          if (!snapshot.hasData) {
-                            return const CustomLinearProgress(
-                                text: 'Loading your exam details!');
-                          } else {
-                            List<ExamDetails> examDetails = snapshot.data ?? [];
-                            return ListView.builder(
+                        if (!snapshot.hasData) {
+                          return const CustomLinearProgress(
+                              text: 'Loading your exam details!');
+                        } else {
+                          List<ExamDetails> examDetails = snapshot.data ?? [];
+                          return AnimationLimiter(
+                            child: ListView.builder(
                               shrinkWrap: true,
                               physics: const BouncingScrollPhysics(),
                               itemCount: examDetails.length,
@@ -137,11 +137,10 @@ class ExamScreen extends StatelessWidget {
                                   ),
                                 );
                               },
-                            );
-                          }
-                        },
-                      ),
-                      // ),
+                            ),
+                          );
+                        }
+                      },
                     ),
                   ),
                 )

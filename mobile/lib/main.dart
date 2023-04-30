@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
+import 'package:upgrader/upgrader.dart';
 
 import '../screens/splash_screen.dart';
 import './constants/themes.dart';
@@ -16,6 +18,7 @@ import './constants/themes.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
   await Hive.initFlutter();
 
@@ -29,7 +32,6 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => NavigationProvider(),
         ),
-     
       ],
       child: const MyApp(),
     ),
@@ -51,7 +53,15 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       key: navigatorKey,
       theme: Themes.theme,
-      home: const SplashScreen(),
+      home: UpgradeAlert(
+        upgrader: Upgrader(
+            dialogStyle: Platform.isIOS
+                ? UpgradeDialogStyle.cupertino
+                : UpgradeDialogStyle.material,
+            countryCode: WidgetsBinding.instance.window.locale.countryCode,
+            durationUntilAlertAgain: const Duration(days: 1),),
+        child: const SplashScreen(),
+      ),
       builder: EasyLoading.init(),
     );
   }

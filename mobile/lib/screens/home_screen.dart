@@ -4,6 +4,7 @@ import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/models/user.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:coursehub/widgets/home_screen/add_course_dialog.dart';
+import 'package:coursehub/widgets/home_screen/exam_dialog.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -71,8 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 26.0,
+               
+                   const Padding(
+                      padding:  EdgeInsets.symmetric(horizontal: 30,vertical: 20),
+                      child:  ExamDialog(),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 26.0),

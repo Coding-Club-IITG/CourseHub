@@ -34,9 +34,14 @@ class NavBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          const Text(
-            'CourseHub',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+          GestureDetector(
+            onTap: () {
+              navigationProvider.changePageNumber(0);
+            },
+            child: const Text(
+              'CourseHub',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+            ),
           ),
           const SizedBox(
             width: 2,

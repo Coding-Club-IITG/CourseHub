@@ -63,6 +63,7 @@ dependencies:
   uuid: ^3.0.7
   like_button: ^2.0.5
   image_picker: ^0.8.7+4
+  upgrader: ^6.2.0
 
 dev_dependencies:
   flutter_test:
