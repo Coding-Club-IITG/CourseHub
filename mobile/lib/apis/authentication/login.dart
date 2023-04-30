@@ -30,6 +30,8 @@ Future<void> authenticate() async {
     }
 
     prefs.setString('access_token', accessToken);
+     prefs.setBool('isGuest', false);
+    CacheStore.isGuest = false;
     await getCurrentUser();
     await getContribution();
     await setHiveStore();
@@ -88,6 +90,10 @@ Future<void> authenticateGuest() async {
     }
 
     prefs.setString('access_token', accessToken);
+    prefs.setBool('isGuest', true);
+    CacheStore.isGuest = true;
+
+
     await getCurrentUser();
     await getContribution();
     await setHiveStore();

@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/themes.dart';
+import '../database/cache_store.dart';
 import '../screens/browse_screen.dart';
 import '../screens/contribute_screen.dart';
 import '../screens/favourites_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/search_screen.dart';
+import '../widgets/common/custom_snackbar.dart';
 import '../widgets/nav_bar/nav_bar_icon.dart';
 
 import '../widgets/common/empty_app_bar.dart';
@@ -141,6 +143,12 @@ class _NavBarScreen extends State<NavBarScreen>
                                 children: [
                                   GestureDetector(
                                     onTap: () {
+                                      if (CacheStore.isGuest) {
+                                        showSnackBar(
+                                            'Login with outlook to use this feature!',
+                                            context);
+                                        return;
+                                      }
                                       setState(() {
                                         if (navigationProvider
                                                 .currentPageNumber !=

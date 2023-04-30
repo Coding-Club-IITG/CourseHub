@@ -33,6 +33,7 @@ class CourseCard extends StatelessWidget {
             onTap: () {
               if (snapshot.data ?? false) {
                 CacheStore.saveBrowsedCourse(course.code);
+                CacheStore.resetBrowsePath();
                 navigationProvider.changePageNumber(1);
               }
             },
@@ -106,7 +107,7 @@ class AvailableCard extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
-                      fontSize:10.0,
+                      fontSize: 10.0,
                     ),
                   ),
                 )

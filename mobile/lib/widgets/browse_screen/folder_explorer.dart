@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
@@ -75,7 +76,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                       child: Text(
                         widget.data["course"].toString().toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 15.0,
+                          fontSize: 14.0,
                           fontWeight: FontWeight.w700,
                           color: Color.fromRGBO(0, 0, 0, 0.30),
                         ),
@@ -89,7 +90,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
         );
       }
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         child: AnimationLimiter(
           child: GridView.count(
             crossAxisCount: 2,

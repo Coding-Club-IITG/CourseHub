@@ -1,3 +1,4 @@
+
 import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/utilities/dynamic_links.dart';
@@ -15,7 +16,6 @@ import './constants/themes.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
   await Hive.initFlutter();
 
@@ -28,7 +28,8 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => NavigationProvider(),
-        )
+        ),
+     
       ],
       child: const MyApp(),
     ),

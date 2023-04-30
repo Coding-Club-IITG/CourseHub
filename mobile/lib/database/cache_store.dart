@@ -8,11 +8,19 @@ class CacheStore {
   static Map<String, Color> courseColor = {};
   static dynamic tempCourseData = {};
   static bool isTempCourse = false;
+  static bool isGuest = false;
+  static String browsePath = 'Home/';
+  static String browseYear = '';
 
   static clearCacheStore() {
     courseAvailability = {};
     tempCourseData = {};
     courseColor = {};
+  }
+
+  static resetBrowsePath() {
+    browsePath = 'Home/';
+    browseYear = '';
   }
 
   static Future<String> getBrowsedCourse() async {

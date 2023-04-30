@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:file_picker/file_picker.dart';
@@ -81,7 +79,6 @@ class _UploadState extends State<Upload> {
                 File file = files[index];
                 int length = basename(file.path).length;
                 String name = basename(file.path);
-                log(name);
 
                 if (length >= 20) {
                   name =

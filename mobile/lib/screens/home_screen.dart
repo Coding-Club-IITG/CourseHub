@@ -1,4 +1,5 @@
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
+import 'package:coursehub/database/cache_store.dart';
 
 import 'package:coursehub/models/user.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
@@ -92,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: List.generate(
                             user.courses.length + 1,
                             (int index) {
+               
                               return AnimationConfiguration.staggeredGrid(
                                 columnCount: 2,
                                 position: index,
@@ -103,51 +105,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ? CourseCard(
                                             course: user.courses[index],
                                           )
-                                        : Material(
-                                            color: Colors.transparent,
-                                            child: InkWell(
-                                              onTap: () {
-                                                showDialog(
-                                                  context: context,
-                                                  barrierColor:
-                                                      const Color.fromRGBO(
-                                                          0, 0, 0, 0.8),
-                                                  builder: (context) =>
-                                                      const AddCourseDialog(),
-                                                );
-                                              },
-                                              splashColor: Colors.white10,
-                                              child: Container(
-                                                margin: const EdgeInsets.all(
-                                                    0.6), // otherwise dotted border seems faded on some side on iphone
-                                                child: DottedBorder(
-                                                  strokeWidth: 1,
-                                                  color: Colors.white,
-                                                  dashPattern: const [6],
-                                                  child: Center(
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: const [
-                                                        Icon(
-                                                          Icons.add,
-                                                          color: Colors.white,
-                                                          size: 36,
+                                        : CacheStore.isGuest
+                                            ? Container()
+                                            : Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      barrierColor:
+                                                          const Color.fromRGBO(
+                                                              0, 0, 0, 0.8),
+                                                      builder: (context) =>
+                                                          const AddCourseDialog(),
+                                                    );
+                                                  },
+                                                  splashColor: Colors.white10,
+                                                  child: Container(
+                                                    margin: const EdgeInsets
+                                                            .all(
+                                                        0.6), // otherwise dotted border seems faded on some side on iphone
+                                                    child: DottedBorder(
+                                                      strokeWidth: 1,
+                                                      color: Colors.white,
+                                                      dashPattern: const [6],
+                                                      child: Center(
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: const [
+                                                            Icon(
+                                                              Icons.add,
+                                                              color:
+                                                                  Colors.white,
+                                                              size: 36,
+                                                            ),
+                                                            Text(
+                                                              'Add Course',
+                                                              style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w400),
+                                                            )
+                                                          ],
                                                         ),
-                                                        Text(
-                                                          'Add Course',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                        )
-                                                      ],
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ),
                                   ),
                                 ),
                               );

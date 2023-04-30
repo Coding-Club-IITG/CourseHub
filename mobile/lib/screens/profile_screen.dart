@@ -5,7 +5,6 @@ import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';

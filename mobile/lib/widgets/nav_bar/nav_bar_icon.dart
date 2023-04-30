@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:flutter_svg/svg.dart';

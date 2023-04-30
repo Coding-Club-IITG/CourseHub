@@ -1,3 +1,4 @@
+import 'package:coursehub/database/hive_store.dart';
 import 'package:flutter/material.dart';
 
 class ExamHeader extends StatelessWidget {
@@ -11,17 +12,23 @@ class ExamHeader extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text(
-              'Mid-Semester',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.w400),
+            Text(
+              HiveStore.getUserDetails().semester < 3
+                  ? 'Mid-Semester'
+                  : 'End-Semester',
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-            const SizedBox(height: 2,),
+            const SizedBox(
+              height: 2,
+            ),
             RichText(
               text: TextSpan(
                 children: [
                   const TextSpan(
-                    text: '26',
+                    text: '6',
                     style: TextStyle(color: Colors.black),
                   ),
                   WidgetSpan(
@@ -36,11 +43,11 @@ class ExamHeader extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' Feb - ',
+                    text: ' May - ',
                     style: TextStyle(color: Colors.black),
                   ),
                   const TextSpan(
-                    text: '4',
+                    text: '12',
                     style: TextStyle(color: Colors.black),
                   ),
                   WidgetSpan(
@@ -55,13 +62,12 @@ class ExamHeader extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' Mar',
+                    text: ' May',
                     style: TextStyle(color: Colors.black),
                   ),
                 ],
               ),
             ),
-           
           ],
         ),
         Image.asset(

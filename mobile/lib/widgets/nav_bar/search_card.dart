@@ -47,6 +47,7 @@ class _SearchCardState extends State<SearchCard> {
                       await getUserCourses(widget.courseCode,
                           isTempCourse: true);
                       CacheStore.isTempCourse = true;
+                      CacheStore.resetBrowsePath();
                       navigationProvider.changePageNumber(1);
                     } catch (e) {
                       showSnackBar('Somthing Went Wrong!', context);
@@ -71,12 +72,11 @@ class _SearchCardState extends State<SearchCard> {
                     child: Text(
                       letterCapitalizer(widget.courseName),
                       style: const TextStyle(fontSize: 12),
-
                     ),
                   ),
                   const Spacer(),
                   Visibility(
-                    visible:!widget.isAvailable,
+                    visible: !widget.isAvailable,
                     child: const Text(
                       'UNAVAILABLE',
                       style: TextStyle(fontSize: 12),

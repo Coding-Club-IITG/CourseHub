@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/themes.dart';
 
 class CCBranding extends StatelessWidget {
   const CCBranding({super.key});

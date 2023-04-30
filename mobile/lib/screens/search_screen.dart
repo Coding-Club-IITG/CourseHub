@@ -123,7 +123,7 @@ class SearchScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(
-                                height: 10,
+                                height: 20,
                               ),
                               SizedBox(
                                 height: 200,

@@ -1,8 +1,6 @@
-import 'dart:developer';
-import 'dart:io';
+
 
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
-import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/widgets/common/custom_button.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -170,7 +168,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
                                             navigationProvider
                                                 .changePageNumber(4);
                                           } catch (e) {
-                                            log(e.toString());
+                                       
                                             setState(() {
                                               _isLoading = false;
                                             });

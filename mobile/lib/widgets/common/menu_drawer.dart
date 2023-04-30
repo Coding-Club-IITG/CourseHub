@@ -1,4 +1,5 @@
 import 'package:coursehub/apis/authentication/login.dart';
+import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -38,6 +39,13 @@ class MenuDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
               onPressed: () {
+                if (CacheStore.isGuest) {
+                  Navigator.of(context).pop();
+
+                  showSnackBar('Login with outlook to use this feature!', context);
+                  return;
+                }
+
                 navigationProvider.changePageNumber(6);
                 Navigator.of(context).pop();
               },
@@ -68,6 +76,11 @@ class MenuDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
               onPressed: () {
+                if (CacheStore.isGuest) {
+                  Navigator.of(context).pop();
+                  showSnackBar('Login with outlook to use this feature!', context);
+                  return;
+                }
                 navigationProvider.changePageNumber(8);
                 Navigator.of(context).pop();
               },

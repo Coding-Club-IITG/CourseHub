@@ -1,7 +1,11 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:coursehub/apis/courses/is_course_updated.dart';
 import 'package:coursehub/apis/miscellaneous/funfacts.dart';
+import 'package:coursehub/apis/miscellaneous/get_exam_details.dart';
+import 'package:coursehub/apis/protected.dart';
+import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../apis/authentication/login.dart';
 import 'login_screen.dart';
 import 'nav_bar_screen.dart';
@@ -21,9 +25,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await getFunFacts(fetchAgain: true);
-    await isCourseUpdated();
+    final prefs = await SharedPreferences.getInstance();
 
+    CacheStore.isGuest = prefs.getBool('isGuest') ?? false;
+
+    if (await getAccessToken() != 'error') {
+      await isCourseUpdated();
+      await getExamDetails(fetchAgain: true);
+    }
+    await getFunFacts(fetchAgain: true);
 
     if (!mounted) return;
     Navigator.pushReplacement(

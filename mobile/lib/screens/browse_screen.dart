@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/widgets/common/splash_on_pressed.dart';
+
 import 'package:flutter/material.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/widgets/browse_screen/year_div.dart';
@@ -9,6 +12,7 @@ import 'package:coursehub/widgets/browse_screen/folder_explorer.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/navigation_provider.dart';
+import '../utilities/dynamic_links.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -17,31 +21,29 @@ class BrowseScreen extends StatefulWidget {
 }
 
 class _BrowseScreen extends State<BrowseScreen> {
-  String path = "Home/";
-  String year = "";
   List<String> availableYears = [];
 
   void addToPathCallback(String p) {
     setState(() {
-      path += '$p/';
+      CacheStore.browsePath += '$p/';
     });
   }
 
   void handleClick(String value) {
     setState(() {
-      year = value;
-      path = "Home/";
+      CacheStore.browseYear = value;
+      CacheStore.browsePath = "Home/";
     });
   }
 
   void removeFromPath(int level) {
-    List<String> pathArgs = path.split("/");
+    List<String> pathArgs = CacheStore.browsePath.split("/");
     String newPath = "";
     for (int i = 0; i < level; i++) {
       newPath += "${pathArgs[i]}/";
     }
     setState(() {
-      path = newPath;
+      CacheStore.browsePath = newPath;
     });
   }
 
@@ -67,7 +69,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                 data = HiveStore.coursesData[courseCode.toLowerCase()];
               }
 
-              List<String> pathArgs = path.split("/");
+              List<String> pathArgs = CacheStore.browsePath.split("/");
 
               availableYears.clear();
               String lastYear = "";
@@ -76,8 +78,8 @@ class _BrowseScreen extends State<BrowseScreen> {
                 lastYear = c["name"];
               }
 
-              if (year == "") {
-                year = lastYear;
+              if (CacheStore.browseYear == "") {
+                CacheStore.browseYear = lastYear;
               }
 
               Map<dynamic, dynamic> dataToShow = data;
@@ -88,7 +90,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                 if (p == "") continue;
                 if (p == "Home") {
                   for (var child in dataToShow["children"]) {
-                    if (child["name"] == year) {
+                    if (child["name"] == CacheStore.browseYear) {
                       dataToShow = child;
                       break;
                     }
@@ -170,18 +172,40 @@ class _BrowseScreen extends State<BrowseScreen> {
                                     const SizedBox(
                                       width: 8,
                                     ),
-                                    Text(
-                                      currentTitle,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontSize: 24,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w700),
+                                    SizedBox(
+                                      width: 250,
+                                      child: Text(
+                                        currentTitle,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontSize: 24,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w700),
+                                      ),
                                     ),
                                     const Spacer(),
                                     SplashOnPressed(
                                         splashColor: Colors.grey,
-                                        onPressed: () {},
+                                        onPressed: () async {
+                                          String x = '$courseCode/';
+                                          x += '${CacheStore.browseYear}/';
+
+                                          List<String> abc =
+                                              CacheStore.browsePath.split('/');
+
+                                          log(abc.toString());
+
+                                          for (var i = 1; i < abc.length; i++) {
+                                            x += abc[i];
+                                            x += '/';
+                                          }
+                                          x = x.substring(0, x.length - 1);
+
+                                          await FirebaseDynamicLink
+                                              .createDynamicLink(
+                                                  currentTitle, x,
+                                                  isFolder: true);
+                                        },
                                         child: const Padding(
                                           padding: EdgeInsets.all(6),
                                           child: Icon(
@@ -190,7 +214,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                                           ),
                                         )),
                                     const SizedBox(
-                                      width: 10,
+                                      width: 20,
                                     ),
                                   ],
                                 ),
@@ -210,7 +234,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                         child: YearDiv(
                           callback: handleClick,
                           availableYears: availableYears,
-                          year: year,
+                          year: CacheStore.browseYear,
                         ),
                       ),
                       const SizedBox(
@@ -218,12 +242,9 @@ class _BrowseScreen extends State<BrowseScreen> {
                       ),
                       Expanded(
                         flex: 40,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: FolderExplorer(
-                            data: dataToShow,
-                            callback: addToPathCallback,
-                          ),
+                        child: FolderExplorer(
+                          data: dataToShow,
+                          callback: addToPathCallback,
                         ),
                       ),
                     ],

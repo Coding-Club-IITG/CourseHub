@@ -1,10 +1,11 @@
 import 'package:coursehub/constants/themes.dart';
+import 'package:coursehub/models/exam_details.dart';
 
 import 'package:flutter/material.dart';
 
 class ExamCard extends StatelessWidget {
-  final dynamic exam;
-  const ExamCard({super.key,required this.exam});
+  final ExamDetails exam;
+  const ExamCard({super.key, required this.exam});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +47,10 @@ class ExamCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.access_time_sharp,size: 18,)
+                  const Icon(
+                    Icons.access_time_sharp,
+                    size: 18,
+                  )
                 ],
               ),
             ),
@@ -57,15 +61,17 @@ class ExamCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  exam['code'],
+                  exam.code.toUpperCase(),
                   style: Themes.darkTextTheme.bodySmall,
                 ),
                 Text(
-                  exam['name'],
+                  exam.code,
                   overflow: TextOverflow.ellipsis,
                   style: Themes.darkTextTheme.bodyLarge,
                 ),
-                const SizedBox(height: 2,),
+                const SizedBox(
+                  height: 2,
+                ),
                 Container(
                   transform: Matrix4.translationValues(-5, 0, 0),
                   child: Row(
@@ -77,14 +83,12 @@ class ExamCard extends StatelessWidget {
                       const SizedBox(
                         width: 2,
                       ),
-                      Text(
-                        exam['location'],
-                        style: const TextStyle(
+                      Text(roomCalculator(exam.room),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
                             color: Colors.black,
-                          )
-                      ),
+                          )),
                     ],
                   ),
                 )
@@ -94,5 +98,26 @@ class ExamCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+String roomCalculator(String venue) {
+  switch (venue[0]) {
+    case '1':
+      return '$venue (Core 1)';
+
+    case '2':
+      return '$venue (Core 2)';
+
+    case '3':
+      return '$venue (Core 3)';
+
+    case '4':
+      return '$venue (Core 4)';
+
+    case '5':
+      return '$venue (Core 5)';
+    default:
+      return venue;
   }
 }

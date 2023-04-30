@@ -20,6 +20,11 @@ class NavigationProvider with ChangeNotifier {
     // if (currentPageNumber == 2) {
     //   controller.reverse(from: 0.75);
     // }
+
+    if (CacheStore.isTempCourse && currentPageNumber==1) {
+      CacheStore.resetBrowsePath();
+      CacheStore.isTempCourse = false;
+    }
     currentPageNumber = a;
     notifyListeners();
   }

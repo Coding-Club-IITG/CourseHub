@@ -1,18 +1,32 @@
-import 'dart:developer';
 
+
+import 'package:coursehub/database/cache_store.dart';
+import 'package:coursehub/main.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:provider/provider.dart';
+
+import '../apis/courses/add_courses.dart';
 
 class FirebaseDynamicLink {
-  static Future<String> createDynamicLink(String title, String address) async {
+  static Future<String> createDynamicLink(String title, String address,
+      {bool isFolder = false}) async {
     String newPath = '';
 
-    newPath += address.split(' ')[0];
+    if (isFolder) {
+      newPath = address;
+    } else {
+      String x =
+          CacheStore.browsePath.substring(0, CacheStore.browsePath.length - 1);
 
-    for (var i = 1; i < address.split('/').length; i++) {
-      newPath += '/';
-      newPath += address.split('/')[i];
+      newPath += address.split(' ')[0];
+
+      for (var i = 1; i < address.split('/').length; i++) {
+        newPath += '/';
+        newPath += address.split('/')[i];
+      }
+      newPath += x.split('/').last;
     }
-
 
     try {
       final dynamicLinkParams = DynamicLinkParameters(
@@ -41,35 +55,36 @@ class FirebaseDynamicLink {
   }
 
   static Future<void> handleInitialLink() async {
+   final navigationProvider =  navigatorKey.currentContext?.read<NavigationProvider>();
+
     final PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
     if (initialLink != null) {
       final Uri deepLink = initialLink.link;
-      for (var element in deepLink.pathSegments) {
-        log(element.toString());
-      }
-      log(deepLink.toString());
-      // navigatorKey.currentContext
-      //     ?.read<NavigationProvider>()
-      //     .changePageNumber(1);
+      // await navigateToFile(deepLink.pathSegments[1]);
+      navigationProvider?.changePageNumber(2);
     }
 
     FirebaseDynamicLinks.instance.onLink.listen(
-      (pendingDynamicLinkData) {
+      (pendingDynamicLinkData) async {
         // Set up the `onLink` event listener next as it may be received here
         final Uri deepLink = pendingDynamicLinkData.link;
-        for (var element in deepLink.pathSegments) {
-          log(element.toString());
-        }
-        // Example of using the dynamic link to push the user to a different screen
-        // Navigator.pushNamed(context, deepLink.path);
-        // navigatorKey.currentContext
-        //     ?.read<NavigationProvider>()
-        //     .changePageNumber(1);
+      navigationProvider?.changePageNumber(2);
 
-        log('${deepLink}LISTENING TO DATA');
+
+        // await navigateToFile(deepLink.pathSegments[1]);
       },
     );
+  }
+
+  static Future<void> navigateToFile(String code) async {
+
+    final navigationProvider =
+        navigatorKey.currentState!.context.read<NavigationProvider>();
+    await getUserCourses(code.toLowerCase(), isTempCourse: true);
+    CacheStore.isTempCourse = true;
+    CacheStore.resetBrowsePath();
+    navigationProvider.changePageNumber(1);
   }
 }
