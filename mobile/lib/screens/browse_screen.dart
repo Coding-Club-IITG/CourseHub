@@ -1,4 +1,4 @@
-import 'dart:developer';
+
 
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
@@ -193,7 +193,6 @@ class _BrowseScreen extends State<BrowseScreen> {
                                           List<String> abc =
                                               CacheStore.browsePath.split('/');
 
-                                          log(abc.toString());
 
                                           for (var i = 1; i < abc.length; i++) {
                                             x += abc[i];

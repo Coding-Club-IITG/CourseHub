@@ -12,10 +12,15 @@ class CacheStore {
   static String browsePath = 'Home/';
   static String browseYear = '';
 
+  static List examTimings = [];
+
   static clearCacheStore() {
     courseAvailability = {};
     tempCourseData = {};
     courseColor = {};
+    isTempCourse = false;
+    browsePath = 'Home/';
+    browseYear = '';
   }
 
   static resetBrowsePath() {

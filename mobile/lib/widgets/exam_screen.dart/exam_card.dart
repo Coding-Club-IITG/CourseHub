@@ -9,6 +9,29 @@ class ExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int start = int.parse(exam.time.split('-')[0].split(':')[0]);
+    int end = int.parse(exam.time.split('-')[1].split(':')[0]);
+
+    String startSub = '';
+    String endSub = '';
+
+    if (start >= 12) {
+      if (start != 12) {
+        start = start - 12;
+      }
+      startSub = 'PM';
+    } else if (start < 12) {
+      startSub = 'AM';
+    }
+    if (end >= 12) {
+      if (end != 12) {
+        end = end - 12;
+      }
+      endSub = 'PM';
+    } else if (end < 12) {
+      endSub = 'AM';
+    }
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(width: 0.5, color: Colors.black),
@@ -31,19 +54,20 @@ class ExamCard extends StatelessWidget {
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: '9',
+                          text: start.toString(),
                           style: Themes.darkTextTheme.bodyMedium,
                         ),
                         TextSpan(
-                          text: ' AM to ',
+                          text: ' $startSub to ',
                           style: Themes.darkTextTheme.bodySmall,
                         ),
                         TextSpan(
-                          text: '11',
+                          text: end.toString(),
                           style: Themes.darkTextTheme.bodyMedium,
                         ),
                         TextSpan(
-                            text: ' AM', style: Themes.darkTextTheme.bodySmall),
+                            text: ' $endSub',
+                            style: Themes.darkTextTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -65,7 +89,7 @@ class ExamCard extends StatelessWidget {
                   style: Themes.darkTextTheme.bodySmall,
                 ),
                 Text(
-                  exam.code,
+                  exam.name,
                   overflow: TextOverflow.ellipsis,
                   style: Themes.darkTextTheme.bodyLarge,
                 ),
@@ -83,12 +107,14 @@ class ExamCard extends StatelessWidget {
                       const SizedBox(
                         width: 2,
                       ),
-                      Text(roomCalculator(exam.room),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.black,
-                          )),
+                      Text(
+                        roomCalculator(exam.room),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
                     ],
                   ),
                 )
@@ -117,6 +143,8 @@ String roomCalculator(String venue) {
 
     case '5':
       return '$venue (Core 5)';
+    case 'L':
+      return '$venue (Lecture Hall ${venue[venue.length - 1]})';
     default:
       return venue;
   }

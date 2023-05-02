@@ -46,9 +46,9 @@ class ExamHeader extends StatelessWidget {
                     text: ' May - ',
                     style: TextStyle(color: Colors.black),
                   ),
-                  const TextSpan(
-                    text: '12',
-                    style: TextStyle(color: Colors.black),
+                  TextSpan(
+                    text: HiveStore.getUserDetails().semester < 3 ? '10' : '12',
+                    style: const TextStyle(color: Colors.black),
                   ),
                   WidgetSpan(
                     child: Transform.translate(

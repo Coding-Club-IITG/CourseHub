@@ -9,10 +9,12 @@ import 'package:flutter_svg/svg.dart';
 class PhotoFrame extends StatelessWidget {
   final String photo;
   final Map<String, String> socials;
+  final String name;
   const PhotoFrame({
     super.key,
     required this.socials,
     required this.photo,
+    required this.name
   });
 
   @override
@@ -106,7 +108,8 @@ class PhotoFrame extends StatelessWidget {
                 },
                 splashColor: Colors.grey,
                 child: SvgPicture.asset(
-                  'assets/instagram.svg',
+
+                 name.toLowerCase() =='kuldeep ranjan' ? 'assets/medium.svg' : 'assets/instagram.svg',
                   height: 16,
                 ),
               ),

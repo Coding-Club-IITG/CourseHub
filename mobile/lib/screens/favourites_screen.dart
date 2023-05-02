@@ -102,7 +102,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                     )
                   ],
                 ),
-            
+
                 Expanded(
                   child: CustomFadeInAnimation(
                     child: favourites.isEmpty
@@ -153,7 +153,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                   ],
                                 ),
                               ),
-                              
                               Visibility(
                                 visible: _isLoading,
                                 child: const CustomLinearProgress(
@@ -166,7 +165,11 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 ),
                 // const Spacer(),
                 Visibility(
-                  visible: (favourites.length<=4 && _groupByCourses) || (!_groupByCourses && favourites.length<=6),
+                  visible: (favourites.isNotEmpty) &&
+                          (favourites.length <= 4 && _groupByCourses) ||
+                      (!_groupByCourses &&
+                          favourites.length <= 6 &&
+                          (favourites.isNotEmpty)),
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 15),
                     child: Image.asset(
@@ -175,7 +178,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                     ),
                   ),
                 ),
-
               ],
             );
           }),

@@ -156,6 +156,7 @@ class RightAlignedFrame extends StatelessWidget {
               child: PhotoFrame(
                 photo: image,
                 socials: socials,
+                name: name,
               ),
             ),
           ),
@@ -190,6 +191,7 @@ class LeftAlignedFrame extends StatelessWidget {
             child: PhotoFrame(
               photo: image,
               socials: socials,
+              name:name,
             ),
           ),
         ),

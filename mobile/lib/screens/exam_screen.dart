@@ -58,11 +58,7 @@ class ExamScreen extends StatelessWidget {
                     child: FutureBuilder<List<ExamDetails>>(
                       future: getExamDetails(),
                       builder: (context, snapshot) {
-            
-                        if (!snapshot.hasData) {
-                          return const CustomLinearProgress(
-                              text: 'Loading your exam details!');
-                        } else {
+                        if (snapshot.hasData) {
                           List<ExamDetails> examDetails = snapshot.data ?? [];
                           return AnimationLimiter(
                             child: ListView.builder(
@@ -85,45 +81,58 @@ class ExamScreen extends StatelessWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Expanded(
-                                              flex: 2,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                      DateFormat('EEE')
-                                                          .format(
-                                                              examDetails[index]
-                                                                  .date)
-                                                          .toUpperCase(),
-                                                      style: Themes
-                                                          .darkTextTheme
-                                                          .bodySmall),
-                                                  Text(
-                                                    examDetails[index]
-                                                        .date
-                                                        .day
-                                                        .toString(),
-                                                    style: const TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 32,
-                                                        fontWeight:
-                                                            FontWeight.w700),
+                                            !(index > 0 &&
+                                                    examDetails[index].date ==
+                                                        examDetails[index - 1]
+                                                            .date)
+                                                ? Expanded(
+                                                    flex: 2,
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                            DateFormat('EEE')
+                                                                .format(
+                                                                    examDetails[
+                                                                            index]
+                                                                        .date)
+                                                                .toUpperCase(),
+                                                            style: Themes
+                                                                .darkTextTheme
+                                                                .bodySmall),
+                                                        Text(
+                                                          examDetails[index]
+                                                              .date
+                                                              .day
+                                                              .toString(),
+                                                          style: const TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontSize: 32,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700),
+                                                        ),
+                                                        Text(
+                                                            DateFormat('MMM')
+                                                                .format(
+                                                                    examDetails[
+                                                                            index]
+                                                                        .date)
+                                                                .toUpperCase(),
+                                                            style: Themes
+                                                                .darkTextTheme
+                                                                .bodySmall),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : const Spacer(
+                                                    flex: 2,
                                                   ),
-                                                  Text(
-                                                      DateFormat('MMM')
-                                                          .format(
-                                                              examDetails[index]
-                                                                  .date)
-                                                          .toUpperCase(),
-                                                      style: Themes
-                                                          .darkTextTheme
-                                                          .bodySmall),
-                                                ],
-                                              ),
-                                            ),
                                             Expanded(
                                               flex: 8,
                                               child: ExamCard(
@@ -137,6 +146,17 @@ class ExamScreen extends StatelessWidget {
                                   ),
                                 );
                               },
+                            ),
+                          );
+                        } else if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CustomLinearProgress(
+                              text: 'Loading your exam details!');
+                        } else {
+                          return const Center(
+                            child: Text(
+                              'No data Found !',
+                              style: TextStyle(color: Colors.black),
                             ),
                           );
                         }

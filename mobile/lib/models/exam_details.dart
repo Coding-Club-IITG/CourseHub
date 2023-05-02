@@ -1,3 +1,5 @@
+
+
 import 'dart:convert';
 
 ExamDetails examDetailsFromJson(String str) =>
@@ -6,7 +8,6 @@ ExamDetails examDetailsFromJson(String str) =>
 String examDetailsToJson(ExamDetails data) => json.encode(data.toJson());
 
 class ExamDetails {
-  String id;
   String code;
   String room;
   DateTime date;
@@ -16,10 +17,9 @@ class ExamDetails {
   int to;
   bool all;
   bool backloggers;
-  bool found;
+  String name;
 
   ExamDetails({
-    required this.id,
     required this.code,
     required this.room,
     required this.date,
@@ -29,11 +29,10 @@ class ExamDetails {
     required this.to,
     required this.all,
     required this.backloggers,
-    required this.found,
+    required this.name,
   });
 
   factory ExamDetails.fromJson(Map<dynamic, dynamic> json) => ExamDetails(
-        id: json["_id"],
         code: json["code"],
         room: json["room"],
         date: DateTime.parse(json["date"]),
@@ -43,11 +42,10 @@ class ExamDetails {
         to: json["to"],
         all: json["all"],
         backloggers: json["backloggers"],
-        found: json["found"],
+        name: json["name"],
       );
 
   Map<dynamic, dynamic> toJson() => {
-        "_id": id,
         "code": code,
         "room": room,
         "date": date.toIso8601String(),
@@ -57,6 +55,6 @@ class ExamDetails {
         "to": to,
         "all": all,
         "backloggers": backloggers,
-        "found": found,
+        "name": name,
       };
 }
