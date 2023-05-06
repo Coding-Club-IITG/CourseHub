@@ -62,6 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               user.name,
                               style: Themes.theme.textTheme.bodyLarge,
+
+                            
                             ),
                           ],
                         ),

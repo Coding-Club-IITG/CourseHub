@@ -159,6 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 showSnackBar(
                                     'Successfully Logged In!', context);
                               } catch (e) {
+                                print(e);
                                 setState(() {
                                   _isLoading = false;
                                 });

@@ -1,7 +1,7 @@
-
 import 'dart:io';
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
+import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/apis/files/downloader.dart';
 import 'package:coursehub/database/hive_store.dart';
@@ -35,6 +35,8 @@ class FolderExplorer extends StatefulWidget {
 
 class _FolderExplorerState extends State<FolderExplorer> {
   bool _isLoading = false;
+
+  final user = HiveStore.getUserDetails();
 
   @override
   Widget build(BuildContext context) {
@@ -302,9 +304,9 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                             88, 88, 88, 1),
                                                       ),
                                                     ),
-                                                    const Text(
-                                                      "Anonymous",
-                                                      style: TextStyle(
+                                                 Text(
+                                                    ( user.semester<3 || code[0].toLowerCase()== 'e') ? 'Cepstrum': "Anonymous",
+                                                      style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.w300,
                                                         fontSize: 13.0,
