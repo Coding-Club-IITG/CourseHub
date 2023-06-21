@@ -62,8 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               user.name,
                               style: Themes.theme.textTheme.bodyLarge,
-
-                            
                             ),
                           ],
                         ),
@@ -74,10 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-               
-                   const Padding(
-                      padding:  EdgeInsets.symmetric(horizontal: 30,vertical: 20),
-                      child:  ExamDialog(),
+                    const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: ExamDialog(),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 26.0),
@@ -98,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: List.generate(
                             user.courses.length + 1,
                             (int index) {
-               
                               return AnimationConfiguration.staggeredGrid(
                                 columnCount: 2,
                                 position: index,
@@ -134,11 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       strokeWidth: 1,
                                                       color: Colors.white,
                                                       dashPattern: const [6],
-                                                      child: Center(
+                                                      child: const Center(
                                                         child: Column(
                                                           mainAxisSize:
                                                               MainAxisSize.min,
-                                                          children: const [
+                                                          children: [
                                                             Icon(
                                                               Icons.add,
                                                               color:

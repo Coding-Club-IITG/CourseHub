@@ -86,6 +86,7 @@ class FavouriteTile extends StatelessWidget {
                           final shareLink =
                               await FirebaseDynamicLink.createDynamicLink(
                             favourite.name.toLowerCase(),
+                            favourite.id,
                             address,
                           );
 
@@ -95,8 +96,8 @@ class FavouriteTile extends StatelessWidget {
                           showSnackBar('Something went Wrong!', context);
                         }
                       },
-                      child: Row(
-                        children: const [
+                      child:const  Row(
+                        children: [
                           Icon(Icons.share),
                           SizedBox(
                             width: 5,

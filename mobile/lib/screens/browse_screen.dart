@@ -1,4 +1,4 @@
-
+import 'dart:developer';
 
 import 'package:coursehub/animations/custom_fade_in_animation.dart';
 import 'package:coursehub/database/cache_store.dart';
@@ -10,6 +10,7 @@ import 'package:coursehub/widgets/browse_screen/year_div.dart';
 import 'package:coursehub/widgets/browse_screen/bread_crumbs.dart';
 import 'package:coursehub/widgets/browse_screen/folder_explorer.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../providers/navigation_provider.dart';
 import '../utilities/dynamic_links.dart';
@@ -185,33 +186,37 @@ class _BrowseScreen extends State<BrowseScreen> {
                                     ),
                                     const Spacer(),
                                     SplashOnPressed(
-                                        splashColor: Colors.grey,
-                                        onPressed: () async {
-                                          String x = '$courseCode/';
-                                          x += '${CacheStore.browseYear}/';
+                                      splashColor: Colors.grey,
+                                      onPressed: () async {
+                                        String x = '$courseCode/';
+                                        x += '${CacheStore.browseYear}/';
 
-                                          List<String> abc =
-                                              CacheStore.browsePath.split('/');
+                                        List<String> abc =
+                                            CacheStore.browsePath.split('/');
 
+                                        for (var i = 1; i < abc.length; i++) {
+                                          x += abc[i];
+                                          x += '/';
+                                        }
+                                        x = x.substring(0, x.length - 1);
 
-                                          for (var i = 1; i < abc.length; i++) {
-                                            x += abc[i];
-                                            x += '/';
-                                          }
-                                          x = x.substring(0, x.length - 1);
+                                        log(dataToShow.toString());
 
-                                          await FirebaseDynamicLink
-                                              .createDynamicLink(
-                                                  currentTitle, x,
-                                                  isFolder: true);
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.all(6),
-                                          child: Icon(
-                                            Icons.share,
-                                            color: Colors.white,
-                                          ),
-                                        )),
+                                        final link = await FirebaseDynamicLink
+                                            .createDynamicLink(
+                                                currentTitle, '', x);
+                                        await Share.share(link,
+                                            subject:
+                                                '$currentTitle \n CourseHub');
+                                      },
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(6),
+                                        child: Icon(
+                                          Icons.share,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(
                                       width: 20,
                                     ),

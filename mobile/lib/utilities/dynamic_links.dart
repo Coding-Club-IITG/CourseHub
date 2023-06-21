@@ -1,5 +1,4 @@
 
-
 import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/main.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
@@ -9,13 +8,11 @@ import 'package:provider/provider.dart';
 import '../apis/courses/add_courses.dart';
 
 class FirebaseDynamicLink {
-  static Future<String> createDynamicLink(String title, String address,
-      {bool isFolder = false}) async {
+  static Future<String> createDynamicLink(String title,String id ,String address,
+      ) async {
     String newPath = '';
 
-    if (isFolder) {
-      newPath = address;
-    } else {
+ 
       String x =
           CacheStore.browsePath.substring(0, CacheStore.browsePath.length - 1);
 
@@ -26,7 +23,10 @@ class FirebaseDynamicLink {
         newPath += address.split('/')[i];
       }
       newPath += x.split('/').last;
-    }
+
+
+    final currCourse = await CacheStore.getBrowsedCourse();
+
 
     try {
       final dynamicLinkParams = DynamicLinkParameters(
@@ -35,7 +35,7 @@ class FirebaseDynamicLink {
           imageUrl: Uri.parse(
               "https://ik.imagekit.io/4d3jgzelm/moto.png?updatedAt=1682109389548"),
         ),
-        link: Uri.parse("https://www.coursehubiitg.in/browse/$newPath"),
+        link: Uri.parse("https://www.coursehubiitg.in/browse/$currCourse/$id?path=$address"),
         uriPrefix: "https://coursehubiitg.page.link",
         androidParameters: const AndroidParameters(
           packageName: "com.codingclub.coursehub",
@@ -55,7 +55,8 @@ class FirebaseDynamicLink {
   }
 
   static Future<void> handleInitialLink() async {
-   final navigationProvider =  navigatorKey.currentContext?.read<NavigationProvider>();
+    final navigationProvider =
+        navigatorKey.currentContext?.read<NavigationProvider>();
 
     final PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinks.instance.getInitialLink();
@@ -70,8 +71,7 @@ class FirebaseDynamicLink {
       (pendingDynamicLinkData) async {
         // Set up the `onLink` event listener next as it may be received here
         final Uri deepLink = pendingDynamicLinkData.link;
-      navigationProvider?.changePageNumber(2);
-
+        navigationProvider?.changePageNumber(2);
 
         // await navigateToFile(deepLink.pathSegments[1]);
       },
@@ -79,7 +79,6 @@ class FirebaseDynamicLink {
   }
 
   static Future<void> navigateToFile(String code) async {
-
     final navigationProvider =
         navigatorKey.currentState!.context.read<NavigationProvider>();
     await getUserCourses(code.toLowerCase(), isTempCourse: true);

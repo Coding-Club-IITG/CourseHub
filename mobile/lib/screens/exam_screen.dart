@@ -3,7 +3,6 @@ import 'package:coursehub/apis/miscellaneous/get_exam_details.dart';
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/models/exam_details.dart';
 import 'package:coursehub/widgets/common/custom_linear_progress.dart';
-
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:coursehub/widgets/exam_screen.dart/exam_card.dart';
 import 'package:coursehub/widgets/exam_screen.dart/exam_header.dart';
@@ -11,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/navigation_provider.dart';
 
 class ExamScreen extends StatelessWidget {
@@ -60,6 +58,14 @@ class ExamScreen extends StatelessWidget {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           List<ExamDetails> examDetails = snapshot.data ?? [];
+                          if(examDetails.isEmpty){
+                            return const Center(
+                              child: Text(
+                                'No data Found !',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            );
+                          }
                           return AnimationLimiter(
                             child: ListView.builder(
                               shrinkWrap: true,

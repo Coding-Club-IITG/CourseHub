@@ -45,9 +45,9 @@ class PhotoFrame extends StatelessWidget {
               fit: BoxFit.cover,
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
-                return Column(
+                return const  Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children:  [
                     SizedBox(
                       height: 30,
                     ),

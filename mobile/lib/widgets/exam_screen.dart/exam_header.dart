@@ -14,7 +14,7 @@ class ExamHeader extends StatelessWidget {
           children: [
             Text(
               HiveStore.getUserDetails().semester < 3
-                  ? 'Mid-Semester'
+                  ? 'End-Semester'
                   : 'End-Semester',
               style: const TextStyle(
                 color: Colors.black,
@@ -28,7 +28,7 @@ class ExamHeader extends StatelessWidget {
               text: TextSpan(
                 children: [
                   const TextSpan(
-                    text: '6',
+                    text: '24',
                     style: TextStyle(color: Colors.black),
                   ),
                   WidgetSpan(
@@ -43,11 +43,11 @@ class ExamHeader extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' May - ',
+                    text: ' June - ',
                     style: TextStyle(color: Colors.black),
                   ),
                   TextSpan(
-                    text: HiveStore.getUserDetails().semester < 3 ? '10' : '12',
+                    text: HiveStore.getUserDetails().semester < 3 ? '28' : '28',
                     style: const TextStyle(color: Colors.black),
                   ),
                   WidgetSpan(
@@ -62,7 +62,7 @@ class ExamHeader extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' May',
+                    text: ' June',
                     style: TextStyle(color: Colors.black),
                   ),
                 ],

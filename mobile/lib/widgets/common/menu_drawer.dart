@@ -112,8 +112,8 @@ class MenuDrawer extends StatelessWidget {
                 const SizedBox(
                   width: 10,
                 ),
-                Column(
-                  children: const [
+               const  Column(
+                  children:  [
                     Text(
                       'Coding Club',
                       style: TextStyle(
@@ -232,8 +232,8 @@ class MenuDrawer extends StatelessWidget {
                 height: 70,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children:  [
                     Icon(
                       Icons.arrow_circle_right_outlined,
                       color: Colors.white,

@@ -29,8 +29,8 @@ class TeamFooter extends StatelessWidget {
                 const SizedBox(
                   width: 10,
                 ),
-                Column(
-                  children: const [
+              const   Column(
+                  children: [
                     Text(
                       'Coding Club',
                       style: TextStyle(color: Colors.black),

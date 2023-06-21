@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:coursehub/apis/courses/add_courses.dart';
 import 'package:coursehub/apis/protected.dart';
 import 'package:coursehub/apis/user/user.dart';
@@ -33,8 +32,6 @@ Future<void> isCourseUpdated() async {
     );
 
     final response = jsonDecode(res.body);
-
-
     if (response['updated']) {
       List updatedCourses = response['updatedCourses'];
 

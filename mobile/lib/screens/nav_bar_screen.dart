@@ -88,6 +88,7 @@ class _NavBarScreen extends State<NavBarScreen>
         dialogStyle: Platform.isIOS
             ? UpgradeDialogStyle.cupertino
             : UpgradeDialogStyle.material,
+        // ignore: deprecated_member_use
         countryCode: WidgetsBinding.instance.window.locale.countryCode,
         durationUntilAlertAgain: const Duration(days: 1),
       ),
