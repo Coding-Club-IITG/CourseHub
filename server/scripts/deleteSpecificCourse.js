@@ -42,6 +42,6 @@ mongoose.set("strictQuery", false);
 mongoose
     .connect(mongoUri)
     .then(() => {
-        safeDeleteCourse("ce101", "engineering design");
+        safeDeleteCourse("ENTER YOUR COURSE CODE HERE", "CoURSE NAME HERE");
     })
     .catch((e) => console.log(e));
