@@ -63,7 +63,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Text(
                         "MY PROFILE",
                         style: TextStyle(
-       
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                           color: Colors.white,
@@ -81,9 +80,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       FittedBox(
                         child: Text(
-                          "B.Tech in $branch",
+                          "${user.degree} in $branch",
                           style: const TextStyle(
-       
                             fontWeight: FontWeight.w400,
                             fontSize: 16,
                             color: Colors.white,
@@ -116,7 +114,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               "MY CONTRIBUTIONS",
               style: TextStyle(
-    
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
                 color: Colors.black,
