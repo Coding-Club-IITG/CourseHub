@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:coursehub/apis/protected.dart';
 import 'package:coursehub/constants/endpoints.dart';
@@ -6,6 +7,7 @@ import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/models/exam_details.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<List<ExamDetails>> getExamDetails() async {
   var decodedResponse = [];
@@ -26,16 +28,22 @@ Future<List<ExamDetails>> getExamDetails() async {
       );
       decodedResponse = json.decode(res.body)['data'] as List<dynamic>;
       CacheStore.examTimings = decodedResponse;
+      final prefs = await SharedPreferences.getInstance();
+
+      prefs.setString("examDate", json.decode(res.body)['date']);
+      prefs.setString("examType", json.decode(res.body)['exam']);
     }
 
+
     List<ExamDetails> examTimings = [];
+
 
     for (var exam in decodedResponse) {
       if (!exam['found']) {
         continue;
       }
-
       examTimings.add(ExamDetails.fromJson(exam));
+
     }
 
     examTimings.sort(
@@ -46,8 +54,6 @@ Future<List<ExamDetails>> getExamDetails() async {
 
     return examTimings;
   } catch (e) {
-    print(e);
-
     rethrow;
   }
 }

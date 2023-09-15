@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (await getAccessToken() != 'error') {
       await isCourseUpdated();
-    }
+    } 
     await getFunFacts(fetchAgain: true);
 
     if (!mounted) return;

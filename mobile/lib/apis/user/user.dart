@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:coursehub/apis/authentication/login.dart';
 import 'package:coursehub/utilities/set_hive_store.dart';
 import 'package:hive/hive.dart';
 import '../../constants/endpoints.dart';
@@ -18,6 +19,10 @@ Future<void> getCurrentUser() async {
     );
 
     final body = jsonDecode(resp.body);
+
+    if (body['error']==true) {
+      throw ('invalid token');
+    }
 
     var box = await Hive.openBox('coursehub-data');
     box.put('user', body);
@@ -48,7 +53,6 @@ Future<void> addFavourites(
     box.put('user', body);
     await setHiveStore();
   } catch (e) {
-
     rethrow;
   }
 }
@@ -75,7 +79,6 @@ Future<void> removeFavourites(String id) async {
 
     await setHiveStore();
   } catch (e) {
-
     rethrow;
   }
 }
