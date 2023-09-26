@@ -447,7 +447,7 @@ export async function getRequest(url, headers) {
     return response.data;
 }
 
-async function postRequest(url, headers, params) {
+export async function postRequest(url, headers, params) {
     var data = qs.stringify(params);
     var config = {
         method: "post",

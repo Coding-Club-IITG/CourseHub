@@ -29,5 +29,6 @@ router.get("/course/:code", catchAsync(adminController.getCourseFolder));
 router.post("/contribution/approve", catchAsync(adminController.uploadToFolder));
 router.get("/contribution/visit/:folderName", catchAsync(adminController.getFolderLink));
 router.get("/contribution/id/:folderName", catchAsync(adminController.getFolderId));
+router.post("/contribution/bootstrapnewcourse", catchAsync(adminController.createNewCourseFolders));
 
 export default router;

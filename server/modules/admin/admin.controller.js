@@ -17,6 +17,7 @@ import Admin, {
     makeCourseValidationSchema,
 } from "./admin.model.js";
 import {
+    createCourseStructure,
     getFolderIdByName,
     getFolderVisitLink,
     moveAllFolderFiles,
@@ -216,6 +217,15 @@ async function getFolderId(req, res, next) {
     return res.json({ id: id });
 }
 
+async function createNewCourseFolders(req, res, next) {
+    const courseCodeName = req.body.code;
+    if (!courseCodeName) return next(new AppError(500, "code-name required"));
+    const resp = await createCourseStructure(courseCodeName);
+    return res.json({
+        id: resp,
+    });
+}
+
 export default {
     createAdmin,
     getAdmin,
@@ -229,4 +239,5 @@ export default {
     uploadToFolder,
     getFolderLink,
     getFolderId,
+    createNewCourseFolders,
 };

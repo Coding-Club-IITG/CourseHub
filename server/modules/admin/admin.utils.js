@@ -1,5 +1,5 @@
 import fs from "fs";
-import { getAccessToken, getRequest } from "../onedrive/onedrive.routes.js";
+import { getAccessToken, getRequest, postRequest, visitCourseById } from "../onedrive/onedrive.routes.js";
 import axios from "axios";
 
 export async function moveAllFolderFiles(fromFolderId, toFolderId) {
@@ -88,6 +88,40 @@ function parseFolder(folder) {
         parseFolder(folder.children);
     }
 }
+
+async function createFolder(folderName, parentFolderId) {
+    var access_token = await getAccessToken();
+    var headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    var url = `https://graph.microsoft.com/v1.0/me/drive/items/${parentFolderId}/children`;
+    let data = {
+        name: folderName,
+        folder: {},
+        "@microsoft.graph.conflictBehavior": "rename",
+    };
+    const resp = await axios.post(url, data, { headers });
+    // console.log(resp);
+    return resp?.data;
+}
+
+export async function createCourseStructure(foldername) {
+    const rootCoursesFolder = "01OXYV37Y64PLOWXJRRBGKGSMVOFLO3OPZ";
+    const resp = await createFolder(foldername, rootCoursesFolder);
+    const newFolderId = resp?.id;
+    if (!newFolderId) return;
+    const yearResp = await createFolder("All Years", newFolderId);
+    const newYearFolderId = yearResp?.id;
+    if (!newYearFolderId) return;
+    await createFolder("Exams", newYearFolderId);
+    await createFolder("Notes", newYearFolderId);
+    await createFolder("Books", newYearFolderId);
+    await createFolder("Slides", newYearFolderId);
+    await visitCourseById(newFolderId);
+    return newFolderId;
+}
+
 const data = {
     _id: "63fb920f68fe6671b91b0f47",
     name: "group theory",

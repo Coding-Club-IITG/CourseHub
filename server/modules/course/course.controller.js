@@ -59,9 +59,10 @@ export const deleteCourseByCode = async (req, res, next) => {
     const search = await SearchResults.findOne({ code: code.toLowerCase() });
     await FolderModel.deleteMany({ course: code.toLowerCase() });
     await FileModel.deleteMany({
-        course: `${code.toLowerCase()} - ${search.modelName.toLowerCase()}`,
+        course: `${code.toLowerCase()} - ${search.name.toLowerCase()}`,
     });
     await CourseModel.deleteOne({ code: code.toLowerCase() });
+    await SearchResults.findOneAndUpdate({code: code.toLowerCase()}, {isAvailable: false});
     res.sendStatus(200);
 };
 

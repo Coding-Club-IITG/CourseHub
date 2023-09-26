@@ -116,7 +116,7 @@ export const redirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect",
+        redirect_uri: "http://localhost:8080/api/auth/login/redirect",
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
