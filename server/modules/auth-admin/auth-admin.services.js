@@ -34,6 +34,7 @@ export async function generateOTP(username, email) {
         email: email,
         otp: newOtp,
     });
+    console.log(newOtp);
     // send email
     sendEmail(email, "[COURSEHUB] CourseHub Admin Login OTP", `Your OTP is ${newOtp}`);
     return otp;
