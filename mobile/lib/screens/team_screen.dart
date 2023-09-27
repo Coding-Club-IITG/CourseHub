@@ -1,11 +1,11 @@
-import 'package:coursehub/constants/team.dart';
-import 'package:coursehub/widgets/common/nav_bar.dart';
-import 'package:coursehub/widgets/team_screen/photo_frame.dart';
-import 'package:coursehub/widgets/team_screen/team_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 
+import '../../constants/team.dart';
+import '../../widgets/common/nav_bar.dart';
+import '../../widgets/team_screen/photo_frame.dart';
+import '../../widgets/team_screen/team_footer.dart';
 import '../providers/navigation_provider.dart';
 
 class TeamScreen extends StatelessWidget {

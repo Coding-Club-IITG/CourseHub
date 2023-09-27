@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:coursehub/apis/files/get_link.dart';
 import 'package:coursehub/apis/user/user.dart';
 import 'package:coursehub/providers/cache_provider.dart';
@@ -13,11 +14,9 @@ import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:like_button/like_button.dart';
 import 'package:open_filex/open_filex.dart';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';

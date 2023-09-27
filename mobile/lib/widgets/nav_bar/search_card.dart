@@ -3,6 +3,7 @@ import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/navigation_provider.dart';
 import '../../utilities/letter_capitalizer.dart';
 

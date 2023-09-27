@@ -1,9 +1,9 @@
-import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/navigation_provider.dart';
+import '../../widgets/common/splash_on_pressed.dart';
 import '../../constants/themes.dart';
 
 class NavBar extends StatelessWidget {

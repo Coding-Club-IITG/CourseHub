@@ -1,21 +1,22 @@
-
-
-import 'package:coursehub/animations/custom_fade_in_animation.dart';
-import 'package:coursehub/widgets/common/custom_button.dart';
-import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:coursehub/apis/contributions/contribution.dart';
-import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/constants/years_sections.dart';
-import 'package:coursehub/widgets/common/custom_linear_progress.dart';
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
-import 'package:coursehub/widgets/contribute_screen/custom_textformfield.dart';
-import 'package:coursehub/widgets/contribute_screen/dropdown_row.dart';
-import 'package:coursehub/widgets/contribute_screen/upload.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../animations/custom_fade_in_animation.dart';
+import '../../widgets/common/custom_button.dart';
+import '../../widgets/common/nav_bar.dart';
+import '../../apis/contributions/contribution.dart';
+import '../../constants/themes.dart';
+import '../../constants/years_sections.dart';
+import '../../widgets/common/custom_linear_progress.dart';
+import '../../widgets/common/custom_snackbar.dart';
+import '../../widgets/contribute_screen/custom_textformfield.dart';
+import '../../widgets/contribute_screen/dropdown_row.dart';
 import '../providers/navigation_provider.dart';
+import '../../widgets/contribute_screen/upload.dart';
+
+
+
 
 class ContributeScreen extends StatefulWidget {
   final AnimationController controller;

@@ -1,15 +1,16 @@
-import 'package:coursehub/animations/custom_fade_in_animation.dart';
-import 'package:coursehub/models/contribution.dart';
-import 'package:coursehub/models/user.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/widgets/common/nav_bar.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
+
+import '../../animations/custom_fade_in_animation.dart';
+import '../../models/contribution.dart';
+import '../../models/user.dart';
+import '../../providers/navigation_provider.dart';
+import '../../utilities/letter_capitalizer.dart';
+import '../../widgets/common/nav_bar.dart';
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';
 import '../widgets/profile_screen/semester_card.dart';
-
 import '../database/hive_store.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -80,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       FittedBox(
                         child: Text(
-                          "${user.degree} in $branch",
+                          "${letterCapitalizer(user.degree)} in $branch",
                           style: const TextStyle(
                             fontWeight: FontWeight.w400,
                             fontSize: 16,

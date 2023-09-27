@@ -2,6 +2,7 @@ import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../apis/courses/course_availability.dart';
 import '../../constants/themes.dart';
 import '../../utilities/letter_capitalizer.dart';

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:coursehub/database/cache_store.dart';
 import 'package:http/http.dart' as http;
 
+import '../../database/cache_store.dart';
 import '../../constants/endpoints.dart';
 
 Future<bool> isCourseAvailable(String coursecode) async {

@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 Course courseFromJson(String str) => Course.fromJson(json.decode(str));

@@ -1,19 +1,20 @@
 import 'dart:developer';
 
-import 'package:coursehub/animations/custom_fade_in_animation.dart';
-import 'package:coursehub/database/cache_store.dart';
-import 'package:coursehub/widgets/common/splash_on_pressed.dart';
-
 import 'package:flutter/material.dart';
-import 'package:coursehub/database/hive_store.dart';
-import 'package:coursehub/widgets/browse_screen/year_div.dart';
-import 'package:coursehub/widgets/browse_screen/bread_crumbs.dart';
-import 'package:coursehub/widgets/browse_screen/folder_explorer.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../providers/navigation_provider.dart';
+import '../../animations/custom_fade_in_animation.dart';
+import '../../database/cache_store.dart';
+import '../../widgets/common/splash_on_pressed.dart';
+import '../../database/hive_store.dart';
+import '../../widgets/browse_screen/year_div.dart';
+import '../../widgets/browse_screen/bread_crumbs.dart';
 import '../utilities/dynamic_links.dart';
+import '../providers/navigation_provider.dart';
+import '../../widgets/browse_screen/folder_explorer.dart';
+
+
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});

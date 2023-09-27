@@ -1,13 +1,14 @@
-import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:coursehub/apis/courses/is_course_updated.dart';
-import 'package:coursehub/apis/miscellaneous/funfacts.dart';
-import 'package:coursehub/apis/protected.dart';
-import 'package:coursehub/database/cache_store.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
+
+import '../../apis/courses/is_course_updated.dart';
+import '../../apis/miscellaneous/funfacts.dart';
+import '../../apis/protected.dart';
+import '../../database/cache_store.dart';
 import '../apis/authentication/login.dart';
-import 'login_screen.dart';
-import 'nav_bar_screen.dart';
+import './login_screen.dart';
+import './nav_bar_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

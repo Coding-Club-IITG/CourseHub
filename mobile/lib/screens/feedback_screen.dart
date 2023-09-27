@@ -1,16 +1,16 @@
 
-import 'package:coursehub/apis/miscellaneous/feedback_bugs.dart';
-import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/widgets/common/custom_button.dart';
-import 'package:coursehub/widgets/common/custom_linear_progress.dart';
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
-import 'package:coursehub/widgets/common/nav_bar.dart';
-import 'package:coursehub/widgets/common/splash_on_pressed.dart';
-import 'package:coursehub/widgets/contribute_screen/upload.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../apis/miscellaneous/feedback_bugs.dart';
+import '../../constants/themes.dart';
+import '../../providers/navigation_provider.dart';
+import '../../widgets/common/custom_button.dart';
+import '../../widgets/common/custom_linear_progress.dart';
+import '../../widgets/common/custom_snackbar.dart';
+import '../../widgets/common/nav_bar.dart';
+import '../../widgets/common/splash_on_pressed.dart';
+import '../../widgets/contribute_screen/upload.dart';
 import '../animations/custom_fade_in_animation.dart';
 
 class FeedBackScreen extends StatefulWidget {

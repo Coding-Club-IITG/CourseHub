@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'package:coursehub/apis/protected.dart';
-import 'package:coursehub/apis/user/user.dart';
-import 'package:coursehub/database/cache_store.dart';
-import 'package:coursehub/utilities/set_hive_store.dart';
+
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
+import '../../apis/protected.dart';
+import '../../apis/user/user.dart';
+import '../../database/cache_store.dart';
+import '../../utilities/set_hive_store.dart';
 import '../../constants/endpoints.dart';
 
 Future<void> getUserCourses(String code, {bool isTempCourse = false}) async {

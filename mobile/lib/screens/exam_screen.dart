@@ -1,15 +1,17 @@
-import 'package:coursehub/animations/custom_fade_in_animation.dart';
-import 'package:coursehub/apis/miscellaneous/get_exam_details.dart';
-import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/models/exam_details.dart';
-import 'package:coursehub/widgets/common/custom_linear_progress.dart';
-import 'package:coursehub/widgets/common/nav_bar.dart';
-import 'package:coursehub/widgets/exam_screen.dart/exam_card.dart';
-import 'package:coursehub/widgets/exam_screen.dart/exam_header.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+import '../../animations/custom_fade_in_animation.dart';
+import '../../apis/miscellaneous/get_exam_details.dart';
+import '../../constants/themes.dart';
+import '../../models/exam_details.dart';
+import '../../widgets/common/custom_linear_progress.dart';
+import '../../widgets/common/nav_bar.dart';
+import '../../widgets/exam_screen.dart/exam_card.dart';
+import '../../widgets/exam_screen.dart/exam_header.dart';
 import '../providers/navigation_provider.dart';
 
 class ExamScreen extends StatelessWidget {
@@ -21,7 +23,6 @@ class ExamScreen extends StatelessWidget {
     return WillPopScope(
       onWillPop: () async {
         navigatorProvider.changePageNumber(0);
-
         return false;
       },
       child: Stack(

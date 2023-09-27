@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:coursehub/apis/protected.dart';
-import 'package:coursehub/constants/endpoints.dart';
 import 'package:http/http.dart' as http;
+
+import '../../apis/protected.dart';
+import '../../constants/endpoints.dart';
 
 Future<void> postFeedbackBugs(
     String description, List<File?> screenshots, bool isFeedback) async {

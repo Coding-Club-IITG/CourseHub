@@ -1,11 +1,9 @@
-// To parse this JSON data, do
-//
-//     final user = userFromJson(jsonString);
+
 
 import 'dart:convert';
 
-import 'package:coursehub/models/course.dart';
-import 'package:coursehub/models/favourites.dart';
+import '../../models/course.dart';
+import '../../models/favourites.dart';
 
 User userFromJson(String str) => User.fromJson(json.decode(str));
 

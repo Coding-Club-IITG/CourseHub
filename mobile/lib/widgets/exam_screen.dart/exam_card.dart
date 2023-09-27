@@ -1,6 +1,5 @@
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/models/exam_details.dart';
-
 import 'package:flutter/material.dart';
 
 class ExamCard extends StatelessWidget {

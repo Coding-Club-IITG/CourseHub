@@ -1,10 +1,10 @@
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/utilities/url_launcher.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
-import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_svg/svg.dart';
+
+import '../../widgets/common/splash_on_pressed.dart';
 
 class PhotoFrame extends StatelessWidget {
   final String photo;

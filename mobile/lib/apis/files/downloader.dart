@@ -1,11 +1,10 @@
 import 'dart:async';
-
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:path/path.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 

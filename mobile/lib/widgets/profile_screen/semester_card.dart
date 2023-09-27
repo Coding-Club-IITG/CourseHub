@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../constants/themes.dart';
 
-
-
 String calculateBranch(int rollNumber) {
   final rollNumberString = rollNumber.toString();
 

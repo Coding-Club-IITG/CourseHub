@@ -1,11 +1,10 @@
-
-
-import 'package:coursehub/constants/themes.dart';
-
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+
+import '../../constants/themes.dart';
+
 
 class ExamDialog extends StatelessWidget {
   const ExamDialog({super.key});

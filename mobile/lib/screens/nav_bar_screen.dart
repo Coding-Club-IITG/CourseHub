@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:coursehub/providers/cache_provider.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/screens/exam_screen.dart';
-import 'package:coursehub/screens/feedback_screen.dart';
-import 'package:coursehub/screens/team_screen.dart';
-import 'package:coursehub/widgets/common/menu_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
 
+import '../../providers/cache_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../../screens/exam_screen.dart';
+import '../../screens/feedback_screen.dart';
+import '../../screens/team_screen.dart';
+import '../../widgets/common/menu_drawer.dart';
 import '../constants/themes.dart';
 import '../database/cache_store.dart';
 import '../screens/browse_screen.dart';
@@ -20,7 +20,6 @@ import '../screens/profile_screen.dart';
 import '../screens/search_screen.dart';
 import '../widgets/common/custom_snackbar.dart';
 import '../widgets/nav_bar/nav_bar_icon.dart';
-
 import '../widgets/common/empty_app_bar.dart';
 
 class NavBarScreen extends StatefulWidget {

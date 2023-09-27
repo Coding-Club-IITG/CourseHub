@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import '../apis/authentication/login.dart';
 import '../constants/themes.dart';
 import '../screens/nav_bar_screen.dart';
@@ -159,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 showSnackBar(
                                     'Successfully Logged In!', context);
                               } catch (e) {
-                                print(e);
+                  
                                 setState(() {
                                   _isLoading = false;
                                 });

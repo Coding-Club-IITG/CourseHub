@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:developer';
-
-import 'package:coursehub/apis/protected.dart';
-import 'package:coursehub/constants/endpoints.dart';
-import 'package:coursehub/database/cache_store.dart';
-import 'package:coursehub/models/exam_details.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../apis/protected.dart';
+import '../../constants/endpoints.dart';
+import '../../database/cache_store.dart';
+import '../../models/exam_details.dart';
+
 
 Future<List<ExamDetails>> getExamDetails() async {
   var decodedResponse = [];

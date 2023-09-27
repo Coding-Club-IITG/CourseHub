@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/main.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
@@ -11,8 +13,6 @@ class FirebaseDynamicLink {
   static Future<String> createDynamicLink(String title,String id ,String address,
       ) async {
     String newPath = '';
-
- 
       String x =
           CacheStore.browsePath.substring(0, CacheStore.browsePath.length - 1);
 
@@ -65,6 +65,7 @@ class FirebaseDynamicLink {
       final Uri deepLink = initialLink.link;
       // await navigateToFile(deepLink.pathSegments[1]);
       navigationProvider?.changePageNumber(2);
+      log(deepLink.toString());
     }
 
     FirebaseDynamicLinks.instance.onLink.listen(
@@ -72,6 +73,7 @@ class FirebaseDynamicLink {
         // Set up the `onLink` event listener next as it may be received here
         final Uri deepLink = pendingDynamicLinkData.link;
         navigationProvider?.changePageNumber(2);
+        log(deepLink.toString());
 
         // await navigateToFile(deepLink.pathSegments[1]);
       },

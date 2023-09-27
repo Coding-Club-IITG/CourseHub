@@ -1,10 +1,10 @@
-import 'package:coursehub/apis/authentication/login.dart';
-import 'package:coursehub/database/cache_store.dart';
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../apis/authentication/login.dart';
+import '../../database/cache_store.dart';
+import '../../widgets/common/custom_snackbar.dart';
 import '../../constants/themes.dart';
 import '../../providers/navigation_provider.dart';
 

@@ -1,8 +1,4 @@
-import 'package:coursehub/animations/custom_fade_in_animation.dart';
-import 'package:coursehub/constants/all_courses.dart';
-import 'package:coursehub/models/favourites.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/utilities/letter_capitalizer.dart';
+
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +6,11 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../animations/custom_fade_in_animation.dart';
+import '../../constants/all_courses.dart';
+import '../../models/favourites.dart';
+import '../../providers/navigation_provider.dart';
+import '../../utilities/letter_capitalizer.dart';
 import '../constants/themes.dart';
 import '../database/hive_store.dart';
 import '../widgets/common/custom_linear_progress.dart';

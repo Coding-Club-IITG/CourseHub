@@ -1,11 +1,12 @@
+import 'dart:io';
+
+
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/custom_snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
-import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

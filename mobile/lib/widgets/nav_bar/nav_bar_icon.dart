@@ -1,10 +1,11 @@
 
-import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
-import '../common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
+
+
+import '../../providers/navigation_provider.dart';
+import '../common/splash_on_pressed.dart';
 import '../../constants/themes.dart';
 
 class NavBarIcon extends StatefulWidget {

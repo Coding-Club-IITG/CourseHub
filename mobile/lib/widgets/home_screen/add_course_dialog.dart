@@ -150,7 +150,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
 
                                     bool isPresent = user.courses.any(
                                         (element) =>
-                                            element.code ==
+                                            element?.code ==
                                             searchResult[index].code);
 
                                     if (isPresent) {

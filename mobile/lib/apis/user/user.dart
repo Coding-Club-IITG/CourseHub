@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'package:coursehub/apis/authentication/login.dart';
-import 'package:coursehub/utilities/set_hive_store.dart';
+
 import 'package:hive/hive.dart';
-import '../../constants/endpoints.dart';
 import 'package:http/http.dart' as http;
+
+import '../../utilities/set_hive_store.dart';
+import '../../constants/endpoints.dart';
 import '../protected.dart';
 
 Future<void> getCurrentUser() async {

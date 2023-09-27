@@ -1,8 +1,10 @@
 import 'dart:convert';
 
-import 'package:coursehub/constants/endpoints.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+
+import '../../constants/endpoints.dart';
+
 
 Future<List<dynamic>> getFunFacts({bool fetchAgain = false}) async {
   final box = await Hive.openBox('coursehub-data');

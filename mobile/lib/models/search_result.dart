@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 
 SearchResult searchResultFromJson(String str) =>

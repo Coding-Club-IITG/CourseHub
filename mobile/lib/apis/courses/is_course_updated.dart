@@ -1,15 +1,16 @@
 import 'dart:convert';
 
-import 'package:coursehub/apis/courses/add_courses.dart';
-import 'package:coursehub/apis/protected.dart';
-import 'package:coursehub/apis/user/user.dart';
-import 'package:coursehub/constants/endpoints.dart';
-import 'package:coursehub/models/course.dart';
-import 'package:coursehub/models/user.dart';
-
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+
+import '../../apis/courses/add_courses.dart';
+import '../../apis/protected.dart';
+import '../../apis/user/user.dart';
+import '../../constants/endpoints.dart';
+import '../../models/course.dart';
+import '../../models/user.dart';
+
 
 Future<void> isCourseUpdated() async {
   try {

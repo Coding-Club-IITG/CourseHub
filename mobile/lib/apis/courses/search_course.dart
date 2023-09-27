@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+
 import '../../constants/endpoints.dart';
 
 Future<dynamic> searchCourse(String coursename) async {

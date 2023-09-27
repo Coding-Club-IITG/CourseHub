@@ -1,13 +1,13 @@
 import 'dart:math';
 
-import 'package:coursehub/apis/miscellaneous/funfacts.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/providers/search_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../apis/miscellaneous/funfacts.dart';
+import '../../providers/navigation_provider.dart';
+import '../../providers/search_provider.dart';
 import '../widgets/common/custom_snackbar.dart';
 import '../widgets/nav_bar/search_card.dart';
 
