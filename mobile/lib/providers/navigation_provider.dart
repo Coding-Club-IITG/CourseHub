@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:coursehub/database/cache_store.dart';
+import '../../database/cache_store.dart';
 import 'package:flutter/material.dart';
 
 class NavigationProvider with ChangeNotifier {
@@ -21,7 +21,7 @@ class NavigationProvider with ChangeNotifier {
     //   controller.reverse(from: 0.75);
     // }
 
-    if (CacheStore.isTempCourse && currentPageNumber==1) {
+    if (CacheStore.isTempCourse && currentPageNumber == 1) {
       CacheStore.resetBrowsePath();
       CacheStore.isTempCourse = false;
     }

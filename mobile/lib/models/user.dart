@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 
 import '../../models/course.dart';

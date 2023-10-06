@@ -1,6 +1,5 @@
-
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
-import 'package:coursehub/widgets/common/nav_bar.dart';
+import '../../widgets/common/custom_snackbar.dart';
+import '../../widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +46,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool('courseGrouped') ?? false;
     } catch (e) {
+      if (!context.mounted) rethrow;
       showSnackBar('Something Went Wrong!', context);
       rethrow;
     }

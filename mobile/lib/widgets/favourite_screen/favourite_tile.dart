@@ -1,11 +1,10 @@
-import 'package:coursehub/models/favourites.dart';
-import 'package:coursehub/utilities/letter_capitalizer.dart';
-import 'package:coursehub/utilities/url_launcher.dart';
+import '../../apis/files/downloader.dart';
+import '../../models/favourites.dart';
+import '../../utilities/letter_capitalizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../apis/files/get_link.dart';
 import '../../utilities/dynamic_links.dart';
 import '../../widgets/common/custom_snackbar.dart';
 
@@ -36,15 +35,10 @@ class FavouriteTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () async {
-        try {
-          setLoadingCallback();
-          final link = await getPreviewLink(favourite.favouriteId);
-          await launchUrl(link);
-          setLoadingCallback();
-        } catch (e) {
-          setLoadingCallback();
-          showSnackBar('Something Went Wrong!', context);
-        }
+        bool isDownloaded = await isFileDownloaded(favourite.name);
+        if (!context.mounted) return;
+        await downloadOpenFiles(
+            isDownloaded, favourite.name, favourite.favouriteId, context);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -92,10 +86,11 @@ class FavouriteTile extends StatelessWidget {
                           await Share.share(shareLink,
                               subject: '$favourite.name \n CourseHub');
                         } catch (e) {
+                          if (!context.mounted) return;
                           showSnackBar('Something went Wrong!', context);
                         }
                       },
-                      child:const  Row(
+                      child: const Row(
                         children: [
                           Icon(Icons.share),
                           SizedBox(

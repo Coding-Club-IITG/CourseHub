@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+
 import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
 import '../protected.dart';
-
 
 Future<String> getPreviewLink(String id) async {
   final token = await getAccessToken();
@@ -38,5 +38,4 @@ Future<String> getDownloadLink(String id) async {
   } catch (e) {
     rethrow;
   }
-
 }

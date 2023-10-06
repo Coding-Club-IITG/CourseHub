@@ -1,24 +1,18 @@
-import 'dart:io';
+import '../../apis/user/user.dart';
+import '../../apis/files/downloader.dart';
+import '../../database/hive_store.dart';
+import '../../models/favourites.dart';
+import '../../utilities/dynamic_links.dart';
+import '../../utilities/file_size.dart';
+import '../../utilities/letter_capitalizer.dart';
+import '../../widgets/common/custom_linear_progress.dart';
+import '../../widgets/common/custom_snackbar.dart';
+import '../../widgets/common/splash_on_pressed.dart';
 
-import 'package:coursehub/apis/files/get_link.dart';
-import 'package:coursehub/apis/user/user.dart';
-import 'package:coursehub/providers/cache_provider.dart';
-import 'package:coursehub/apis/files/downloader.dart';
-import 'package:coursehub/database/hive_store.dart';
-import 'package:coursehub/models/favourites.dart';
-import 'package:coursehub/utilities/dynamic_links.dart';
-import 'package:coursehub/utilities/file_size.dart';
-import 'package:coursehub/utilities/letter_capitalizer.dart';
-import 'package:coursehub/widgets/common/custom_linear_progress.dart';
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
-import 'package:coursehub/widgets/common/splash_on_pressed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:like_button/like_button.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class FolderExplorer extends StatefulWidget {
@@ -32,13 +26,12 @@ class FolderExplorer extends StatefulWidget {
 }
 
 class _FolderExplorerState extends State<FolderExplorer> {
-  bool _isLoading = false;
+  final _isLoading = false;
 
   final user = HiveStore.getUserDetails();
 
   @override
   Widget build(BuildContext context) {
-    final cacheProvider = context.read<CacheProvider>();
     if (widget.data["childType"] == "Folder") {
       List<Widget> folders = [];
       for (var e in widget.data["children"]) {
@@ -169,67 +162,17 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                       color: Colors.transparent,
                                       child: InkWell(
                                         onTap: () async {
-                                          if (isDownloaded) {
-                                            try {
-                                              final tempDirectory =
-                                                  await getApplicationDocumentsDirectory();
-                                              OpenFilex.open(
-                                                  '${tempDirectory.path}/$name');
-                                            } catch (e) {
-                                              showSnackBar(
-                                                  'Somwthing went wrong!',
-                                                  context);
-                                            }
-                                          } else {
-                                            try {
-                                              setState(() {
-                                                _isLoading = true;
-                                              });
-                                              final link =
-                                                  await getDownloadLink(
-                                                      widget.data["children"]
-                                                          [index]["id"]);
-
-                                              setState(
-                                                () {
-                                                  _isLoading = false;
-                                                },
-                                              );
-
-                                              cacheProvider
-                                                  .setIsDownloading(true);
-                                              final fileName =
-                                                  widget.data["children"][index]
-                                                      ["name"];
-
-                                              final filedata = await downloader(
-                                                link,
-                                              );
-
-                                              final tempDirectory =
-                                                  await getApplicationDocumentsDirectory();
-
-                                              File file = File(
-                                                  '${tempDirectory.path}/$fileName');
-                                              final raf = file.openSync(
-                                                  mode: FileMode.write);
-                                              raf.writeFromSync(filedata);
-                                              await raf.close();
-
-                                              await OpenFilex.open(file.path);
-                                              cacheProvider
-                                                  .setIsDownloading(false);
-
-                                              setState(() {
-                                                isDownloaded = true;
-                                              });
-                                            } catch (e) {
-                                              cacheProvider
-                                                  .setIsDownloading(false);
-                                              showSnackBar(
-                                                  'Something Went Wrong!',
-                                                  context);
-                                            }
+                                          await downloadOpenFiles(
+                                              isDownloaded,
+                                              widget.data["children"][index]
+                                                  ["name"],
+                                              widget.data["children"][index]
+                                                  ["id"],
+                                              context);
+                                          if (!isDownloaded) {
+                                            setState(() {
+                                              isDownloaded = true;
+                                            });
                                           }
                                         },
                                         splashColor: Colors.grey,
@@ -349,12 +292,14 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       widget.data['path'],
                                                       address,
                                                     );
-                   
 
                                                     await Share.share(shareLink,
                                                         subject:
                                                             '$name \n CourseHub');
                                                   } catch (e) {
+                                                    if (!context.mounted) {
+                                                      rethrow;
+                                                    }
                                                     showSnackBar(
                                                         'Something went Wrong!',
                                                         context);
@@ -388,6 +333,9 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       setState(() {});
                                                       return isFavourite;
                                                     } catch (e) {
+                                                      if (!context.mounted) {
+                                                        return null;
+                                                      }
                                                       showSnackBar(
                                                           'Something went wrong!',
                                                           context);
@@ -412,6 +360,9 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                       setState(() {});
                                                       return isFavourite;
                                                     } catch (e) {
+                                                      if (!context.mounted) {
+                                                        rethrow;
+                                                      }
                                                       showSnackBar(
                                                           'Something went wrong!',
                                                           context);

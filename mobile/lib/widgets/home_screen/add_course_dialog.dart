@@ -1,9 +1,9 @@
-import 'package:coursehub/apis/courses/add_courses.dart';
-import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/database/hive_store.dart';
-import 'package:coursehub/screens/splash_screen.dart';
-import 'package:coursehub/widgets/common/custom_linear_progress.dart';
-import 'package:coursehub/widgets/nav_bar/search_card.dart';
+import '../../apis/courses/add_courses.dart';
+import '../../constants/themes.dart';
+import '../../database/hive_store.dart';
+import '../../screens/splash_screen.dart';
+import '../../widgets/common/custom_linear_progress.dart';
+import '../../widgets/nav_bar/search_card.dart';
 import 'package:flutter/material.dart';
 
 import '../../apis/courses/search_course.dart';
@@ -48,6 +48,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
         _isSearched = true;
       });
     } catch (e) {
+      if (!context.mounted) return;
       showSnackBar('Something went wrong!', context);
     }
   }
@@ -93,6 +94,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                             try {
                               await search(value);
                             } catch (e) {
+                              if (!context.mounted) return;
                               showSnackBar('Something went wrong!', context);
                             }
                           },
@@ -150,7 +152,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
 
                                     bool isPresent = user.courses.any(
                                         (element) =>
-                                            element?.code ==
+                                            element.code ==
                                             searchResult[index].code);
 
                                     if (isPresent) {
@@ -203,12 +205,13 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                     color: _isEnabled ? Themes.kYellow : Colors.grey,
                     child: InkWell(
                       splashColor: const Color.fromRGBO(0, 0, 0, 0.1),
-                      onTap:!_isEnabled
+                      onTap: !_isEnabled
                           ? null
                           : () async {
                               try {
                                 await search(_courseController.text);
                               } catch (e) {
+                                if (!context.mounted) return;
                                 showSnackBar('Something went wrong!', context);
                               }
                             },

@@ -1,4 +1,4 @@
-import 'dart:developer';
+
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -201,7 +201,7 @@ class _BrowseScreen extends State<BrowseScreen> {
                                         }
                                         x = x.substring(0, x.length - 1);
 
-                                        log(dataToShow.toString());
+                          
 
                                         final link = await FirebaseDynamicLink
                                             .createDynamicLink(

@@ -11,7 +11,6 @@ import '../../constants/endpoints.dart';
 import '../../models/course.dart';
 import '../../models/user.dart';
 
-
 Future<void> isCourseUpdated() async {
   try {
     final prefs = await SharedPreferences.getInstance();
@@ -62,6 +61,6 @@ Future<void> isCourseUpdated() async {
 
     await getCurrentUser();
   } catch (e) {
-    print(e.toString());
+    rethrow;
   }
 }

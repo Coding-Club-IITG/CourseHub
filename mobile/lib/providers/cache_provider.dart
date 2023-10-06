@@ -7,6 +7,4 @@ class CacheProvider extends ChangeNotifier {
     isDownloading = value;
     notifyListeners();
   }
-
- 
 }

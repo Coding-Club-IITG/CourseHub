@@ -67,6 +67,7 @@ class SearchScreen extends StatelessWidget {
                                         try {
                                           await searchProvider.search(value);
                                         } catch (e) {
+                                              if (!context.mounted) return;
                                           showSnackBar(
                                               'Something went wrong!', context);
                                         }
@@ -87,6 +88,9 @@ class SearchScreen extends StatelessWidget {
                                               await searchProvider.search(
                                                   _searchController.text);
                                             } catch (e) {
+                                               if (!context.mounted) {
+                                                rethrow;
+                                              }
                                               showSnackBar(
                                                   'Something went wrong!',
                                                   context);

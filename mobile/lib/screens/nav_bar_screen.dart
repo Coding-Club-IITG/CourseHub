@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
@@ -50,13 +51,7 @@ class _NavBarScreen extends State<NavBarScreen>
     const FeedBackScreen(),
   ];
 
-  // void returnToPageCallback(int a) {
 
-  //   setState(() {
-  //     if (_currentPageNumber == 2) _controller.reverse(from: 0.75);
-  //     _currentPageNumber = a;
-  //   });
-  // }
 
   @override
   void initState() {
@@ -66,6 +61,10 @@ class _NavBarScreen extends State<NavBarScreen>
       duration: const Duration(milliseconds: 200),
       upperBound: 0.5,
     );
+
+    FirebaseDynamicLinks.instance.onLink.listen((event){
+
+    });
   }
 
   @override

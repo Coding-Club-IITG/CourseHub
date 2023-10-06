@@ -1,6 +1,6 @@
-import 'package:coursehub/models/contribution.dart';
-import 'package:coursehub/models/favourites.dart';
-import 'package:coursehub/models/user.dart';
+import '../../models/contribution.dart';
+import '../../models/favourites.dart';
+import '../../models/user.dart';
 
 class HiveStore {
   static Map<dynamic, dynamic> userData = {};
@@ -16,7 +16,7 @@ class HiveStore {
     return userFav.map((e) => Favourite.fromJson(e)).toList();
   }
 
-  static List<Contribution>getContribution(){
+  static List<Contribution> getContribution() {
     return contribution.map((e) => Contribution.fromJson(e)).toList();
   }
 

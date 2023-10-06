@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,7 @@ Future<void> startupItems () async {
   await Firebase.initializeApp();
   await Hive.initFlutter();
   await FirebaseDynamicLink.handleInitialLink();
+  await FirebaseDynamicLinks.instance.getInitialLink();
 
   try {
     await getCurrentUser();

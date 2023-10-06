@@ -1,4 +1,4 @@
-import 'package:coursehub/constants/themes.dart';
+import '../../constants/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -29,7 +29,7 @@ class TeamFooter extends StatelessWidget {
                 const SizedBox(
                   width: 10,
                 ),
-              const   Column(
+                const Column(
                   children: [
                     Text(
                       'Coding Club',

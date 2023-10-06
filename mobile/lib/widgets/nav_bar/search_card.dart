@@ -1,6 +1,6 @@
-import 'package:coursehub/apis/courses/add_courses.dart';
-import 'package:coursehub/database/cache_store.dart';
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
+import '../../apis/courses/add_courses.dart';
+import '../../database/cache_store.dart';
+import '../../widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -51,6 +51,7 @@ class _SearchCardState extends State<SearchCard> {
                       CacheStore.resetBrowsePath();
                       navigationProvider.changePageNumber(1);
                     } catch (e) {
+                      if (!context.mounted) return;
                       showSnackBar('Somthing Went Wrong!', context);
                     }
                   } else {

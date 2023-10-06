@@ -1,8 +1,6 @@
-
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-
 
 import '../../providers/navigation_provider.dart';
 import '../common/splash_on_pressed.dart';
@@ -28,18 +26,12 @@ class _NavBarIconState extends State<NavBarIcon>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
-  late Animation _sizeAnimation;
-
   @override
   void initState() {
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    _sizeAnimation = TweenSequence([
-      TweenSequenceItem<double>(tween: Tween(begin: 32, end: 30), weight: 100),
-      TweenSequenceItem<double>(tween: Tween(begin: 30, end: 32), weight: 100),
-    ]).animate(_controller);
 
     super.initState();
   }

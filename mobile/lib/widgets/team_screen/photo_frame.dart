@@ -1,6 +1,6 @@
-import 'package:coursehub/constants/themes.dart';
-import 'package:coursehub/utilities/url_launcher.dart';
-import 'package:coursehub/widgets/common/custom_snackbar.dart';
+import '../../constants/themes.dart';
+import '../../utilities/url_launcher.dart';
+import '../../widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -10,12 +10,11 @@ class PhotoFrame extends StatelessWidget {
   final String photo;
   final Map<String, String> socials;
   final String name;
-  const PhotoFrame({
-    super.key,
-    required this.socials,
-    required this.photo,
-    required this.name
-  });
+  const PhotoFrame(
+      {super.key,
+      required this.socials,
+      required this.photo,
+      required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +44,9 @@ class PhotoFrame extends StatelessWidget {
               fit: BoxFit.cover,
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
-                return const  Column(
+                return const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children:  [
+                  children: [
                     SizedBox(
                       height: 30,
                     ),
@@ -108,8 +107,9 @@ class PhotoFrame extends StatelessWidget {
                 },
                 splashColor: Colors.grey,
                 child: SvgPicture.asset(
-
-                 name.toLowerCase() =='kuldeep ranjan' ? 'assets/medium.svg' : 'assets/instagram.svg',
+                  name.toLowerCase() == 'kuldeep ranjan'
+                      ? 'assets/medium.svg'
+                      : 'assets/instagram.svg',
                   height: 16,
                 ),
               ),

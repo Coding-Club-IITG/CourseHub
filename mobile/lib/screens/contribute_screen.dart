@@ -16,8 +16,6 @@ import '../providers/navigation_provider.dart';
 import '../../widgets/contribute_screen/upload.dart';
 
 
-
-
 class ContributeScreen extends StatefulWidget {
   final AnimationController controller;
   const ContributeScreen({super.key, required this.controller});
