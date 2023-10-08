@@ -8,7 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../utilities/dynamic_links.dart';
 import '../../widgets/common/custom_snackbar.dart';
 
-class FavouriteTile extends StatelessWidget {
+class FavouriteTile extends StatefulWidget {
   final Favourite favourite;
   final Function setLoadingCallback;
   const FavouriteTile({
@@ -18,93 +18,129 @@ class FavouriteTile extends StatelessWidget {
   });
 
   @override
+  State<FavouriteTile> createState() => _FavouriteTileState();
+}
+
+class _FavouriteTileState extends State<FavouriteTile> {
+  @override
   Widget build(BuildContext context) {
     String path = '';
 
-    for (var i = 0; i < favourite.path.length; i++) {
-      if (favourite.path[i] == '-') break;
-      path += favourite.path[i];
+    for (var i = 0; i < widget.favourite.path.length; i++) {
+      if (widget.favourite.path[i] == '-') break;
+      path += widget.favourite.path[i];
     }
 
-    List<String> paths = favourite.path.split('/');
+    List<String> paths = widget.favourite.path.split('/');
 
     for (var i = 1; i < paths.length; i++) {
       path += ' > ';
       path += paths[i];
     }
 
-    return GestureDetector(
-      onTap: () async {
-        bool isDownloaded = await isFileDownloaded(favourite.name);
-        if (!context.mounted) return;
-        await downloadOpenFiles(
-            isDownloaded, favourite.name, favourite.favouriteId, context);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: ListTile(
-            leading: SvgPicture.asset('assets/favourite_file.svg'),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  path,
-                  maxLines: 2,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color.fromRGBO(37, 37, 37, 1),
-                  ),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                Text(
-                  letterCapitalizer(favourite.name.split('.')[0]),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w400, fontSize: 14),
-                ),
-              ],
-            ),
-            trailing: PopupMenuButton(
-              icon: const Icon(Icons.more_vert_rounded),
-              itemBuilder: (context) {
-                return [
-                  PopupMenuItem(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: GestureDetector(
-                      onTap: () async {
-                        try {
-                          String address = favourite.path;
-                          final shareLink =
-                              await FirebaseDynamicLink.createDynamicLink(
-                            favourite.name.toLowerCase(),
-                            favourite.id,
-                            address,
-                          );
-
-                          await Share.share(shareLink,
-                              subject: '$favourite.name \n CourseHub');
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          showSnackBar('Something went Wrong!', context);
-                        }
-                      },
-                      child: const Row(
-                        children: [
-                          Icon(Icons.share),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text('Share')
-                        ],
-                      ),
-                    ),
-                  ),
-                ];
+    return FutureBuilder(
+      future: isFileDownloaded(widget.favourite.name),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot)
+      {
+        bool isDownloaded = snapshot.data ?? false;
+        return Material(
+            child: InkWell(
+              splashColor: Colors.yellow[900],
+              onTap: () async {
+                if (!context.mounted) return;
+                await downloadOpenFiles(
+                    isDownloaded, widget.favourite.name, widget.favourite.favouriteId, context);
+                if (!isDownloaded) {
+                  setState(() {
+                    isDownloaded = true;
+                  });
+                }
               },
-            )),
-      ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: ListTile(
+                    leading: SvgPicture.asset('assets/favourite_file.svg'),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          path,
+                          maxLines: 2,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color.fromRGBO(37, 37, 37, 1),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          letterCapitalizer(widget.favourite.name.split('.')[0]),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w400, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Visibility(
+                          visible: isDownloaded,
+                          child: Container(
+                            transform:
+                            Matrix4.translationValues(
+                                0, 2, 0),
+                            child: const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                        PopupMenuButton(
+                          icon: const Icon(Icons.more_vert_rounded),
+                          itemBuilder: (context) {
+                            return [
+                              PopupMenuItem(
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    try {
+                                      String address = widget.favourite.path;
+                                      final shareLink =
+                                      await FirebaseDynamicLink.createDynamicLink(
+                                        widget.favourite.name.toLowerCase(),
+                                        widget.favourite.id,
+                                        address,
+                                      );
+
+                                      await Share.share(shareLink,
+                                          subject: '$widget.favourite.name \n CourseHub');
+                                    } catch (e) {
+                                      showSnackBar('Something went Wrong!', context);
+                                    }
+                                  },
+                                  child:const  Row(
+                                    children: [
+                                      Icon(Icons.share),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Text('Share')
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ];
+                          },
+                        ),
+                      ],
+                    )),
+              ),
+            )
+        );
+      },
+
     );
   }
 }
