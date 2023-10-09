@@ -75,6 +75,6 @@ func main() {
 		}
 		defer resp.Body.Close()
 		fmt.Println("Created", row[0], row[1])
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(time.Millisecond * 240)
 	}
 }
