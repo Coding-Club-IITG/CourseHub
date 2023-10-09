@@ -65,7 +65,7 @@ const ApprovePage = () => {
       const resp = await axios.post(
         "http://localhost:8080/api/admin/contribution/bootstrapnewcourse",
         {
-          code: `${courseData.courseCode} - ${courseName}`,
+          code: `${courseData.courseCode.toUpperCase()} - ${courseName}`,
         }
       );
       console.log(resp.data);
@@ -92,6 +92,7 @@ const ApprovePage = () => {
     <div className="container p-3">
       {errors}
       <p className="display-5">Approve Contribution</p>
+      <p className="h3">{courseData.courseCode}</p>
       {movingFiles && (
         <div className="alert alert-secondary">
           <h4>Approving contribution...</h4>
