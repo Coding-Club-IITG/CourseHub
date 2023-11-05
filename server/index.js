@@ -23,7 +23,7 @@ import adminRoutes from "./modules/admin/admin.routes.js";
 import timeTableRoutes from "./modules/timetable/timetable.routes.js";
 import miscellaneousRoutes from "./modules/miscellaneous/miscellaneous.routes.js";
 import codingweekRoutes from "./modules/codingweek/codingweek.routes.js";
-
+import appConfig from "./config/default.js";
 const app = express();
 
 const PORT = config.port;
@@ -37,7 +37,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({ origin: appConfig.clientURL, credentials: true }));
 app.use(ua.express());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

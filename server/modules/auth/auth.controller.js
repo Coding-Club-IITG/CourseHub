@@ -132,7 +132,7 @@ export const redirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect",
+        redirect_uri: `${appConfig.serverBase}/api/auth/login/redirect`,
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
@@ -191,14 +191,14 @@ export const redirectHandler = async (req, res, next) => {
         existingUser = await user.save();
     }
 
-    let userUpdated = await UserUpdate.findOne({rollNumber: roll});
+    let userUpdated = await UserUpdate.findOne({ rollNumber: roll });
     console.log(userUpdated);
-    if(existingUser && !userUpdated){
+    if (existingUser && !userUpdated) {
         const courses = await fetchCourses(userFromToken.data.surname);
         existingUser.courses = courses;
         existingUser.semester = calculateSemester(userFromToken.data.surname);
         await existingUser.save();
-        const newUpdation = new UserUpdate({rollNumber: roll});
+        const newUpdation = new UserUpdate({ rollNumber: roll });
         await newUpdation.save();
     }
 
@@ -222,7 +222,7 @@ export const mobileRedirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: "https://www.coursehubiitg.in/api/auth/login/redirect/mobile",
+        redirect_uri: `${appConfig.serverBase}/api/auth/login/redirect/mobile`,
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
@@ -276,14 +276,14 @@ export const mobileRedirectHandler = async (req, res, next) => {
         const user = new User(userData);
         existingUser = await user.save();
     }
-    let userUpdated = await UserUpdate.findOne({rollNumber: roll});
+    let userUpdated = await UserUpdate.findOne({ rollNumber: roll });
     console.log(userUpdated);
-    if(existingUser && !userUpdated){
+    if (existingUser && !userUpdated) {
         const courses = await fetchCourses(userFromToken.data.surname);
         existingUser.courses = courses;
         existingUser.semester = calculateSemester(userFromToken.data.surname);
         await existingUser.save();
-        const newUpdation = new UserUpdate({rollNumber: roll});
+        const newUpdation = new UserUpdate({ rollNumber: roll });
         await newUpdation.save();
     }
 
