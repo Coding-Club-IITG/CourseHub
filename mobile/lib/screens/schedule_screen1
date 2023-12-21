@@ -1,0 +1,204 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../widgets/schedule_screen1/timeline_tile.dart';
+
+
+
+
+class ScheduleScreen extends StatefulWidget {
+  const ScheduleScreen({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _ScheduleScreen();
+}
+
+
+class _ScheduleScreen extends State<ScheduleScreen> {
+  // Sample data: Days and Events
+  final List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+  String selectedDay = 'Mon'; // Initial day
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: SafeArea(
+          child: Container(
+            color: Colors.black, // Set background color
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        const SizedBox(width: 20),
+                        const Text(
+                          'Schedule',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(255, 255, 255, 1),
+                            fontSize: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 140,),
+                        CircleAvatar(
+                          radius: 16, // Adjust the radius as needed
+                          backgroundColor: const Color.fromRGBO(37, 37, 37, 1), // Adjust the background color as needed
+                          child: SvgPicture.asset(
+                            'assets/v21.svg', // Replace with the path to your image
+                            width: 15, // Adjust the image width as needed
+                            height: 12,
+                            color: const Color.fromRGBO(165, 165, 165, 1),// Adjust the image height as needed
+                          ),
+                        ),
+                        const SizedBox(width: 8,),
+                        CircleAvatar(
+                          radius: 16, // Adjust the radius as needed
+                          backgroundColor: const Color.fromRGBO(37, 37, 37, 1), // Adjust the background color as needed
+                          child: SvgPicture.asset(
+                            'assets/v2.svg', // Replace with the path to your image
+                            width: 15, // Adjust the image width as needed
+                            height: 12,
+                            color: const Color.fromRGBO(165, 165, 165, 1),// Adjust the image height as needed
+                          ),
+                        ),
+                        const SizedBox(width: 16,),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: days
+                      .map(
+                        (day) => Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 20, 10, 0),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedDay = day;
+                          });
+                        },
+                        child: Container(
+                          width: 48,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: day == selectedDay ? const Color.fromRGBO(254, 207, 111, 1): Colors.black,
+                            border: Border.all(
+                              color: const Color.fromRGBO(133, 133, 133, 1),
+                              width: 2,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            day,
+                            textAlign: TextAlign.center,
+                            style:  TextStyle(
+                              color: day == selectedDay ? Colors.black:Colors.white,
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                      .toList(),
+                ),
+                const SizedBox(height: 24),
+                Column(
+                  children: [
+                    const Row(
+                      children: [
+                        SizedBox(width: 24,),
+                        Text(
+                          'Forenoon',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16, fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                    const Divider(
+                      color: Colors.grey,
+                      thickness: 1,
+                    ),
+                    SizedBox(
+                      height: 250,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: 4, // Replace with your actual item count
+                          itemBuilder: (context, index) {
+                            if(index==0)
+                            {
+                              return MyTimeLineTile(isFirst: true, isLast: false,isUpcoming: false,);
+                            }
+                            else if(index==3)
+                            {
+                              return MyTimeLineTile(isFirst: false, isLast: true,isUpcoming: true,);
+                            }
+                            else
+                            {
+                              return MyTimeLineTile(isFirst: false, isLast: false,isUpcoming: true,);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const Row(
+                      children: [
+                        SizedBox(width: 24,),
+                        Text(
+                          'Afternoon',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16, fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                    const Divider(
+                      color: Colors.white,
+                      thickness: 1,
+                    ),
+                    SizedBox(
+                      height: 250,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
+                        child: SizedBox(
+
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: 4,
+                            itemBuilder: (context, index) {
+                              if(index==0)
+                              {
+                                return MyTimeLineTile(isFirst: true, isLast: false, isUpcoming: false,);
+                              }
+                              else if(index==3)
+                              {
+                                return MyTimeLineTile(isFirst: false, isLast: true, isUpcoming: true,);
+                              }
+                              else
+                              {
+                                return MyTimeLineTile(isFirst: false, isLast: false, isUpcoming: true,);
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        )
+    );
+  }
+}
