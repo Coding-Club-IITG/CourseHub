@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 class Themes {
   static const kYellow = Color.fromRGBO(254, 207, 111, 1);
   static final theme = ThemeData(
+    useMaterial3: true,
     primaryColor: kYellow,
+    scaffoldBackgroundColor: Colors.white,
     fontFamily: 'ProximaNova',
     splashColor: kYellow,
     textTheme: const TextTheme(

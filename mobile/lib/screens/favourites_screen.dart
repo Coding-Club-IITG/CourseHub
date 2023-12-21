@@ -1,3 +1,6 @@
+import 'package:coursehub/widgets/favourite_screen/empty_list.dart';
+import 'package:coursehub/widgets/favourite_screen/grouped_course.dart';
+
 import '../../widgets/common/custom_snackbar.dart';
 import '../../widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -6,11 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../animations/custom_fade_in_animation.dart';
-import '../../constants/all_courses.dart';
+
 import '../../models/favourites.dart';
 import '../../providers/navigation_provider.dart';
-import '../../utilities/letter_capitalizer.dart';
-import '../constants/themes.dart';
 import '../database/hive_store.dart';
 import '../widgets/common/custom_linear_progress.dart';
 import '../widgets/favourite_screen/favourite_tile.dart';
@@ -186,121 +187,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   }
 }
 
-class EmptyList extends StatelessWidget {
-  const EmptyList({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Nothing Here!',
-            style: Themes.darkTextTheme.displayLarge,
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          const Text(
-            'Click on the "star" icon next to any\n file to add files to your favourites',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w400,
-              color: Color.fromRGBO(108, 108, 108, 1),
-              fontSize: 14.0,
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          Image.asset(
-            'assets/my_profile_no_contri.png',
-            width: 300,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class GroupedCourses extends StatelessWidget {
-  final Function setLoadingCallback;
 
-  const GroupedCourses({super.key, required this.setLoadingCallback});
-
-  @override
-  Widget build(BuildContext context) {
-    final List<Favourite> favourites = HiveStore.getFavourites();
-
-    Map<String, List<Favourite>> groupedFavourites = {};
-
-    for (var fav in favourites) {
-      if (groupedFavourites[fav.code.toLowerCase()] != null) {
-        groupedFavourites[fav.code.toLowerCase()]!.add(fav);
-      } else {
-        groupedFavourites[fav.code.toLowerCase()] = [fav];
-      }
-    }
-
-    return Expanded(
-      child: AnimationLimiter(
-        child: ListView.builder(
-            itemCount: groupedFavourites.length,
-            physics: const BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              String key = groupedFavourites.keys.elementAt(index);
-
-              final course =
-                  courses.firstWhere((course) => course['code'] == key);
-
-              List<Widget> children = [];
-
-              children.add(
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      '${key.toUpperCase()}: ${letterCapitalizer(course['name'] ?? ' ')}',
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black),
-                    ),
-                  ],
-                ),
-              );
-
-              for (var fav in groupedFavourites[key]!) {
-                {
-                  children.add(FavouriteTile(
-                      favourite: fav, setLoadingCallback: setLoadingCallback));
-                }
-              }
-
-              children.add(const SizedBox(
-                height: 20,
-              ));
-
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: children,
-                    ),
-                  ),
-                ),
-              );
-            }),
-      ),
-    );
-  }
-}

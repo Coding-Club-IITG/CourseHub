@@ -44,8 +44,9 @@ class _FavouriteTileState extends State<FavouriteTile> {
       {
         bool isDownloaded = snapshot.data ?? false;
         return Material(
+          color: Colors.white,
             child: InkWell(
-              splashColor: Colors.yellow[900],
+              splashColor: Colors.grey,
               onTap: () async {
                 if (!context.mounted) return;
                 await downloadOpenFiles(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
 import '../../apis/authentication/login.dart';
 import '../../database/cache_store.dart';
 import '../../widgets/common/custom_snackbar.dart';
@@ -14,7 +13,6 @@ class MenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final navigationProvider = context.read<NavigationProvider>();
-
     return Drawer(
       width: 250,
       backgroundColor: Colors.black,
@@ -42,7 +40,8 @@ class MenuDrawer extends StatelessWidget {
                 if (CacheStore.isGuest) {
                   Navigator.of(context).pop();
 
-                  showSnackBar('Login with outlook to use this feature!', context);
+                  showSnackBar(
+                      'Login with outlook to use this feature!', context);
                   return;
                 }
 
@@ -78,7 +77,8 @@ class MenuDrawer extends StatelessWidget {
               onPressed: () {
                 if (CacheStore.isGuest) {
                   Navigator.of(context).pop();
-                  showSnackBar('Login with outlook to use this feature!', context);
+                  showSnackBar(
+                      'Login with outlook to use this feature!', context);
                   return;
                 }
                 navigationProvider.changePageNumber(8);
@@ -112,8 +112,8 @@ class MenuDrawer extends StatelessWidget {
                 const SizedBox(
                   width: 10,
                 ),
-               const  Column(
-                  children:  [
+                const Column(
+                  children: [
                     Text(
                       'Coding Club',
                       style: TextStyle(
@@ -233,7 +233,7 @@ class MenuDrawer extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                 child: const Row(
-                  children:  [
+                  children: [
                     Icon(
                       Icons.arrow_circle_right_outlined,
                       color: Colors.white,
@@ -280,7 +280,8 @@ class MenuItems extends StatelessWidget {
           ),
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.w400),
+            style: const TextStyle(
+                fontWeight: FontWeight.w400, color: Colors.white),
           ),
         ],
       ),

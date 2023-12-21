@@ -106,7 +106,7 @@ class _ScheduleScreen extends State<ScheduleScreen> {
               padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: 4, 
+                itemCount: 4,
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return const CustomTimeLineTile(
@@ -132,37 +132,12 @@ class _ScheduleScreen extends State<ScheduleScreen> {
             ),
             const DaySection(
               section: 'Afternoon',
-              numClasses: 2,
+              numClasses: 0,
             ),
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
-              height: 250,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return const CustomTimeLineTile(
-                      isFirst: true,
-                      isLast: false,
-                      isUpcoming: false,
-                    );
-                  } else if (index == 3) {
-                    return const CustomTimeLineTile(
-                      isFirst: false,
-                      isLast: true,
-                      isUpcoming: true,
-                    );
-                  } else {
-                    return const CustomTimeLineTile(
-                      isFirst: false,
-                      isLast: false,
-                      isUpcoming: true,
-                    );
-                  }
-                },
-              ),
-            ),
+                padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
+                height: 250,
+                child: Image.asset("assets/no_class.png")),
           ],
         ),
       ),

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:coursehub/screens/schedule_screen.dart';
+
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
