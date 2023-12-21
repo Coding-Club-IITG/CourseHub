@@ -38,11 +38,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final navigatorProvider = context.read<NavigationProvider>();
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
         navigatorProvider.changePageNumber(0);
-
-        return false;
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

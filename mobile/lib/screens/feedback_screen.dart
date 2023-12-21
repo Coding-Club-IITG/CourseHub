@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,11 +29,10 @@ class _FeedBackScreenState extends State<FeedBackScreen> {
   @override
   Widget build(BuildContext context) {
     final navigatorProvider = context.read<NavigationProvider>();
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
         navigatorProvider.changePageNumber(0);
-
-        return false;
       },
       child: Form(
         key: _key,
@@ -233,8 +231,7 @@ class _FeedBackScreenState extends State<FeedBackScreen> {
                                     setState(() {
                                       _isUploading = false;
                                     });
-                                    showSnackBar(
-                                        e.toString(), context);
+                                    showSnackBar(e.toString(), context);
                                   }
                                 }
                               }),

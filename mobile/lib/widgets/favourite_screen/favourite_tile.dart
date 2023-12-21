@@ -117,6 +117,7 @@ class _FavouriteTileState extends State<FavouriteTile> {
                                       await Share.share(shareLink,
                                           subject: '$widget.favourite.name \n CourseHub');
                                     } catch (e) {
+                                      if(!mounted)return;
                                       showSnackBar('Something went Wrong!', context);
                                     }
                                   },

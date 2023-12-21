@@ -32,10 +32,11 @@ class SearchScreen extends StatelessWidget {
                 create: (context) => SearchProvider(),
               )
             ],
-            child: WillPopScope(
-              onWillPop: () async {
+            child: PopScope(
+              canPop: false,
+              onPopInvoked: (_) async {
                 navigationProvider.changePageNumber(0);
-                return false;
+        
               },
               child: Stack(
                 alignment: Alignment.bottomCenter,

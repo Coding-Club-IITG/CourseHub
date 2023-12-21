@@ -6,8 +6,7 @@ import '../../models/contribution.dart';
 
 class ContributionCard extends StatelessWidget {
   final Contribution contribution;
-  const ContributionCard({Key? key, required this.contribution})
-      : super(key: key);
+  const ContributionCard({super.key, required this.contribution});
 
   @override
   Widget build(BuildContext context) {

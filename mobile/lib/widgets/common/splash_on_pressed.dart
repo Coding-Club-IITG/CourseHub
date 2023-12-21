@@ -4,12 +4,13 @@ class SplashOnPressed extends StatelessWidget {
   final Function onPressed;
   final Widget child;
   final Color splashColor;
-  const SplashOnPressed({
-    super.key,
-    required this.onPressed,
-    required this.child,
-    required this.splashColor
-  });
+  final double radius;
+  const SplashOnPressed(
+      {super.key,
+      required this.onPressed,
+      required this.child,
+      required this.splashColor,
+      this.radius = 10});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,7 @@ class SplashOnPressed extends StatelessWidget {
         onTap: () => onPressed(),
         splashColor: splashColor,
         customBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(radius),
         ),
         child: child,
       ),

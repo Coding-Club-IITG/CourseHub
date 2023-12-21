@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart';
@@ -20,10 +19,10 @@ class ExamScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final navigatorProvider = context.read<NavigationProvider>();
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
         navigatorProvider.changePageNumber(0);
-        return false;
       },
       child: Stack(
         children: [
@@ -59,7 +58,7 @@ class ExamScreen extends StatelessWidget {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           List<ExamDetails> examDetails = snapshot.data ?? [];
-                          if(examDetails.isEmpty){
+                          if (examDetails.isEmpty) {
                             return const Center(
                               child: Text(
                                 'No data Found !',

@@ -1,3 +1,5 @@
+import 'package:coursehub/screens/schedule_screen.dart';
+import 'package:coursehub/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -6,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../../providers/cache_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../utilities/startup_items.dart';
-import '../screens/splash_screen.dart';
 import './constants/themes.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

@@ -55,10 +55,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   @override
   Widget build(BuildContext context) {
     final navigatorProvider = context.read<NavigationProvider>();
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
         navigatorProvider.changePageNumber(0);
-        return false;
       },
       child: FutureBuilder<bool>(
           future: _isCourseGrouped(),

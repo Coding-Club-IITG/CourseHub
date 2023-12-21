@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -13,8 +11,6 @@ import '../../widgets/browse_screen/bread_crumbs.dart';
 import '../utilities/dynamic_links.dart';
 import '../providers/navigation_provider.dart';
 import '../../widgets/browse_screen/folder_explorer.dart';
-
-
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -132,16 +128,14 @@ class _BrowseScreen extends State<BrowseScreen> {
               }
               navigationCrumbs.removeLast();
 
-              return WillPopScope(
-                onWillPop: () async {
+              return PopScope(
+                canPop: false,
+                onPopInvoked: (_) async {
                   level -= 2;
-
                   if (level <= 0) {
                     navigationProvider.changePageNumber(0);
-                    return false;
                   } else {
                     removeFromPath(level);
-                    return false;
                   }
                 },
                 child: CustomFadeInAnimation(
@@ -200,8 +194,6 @@ class _BrowseScreen extends State<BrowseScreen> {
                                           x += '/';
                                         }
                                         x = x.substring(0, x.length - 1);
-
-                          
 
                                         final link = await FirebaseDynamicLink
                                             .createDynamicLink(

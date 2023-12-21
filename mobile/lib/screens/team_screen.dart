@@ -65,10 +65,10 @@ class TeamScreen extends StatelessWidget {
     children.add(const TeamFooter());
 
     final navigatorProvider = context.read<NavigationProvider>();
-    return WillPopScope(
-        onWillPop: () async {
+    return PopScope(
+        canPop: false,
+        onPopInvoked: (_) async {
           navigatorProvider.changePageNumber(0);
-          return false;
         },
         child: Ink(
           color: Colors.black,
@@ -191,7 +191,7 @@ class LeftAlignedFrame extends StatelessWidget {
             child: PhotoFrame(
               photo: image,
               socials: socials,
-              name:name,
+              name: name,
             ),
           ),
         ),
