@@ -67,6 +67,8 @@ dependencies:
   upgrader: ^8.1.0
   timeline_tile: ^2.0.0
   percent_indicator: ^4.0.1
+  firebase_messaging: ^14.7.9
+  
 
 
 dev_dependencies:
@@ -114,15 +116,19 @@ flutter:
   fonts:
     - family: ProximaNova
       fonts:
-        - asset: assets/fonts/Proxima-Nova-Black.otf
+        - asset: assets/fonts/ProximaNova-Black.ttf
           weight: 900
-        - asset: assets/fonts/Proxima-Nova-Extrabold.otf
+        - asset: assets/fonts/ProximaNova-Extrabld.ttf
           weight: 800
-        - asset: assets/fonts/Proxima-Nova-Bold.otf
+        - asset: assets/fonts/ProximaNova-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Proxima-Nova-Regular.otf
+        - asset: assets/fonts/ProximaNova-Semibold.ttf
+          weight: 600
+        - asset: assets/fonts/ProximaNova-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Proxima-Nova-Thin.otf
+        - asset: assets/fonts/ProximaNova-Light.ttf
+          weight: 300
+        - asset: assets/fonts/ProximaNovaT-Thin.ttf
           weight: 100
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
