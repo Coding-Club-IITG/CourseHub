@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CourseHub Admin</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+            integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+            integrity="sha512-Xo0Jh8MsOn72LGV8kU5LsclG7SUzJsWGhXbWcYs2MAmChkQzwiW/yTQwdJ8w6UA9C6EVG18GHb/TrYpYCjyAQw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+    </head>
+    <body>
+        <div class="row" style="margin-top: 30px"></div>
+        <div class="ui vertically divided grid container">
+            <div class="two column row">
+                <div class="column">
+                    <% if(locals.message){%>
+                    <div class="ui positive message">
+                        <div class="header"><%= message %></div>
+                        <p>Successfully performed action..</p>
+                    </div>
+                    <%}%> <% if(locals.error){%>
+                    <div class="ui negative message">
+                        <div class="header"><%= error %></div>
+                        <p>Something went wrong!</p>
+                    </div>
+                    <%}%>
+                    <h1>Refresh User Courses</h1>
+                    <form
+                        class="ui form"
+                        id="form"
+                        action="/internal/admin/refresh-courses"
+                        method="POST"
+                    >
+                        <div class="field">
+                            <label>Username</label>
+                            <input type="text" name="username" placeholder="Username" required />
+                        </div>
+                        <div class="field">
+                            <label>Password</label>
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                required
+                            />
+                        </div>
+                        <div class="field">
+                            <label>Secret phrase</label>
+                            <input
+                                type="text"
+                                name="secretPhrase"
+                                placeholder="Secret phrase"
+                                required
+                            />
+                        </div>
+
+                        <button class="ui button" type="submit">Refresh</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row"></div>
+        </div>
+    </body>
+    <script>
+        // const form = document.getElementById("form");
+    </script>
+</html>

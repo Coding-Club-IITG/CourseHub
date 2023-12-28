@@ -9,5 +9,5 @@ export default {
     jwtSecret: process.env.JWT_SECRET,
     aesKey: process.env.AESKEY,
     adminJwtSecret: "32rytfhgv456ryt43ertfgy45rtfhh",
-    serverVersion: 1.5,
+    serverVersion: 1.6,
 };

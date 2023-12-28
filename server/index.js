@@ -32,13 +32,16 @@ const app = express();
 const PORT = config.port;
 // app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
+app.set("view engine", "ejs");
 app.use(express.static("static"));
 import path from "path";
 import { fileURLToPath } from "url";
+import { UserUpdate } from "./modules/miscellaneous/miscellaneous.model.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 app.use(ua.express());
@@ -53,9 +56,34 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/miscellaneous", miscellaneousRoutes);
 app.use("/api/timetable", timeTableRoutes);
 app.use("/api/codingweek", codingweekRoutes);
-app.use("/api/syllabus",syllabusRoutes);
-app.use("/api/attendence",attendenceRoutes);
-app.use("/api/schedule",scheduleRoutes);
+app.use("/api/syllabus", syllabusRoutes);
+app.use("/api/attendence", attendenceRoutes);
+app.use("/api/schedule", scheduleRoutes);
+
+app.disable("view cache");
+app.get("/internal/admin/refresh-courses", async (req, res, next) => {
+    res.render("admin/refresh-user-courses");
+});
+app.post("/internal/admin/refresh-courses", async (req, res, next) => {
+    const { username, password, secretPhrase } = req.body;
+    if (username === "" || password === "" || secretPhrase === "") {
+        return res.render("admin/refresh-user-courses", { error: "Invalid Request" });
+    }
+    const correctPassword = process.env.AESKEY;
+    if (
+        username !== "codingclub-23" ||
+        password !== correctPassword ||
+        secretPhrase !== "atharva tagalpallewar"
+    ) {
+        return res.render("admin/refresh-user-courses", { error: "Invalid Credentials" });
+    }
+    try {
+        await UserUpdate.deleteMany({});
+    } catch (error) {
+        return res.render("admin/refresh-user-courses", { error: "Server error" });
+    }
+    res.render("admin/refresh-user-courses", { message: "Refreshed successfully!" });
+});
 
 app.use(
     "/homepage",
