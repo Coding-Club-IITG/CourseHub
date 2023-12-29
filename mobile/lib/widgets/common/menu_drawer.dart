@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../apis/authentication/login.dart';
 import '../../database/cache_store.dart';
 import '../../widgets/common/custom_snackbar.dart';
-import '../../constants/themes.dart';
 import '../../providers/navigation_provider.dart';
 
 class MenuDrawer extends StatelessWidget {
@@ -46,19 +45,45 @@ class MenuDrawer extends StatelessWidget {
                 }
 
                 navigationProvider.changePageNumber(6);
-                Navigator.of(context).pop();
+                navigationProvider.key.currentState!.closeDrawer();
               },
               title: 'Exam Schedule'),
           MenuItems(
               icon: const Icon(
-                Icons.downloading_sharp,
+                Icons.percent_outlined,
                 color: Colors.white,
               ),
               onPressed: () {
-                showSnackBar('This feature coming soon!', context);
-                Navigator.of(context).pop();
+                if (CacheStore.isGuest) {
+                  Navigator.of(context).pop();
+
+                  showSnackBar(
+                      'Login with outlook to use this feature!', context);
+                  return;
+                }
+
+                navigationProvider.changePageNumber(10);
+                navigationProvider.key.currentState!.closeDrawer();
               },
-              title: 'Downloads'),
+              title: 'Attendance'),
+          MenuItems(
+              icon: const Icon(
+                Icons.star_border_rounded,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                if (CacheStore.isGuest) {
+                  Navigator.of(context).pop();
+
+                  showSnackBar(
+                      'Login with outlook to use this feature!', context);
+                  return;
+                }
+
+                navigationProvider.changePageNumber(9);
+                navigationProvider.key.currentState!.closeDrawer();
+              },
+              title: 'Favourites'),
           MenuItems(
               icon: const Icon(
                 Icons.handshake_outlined,
@@ -66,7 +91,7 @@ class MenuDrawer extends StatelessWidget {
               ),
               onPressed: () {
                 showSnackBar('This feature coming soon!', context);
-                Navigator.of(context).pop();
+                navigationProvider.key.currentState!.closeDrawer();
               },
               title: 'Special Thanks'),
           MenuItems(
@@ -82,7 +107,7 @@ class MenuDrawer extends StatelessWidget {
                   return;
                 }
                 navigationProvider.changePageNumber(8);
-                Navigator.of(context).pop();
+                navigationProvider.key.currentState!.closeDrawer();
               },
               title: 'Feedback/ Bugs'),
           MenuItems(
@@ -93,7 +118,7 @@ class MenuDrawer extends StatelessWidget {
               onPressed: () {
                 navigationProvider.changePageNumber(7);
 
-                Navigator.of(context).pop();
+                navigationProvider.key.currentState!.closeDrawer();
               },
               title: 'Team'),
           const Spacer(),
@@ -141,91 +166,7 @@ class MenuDrawer extends StatelessWidget {
               onTap: () {
                 showDialog(
                   context: context,
-                  builder: (context) => Dialog(
-                    elevation: 50,
-                    insetPadding: const EdgeInsets.symmetric(horizontal: 5),
-                    backgroundColor: Colors.transparent,
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: Themes.kYellow,
-                            width: 2,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 15, horizontal: 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'Are you sure \nyou want to logout ?',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 21,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            SizedBox(
-                              width: 280,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                // mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  TextButton(
-                                    style: ButtonStyle(
-                                      overlayColor:
-                                          MaterialStateColor.resolveWith(
-                                              (states) => const Color.fromRGBO(
-                                                  254, 207, 111, 0.3)),
-                                    ),
-                                    onPressed: () async {
-                                      await logoutHandler(context);
-                                    },
-                                    child: const Text(
-                                      'Logout',
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Material(
-                                    color: Themes.kYellow,
-                                    child: InkWell(
-                                      splashColor:
-                                          const Color.fromRGBO(0, 0, 0, 0.1),
-                                      onTap: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: SizedBox(
-                                        height: 35,
-                                        width: 75,
-                                        child: Center(
-                                          child: Text(
-                                            'Cancel',
-                                            style:
-                                                Themes.darkTextTheme.bodyLarge,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  builder: (context) => const LogoutDialog(),
                 );
               },
               child: Container(
@@ -288,6 +229,68 @@ class MenuItems extends StatelessWidget {
       onTap: () {
         onPressed();
       },
+    );
+  }
+}
+
+class LogoutDialog extends StatelessWidget {
+  const LogoutDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      child: Container(
+        width: 320,
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/logout.png',
+              width: 160,
+            ),
+            const SizedBox(
+              height: 24,
+            ),
+            const Text(
+              'Oh no! You\'re leaving.....\nAre you sure?',
+              style: TextStyle(color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+              style: const ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(Colors.amber),
+                foregroundColor: MaterialStatePropertyAll(Colors.black),
+                overlayColor: MaterialStatePropertyAll(Colors.white60),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Naah, Just Kidding'),
+            ),
+            ElevatedButton(
+              style: ButtonStyle(
+                foregroundColor: const MaterialStatePropertyAll(Colors.black),
+                overlayColor: MaterialStatePropertyAll(Colors.amber[200]),
+                side: const MaterialStatePropertyAll(
+                  BorderSide(color: Colors.amber),
+                ),
+              ),
+              onPressed: () async {
+                await logoutHandler(context);
+              },
+              child: const Text('Yes, Log Me Out'),
+            )
+          ],
+        ),
+      ),
+      
     );
   }
 }

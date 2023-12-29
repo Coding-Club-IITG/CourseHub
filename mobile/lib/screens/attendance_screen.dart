@@ -1,6 +1,7 @@
 import 'package:coursehub/widgets/attendance_screen/attendance_indicator.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -40,17 +41,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         height: 40,
                       ),
                       Expanded(
-                        child: ListView.separated(
-                          separatorBuilder: (context, index) => const SizedBox(
-                            height: 16,
+                        child: AnimationLimiter(
+                          child: ListView.separated(
+                            separatorBuilder: (context, index) => const SizedBox(
+                              height: 16,
+                            ),
+                            shrinkWrap: true,
+                            itemCount: 4,
+                            itemBuilder: (context, index) {
+                              return AnimationConfiguration.staggeredList(
+                                position: index,
+                                duration: const Duration(milliseconds: 375),
+                                child: SlideAnimation(
+                                  verticalOffset: 50,
+                                  child: FadeInAnimation(
+                                    child: AttendanceIndicator(
+                                      attendance: (12 * (index + 1)) % 100,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          shrinkWrap: true,
-                          itemCount: 4,
-                          itemBuilder: (context, index) {
-                            return AttendanceIndicator(
-                              attendance: (12 * (index + 1)) % 100,
-                            );
-                          },
                         ),
                       )
                     ],

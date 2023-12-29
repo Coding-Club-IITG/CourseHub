@@ -47,10 +47,14 @@ class _NavBarIconState extends State<NavBarIcon>
       return widget.isSelected
           ? SvgPicture.asset('assets/profile_selected.svg')
           : SvgPicture.asset('assets/profile.svg');
-    } else if (widget.label == 'Favourites') {
+    } else if (widget.label == 'Schedule') {
       return widget.isSelected
-          ? SvgPicture.asset('assets/favourite_selected.svg')
-          : SvgPicture.asset('assets/favourite.svg');
+          ? SvgPicture.asset('assets/schedule_selected.svg')
+          : SvgPicture.asset(
+              'assets/schedule.svg',
+              colorFilter: const ColorFilter.mode(
+                  Color.fromRGBO(74, 63, 37, 1), BlendMode.srcIn),
+            );
     } else if (widget.label == 'Browse') {
       return widget.isSelected
           ? SvgPicture.asset('assets/browse_selected.svg')
@@ -65,7 +69,7 @@ class _NavBarIconState extends State<NavBarIcon>
   int serialNo() {
     if (widget.label == 'Profile') {
       return 4;
-    } else if (widget.label == 'Favourites') {
+    } else if (widget.label == 'Schedule') {
       return 3;
     } else if (widget.label == 'Browse') {
       return 1;

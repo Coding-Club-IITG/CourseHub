@@ -19,7 +19,6 @@ class DayContainer extends StatelessWidget {
       splashColor: Colors.grey,
       radius: 4,
       child: Container(
-  
         width: 52,
         decoration: BoxDecoration(
             border: Border.all(

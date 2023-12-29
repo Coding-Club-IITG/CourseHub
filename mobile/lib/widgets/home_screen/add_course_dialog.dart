@@ -1,7 +1,11 @@
+import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:coursehub/utilities/startup_items.dart';
+import 'package:provider/provider.dart';
+
 import '../../apis/courses/add_courses.dart';
 import '../../constants/themes.dart';
 import '../../database/hive_store.dart';
-import '../../screens/splash_screen.dart';
+
 import '../../widgets/common/custom_linear_progress.dart';
 import '../../widgets/nav_bar/search_card.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +15,8 @@ import '../../models/search_result.dart';
 import '../common/custom_snackbar.dart';
 
 class AddCourseDialog extends StatefulWidget {
-  const AddCourseDialog({super.key});
+  final Function refreshHomeScreen;
+  const AddCourseDialog({super.key, required this.refreshHomeScreen});
 
   @override
   State<AddCourseDialog> createState() => _AddCourseDialogState();
@@ -55,6 +60,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.read<NavigationProvider>();
     return Stack(
       children: [
         Dialog(
@@ -89,6 +95,8 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                       ),
                       Expanded(
                         child: TextField(
+                          style: const TextStyle(
+                              color: Colors.black, fontWeight: FontWeight.w400),
                           textInputAction: TextInputAction.search,
                           onSubmitted: (value) async {
                             try {
@@ -174,13 +182,12 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                       _isLoading = false;
                                     });
 
+                                    await startupItems();
                                     if (!mounted) return;
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const SplashScreen(),
-                                        ),
-                                        (route) => false);
+
+                                    navigationProvider.changePageNumber(4);
+
+                                    Navigator.of(context).pop();
                                     showSnackBar(
                                         "Course Succesfully added", context);
                                   } catch (e) {

@@ -1,4 +1,3 @@
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -29,6 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     user = HiveStore.getUserDetails();
     super.initState();
+  }
+
+  void refreshPage() {
+    setState(() {});
   }
 
   @override
@@ -118,13 +121,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           const Color.fromRGBO(
                                                               0, 0, 0, 0.8),
                                                       builder: (context) =>
-                                                          const AddCourseDialog(),
+                                                          AddCourseDialog(
+                                                        refreshHomeScreen:
+                                                            refreshPage,
+                                                      ),
                                                     );
                                                   },
                                                   splashColor: Colors.white10,
                                                   child: Container(
                                                     margin: const EdgeInsets
-                                                            .all(
+                                                        .all(
                                                         0.6), // otherwise dotted border seems faded on some side on iphone
                                                     child: DottedBorder(
                                                       strokeWidth: 1,

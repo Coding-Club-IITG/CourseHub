@@ -20,7 +20,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.2.0+25
 
 environment:
-  sdk: ">=2.18.6 <3.0.0"
+  sdk: '>=3.2.3 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -35,39 +35,38 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
 
-  shared_preferences: ^2.2.1
+  shared_preferences: ^2.2.2
   flutter_web_auth: ^0.5.0
   flutter_appauth: ^6.0.2
-  local_auth: ^2.1.7
-  local_auth_android: ^1.0.34
-  http: ^1.1.0
-  flutter_svg: ^2.0.7
+  http: ^1.1.2
+  flutter_svg: ^2.0.9
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   file_picker: ^6.1.1
-  animated_text_kit: ^4.2.2
-  dotted_border: ^2.0.0+3
+  dotted_border: ^2.1.0
   dropdown_search: ^5.0.6
-  flutter_custom_tabs: ^1.1.1
-  intl: ^0.18.1
+  flutter_custom_tabs: ^1.2.1
+  intl: ^0.19.0
   path_provider: ^2.1.1
-  open_filex: ^4.3.2
+  open_filex: ^4.3.4
   flutter_easyloading: ^3.0.5
   path: ^1.8.3
   flutter_staggered_animations: ^1.1.1
-  uni_links: ^0.5.1
-  firebase_core: ^2.15.1
-  provider: ^6.0.5
-  share_plus: ^7.1.0
-  firebase_dynamic_links: ^5.3.5
+  firebase_core: ^2.24.2
+  provider: ^6.1.1
+  share_plus: ^7.2.1
+  firebase_dynamic_links: ^5.4.8
   # uvid and share_plus both cannot be upgraded simultaneously as it will lead to version conflicts
-  uuid: ^4.2.2
   like_button: ^2.0.5
-  image_picker: ^1.0.4
-  upgrader: ^8.1.0
+  image_picker: ^1.0.5
+  upgrader: ^8.4.0
   timeline_tile: ^2.0.0
-  percent_indicator: ^4.0.1
+  percent_indicator: ^4.2.3
   firebase_messaging: ^14.7.9
+  flutter_native_splash: ^2.3.8
+  uuid: ^4.2.2
+  app_settings: ^5.1.1
+  flutter_local_notifications: ^16.3.0
   
 
 
@@ -81,8 +80,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.1
-  hive_generator: any
-  build_runner: any
+  hive_generator: 2.0.1
+  build_runner: 2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -141,3 +140,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_native_splash:
+
+  android: true
+  ios: true
+
+
+  color: "#000000"
+  image: "assets/app_splash.png"
+
+  android_12:
+    image: "assets/app_splash.png"
+    icon_background_color: "#000000"
+
+

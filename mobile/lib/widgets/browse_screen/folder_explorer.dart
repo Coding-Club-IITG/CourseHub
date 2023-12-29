@@ -322,6 +322,7 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                     try {
                                                       isFavourite =
                                                           !isFavourite;
+                                                      setState(() {});
                                                       await addFavourites(
                                                         name,
                                                         widget.data["children"]
@@ -330,7 +331,6 @@ class _FolderExplorerState extends State<FolderExplorer> {
                                                         code,
                                                       );
 
-                                                      setState(() {});
                                                       return isFavourite;
                                                     } catch (e) {
                                                       if (!context.mounted) {

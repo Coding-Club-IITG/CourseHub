@@ -39,18 +39,17 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Need Files Access to Contribute to Coursehub </string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>Need Files Access to Contribute to Coursehub </string>
+	<string>Need Files Access to Contribute to Coursehub</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Need Files Access to Contribute to Coursehub </string>
+	<string>Need Files Access to Contribute to Coursehub</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Need Files Access to Contribute to Coursehub </string>
+	<string>Need Files Access to Contribute to Coursehub</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
@@ -59,6 +58,8 @@
 	<string>Main</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>UIStatusBarHidden</key>
+	<false/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleDarkContent</string>
 	<key>UISupportedInterfaceOrientations</key>

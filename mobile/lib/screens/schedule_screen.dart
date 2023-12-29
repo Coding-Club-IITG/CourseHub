@@ -1,9 +1,12 @@
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
-import 'package:coursehub/widgets/schedule_screen/day_container.dart';
+import 'package:coursehub/widgets/schedule_screen/classes_section.dart';
 import 'package:coursehub/widgets/schedule_screen/day_section.dart';
+import 'package:coursehub/widgets/schedule_screen/no_class_banner.dart';
 import 'package:coursehub/widgets/schedule_screen/page_change_button.dart';
-import 'package:coursehub/widgets/schedule_screen/custom_timeline_tile.dart';
+import 'package:coursehub/widgets/schedule_screen/week_days_section.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -13,15 +16,16 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreen extends State<ScheduleScreen> {
-  final List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  int activeDayIndex = 0;
   bool activeMenu = true;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: SafeArea(
+    final navigatorProvider = context.read<NavigationProvider>();
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        navigatorProvider.changePageNumber(0);
+      },
       child: Ink(
         color: Colors.black,
         child: Column(
@@ -71,76 +75,34 @@ class _ScheduleScreen extends State<ScheduleScreen> {
                   const SizedBox(
                     height: 20,
                   ),
-                  Container(
-                    height: 60,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: ListView.separated(
-                      separatorBuilder: (context, index) => const SizedBox(
-                        width: 20,
-                      ),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: days.length,
-                      itemBuilder: (context, index) => DayContainer(
-                        currentDay: days[index],
-                        isActive: index == activeDayIndex,
-                        callback: () {
-                          setState(() {
-                            activeDayIndex = index;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
+                  const WeekDaysSection(),
                   const SizedBox(
                     height: 12,
                   ),
                 ],
               ),
             ),
-            const DaySection(
-              section: 'Forenoon',
-              numClasses: 4,
-            ),
-            Container(
-              height: 250,
-              padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return const CustomTimeLineTile(
-                      isFirst: true,
-                      isLast: false,
-                      isUpcoming: false,
-                    );
-                  } else if (index == 3) {
-                    return const CustomTimeLineTile(
-                      isFirst: false,
-                      isLast: true,
-                      isUpcoming: true,
-                    );
-                  } else {
-                    return const CustomTimeLineTile(
-                      isFirst: false,
-                      isLast: false,
-                      isUpcoming: true,
-                    );
-                  }
-                },
+            const Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    DaySection(
+                      section: 'Your Day',
+                      numClasses: 4,
+                    ),
+                    ClassesSection(),
+                  
+                    NoClassBanner(),
+                    SizedBox(
+                      height: 40,
+                    )
+                  ],
+                ),
               ),
             ),
-            const DaySection(
-              section: 'Afternoon',
-              numClasses: 0,
-            ),
-            Container(
-                padding: const EdgeInsets.fromLTRB(24, 24, 0, 24),
-                height: 250,
-                child: Image.asset("assets/no_class.png")),
           ],
         ),
       ),
-    ));
+    );
   }
 }

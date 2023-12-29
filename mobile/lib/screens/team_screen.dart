@@ -67,7 +67,7 @@ class TeamScreen extends StatelessWidget {
     final navigatorProvider = context.read<NavigationProvider>();
     return PopScope(
         canPop: false,
-        onPopInvoked: (_) async {
+        onPopInvoked: (_) {
           navigatorProvider.changePageNumber(0);
         },
         child: Ink(

@@ -34,9 +34,8 @@ class SearchScreen extends StatelessWidget {
             ],
             child: PopScope(
               canPop: false,
-              onPopInvoked: (_) async {
+              onPopInvoked: (_) {
                 navigationProvider.changePageNumber(0);
-        
               },
               child: Stack(
                 alignment: Alignment.bottomCenter,
@@ -64,11 +63,14 @@ class SearchScreen extends StatelessWidget {
                                   Expanded(
                                     flex: 6,
                                     child: TextField(
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w400),
                                       onSubmitted: (value) async {
                                         try {
                                           await searchProvider.search(value);
                                         } catch (e) {
-                                              if (!context.mounted) return;
+                                          if (!context.mounted) return;
                                           showSnackBar(
                                               'Something went wrong!', context);
                                         }
@@ -89,7 +91,7 @@ class SearchScreen extends StatelessWidget {
                                               await searchProvider.search(
                                                   _searchController.text);
                                             } catch (e) {
-                                               if (!context.mounted) {
+                                              if (!context.mounted) {
                                                 rethrow;
                                               }
                                               showSnackBar(

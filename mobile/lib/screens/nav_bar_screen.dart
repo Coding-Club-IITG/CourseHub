@@ -1,7 +1,9 @@
 import 'dart:io';
 
-
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:coursehub/apis/notifications/notification_services.dart';
+import 'package:coursehub/screens/attendance_screen.dart';
+import 'package:coursehub/screens/attendance_settings.dart';
+import 'package:coursehub/screens/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
@@ -34,6 +36,7 @@ class NavBarScreen extends StatefulWidget {
 class _NavBarScreen extends State<NavBarScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  NotificationServices notificationServices = NotificationServices();
 
   /*
   DO NOT CHANGE ORDER OF SCREENS
@@ -44,15 +47,16 @@ class _NavBarScreen extends State<NavBarScreen>
     ContributeScreen(
       controller: _controller,
     ),
-    const FavouritesScreen(),
+    const ScheduleScreen(),
     const ProfileScreen(),
     SearchScreen(),
     const ExamScreen(),
     const TeamScreen(),
     const FeedBackScreen(),
+    const FavouritesScreen(),
+    const AttendanceScreen(),
+    const AttendanceSettingsScreen()
   ];
-
-
 
   @override
   void initState() {
@@ -63,8 +67,15 @@ class _NavBarScreen extends State<NavBarScreen>
       upperBound: 0.5,
     );
 
-    FirebaseDynamicLinks.instance.onLink.listen((event){
+    notificationServices.notifyPermission();
+    notificationServices.forgroundMessage();
+    notificationServices.firebaseInit(context);
+    notificationServices.backgroundNotification(context);
+    notificationServices.isTokenRefresh();
 
+    notificationServices.getDeviceToken().then((value) {
+      print('device token');
+      print(value);
     });
   }
 
@@ -119,8 +130,12 @@ class _NavBarScreen extends State<NavBarScreen>
                   ],
                 ),
                 Visibility(
-                  visible:
-                      context.read<NavigationProvider>().currentPageNumber < 6,
+                  visible: (context
+                              .read<NavigationProvider>()
+                              .currentPageNumber <
+                          6 ||
+                      context.read<NavigationProvider>().currentPageNumber >=
+                          9),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -217,7 +232,7 @@ class _NavBarScreen extends State<NavBarScreen>
                                     isSelected:
                                         navigationProvider.currentPageNumber ==
                                             3,
-                                    label: 'Favourites'),
+                                    label: 'Schedule'),
                                 NavBarIcon(
                                     controller: _controller,
                                     isSelected:

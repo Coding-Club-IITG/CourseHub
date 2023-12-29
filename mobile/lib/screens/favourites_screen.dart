@@ -58,7 +58,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     final navigatorProvider = context.read<NavigationProvider>();
     return PopScope(
       canPop: false,
-      onPopInvoked: (_) async {
+      onPopInvoked: (_)  {
         navigatorProvider.changePageNumber(0);
       },
       child: FutureBuilder<bool>(

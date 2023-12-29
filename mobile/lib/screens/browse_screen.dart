@@ -130,7 +130,7 @@ class _BrowseScreen extends State<BrowseScreen> {
 
               return PopScope(
                 canPop: false,
-                onPopInvoked: (_) async {
+                onPopInvoked: (_)  {
                   level -= 2;
                   if (level <= 0) {
                     navigationProvider.changePageNumber(0);

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 class SliderToggle extends StatefulWidget {
   final Color themeColor;
-  const SliderToggle({super.key, required this.themeColor});
+  final Function toggleFunction;
+  const SliderToggle(
+      {super.key, required this.themeColor, required this.toggleFunction});
 
   @override
   State<SliderToggle> createState() => _SliderToggleState();
@@ -32,12 +34,14 @@ class _SliderToggleState extends State<SliderToggle> {
                   activeColor: widget.themeColor,
                   inactiveColor: const Color.fromRGBO(37, 37, 37, 1),
                   onChanged: (val) {
+                    widget.toggleFunction(val);
+
                     setState(() {
                       _sliderValue = val;
                     });
                   }),
               SizedBox(
-                width: 36,
+                width: 48,
                 child: Text('${(100 * _sliderValue).round()}%'),
               ),
             ],
