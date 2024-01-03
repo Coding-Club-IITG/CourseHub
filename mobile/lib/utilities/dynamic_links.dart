@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import '../../database/cache_store.dart';
+import '../database/cache_store.dart';
 import '../../main.dart';
-import '../../providers/navigation_provider.dart';
+import '../providers/navigation_provider.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:provider/provider.dart';
 

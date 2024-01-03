@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +10,7 @@ import 'package:http/http.dart' as http;
 
 import '../../constants/endpoints.dart';
 import '../../database/cache_store.dart';
-import '../../utilities/set_hive_store.dart';
+
 import '../../database/hive_store.dart';
 import '../../models/user.dart';
 import '../../screens/login_screen.dart';
@@ -45,6 +46,7 @@ Future<void> authenticate() async {
   } on PlatformException catch (_) {
     rethrow;
   } catch (e) {
+
     rethrow;
   }
 }

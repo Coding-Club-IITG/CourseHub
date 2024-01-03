@@ -1,6 +1,7 @@
+import 'package:coursehub/utilities/helpers/helpers.dart';
+
 import '../../apis/files/downloader.dart';
 import '../../models/favourites.dart';
-import '../../utilities/letter_capitalizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';

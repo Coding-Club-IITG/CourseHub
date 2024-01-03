@@ -1,12 +1,12 @@
+import 'package:coursehub/utilities/helpers/helpers.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 
-import '../../animations/custom_fade_in_animation.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
 import '../../models/contribution.dart';
 import '../../models/user.dart';
-import '../../providers/navigation_provider.dart';
-import '../../utilities/letter_capitalizer.dart';
+import '../providers/navigation_provider.dart';
 import '../../widgets/common/nav_bar.dart';
 import '../constants/themes.dart';
 import '../widgets/profile_screen/contribution_card.dart';

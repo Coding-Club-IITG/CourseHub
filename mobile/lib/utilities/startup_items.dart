@@ -14,12 +14,13 @@ import './dynamic_links.dart';
 Future<bool> startupItems() async {
   try {
     // intializing everything
+
     await Future.wait([
       Firebase.initializeApp(),
       Hive.initFlutter(),
     ]);
 
-      await Future.wait([
+    await Future.wait([
       //share links
       FirebaseDynamicLink.handleInitialLink(),
       FirebaseDynamicLinks.instance.getInitialLink(),
@@ -29,14 +30,13 @@ Future<bool> startupItems() async {
 
       //fetch fun facts
       getFunFacts(fetchAgain: true),
-
+      isCourseUpdated(),
     ]);
 
     final prefs = await SharedPreferences.getInstance();
     final loggedIn = await isLoggedIn();
-
-    await isCourseUpdated();
     CacheStore.isGuest = prefs.getBool('isGuest') ?? false;
+
     return loggedIn;
   } catch (e) {
     // logout if error

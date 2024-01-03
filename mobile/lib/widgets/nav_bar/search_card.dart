@@ -1,11 +1,11 @@
 import '../../apis/courses/add_courses.dart';
 import '../../database/cache_store.dart';
+import '../../utilities/helpers/helpers.dart';
 import '../../widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/navigation_provider.dart';
-import '../../utilities/letter_capitalizer.dart';
 
 class SearchCard extends StatefulWidget {
   final bool isAvailable;

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-void showSnackBar(String message, context) {
+void showSnackBar(String message, BuildContext context,
+    {Duration duration = const Duration(milliseconds: 1000)}) {
   final snackbar = SnackBar(
-    elevation: 100,
-    duration: const Duration(milliseconds: 1000),
+    
+    duration: duration,
     backgroundColor: Colors.black,
     content: Center(
       child: Text(

@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:coursehub/database/hive_store.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
-import '../../utilities/set_hive_store.dart';
 import '../../constants/endpoints.dart';
 import '../protected.dart';
 

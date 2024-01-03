@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import '../../animations/custom_fade_in_animation.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/nav_bar.dart';
 import '../../apis/contributions/contribution.dart';
-import '../../constants/themes.dart';
-import '../../constants/years_sections.dart';
+import '../constants/themes.dart';
+import '../constants/years_sections.dart';
 import '../../widgets/common/custom_linear_progress.dart';
 import '../../widgets/common/custom_snackbar.dart';
 import '../../widgets/contribute_screen/custom_textformfield.dart';

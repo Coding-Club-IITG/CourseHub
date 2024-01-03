@@ -1,3 +1,5 @@
+import 'package:coursehub/utilities/helpers/helpers.dart';
+
 import '../../database/cache_store.dart';
 import '../../providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../../apis/courses/course_availability.dart';
 import '../../constants/themes.dart';
-import '../../utilities/letter_capitalizer.dart';
 import '../../models/course.dart';
 
 class CourseCard extends StatelessWidget {

@@ -8,10 +8,10 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../animations/custom_fade_in_animation.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
 
 import '../../models/favourites.dart';
-import '../../providers/navigation_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../database/hive_store.dart';
 import '../widgets/common/custom_linear_progress.dart';
 import '../widgets/favourite_screen/favourite_tile.dart';
@@ -58,7 +58,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     final navigatorProvider = context.read<NavigationProvider>();
     return PopScope(
       canPop: false,
-      onPopInvoked: (_)  {
+      onPopInvoked: (_) {
         navigatorProvider.changePageNumber(0);
       },
       child: FutureBuilder<bool>(
@@ -85,14 +85,14 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                       ),
                       checkColor: Colors.black,
                       onChanged: (value) async {
-                        final prefs = await SharedPreferences.getInstance();
-
-                        prefs.setBool('courseGrouped', value ?? false);
                         setState(
                           () {
                             _groupByCourses = !_groupByCourses;
                           },
                         );
+                        final prefs = await SharedPreferences.getInstance();
+
+                        prefs.setBool('courseGrouped', value ?? false);
                       },
                     ),
                     const Text(
@@ -186,7 +186,3 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     );
   }
 }
-
-
-
-

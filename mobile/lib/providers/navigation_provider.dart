@@ -1,6 +1,7 @@
+
 import 'dart:io';
 
-import '../../database/cache_store.dart';
+import '../database/cache_store.dart';
 import 'package:flutter/material.dart';
 
 class NavigationProvider with ChangeNotifier {
@@ -8,6 +9,7 @@ class NavigationProvider with ChangeNotifier {
   List<File> selectedFiles = [];
 
   final GlobalKey<ScaffoldState> key = GlobalKey();
+
 
   // late AnimationController controller;
 

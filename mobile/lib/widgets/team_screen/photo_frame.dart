@@ -1,5 +1,6 @@
+import 'package:coursehub/utilities/helpers/helpers.dart';
+
 import '../../constants/themes.dart';
-import '../../utilities/url_launcher.dart';
 import '../../widgets/common/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';

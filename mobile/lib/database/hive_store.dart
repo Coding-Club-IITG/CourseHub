@@ -1,3 +1,5 @@
+import 'package:hive/hive.dart';
+
 import '../../models/contribution.dart';
 import '../../models/favourites.dart';
 import '../../models/user.dart';
@@ -26,3 +28,11 @@ class HiveStore {
     coursesData = {};
   }
 }
+
+Future<void> setHiveStore() async {
+  final box = await Hive.openBox('coursehub-data');
+  HiveStore.userData = box.get('user') ?? {};
+  HiveStore.contribution = box.get('contribution') ?? [];
+  HiveStore.coursesData = box.get('courses-data') ?? {};
+}
+

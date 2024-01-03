@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../animations/custom_fade_in_animation.dart';
-import '../../database/cache_store.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
+import '../database/cache_store.dart';
 import '../../widgets/common/splash_on_pressed.dart';
-import '../../database/hive_store.dart';
+import '../database/hive_store.dart';
 import '../../widgets/browse_screen/year_div.dart';
 import '../../widgets/browse_screen/bread_crumbs.dart';
 import '../utilities/dynamic_links.dart';

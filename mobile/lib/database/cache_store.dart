@@ -1,6 +1,7 @@
 import 'package:coursehub/constants/themes.dart';
+import 'package:coursehub/database/hive_store.dart';
 
-import '../../database/hive_store.dart';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,15 +1,16 @@
 import 'dart:io';
 
-import 'package:coursehub/apis/notifications/notification_services.dart';
+import 'package:coursehub/utilities/notifications/notification_services.dart';
 import 'package:coursehub/screens/attendance_screen.dart';
 import 'package:coursehub/screens/attendance_settings.dart';
 import 'package:coursehub/screens/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:upgrader/upgrader.dart';
 
-import '../../providers/cache_provider.dart';
-import '../../providers/navigation_provider.dart';
+import '../providers/cache_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../../screens/exam_screen.dart';
 import '../../screens/feedback_screen.dart';
 import '../../screens/team_screen.dart';
@@ -67,16 +68,17 @@ class _NavBarScreen extends State<NavBarScreen>
       upperBound: 0.5,
     );
 
-    notificationServices.notifyPermission();
-    notificationServices.forgroundMessage();
+    notificationServices.requestNotificationPermission();
     notificationServices.firebaseInit(context);
-    notificationServices.backgroundNotification(context);
-    notificationServices.isTokenRefresh();
+    notificationServices.getDeviceToken().then(
+      (token) {
+        print("device token");
+        print(token);
 
-    notificationServices.getDeviceToken().then((value) {
-      print('device token');
-      print(value);
-    });
+        Share.share(token);
+      },
+    );
+    notificationServices.backgroundNotification(context);
   }
 
   @override

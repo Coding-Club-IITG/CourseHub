@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 import '../../constants/endpoints.dart';
-import '../../utilities/set_hive_store.dart';
+
 import '../../database/hive_store.dart';
 import '../../models/user.dart';
 

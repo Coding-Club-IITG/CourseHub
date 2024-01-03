@@ -2,8 +2,8 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import '../../animations/custom_fade_in_animation.dart';
-import '../../database/cache_store.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
+import '../database/cache_store.dart';
 import '../../models/user.dart';
 import '../../widgets/common/nav_bar.dart';
 import '../../widgets/home_screen/add_course_dialog.dart';

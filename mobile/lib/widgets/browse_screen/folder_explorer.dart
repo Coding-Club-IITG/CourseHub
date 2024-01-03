@@ -1,10 +1,10 @@
+import 'package:coursehub/utilities/helpers/helpers.dart';
+
 import '../../apis/user/user.dart';
 import '../../apis/files/downloader.dart';
 import '../../database/hive_store.dart';
 import '../../models/favourites.dart';
 import '../../utilities/dynamic_links.dart';
-import '../../utilities/file_size.dart';
-import '../../utilities/letter_capitalizer.dart';
 import '../../widgets/common/custom_linear_progress.dart';
 import '../../widgets/common/custom_snackbar.dart';
 import '../../widgets/common/splash_on_pressed.dart';

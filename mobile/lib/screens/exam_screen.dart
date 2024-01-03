@@ -3,9 +3,9 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../animations/custom_fade_in_animation.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
 import '../../apis/miscellaneous/get_exam_details.dart';
-import '../../constants/themes.dart';
+import '../constants/themes.dart';
 import '../../models/exam_details.dart';
 import '../../widgets/common/custom_linear_progress.dart';
 import '../../widgets/common/nav_bar.dart';

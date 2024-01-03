@@ -1,7 +1,7 @@
 import 'package:coursehub/constants/all_courses.dart';
 import 'package:coursehub/database/hive_store.dart';
 import 'package:coursehub/models/favourites.dart';
-import 'package:coursehub/utilities/letter_capitalizer.dart';
+import 'package:coursehub/utilities/helpers/helpers.dart';
 import 'package:coursehub/widgets/favourite_screen/favourite_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';

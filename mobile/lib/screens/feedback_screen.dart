@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../apis/miscellaneous/feedback_bugs.dart';
-import '../../constants/themes.dart';
-import '../../providers/navigation_provider.dart';
+import '../constants/themes.dart';
+import '../providers/navigation_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_linear_progress.dart';
 import '../../widgets/common/custom_snackbar.dart';
 import '../../widgets/common/nav_bar.dart';
 import '../../widgets/common/splash_on_pressed.dart';
 import '../../widgets/contribute_screen/upload.dart';
-import '../animations/custom_fade_in_animation.dart';
+import '../utilities/animations/custom_fade_in_animation.dart';
 
 class FeedBackScreen extends StatefulWidget {
   const FeedBackScreen({super.key});
@@ -54,6 +54,7 @@ class _FeedBackScreenState extends State<FeedBackScreen> {
                               Expanded(
                                 child: SplashOnPressed(
                                   splashColor: Colors.grey,
+                                  radius: 0,
                                   onPressed: () {
                                     setState(() {
                                       _isFeedback = true;
@@ -85,6 +86,7 @@ class _FeedBackScreenState extends State<FeedBackScreen> {
                               Expanded(
                                 child: SplashOnPressed(
                                   splashColor: Colors.grey,
+                                  radius: 0,
                                   onPressed: () {
                                     setState(() {
                                       _isFeedback = false;
