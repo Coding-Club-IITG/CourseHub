@@ -12,12 +12,11 @@ import '../widgets/common/custom_snackbar.dart';
 import '../widgets/nav_bar/search_card.dart';
 
 class SearchScreen extends StatelessWidget {
-  SearchScreen({super.key});
-
-  final _searchController = TextEditingController();
+  const SearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final searchController = TextEditingController();
     final navigationProvider = context.read<NavigationProvider>();
     return FutureBuilder<List<dynamic>>(
         future: getFunFacts(),
@@ -76,7 +75,7 @@ class SearchScreen extends StatelessWidget {
                                         }
                                       },
                                       textInputAction: TextInputAction.search,
-                                      controller: _searchController,
+                                      controller: searchController,
                                       keyboardType: TextInputType.name,
                                       cursorColor: Colors.grey,
                                       decoration: InputDecoration(
@@ -89,7 +88,7 @@ class SearchScreen extends StatelessWidget {
                                           onTap: () async {
                                             try {
                                               await searchProvider.search(
-                                                  _searchController.text);
+                                                  searchController.text);
                                             } catch (e) {
                                               if (!context.mounted) {
                                                 rethrow;

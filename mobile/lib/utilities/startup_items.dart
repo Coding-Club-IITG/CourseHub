@@ -13,33 +13,14 @@ import './dynamic_links.dart';
 
 Future<bool> startupItems() async {
   try {
-    // intializing everything
-
     await Future.wait([
       Firebase.initializeApp(),
       Hive.initFlutter(),
     ]);
-
-    await Future.wait([
-      //share links
-      FirebaseDynamicLink.handleInitialLink(),
-      FirebaseDynamicLinks.instance.getInitialLink(),
-
-      // fetch userData
-      getCurrentUser(),
-
-      //fetch fun facts
-      getFunFacts(fetchAgain: true),
-      isCourseUpdated(),
-    ]);
-
-    final prefs = await SharedPreferences.getInstance();
-    final loggedIn = await isLoggedIn();
-    CacheStore.isGuest = prefs.getBool('isGuest') ?? false;
-
-    return loggedIn;
+    
+    await getCurrentUser();
   } catch (e) {
-    // logout if error
+    // logout if error in user only
 
     final prefs = await SharedPreferences.getInstance();
     final box = await Hive.openBox('coursehub-data');
@@ -47,8 +28,22 @@ Future<bool> startupItems() async {
     box.clear();
     HiveStore.clearHiveData();
     CacheStore.clearCacheStore();
-
-    // not logged in
     return false;
   }
+
+  await Future.wait([
+    //share links
+    FirebaseDynamicLink.handleInitialLink(),
+    FirebaseDynamicLinks.instance.getInitialLink(),
+
+    //fetch fun facts
+    getFunFacts(fetchAgain: true),
+    isCourseUpdated(),
+  ]);
+
+  final prefs = await SharedPreferences.getInstance();
+  final loggedIn = await isLoggedIn();
+  CacheStore.isGuest = prefs.getBool('isGuest') ?? false;
+
+  return loggedIn;
 }

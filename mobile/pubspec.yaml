@@ -56,18 +56,19 @@ dependencies:
   provider: ^6.1.1
   share_plus: ^7.2.1
   firebase_dynamic_links: ^5.4.8
+  # uvid and share_plus both cannot be upgraded simultaneously as it will lead to version conflicts
   like_button: ^2.0.5
   image_picker: ^1.0.5
   upgrader: ^8.4.0
   timeline_tile: ^2.0.0
   percent_indicator: ^4.2.3
-
+  firebase_messaging: ^14.7.9
   flutter_native_splash: ^2.3.8
   uuid: ^4.2.2
   app_settings: ^5.1.1
- 
-  awesome_notifications: ^0.8.3
-  awesome_notifications_fcm: ^0.8.0
+  flutter_local_notifications: ^16.3.0
+  firebase_analytics: ^10.7.4
+
 
   
 

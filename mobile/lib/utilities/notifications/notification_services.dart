@@ -3,24 +3,20 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:coursehub/main.dart';
-import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:coursehub/utilities/helpers/helpers.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:app_settings/app_settings.dart';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:provider/provider.dart';
-
-//TODO: Android Notification Channel ID add this in API call
 
 class NotificationServices {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   void firebaseInit(BuildContext context) {
     FirebaseMessaging.onMessage.listen((message) async {
-      await foregroundNotification(message, context);
+      await foregroundNotification(message);
     });
   }
 
@@ -43,28 +39,24 @@ class NotificationServices {
   }
 
   // function to show visible notification when app is active
-  Future<void> foregroundNotification(
-      RemoteMessage message, BuildContext context) async {
+  Future<void> foregroundNotification(RemoteMessage message) async {
     if (Platform.isIOS) {
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      // TODO: Implement ios methods
     } else if (Platform.isAndroid) {
-      LocalNotifications.initLocalNotifications(context, message);
+      LocalNotifications.initLocalNotifications(message);
 
-      AndroidNotificationChannel channel = const AndroidNotificationChannel(
+      AndroidNotificationChannel channel = AndroidNotificationChannel(
         'high_priority_channel',
-        'Notices',
+
+        // TODO: manage channel as per type here
+        letterCapitalizer(message.data['type']),
         importance: Importance.max,
         showBadge: true,
         playSound: true,
-        sound: RawResourceAndroidNotificationSound('notify'),
+        sound: const RawResourceAndroidNotificationSound('notify'),
       );
 
-      String? imageUrl = LocalNotifications.getImageUrl(message.notification!);
+      String? imageUrl = message.data['image'];
 
       final http.Response? response;
       if (imageUrl != null) {
@@ -74,22 +66,35 @@ class NotificationServices {
       }
 
       await LocalNotifications.localNotifications.show(
-        message.notification!.hashCode,
-        message.notification!.title,
-        message.notification!.body,
+        int.parse(message.data['id']),
+        message.data['title'],
+        message.data['body'],
         NotificationDetails(
           android: AndroidNotificationDetails(
             channel.id,
             channel.name,
-            channelDescription: 'This is high priority channel',
             importance: Importance.high,
             priority: Priority.high,
             playSound: true,
             ticker: 'ticker',
             sound: channel.sound,
+            showWhen: true,
+            tag: message.data['id'],
+            enableVibration: true,
+            subText: 'Attendance',
             actions: [
-              AndroidNotificationAction('id_2', 'Attended'),
-              AndroidNotificationAction('id_1', 'Missed'),
+              const AndroidNotificationAction(
+                'id_2',
+                'Attended',
+                titleColor: Color.fromRGBO(87, 173, 56, 1),
+                showsUserInterface: true,
+              ),
+              const AndroidNotificationAction(
+                'id_1',
+                'Missed',
+                titleColor: Color.fromRGBO(235, 91, 91, 1),
+                showsUserInterface: true,
+              ),
             ],
             styleInformation: response == null
                 ? null
@@ -104,22 +109,6 @@ class NotificationServices {
     }
   }
 
-  //handle tap on notification when app is in background or terminated
-  Future<void> backgroundNotification(BuildContext context) async {
-    // when app is terminated
-    RemoteMessage? initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
-
-    if (initialMessage != null) {
-      handleMessage(context, initialMessage);
-    }
-
-    //when app is in background
-    FirebaseMessaging.onMessageOpenedApp.listen((event) {
-      handleMessage(context, event);
-    });
-  }
-
   Future<String> getDeviceToken() async {
     String? token = await _messaging.getToken();
     return token!;
@@ -130,36 +119,62 @@ class NotificationServices {
       event.toString();
     });
   }
-
-  static void handleMessage(BuildContext context, RemoteMessage message) {
-    log("Notificatinon clicker");
-
-    context.read<NavigationProvider>().changePageNumber(3);
-  }
 }
 
 class LocalNotifications {
   static final localNotifications = FlutterLocalNotificationsPlugin();
-  static void initLocalNotifications(
-      BuildContext context, RemoteMessage message) async {
+
+  static void initLocalNotifications(RemoteMessage message) async {
     await localNotifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('notifyimage'),
       ),
       onDidReceiveNotificationResponse: (payload) {
-        // handle interaction when app is active for android
-        NotificationServices.handleMessage(context, message);
+        log(payload.actionId.toString());
       },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
   }
 
-  static String? getImageUrl(RemoteNotification notification) {
-    if (Platform.isIOS && notification.apple != null) {
-      return notification.apple?.imageUrl;
+  static Future<bool> didNotificationOpenApp() async {
+    var initialNotification =
+        await localNotifications.getNotificationAppLaunchDetails();
+    if (initialNotification?.didNotificationLaunchApp == true) {
+      return true;
+    } else {
+      return false;
     }
-    if (Platform.isAndroid && notification.android != null) {
-      return notification.android?.imageUrl;
-    }
-    return null;
   }
 }
+
+
+/*
+Categories of notifications:->
+
+1. Exam
+2. Timetable
+3. Attendance
+4. Notice
+
+*/
+
+
+/* 
+Structure of payload:
+
+
+data: {
+id: unique identifier , if same the new notification will replace old one
+type: enum(exam,schedule,attendance,notice)
+title: string
+body: string
+image: imageUrl
+}
+
+
+
+
+
+timetableUrl: https://elements-cover-images-0.imgix.net/b6eb10fb-2f7f-44bc-b9a5-47a5ce9d21eb?auto=compress%2Cformat&w=2038&fit=max&s=99d43cbdea724635c7832cf871adca30
+
+*/
