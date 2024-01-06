@@ -40,6 +40,7 @@ class ExamDialog extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 context.read<NavigationProvider>().changePageNumber(6);
+                
               },
               splashColor: Colors.grey,
               child: const Padding(

@@ -1,14 +1,15 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:coursehub/utilities/notifications/notification_services.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:awesome_notifications_fcm/awesome_notifications_fcm.dart';
 import 'package:coursehub/screens/attendance_screen.dart';
 import 'package:coursehub/screens/attendance_settings.dart';
 import 'package:coursehub/screens/schedule_screen.dart';
+import 'package:coursehub/utilities/notifications/notification_services.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:upgrader/upgrader.dart';
 
 import '../providers/cache_provider.dart';
@@ -39,7 +40,6 @@ class NavBarScreen extends StatefulWidget {
 class _NavBarScreen extends State<NavBarScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  NotificationServices notificationServices = NotificationServices();
 
   /*
   DO NOT CHANGE ORDER OF SCREENS
@@ -70,29 +70,27 @@ class _NavBarScreen extends State<NavBarScreen>
       upperBound: 0.5,
     );
 
-    notificationServices.requestNotificationPermission();
-    notificationServices.firebaseInit(context);
-    notificationServices.getDeviceToken().then(
-      (token) {
-        print("device token");
-        print(token);
+    AwesomeNotifications().isNotificationAllowed().then(
+      (isAllowed) {
+        if (!isAllowed) {
+          showSnackBar(
+            'We need notification permissions to keep you informed about your exams, class schedules and other notices',
+            context,
+            duration: const Duration(seconds: 4),
+          );
 
-        Share.share(token);
+          Future.delayed(
+            const Duration(seconds: 6),
+            () => AwesomeNotifications().requestPermissionToSendNotifications(),
+          );
+        }
       },
     );
 
-    LocalNotifications.didNotificationOpenApp().then((value) {
-      if (value) {
-        log("YES Notification Opened");
-      } else {
-        log("No it didn't");
-      }
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+    AwesomeNotificationsFcm().requestFirebaseAppToken().then(
+          (value) => log("Token $value"),
+        );
+    NotificationController.startListeningNotificationEvents();
   }
 
   @override

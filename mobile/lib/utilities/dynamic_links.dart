@@ -82,7 +82,7 @@ class FirebaseDynamicLink {
   }
 
   static Future<void> navigateToFile(String code) async {
-    final navigationProvider =
+    final navigationProvider = 
         navigatorKey.currentState!.context.read<NavigationProvider>();
     await getUserCourses(code.toLowerCase(), isTempCourse: true);
     CacheStore.isTempCourse = true;

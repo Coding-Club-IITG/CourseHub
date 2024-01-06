@@ -14,6 +14,7 @@ class CacheStore {
   static String browsePath = 'Home/';
   static String browseYear = '';
   static Color attendanceColor = colors[0];
+ 
 
   static List examTimings = [];
 

@@ -1,7 +1,5 @@
 #import "NotificationService.h"
-#import "FirebaseMessaging.h"
-#import "FirebaseAuth.h" // Add this line if you are using FirebaseAuth phone authentication
-#import <UIKit/UIKit.h> // Add this line if you are using FirebaseAuth phone authentication
+
 
 @interface NotificationService ()
 
@@ -33,8 +31,7 @@
     self.contentHandler = contentHandler;
     self.bestAttemptContent = [request.content mutableCopy];
 
-    // Modify the notification content here...
-    [[FIRMessaging extensionHelper] populateNotificationContent:self.bestAttemptContent withContentHandler:contentHandler];
+
 }
 
 - (void)serviceExtensionTimeWillExpire {

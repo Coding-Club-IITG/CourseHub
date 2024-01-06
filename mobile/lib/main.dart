@@ -1,93 +1,109 @@
-import 'dart:developer';
-
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:awesome_notifications_fcm/awesome_notifications_fcm.dart';
 import 'package:coursehub/constants/themes.dart';
+import 'package:coursehub/providers/cache_provider.dart';
+import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/screens/login_screen.dart';
 import 'package:coursehub/screens/nav_bar_screen.dart';
-import 'package:coursehub/utilities/helpers/helpers.dart';
 import 'package:coursehub/utilities/notifications/notification_services.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:coursehub/utilities/startup_items.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'providers/cache_provider.dart';
-import 'providers/navigation_provider.dart';
-import '../../utilities/startup_items.dart';
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-@pragma('vm:entry-point')
-Future<void> notificationTapBackground(NotificationResponse payload) async {
-  final prefs = await SharedPreferences.getInstance();
-  prefs.setInt('initialPageNumber', 3);
-  log('INITIAL PAGE NUMBER SET');
-
-  // handle action
-}
-
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage? message) async {
-  LocalNotifications.initLocalNotifications(
-      message!);
-  AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'high_priority_channel',
-
-    // TODO: manage channel as per type here
-    letterCapitalizer(message!.data['type']),
-    importance: Importance.max,
-    showBadge: true,
-    playSound: true,
-    sound: const RawResourceAndroidNotificationSound('notify'),
-  );
-
-  await LocalNotifications.localNotifications.show(
-    int.parse(message.data['id']),
-    message.data['title'],
-    message.data['body'],
-    NotificationDetails(
-      android: AndroidNotificationDetails(
-        channel.id,
-        channel.name,
-        importance: Importance.high,
-        priority: Priority.high,
-        playSound: true,
-        ticker: 'ticker',
-        sound: channel.sound,
-        showWhen: true,
-        tag: message.data['id'],
-        enableVibration: true,
-        subText: 'Attendance',
-        actions: [
-          const AndroidNotificationAction(
-            'id_2',
-            'Attended',
-            titleColor: Color.fromRGBO(87, 173, 56, 1),
-            showsUserInterface: true,
-          ),
-          const AndroidNotificationAction(
-            'id_1',
-            'Missed',
-            titleColor: Color.fromRGBO(235, 91, 91, 1),
-            showsUserInterface: true,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-void main() async {
+Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await AwesomeNotifications().initialize(
+   
+    'resource://drawable/notifyimage',
+
+    [
+      NotificationChannel(
+        channelGroupKey: 'announcements',
+        channelShowBadge: true,
+        criticalAlerts: true,
+        enableVibration: true,
+        channelKey: 'exam',
+        channelName: 'Exams',
+        channelDescription: 'Notifications regarding midsems and endsems',
+        defaultColor: colors[1],
+        ledColor: Colors.white,
+        importance: NotificationImportance.Max,
+        playSound: true,
+      ),
+       NotificationChannel(
+        channelGroupKey: 'announcements',
+        channelShowBadge: true,
+        criticalAlerts: true,
+        enableVibration: true,
+        channelKey: 'notices',
+        channelName: 'Notices',
+        channelDescription: 'Notifications regarding general important notices',
+        defaultColor: colors[5],
+        ledColor: Colors.white,
+        importance: NotificationImportance.Max,
+        playSound: true,
+      ),
+      NotificationChannel(
+        channelGroupKey: 'timetable',
+        channelShowBadge: true,
+        criticalAlerts: true,
+        enableVibration: true,
+        channelKey: 'schedule',
+        channelName: 'Schedule',
+        channelDescription: 'Notifications regarding alterations in classes, including cancellations and additions',
+        defaultColor: colors[3],
+        ledColor: Colors.white,
+        importance: NotificationImportance.Max,
+        playSound: true,
+      ),
+      NotificationChannel(
+        channelGroupKey: 'timetable',
+        channelShowBadge: true,
+        criticalAlerts: true,
+        enableVibration: true,
+        channelKey: 'attendance',
+        channelName: 'Attendance',
+        channelDescription: 'Notifications regarding your attendance in particular course',
+        defaultColor: colors[4],
+        ledColor: Colors.white,
+        importance: NotificationImportance.Max,
+        playSound: true,
+      ),
+      
+    ],
+    // Channel groups are only visual and are not required
+    channelGroups: [
+      NotificationChannelGroup(
+        channelGroupKey: 'announcements',
+        channelGroupName: 'Announcements',
+      ),
+      NotificationChannelGroup(
+        channelGroupKey: 'timetable',
+        channelGroupName: 'Timetable',
+      )
+    ],
+    debug: true,
+  );
 
   final bool isLoggedIn = await startupItems();
+
+  await Firebase.initializeApp();
+  await AwesomeNotificationsFcm().initialize(
+    onFcmTokenHandle: NotificationController.myFcmTokenHandle,
+    onFcmSilentDataHandle: NotificationController.mySilentDataHandle,
+    debug: true,
+  );
 
   FlutterNativeSplash.remove();
 
