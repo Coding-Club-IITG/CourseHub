@@ -14,8 +14,8 @@ const team = [
     'imageUrl':
         'https://ik.imagekit.io/4d3jgzelm/image-2-compressed.jpg?updatedAt=1682114172401',
     'github': 'https://github.com/GeekyPS',
-    'instagram': 'https://www.instagram.com/priyanshu_srivastava31/',
-    'linkedin': 'https://www.linkedin.com/in/priyanshu-71604b227/'
+    'instagram': 'https://www.instagram.com/geekyps/',
+    'linkedin': 'https://www.linkedin.com/in/geekyps/'
   },
   {
     'name': 'Ankit Das',
@@ -24,7 +24,7 @@ const team = [
         'https://ik.imagekit.io/d056cmdir/profile_photos/20230422_223621.jpg?updatedAt=1682187079171',
     'github': 'https://github.com/ankitdas09',
     'instagram': '',
-    'linkedin': 'https://www.linkedin.com/in/ankit-das-614069229/'
+    'linkedin': 'https://www.linkedin.com/in/ankitdasiitg/'
   },
   {
     'name': 'Kuldeep Ranjan',

@@ -35,7 +35,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
 
-  shared_preferences: ^2.2.2
+  shared_preferences: 2.2.2
   flutter_web_auth: ^0.5.0
   flutter_appauth: ^6.0.2
   http: ^1.1.2
@@ -58,20 +58,21 @@ dependencies:
   firebase_dynamic_links: ^5.4.8
   # uvid and share_plus both cannot be upgraded simultaneously as it will lead to version conflicts
   like_button: ^2.0.5
-  image_picker: ^1.0.5
+  image_picker: ^1.0.6
   upgrader: ^8.4.0
   timeline_tile: ^2.0.0
   percent_indicator: ^4.2.3
   
-  flutter_native_splash: ^2.3.8
+  flutter_native_splash: ^2.3.9
   uuid: ^4.2.2
  
 
   firebase_crashlytics: ^3.4.9
 
-  awesome_notifications_core: ^0.9.0 
-  awesome_notifications: any 
-  awesome_notifications_fcm: any 
+
+  awesome_notifications: 0.9.0
+  awesome_notifications_fcm: 0.9.1
+
 
 
 

@@ -14,14 +14,12 @@ import '../../models/user.dart';
 Future<void> isCourseUpdated() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-
     final header = await getAccessToken();
+    final fetchDate = prefs.getString('fetchDate') ?? "2019-04-28T14:45:15";
 
     if (header == 'error') {
       return;
     }
-
-    final fetchDate = prefs.getString('fetchDate') ?? "2019-04-28T14:45:15";
 
     final res = await http.post(
       Uri.parse(CoursesEndpoints.isCourseUpdated),
@@ -47,18 +45,15 @@ Future<void> isCourseUpdated() async {
     var box = await Hive.openBox('coursehub-data');
 
     User user = User.fromJson(box.get('user') ?? {});
-    List<Course> toBeAdded = [];
+    List<Future> toBeAdded = [];
 
     for (var course in subscribedCourses) {
       if (!user.courses.any((element) => element.code == course.code)) {
-        toBeAdded.add(course);
+        toBeAdded.add(getUserCourses(course.code));
       }
     }
 
-    for (var element in toBeAdded) {
-      await getUserCourses(element.code);
-    }
-
+    await Future.wait(toBeAdded);
     await getCurrentUser();
   } catch (e) {
     rethrow;

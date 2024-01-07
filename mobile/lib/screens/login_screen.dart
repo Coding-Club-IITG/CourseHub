@@ -50,8 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         flex: 2,
                         child: Container(
                           color: Colors.black,
-                          child:const  Column(
-                            children:  [
+                          child: const Column(
+                            children: [
                               SizedBox(
                                 height: 50,
                               ),
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 setState(() {
                                   _isLoading = true;
                                 });
-                                await authenticateGuest();
+                                await authenticate(isGuest: true);
                                 setState(() {
                                   _isLoading = false;
                                 });
@@ -160,7 +160,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 showSnackBar(
                                     'Successfully Logged In!', context);
                               } catch (e) {
-                  
                                 setState(() {
                                   _isLoading = false;
                                 });

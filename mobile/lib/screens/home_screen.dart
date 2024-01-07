@@ -61,9 +61,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               "Welcome,",
                               style: Themes.theme.textTheme.displaySmall,
                             ),
-                            Text(
-                              user.name,
-                              style: Themes.theme.textTheme.bodyLarge,
+                            SizedBox(
+                              width: 180,
+                              child: Text(
+                                user.name,
+                                style: Themes.theme.textTheme.bodyLarge,
+                                maxLines: 2,
+                              ),
                             ),
                           ],
                         ),

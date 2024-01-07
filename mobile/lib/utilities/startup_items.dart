@@ -11,6 +11,8 @@ import '../database/cache_store.dart';
 import '../database/hive_store.dart';
 import './dynamic_links.dart';
 
+
+
 Future<bool> startupItems() async {
   try {
     await Future.wait([

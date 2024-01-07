@@ -91,6 +91,25 @@ class _NavBarScreen extends State<NavBarScreen>
           (value) => log("Token $value"),
         );
     NotificationController.startListeningNotificationEvents();
+
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: 12,
+            channelKey: 'exam',
+            title: 'CE101',
+            body: 'Did you attend this class?',
+            summary: 'Attendance Notifications',
+            notificationLayout: NotificationLayout.BigPicture,
+            bigPicture: 'https://tecnoblog.net/wp-content/uploads/2019/09/emoji.jpg',
+            largeIcon: 'asset://assets/no_class.png',
+            payload: {'uuid': 'user-profile-uuid'}),
+        actionButtons: [
+          NotificationActionButton(
+              key: 'AGREED1', label: 'Attended', autoDismissible: true),
+          NotificationActionButton(
+              key: 'AGREED2', label: 'Missed', autoDismissible: true),
+        ],
+        );
   }
 
   @override

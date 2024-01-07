@@ -1,5 +1,4 @@
 import 'package:coursehub/providers/navigation_provider.dart';
-import 'package:coursehub/utilities/startup_items.dart';
 import 'package:provider/provider.dart';
 
 import '../../apis/courses/add_courses.dart';
@@ -182,7 +181,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                                       _isLoading = false;
                                     });
 
-                                    await startupItems();
+          
                                     if (!mounted) return;
 
                                     navigationProvider.changePageNumber(4);

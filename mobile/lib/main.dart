@@ -11,20 +11,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
-
-
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+
+
   await AwesomeNotifications().initialize(
-   
     'resource://drawable/notifyimage',
 
     [
@@ -41,7 +40,7 @@ Future<void> main() async {
         importance: NotificationImportance.Max,
         playSound: true,
       ),
-       NotificationChannel(
+      NotificationChannel(
         channelGroupKey: 'announcements',
         channelShowBadge: true,
         criticalAlerts: true,
@@ -61,7 +60,8 @@ Future<void> main() async {
         enableVibration: true,
         channelKey: 'schedule',
         channelName: 'Schedule',
-        channelDescription: 'Notifications regarding alterations in classes, including cancellations and additions',
+        channelDescription:
+            'Notifications regarding alterations in classes, including cancellations and additions',
         defaultColor: colors[3],
         ledColor: Colors.white,
         importance: NotificationImportance.Max,
@@ -74,13 +74,13 @@ Future<void> main() async {
         enableVibration: true,
         channelKey: 'attendance',
         channelName: 'Attendance',
-        channelDescription: 'Notifications regarding your attendance in particular course',
+        channelDescription:
+            'Notifications regarding your attendance in particular course',
         defaultColor: colors[4],
         ledColor: Colors.white,
         importance: NotificationImportance.Max,
         playSound: true,
       ),
-      
     ],
     // Channel groups are only visual and are not required
     channelGroups: [
@@ -104,6 +104,8 @@ Future<void> main() async {
     onFcmSilentDataHandle: NotificationController.mySilentDataHandle,
     debug: true,
   );
+
+
 
   FlutterNativeSplash.remove();
 

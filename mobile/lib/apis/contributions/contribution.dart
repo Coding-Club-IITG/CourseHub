@@ -45,7 +45,9 @@ Future<void> contributeData(List<File?> files, String year, String courseCode,
     try {
       User user = HiveStore.getUserDetails();
       final request = http.MultipartRequest(
-          "POST", Uri.parse(ContributionEndpoints.fileUpload));
+        "POST",
+        Uri.parse(ContributionEndpoints.fileUpload),
+      );
       request.fields['contributionId'] = v1;
       request.fields['year'] = year;
       request.fields['uploadedBy'] = user.id;

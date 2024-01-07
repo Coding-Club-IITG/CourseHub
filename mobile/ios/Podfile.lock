@@ -1,6 +1,4 @@
 PODS:
-  - app_settings (5.1.1):
-    - Flutter
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
     - AppAuth/ExternalUserAgent (= 1.6.2)
@@ -10,8 +8,6 @@ PODS:
   - awesome_notifications (0.9.0):
     - Flutter
     - IosAwnCore (~> 0.9.1)
-  - awesome_notifications_core (0.0.1):
-    - Flutter
   - awesome_notifications_fcm (0.9.0):
     - awesome_notifications
     - Firebase/Messaging
@@ -183,9 +179,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - app_settings (from `.symlinks/plugins/app_settings/ios`)
   - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
-  - awesome_notifications_core (from `.symlinks/plugins/awesome_notifications_core/ios`)
   - awesome_notifications_fcm (from `.symlinks/plugins/awesome_notifications_fcm/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -230,12 +224,8 @@ SPEC REPOS:
     - SwiftyGif
 
 EXTERNAL SOURCES:
-  app_settings:
-    :path: ".symlinks/plugins/app_settings/ios"
   awesome_notifications:
     :path: ".symlinks/plugins/awesome_notifications/ios"
-  awesome_notifications_core:
-    :path: ".symlinks/plugins/awesome_notifications_core/ios"
   awesome_notifications_fcm:
     :path: ".symlinks/plugins/awesome_notifications_fcm/ios"
   device_info_plus:
@@ -274,10 +264,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
-  app_settings: 017320c6a680cdc94c799949d95b84cb69389ebc
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   awesome_notifications: 399076ea2bdf119beef9126f1ca6914215390997
-  awesome_notifications_core: d02eed89738fa362d56cbd372850e9adcd2c6bef
   awesome_notifications_fcm: ba352d71386d6f256e5da2b6e59cba757f5472ce
   device_info_plus: c6fb39579d0f423935b0c9ce7ee2f44b71b9fce6
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
@@ -317,6 +305,6 @@ SPEC CHECKSUMS:
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
   url_launcher_ios: bf5ce03e0e2088bad9cc378ea97fa0ed5b49673b
 
-PODFILE CHECKSUM: e0594b91b59a5a9d753033b40af4cc198bd0ec62
+PODFILE CHECKSUM: ec214a481290a6b628785751c11d2ca5e8e16bfd
 
 COCOAPODS: 1.14.3

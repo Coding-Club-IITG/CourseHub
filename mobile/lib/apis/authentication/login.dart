@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:developer';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,34 +19,46 @@ import '../courses/add_courses.dart';
 import '../protected.dart';
 import '../user/user.dart';
 
-Future<void> authenticate() async {
+Future<void> authenticate({bool isGuest = false}) async {
   try {
-    final result = await FlutterWebAuth.authenticate(
-        url: AuthEndpoints.getAccess, callbackUrlScheme: "coursehub");
-
+    final String? accessToken;
+    if (isGuest) {
+      final result =
+          await http.get(Uri.parse(MiscellaneousEndpoints.guestLogin));
+      accessToken = jsonDecode(result.body)['token'];
+    } else {
+      final result = await FlutterWebAuth.authenticate(
+          url: AuthEndpoints.getAccess, callbackUrlScheme: "coursehub");
+      accessToken = Uri.parse(result).queryParameters['token'];
+    }
     final prefs = await SharedPreferences.getInstance();
-    var accessToken = Uri.parse(result).queryParameters['token'];
+
     if (accessToken == null) {
-      throw ('access token not in query params');
+      throw ('access token not found');
     }
 
     prefs.setString('access_token', accessToken);
-     prefs.setBool('isGuest', false);
-    CacheStore.isGuest = false;
+    prefs.setBool('isGuest', isGuest);
+    CacheStore.isGuest = isGuest;
     await getCurrentUser();
     await getContribution();
     await setHiveStore();
 
+  
+
     final user = User.fromJson(HiveStore.userData);
+
+    List<Future> concurrentTasks = [];
     for (var i = 0; i < user.courses.length; i++) {
-      await getUserCourses(user.courses[i].code);
+      concurrentTasks.add(getUserCourses(user.courses[i].code));
     }
+// parallel API calls to decrease time by GeekyPS
+    await Future.wait(concurrentTasks);
     await prefs.setString('fetchDate', DateTime.now().toString());
     await setHiveStore();
   } on PlatformException catch (_) {
     rethrow;
   } catch (e) {
-
     rethrow;
   }
 }
@@ -79,35 +91,4 @@ Future<bool> isLoggedIn() async {
   }
 }
 
-Future<void> authenticateGuest() async {
-  try {
-    final result = await http.get(Uri.parse(MiscellaneousEndpoints.guestLogin));
 
-    final accessToken = jsonDecode(result.body)['token'];
-
-    final prefs = await SharedPreferences.getInstance();
-
-    if (accessToken == null) {
-      throw ('access token not found');
-    }
-
-    prefs.setString('access_token', accessToken);
-    prefs.setBool('isGuest', true);
-    CacheStore.isGuest = true;
-
-
-    await getCurrentUser();
-    await getContribution();
-    await setHiveStore();
-
-    final user = User.fromJson(HiveStore.userData);
-    for (var i = 0; i < user.courses.length; i++) {
-      await getUserCourses(user.courses[i].code);
-    }
-    await setHiveStore();
-  } on PlatformException catch (_) {
-    rethrow;
-  } catch (e) {
-    rethrow;
-  }
-}
