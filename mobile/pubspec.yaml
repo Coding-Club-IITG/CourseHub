@@ -72,6 +72,7 @@ dependencies:
 
   awesome_notifications: 0.9.0
   awesome_notifications_fcm: 0.9.1
+  calendar_date_picker2: ^0.5.3
 
 
 

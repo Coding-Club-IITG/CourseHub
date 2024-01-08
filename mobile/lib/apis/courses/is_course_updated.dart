@@ -54,6 +54,8 @@ Future<void> isCourseUpdated() async {
     }
 
     await Future.wait(toBeAdded);
+
+
     await getCurrentUser();
   } catch (e) {
     rethrow;

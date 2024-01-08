@@ -5,6 +5,7 @@ import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:coursehub/screens/login_screen.dart';
 import 'package:coursehub/screens/nav_bar_screen.dart';
+import 'package:coursehub/screens/schedule_admin.dart';
 import 'package:coursehub/utilities/notifications/notification_services.dart';
 import 'package:coursehub/utilities/startup_items.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,8 +21,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-
 
   await AwesomeNotifications().initialize(
     'resource://drawable/notifyimage',
@@ -93,7 +92,7 @@ Future<void> main() async {
         channelGroupName: 'Timetable',
       )
     ],
-    debug: true,
+    debug: true, 
   );
 
   final bool isLoggedIn = await startupItems();
@@ -139,7 +138,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       key: navigatorKey,
       theme: Themes.theme,
-      home: isLoggedIn ? const NavBarScreen() : const LoginScreen(),
+      // home: isLoggedIn ? const NavBarScreen() : const LoginScreen(),
+      home: ScheduleAdmin(),
       builder: EasyLoading.init(),
     );
   }

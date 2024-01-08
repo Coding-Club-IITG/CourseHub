@@ -7,7 +7,7 @@ class MiscellaneousEndpoints {
   static const String guestLogin = '$baseUrl/auth/login/guest/';
   static const String funFacts = '$baseUrl/miscellaneous/fun-facts/';
   static const String getTimetable = '$baseUrl/timetable/';
-  static const String postFeedbackBug = '$baseUrl/miscellaneous/report';
+  static const String postFeedbackBug = '$baseUrl/miscellaneous/report/';
 }
 
 class CoursesEndpoints {
@@ -39,5 +39,7 @@ class AuthEndpoints {
 }
 
 class ContributionEndpoints {
-  static const String fileUpload = '$baseUrl/contribution/upload/mobile';
+  static const String fileUpload = '$baseUrl/contribution/upload/mobile/';
 }
+
+

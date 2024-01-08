@@ -7,7 +7,7 @@ import 'package:coursehub/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class NotificationServices {}
+
 
 class NotificationController {
   Future<String?> getFirebaseMessagingToken() async {

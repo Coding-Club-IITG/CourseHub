@@ -42,9 +42,7 @@ Future<void> authenticate({bool isGuest = false}) async {
     CacheStore.isGuest = isGuest;
     await getCurrentUser();
     await getContribution();
-    await setHiveStore();
-
-  
+    await setHiveStore();  
 
     final user = User.fromJson(HiveStore.userData);
 
@@ -53,7 +51,7 @@ Future<void> authenticate({bool isGuest = false}) async {
       concurrentTasks.add(getUserCourses(user.courses[i].code));
     }
 // parallel API calls to decrease time by GeekyPS
-    await Future.wait(concurrentTasks);
+ await Future.wait(concurrentTasks);
     await prefs.setString('fetchDate', DateTime.now().toString());
     await setHiveStore();
   } on PlatformException catch (_) {
