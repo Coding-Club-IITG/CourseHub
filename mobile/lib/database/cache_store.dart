@@ -1,7 +1,5 @@
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/database/hive_store.dart';
-
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,10 +12,19 @@ class CacheStore {
   static String browsePath = 'Home/';
   static String browseYear = '';
   static Color attendanceColor = colors[0];
- 
-
   static List examTimings = [];
 
+  static Map<String, List<dynamic>> schedule = {
+    'MON': [],
+    'TUE': [],
+    'WED': [],
+    'THU': [],
+    'FRI': [],
+    'SAT': [],
+    'SUN': [],
+  };
+
+  static List<String> daysOfTheWeek=[];
   static clearCacheStore() {
     courseAvailability = {};
     tempCourseData = {};

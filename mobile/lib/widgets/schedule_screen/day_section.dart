@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class DaySection extends StatelessWidget {
   final String section;
   final int numClasses;
-  const DaySection({super.key, required this.section,required this.numClasses});
+  DaySection({super.key, required this.section,required this.numClasses});
 
   @override
   Widget build(BuildContext context) {
