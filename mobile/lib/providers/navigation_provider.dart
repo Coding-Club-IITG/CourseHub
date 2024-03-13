@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:coursehub/apis/schedule/schedule.dart';
+
 import '../database/cache_store.dart';
 import 'package:flutter/material.dart';
 
@@ -11,19 +13,21 @@ class NavigationProvider with ChangeNotifier {
 
   // late AnimationController controller;
 
-  void changePageNumber(int a) {
+  Future<void> changePageNumber(int a)  async {
     if (a != 1) {
       CacheStore.isTempCourse = false;
     }
     clearFiles();
 
-    // if (currentPageNumber == 2) {
-    //   controller.reverse(from: 0.75);
-    // }
-
     if (CacheStore.isTempCourse && currentPageNumber == 1) {
       CacheStore.resetBrowsePath();
       CacheStore.isTempCourse = false;
+    }
+
+    if(a==3)
+    {
+      getDays();
+      await getSchedules();
     }
     currentPageNumber = a;
     notifyListeners();

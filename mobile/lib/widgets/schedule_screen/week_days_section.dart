@@ -1,6 +1,9 @@
+import 'package:coursehub/database/cache_store.dart';
+import 'package:coursehub/providers/schedule_provider.dart';
 import 'package:coursehub/widgets/schedule_screen/day_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:provider/provider.dart';
 
 class WeekDaysSection extends StatefulWidget {
   const WeekDaysSection({super.key});
@@ -10,12 +13,12 @@ class WeekDaysSection extends StatefulWidget {
 }
 
 class _WeekDaysSectionState extends State<WeekDaysSection> {
-  final List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  int activeDayIndex = 0;
   bool activeMenu = true;
   @override
   Widget build(BuildContext context) {
+    final daysProvider = context.read<DaysProvider>();
+    final List<String> days = daysProvider.days;
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -34,10 +37,10 @@ class _WeekDaysSectionState extends State<WeekDaysSection> {
               child: FadeInAnimation(
                 child: DayContainer(
                   currentDay: days[index],
-                  isActive: index == activeDayIndex,
+                  isActive: index == daysProvider.currentDay,
                   callback: () {
                     setState(() {
-                      activeDayIndex = index;
+                      daysProvider.changeIndex(index);
                     });
                   },
                 ),

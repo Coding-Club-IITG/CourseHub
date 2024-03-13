@@ -1,4 +1,6 @@
+import 'package:coursehub/database/cache_store.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:coursehub/providers/schedule_provider.dart';
 import 'package:coursehub/widgets/common/nav_bar.dart';
 import 'package:coursehub/widgets/schedule_screen/classes_section.dart';
 import 'package:coursehub/widgets/schedule_screen/day_section.dart';
@@ -21,6 +23,8 @@ class _ScheduleScreen extends State<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final navigatorProvider = context.read<NavigationProvider>();
+    final dayProvider=context.read<DaysProvider>();
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -49,17 +53,6 @@ class _ScheduleScreen extends State<ScheduleScreen> {
                       Row(
                         children: [
                           PageChangeButton(
-                              callBack: () {
-                                setState(() {
-                                  activeMenu = false;
-                                });
-                              },
-                              isActive: !activeMenu,
-                              logoImage: "assets/schedule_logo.svg"),
-                          const SizedBox(
-                            width: 6,
-                          ),
-                          PageChangeButton(
                             callBack: () {
                               setState(() {
                                 activeMenu = true;
@@ -82,16 +75,17 @@ class _ScheduleScreen extends State<ScheduleScreen> {
                 ],
               ),
             ),
-            const Expanded(
+            Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    DaySection(
-                      section: 'Your Day',
-                      numClasses: 4,
+                    Consumer<DaysProvider>(
+                      builder: (context,service,child)=>  DaySection(
+                        section: 'Your Day',
+                        numClasses:CacheStore.schedule[dayProvider.getDay()]?.length??0,
+                      ),
                     ),
                     ClassesSection(),
-                  
                     NoClassBanner(),
                     SizedBox(
                       height: 40,

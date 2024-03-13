@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -24,7 +23,7 @@ Future<void> authenticate({bool isGuest = false}) async {
     final String? accessToken;
     if (isGuest) {
       final result =
-          await http.get(Uri.parse(MiscellaneousEndpoints.guestLogin));
+      await http.get(Uri.parse(MiscellaneousEndpoints.guestLogin));
       accessToken = jsonDecode(result.body)['token'];
     } else {
       final result = await FlutterWebAuth.authenticate(
@@ -42,7 +41,7 @@ Future<void> authenticate({bool isGuest = false}) async {
     CacheStore.isGuest = isGuest;
     await getCurrentUser();
     await getContribution();
-    await setHiveStore();  
+    await setHiveStore();
 
     final user = User.fromJson(HiveStore.userData);
 
@@ -51,7 +50,7 @@ Future<void> authenticate({bool isGuest = false}) async {
       concurrentTasks.add(getUserCourses(user.courses[i].code));
     }
 // parallel API calls to decrease time by GeekyPS
- await Future.wait(concurrentTasks);
+    await Future.wait(concurrentTasks);
     await prefs.setString('fetchDate', DateTime.now().toString());
     await setHiveStore();
   } on PlatformException catch (_) {
@@ -74,7 +73,7 @@ Future<void> logoutHandler(context) async {
     MaterialPageRoute(
       builder: (context) => const LoginScreen(),
     ),
-    (route) => false,
+        (route) => false,
   );
 }
 
@@ -88,5 +87,3 @@ Future<bool> isLoggedIn() async {
     return false;
   }
 }
-
-

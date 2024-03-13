@@ -34,10 +34,7 @@ Future<List<ExamDetails>> getExamDetails() async {
       prefs.setString("examType", json.decode(res.body)['exam']);
     }
 
-
     List<ExamDetails> examTimings = [];
-
-
     for (var exam in decodedResponse) {
       if (!exam['found']) {
         continue;
@@ -47,7 +44,7 @@ Future<List<ExamDetails>> getExamDetails() async {
     }
 
     examTimings.sort(
-      (a, b) {
+          (a, b) {
         return a.date.compareTo(b.date);
       },
     );

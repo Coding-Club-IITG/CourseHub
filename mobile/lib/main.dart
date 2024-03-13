@@ -3,9 +3,9 @@ import 'package:awesome_notifications_fcm/awesome_notifications_fcm.dart';
 import 'package:coursehub/constants/themes.dart';
 import 'package:coursehub/providers/cache_provider.dart';
 import 'package:coursehub/providers/navigation_provider.dart';
+import 'package:coursehub/providers/schedule_provider.dart';
 import 'package:coursehub/screens/login_screen.dart';
 import 'package:coursehub/screens/nav_bar_screen.dart';
-import 'package:coursehub/screens/schedule_admin.dart';
 import 'package:coursehub/utilities/notifications/notification_services.dart';
 import 'package:coursehub/utilities/startup_items.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -60,7 +60,7 @@ Future<void> main() async {
         channelKey: 'schedule',
         channelName: 'Schedule',
         channelDescription:
-            'Notifications regarding alterations in classes, including cancellations and additions',
+        'Notifications regarding alterations in classes, including cancellations and additions',
         defaultColor: colors[3],
         ledColor: Colors.white,
         importance: NotificationImportance.Max,
@@ -74,7 +74,7 @@ Future<void> main() async {
         channelKey: 'attendance',
         channelName: 'Attendance',
         channelDescription:
-            'Notifications regarding your attendance in particular course',
+        'Notifications regarding your attendance in particular course',
         defaultColor: colors[4],
         ledColor: Colors.white,
         importance: NotificationImportance.Max,
@@ -92,7 +92,7 @@ Future<void> main() async {
         channelGroupName: 'Timetable',
       )
     ],
-    debug: true, 
+    debug: true,
   );
 
   final bool isLoggedIn = await startupItems();
@@ -117,6 +117,9 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (context) => NavigationProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => DaysProvider(),
+        )
       ],
       child: MyApp(isLoggedIn: isLoggedIn),
     ),
@@ -138,8 +141,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       key: navigatorKey,
       theme: Themes.theme,
-      // home: isLoggedIn ? const NavBarScreen() : const LoginScreen(),
-      home: ScheduleAdmin(),
+      home: isLoggedIn ? const NavBarScreen() : const LoginScreen(),
+      // home: ScheduleAdmin(),
       builder: EasyLoading.init(),
     );
   }
