@@ -1,0 +1,40 @@
+name: Deploy CourseHub
+
+on: 
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy: 
+        runs-on: ubuntu-latest
+     
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Copy project files to EC2
+              uses: appleboy/scp-action@v0.1.4
+              with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ec2-user
+                key: ${{ secrets.EC2_KEY }}
+                source: "."
+                target: "/home/ec2-user/coursehub"
+                
+            - name: SSH into EC2 and restart backend
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ec2-user
+                key: ${{ secrets.EC2_KEY }}
+                script: |
+                    cd coursehub
+                    npm install
+                    echo "${{ secrets.ENV_FILE }}" > .env
+                    pm2 stop CourseHub || true
+                    pm2 start index.js --name coursehub
+
+
+
+
