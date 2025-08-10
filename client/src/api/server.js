@@ -1,3 +1,3 @@
-// export default "https://coursehub.codingclub.in";
-export default "http://localhost:8080";
+export default "https://coursehub.codingclub.in";
+//export default "http://localhost:8080";
 
