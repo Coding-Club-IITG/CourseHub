@@ -152,7 +152,7 @@ const Timetable = ({ user }) => {
                 {/* Regular slots A-G */}
                 <div>
                   <h4 style={{ marginBottom: '10px', color: '#333' }}>Regular Slots</h4>
-                  {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(slot => (
+                  {['A', 'B', 'C', 'D', 'E', 'F', 'G','ML1','ML2','ML3','ML4','ML5'].map(slot => (
                     <div key={slot} style={{ marginBottom: '10px' }}>
                       <div style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                         Slot {slot}:
@@ -177,7 +177,7 @@ const Timetable = ({ user }) => {
                 {/* Lab slots A1-G1 */}
                 <div>
                   <h4 style={{ marginBottom: '10px', color: '#333' }}>Lab Slots</h4>
-                  {['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'].map(slot => (
+                  {['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1','AL1','AL2','AL3','AL4','AL5'].map(slot => (
                     <div key={slot} style={{ marginBottom: '10px' }}>
                       <div style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                         Slot {slot}:
