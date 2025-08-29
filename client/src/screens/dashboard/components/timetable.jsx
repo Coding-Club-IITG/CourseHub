@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './timetable.scss';
+import { createOrUpdateExamSlot } from '../../../api/Timetable'; // Adjust path as needed
+import { toast } from 'react-toastify';
 
 const Timetable = ({ user }) => {
   const [showForm, setShowForm] = useState(false);
@@ -59,15 +61,45 @@ const Timetable = ({ user }) => {
     }));
   };
 
-  const handleFormSubmit = () => {
-    console.log('Timetable Form Data:', formData);
-    
-    // Log only non-empty slots
-    const filledSlots = Object.entries(formData).filter(([key, value]) => value.trim() !== '');
-    console.log('Filled Slots:', filledSlots);
-    
-    // Close form after submission
-    setShowForm(false);
+  const handleFormSubmit = async () => {
+    try {
+      // Prepare the data for API request
+      const examSlotData = {
+        branch: user?.user?.department || user?.department,
+        semester: user?.user?.semester || user?.semester,
+        course: user?.user?.degree || user?.degree,
+        // Include all slots (A-G and A1-G1), even if empty
+        A: formData.A || '',
+        B: formData.B || '',
+        C: formData.C || '',
+        D: formData.D || '',
+        E: formData.E || '',
+        F: formData.F || '',
+        G: formData.G || '',
+        A1: formData.A1 || '',
+        B1: formData.B1 || '',
+        C1: formData.C1 || '',
+        D1: formData.D1 || '',
+        E1: formData.E1 || '',
+        F1: formData.F1 || '',
+        G1: formData.G1 || ''
+      };
+
+      console.log('Submitting timetable data:', examSlotData);
+
+      // Make API request
+      const response = await createOrUpdateExamSlot(examSlotData);
+      
+      console.log('Timetable updated successfully:', response);
+      toast.success('Timetable updated successfully!');
+      
+      // Close form after successful submission
+      setShowForm(false);
+      
+    } catch (error) {
+      console.error('Error updating timetable:', error);
+      toast.error('Failed to update timetable. Please try again.');
+    }
   };
 
   const handleFormCancel = () => {
@@ -152,7 +184,7 @@ const Timetable = ({ user }) => {
                 {/* Regular slots A-G */}
                 <div>
                   <h4 style={{ marginBottom: '10px', color: '#333' }}>Regular Slots</h4>
-                  {['A', 'B', 'C', 'D', 'E', 'F', 'G','ML1','ML2','ML3','ML4','ML5'].map(slot => (
+                  {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(slot => (
                     <div key={slot} style={{ marginBottom: '10px' }}>
                       <div style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                         Slot {slot}:
@@ -177,7 +209,7 @@ const Timetable = ({ user }) => {
                 {/* Lab slots A1-G1 */}
                 <div>
                   <h4 style={{ marginBottom: '10px', color: '#333' }}>Lab Slots</h4>
-                  {['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1','AL1','AL2','AL3','AL4','AL5'].map(slot => (
+                  {['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'].map(slot => (
                     <div key={slot} style={{ marginBottom: '10px' }}>
                       <div style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                         Slot {slot}:
