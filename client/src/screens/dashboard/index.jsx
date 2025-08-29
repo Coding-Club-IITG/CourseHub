@@ -9,7 +9,7 @@ import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
 import Footer from "../../components/footer";
 import FavouriteCard from "./components/favouritecard";
-
+import Timetable from "./components/timetable.jsx";
 import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -238,12 +238,13 @@ const Dashboard = () => {
                                     text={
                                         showPrevious
                                             ? "▼ HIDE PREVIOUS COURSES"
-                                            : "▶ SHOW PREVIOUS COURSES"
+                                            : "▶️ SHOW PREVIOUS COURSES"
                                     }
                                     color={"light"}
                                     type={"bold"}
                                 />
                             </div>
+                            
 
                             {showPrevious && (
                                 <>
@@ -268,12 +269,19 @@ const Dashboard = () => {
                                     </div>
                                 </>
                             )}
+                            
                         </>
                     )}
                     <Space amount={50} />
                 </Container>
                 <ContributionBanner contributionHandler={contributionHandler} />
                 <Space amount={50} />
+                
+                <Container>
+                     <SubHeading text={"MY TIMETABLE"} type={"bold"} algn={"center"} />
+    <Space amount={20} />
+    <Timetable user={user} />
+                </Container>
                 <Container>
                     <SubHeading text={"MY FAVOURITES"} type={"bold"} algn={"center"} />
                     <div className="fav-container">

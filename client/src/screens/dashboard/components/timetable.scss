@@ -1,0 +1,153 @@
+
+
+// timetable.scss
+.timetable-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 20px 0;
+  
+  .timetable-grid {
+    display: grid;
+    grid-template-columns: 120px repeat(10, 1fr);
+    grid-gap: 1px;
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 800px;
+    
+    .time-header {
+      background-color: #f5f5f5;
+      padding: 12px 8px;
+      font-weight: bold;
+      text-align: center;
+      border-right: 1px solid #ddd;
+    }
+    
+    .time-slot-header {
+      background-color: #f5f5f5;
+      padding: 12px 8px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    
+    .day-header {
+      background-color: #f0f0f0;
+      padding: 12px 8px;
+      font-weight: bold;
+      text-align: center;
+      color: #333;
+      border-right: 1px solid #ddd;
+    }
+    
+    .timetable-cell {
+      background-color: white;
+      padding: 8px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      
+      &.empty {
+        background-color: #fafafa;
+        
+        &:hover {
+          background-color: #f0f0f0;
+        }
+      }
+      
+      &.occupied {
+        cursor: pointer;
+        
+        &:hover {
+          transform: scale(1.02);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .class-info {
+          text-align: center;
+          width: 100%;
+          
+          .subject-name {
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: white;
+          }
+          
+          .room-info {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            color: white;
+          }
+        }
+        
+        // Different colors for different class types
+        &.lecture {
+          background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+        
+        &.lab {
+          background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+        
+        &.practical {
+          background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+        
+        &.tutorial {
+          background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        }
+        
+        &.project {
+          background: linear-gradient(135deg, #E91E63, #C2185B);
+        }
+        
+        &.seminar {
+          background: linear-gradient(135deg, #607D8B, #455A64);
+        }
+        
+        &.study {
+          background: linear-gradient(135deg, #795548, #5D4037);
+        }
+        
+        &.default {
+          background: linear-gradient(135deg, #757575, #616161);
+        }
+      }
+    }
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .timetable-container {
+    .timetable-grid {
+      grid-template-columns: 80px repeat(10, minmax(80px, 1fr));
+      
+      .time-slot-header,
+      .day-header {
+        font-size: 0.8rem;
+        padding: 8px 4px;
+      }
+      
+      .timetable-cell {
+        min-height: 50px;
+        padding: 4px;
+        
+        &.occupied .class-info {
+          .subject-name {
+            font-size: 0.75rem;
+          }
+          
+          .room-info {
+            font-size: 0.65rem;
+          }
+        }
+      }
+    }
+  }
+}
