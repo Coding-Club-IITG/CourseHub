@@ -100,7 +100,7 @@ const Contributions = () => {
                 <div className="disclaimer">
                     Selected Files will get uploaded to the current folder
                 </div>
-                <div className="file_pond">
+                <div className="file_pond large">
                     <FilePond
                         name="file"
                         allowMultiple={true}
@@ -120,25 +120,16 @@ const Contributions = () => {
                             pond.current = ref;
                         }}
                     />
-                </div>
-                <div id="disclaimer-container">
-                    <div id="uploaded-container">
-                        <div>🚫</div>
-                        <div>
-                            Do not close this popup until all files are successfully uploaded!
-                        </div>
-                    </div>
-                    {!isBR ? (
-                        <div id="uploaded-container">
-                            <div>⚠️</div>
-                            <div>
-                                Please contact your Branch Representative to verify the files you
-                                have uploaded so that it may be visible to everyone
+
+                    <div className="filepond-overlay">
+                        <div className="overlay-line">Selected Files will get uploaded to the current folder</div>
+                        <div className="overlay-warning">🚫 Do not close this popup until all files are uploaded!</div>
+                        {!isBR && (
+                            <div className="overlay-branch">
+                                ⚠️ Please contact your Branch Representative to verify your uploaded files.
                             </div>
-                        </div>
-                    ) : (
-                        <></>
-                    )}
+                        )}
+                    </div>
                 </div>
                 <div className={`button ${submitEnabled}`} onClick={handleSubmit}>
                     SUBMIT
