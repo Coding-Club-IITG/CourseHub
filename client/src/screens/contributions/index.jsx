@@ -108,7 +108,7 @@ const Contributions = () => {
                         ? "Upload files to this folder"
                         : "Your files will be added to this folder"}
                 </div>
-                <div className="file_pond">
+                <div className="file_pond large">
                     <FilePond
                         name="file"
                         allowMultiple={true}
@@ -143,10 +143,11 @@ const Contributions = () => {
                                 Files require approval from a Branch Representative before becoming
                                 visible to other users.
                             </div>
-                        </div>
-                    ) : (
+                            </div>
+                    ):(
                         <></>
-                    )}
+                        )}
+                    
                 </div>
                 <div className={`button ${submitEnabled && !isUploading}`} onClick={handleSubmit}>
                     {isUploading ? "UPLOADING..." : "SUBMIT"}
