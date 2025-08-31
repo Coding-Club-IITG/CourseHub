@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import './timetable.scss';
+import server from '../../../api/server';
+import { useEffect } from 'react';
+import { fetchExamSlot } from '../../../api/Timetable';
 
 const Timetable = ({ user }) => {
   const [showForm, setShowForm] = useState(false);
+  const [examSlots, setExamSlots] = useState({});
   const [formData, setFormData] = useState({
     A: '', B: '', C: '', D: '', E: '', F: '', G: '',
     A1: '', B1: '', C1: '', D1: '', E1: '', F1: '', G1: ''
@@ -94,6 +98,24 @@ const Timetable = ({ user }) => {
 
   // Check if user is BR (you can adjust this condition based on your user object structure)
   const isBR = user?.user?.isBR || user?.isBR;
+
+useEffect(() => {
+  const fetchData = async () => {
+    console.log(user);
+    console.log(user?.user?.degree, user?.user?.department,user?.user?.semester);
+
+    var branch = user?.user?.department;
+    // replace spaces of branch with -
+    branch = branch.replace(/ /g, '-');
+
+    console.log(branch);
+
+    const response = await fetchExamSlot(user?.user?.degree, branch,user?.user?.semester);
+    console.log(response);
+  };
+
+  fetchData();
+}, [examSlots, user]);
 
   return (
     <div className="timetable-container">

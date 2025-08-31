@@ -29,7 +29,9 @@ export const createOrUpdateExamSlot = async (req, res) => {
 export const getExamSlot = async (req, res) => {
     try {
         const {course, branch, semester } = req.params;
-        const examSlot = await ExamSlotModel.findOne({course, branch, semester });
+
+        const branchFixed = branch.replace(/-/g, ' ');
+        const examSlot = await ExamSlotModel.findOne({course, branchFixed, semester });
         if (!examSlot) {
             return res.status(404).json({ message: 'Exam slot not found' });
         }
