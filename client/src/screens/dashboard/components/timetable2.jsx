@@ -12,7 +12,7 @@ const Timetable = ({ user }) => {
     ML1: '', ML2: '', ML3: '', ML4: '', ML5: '',
     AL1: '', AL2: '', AL3: '', AL4: '', AL5: ''
   });
-  console.log(examSlots);
+
   const timeSlots = [
     '8:00 AM',
     '9:00 AM', 
