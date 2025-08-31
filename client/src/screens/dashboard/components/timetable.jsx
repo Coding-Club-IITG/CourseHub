@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './timetable.scss';
-import { createOrUpdateExamSlot } from '../../../api/Timetable'; // Adjust path as needed
+import { createOrUpdateExamSlot, fetchExamSlot } from '../../../api/Timetable'; // Adjust path as needed
+import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 const Timetable = ({ user }) => {
@@ -55,9 +56,9 @@ const Timetable = ({ user }) => {
         '11:00 AM': examSlots.ML1 ? 'ML1' : 'D',
         '12:00 PM': 'F',
         '1:00 PM': 'F1',
-        '2:00 PM': 'D1',
+        '2:00 PM': examSlots.AL1 ? 'AL1' : 'D1',
         '3:00 PM': examSlots.AL1 ? 'AL1' : 'C1',
-        '4:00 PM': 'B1',
+        '4:00 PM': examSlots.AL1 ? 'AL1' : 'B1',
         '5:00 PM': 'A1'
       },
       'Tuesday': {
@@ -67,9 +68,9 @@ const Timetable = ({ user }) => {
         '11:00 AM': examSlots.ML2 ? 'ML2' : 'C',
         '12:00 PM': 'F',
         '1:00 PM': 'F1',
-        '2:00 PM': 'C1',
+        '2:00 PM': examSlots.AL2 ? 'AL2' : 'C1',
         '3:00 PM': examSlots.AL2 ? 'AL2' : 'B1',
-        '4:00 PM': 'A1',
+        '4:00 PM': examSlots.AL2 ? 'AL2' : 'A1',
         '5:00 PM': 'E1'
       },
       'Wednesday': {
@@ -79,9 +80,9 @@ const Timetable = ({ user }) => {
         '11:00 AM': examSlots.ML3 ? 'ML3' : 'B',
         '12:00 PM': 'G',
         '1:00 PM': 'G1',
-        '2:00 PM': 'B1',
+        '2:00 PM': examSlots.AL3 ? 'AL3' : 'B1',
         '3:00 PM': examSlots.AL3 ? 'AL3' : 'A1',
-        '4:00 PM': 'E1',
+        '4:00 PM': examSlots.AL3 ? 'AL3' : 'E1',
         '5:00 PM': 'D1'
       },
       'Thursday': {
@@ -91,9 +92,9 @@ const Timetable = ({ user }) => {
         '11:00 AM': examSlots.ML4 ? 'ML4' : 'A',
         '12:00 PM': 'G',
         '1:00 PM': 'G1',
-        '2:00 PM': 'A1',
+        '2:00 PM': examSlots.AL4 ? 'AL4' : 'A1',
         '3:00 PM': examSlots.AL4 ? 'AL4' : 'E1',
-        '4:00 PM': 'D1',
+        '4:00 PM': examSlots.AL4 ? 'AL4' : 'D1',
         '5:00 PM': 'C1'
       },
       'Friday': {
@@ -103,9 +104,9 @@ const Timetable = ({ user }) => {
         '11:00 AM': examSlots.ML5 ? 'ML5' : 'F',
         '12:00 PM': 'G',
         '1:00 PM': 'G1',
-        '2:00 PM': 'F1',
+        '2:00 PM': examSlots.AL5 ? 'AL5' : 'F1',
         '3:00 PM': examSlots.AL5 ? 'AL5' : 'D1',
-        '4:00 PM': 'C1',
+        '4:00 PM': examSlots.AL5 ? 'AL5' : 'C1',
         '5:00 PM': 'B1'
       }
     };
@@ -141,26 +142,42 @@ const Timetable = ({ user }) => {
   const handleFormSubmit = async () => {
     try {
       // Prepare the data for API request
-      const examSlotData = {
-        department: user?.user?.department || user?.department,
-        semester: user?.user?.semester || user?.semester,
-        branch: user?.user?.branch || user?.branch,
-        // Include all slots (A-G and A1-G1), even if empty
-        A: formData.A || '',
-        B: formData.B || '',
-        C: formData.C || '',
-        D: formData.D || '',
-        E: formData.E || '',
-        F: formData.F || '',
-        G: formData.G || '',
-        A1: formData.A1 || '',
-        B1: formData.B1 || '',
-        C1: formData.C1 || '',
-        D1: formData.D1 || '',
-        E1: formData.E1 || '',
-        F1: formData.F1 || '',
-        G1: formData.G1 || ''
-      };
+ const examSlotData = {
+  branch: user?.user?.department || user?.department,
+  semester: user?.user?.semester || user?.semester,
+  course: user?.user?.degree || user?.degree,
+
+  // Regular slots
+  A: formData.A || '',
+  B: formData.B || '',
+  C: formData.C || '',
+  D: formData.D || '',
+  E: formData.E || '',
+  F: formData.F || '',
+  G: formData.G || '',
+
+  A1: formData.A1 || '',
+  B1: formData.B1 || '',
+  C1: formData.C1 || '',
+  D1: formData.D1 || '',
+  E1: formData.E1 || '',
+  F1: formData.F1 || '',
+  G1: formData.G1 || '',
+
+  // AL slots
+  AL1: formData.AL1 || '',
+  AL2: formData.AL2 || '',
+  AL3: formData.AL3 || '',
+  AL4: formData.AL4 || '',
+  AL5: formData.AL5 || '',
+
+  // ML slots
+  ML1: formData.ML1 || '',
+  ML2: formData.ML2 || '',
+  ML3: formData.ML3 || '',
+  ML4: formData.ML4 || '',
+  ML5: formData.ML5 || ''
+};
 
       console.log('Submitting timetable data:', examSlotData);
 
@@ -169,6 +186,9 @@ const Timetable = ({ user }) => {
       
       console.log('Timetable updated successfully:', response);
       toast.success('Timetable updated successfully!');
+      
+      // Update examSlots with new data
+      setExamSlots(formData);
       
       // Close form after successful submission
       setShowForm(false);
@@ -181,28 +201,123 @@ const Timetable = ({ user }) => {
 
   const handleFormCancel = () => {
     setShowForm(false);
-    // Reset form data if needed
-    // setFormData({
-    //   A: '', B: '', C: '', D: '', E: '', F: '', G: '',
-    //   A1: '', B1: '', C1: '', D1: '', E1: '', F1: '', G1: ''
-    // });
+    // Reset form data to current examSlots values
+    setFormData({
+      A: examSlots.A || '',
+      B: examSlots.B || '',
+      C: examSlots.C || '',
+      D: examSlots.D || '',
+      E: examSlots.E || '',
+      F: examSlots.F || '',
+      G: examSlots.G || '',
+      A1: examSlots.A1 || '',
+      B1: examSlots.B1 || '',
+      C1: examSlots.C1 || '',
+      D1: examSlots.D1 || '',
+      E1: examSlots.E1 || '',
+      F1: examSlots.F1 || '',
+      G1: examSlots.G1 || '',
+      ML1: examSlots.ML1 || '',
+      ML2: examSlots.ML2 || '',
+      ML3: examSlots.ML3 || '',
+      ML4: examSlots.ML4 || '',
+      ML5: examSlots.ML5 || '',
+      AL1: examSlots.AL1 || '',
+      AL2: examSlots.AL2 || '',
+      AL3: examSlots.AL3 || '',
+      AL4: examSlots.AL4 || '',
+      AL5: examSlots.AL5 || ''
+    });
   };
 
-  const getClassType = (type) => {
-    const typeClasses = {
-      lecture: 'lecture',
-      lab: 'lab',
-      practical: 'practical',
-      tutorial: 'tutorial',
-      project: 'project',
-      seminar: 'seminar',
-      study: 'study'
+  const getSlotColor = (slot) => {
+    const slotColors = {
+      // Regular slots - vibrant colors matching the course cards
+      'A': '#C8A8E9', // light purple
+      'B': '#FFB3D1', // light pink
+      'C': '#87CEEB', // light blue
+      'D': '#DDA0DD', // plum
+      'E': '#F0E68C', // khaki
+      'F': '#FFE4B5', // moccasin
+      'G': '#98FB98', // pale green
+      
+      // Lab slots - slightly darker versions
+      'A1': '#B19CD9', // darker purple
+      'B1': '#FF9AC1', // darker pink
+      'C1': '#6BB6DB', // darker blue
+      'D1': '#CD88CD', // darker plum
+      'E1': '#E6D87C', // darker khaki
+      'F1': '#FFDAB9', // darker moccasin
+      'G1': '#90EE90', // darker pale green
+      
+      // Morning lab slots - rich colors
+      'ML1': '#9370DB', // medium slate blue
+      'ML2': '#FF69B4', // hot pink
+      'ML3': '#4682B4', // steel blue
+      'ML4': '#DA70D6', // orchid
+      'ML5': '#FFD700', // gold
+      
+      // Afternoon lab slots - warm colors
+      'AL1': '#87CEEB', // light blue
+      'AL2': '#DDA0DD', // plum
+      'AL3': '#F0E68C', // khaki
+      'AL4': '#FFE4B5', // moccasin
+      'AL5': '#98FB98', // pale green
     };
-    return typeClasses[type] || 'default';
+    return slotColors[slot] || '#f8f9fa';
   };
 
   // Check if user is BR (you can adjust this condition based on your user object structure)
   const isBR = user?.user?.isBR || user?.isBR;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log(user);
+      console.log(user?.user?.degree, user?.user?.department,user?.user?.semester);
+
+      var branch = user?.user?.department;
+      // replace spaces of branch with -
+      branch = branch.replace(/ /g, '-');
+
+      console.log(branch);
+
+      const response = await fetchExamSlot(user?.user?.degree, branch,user?.user?.semester);
+      
+      setExamSlots(response);
+      
+      // Update formData with fetched exam slots
+      setFormData({
+        A: response.A || '',
+        B: response.B || '',
+        C: response.C || '',
+        D: response.D || '',
+        E: response.E || '',
+        F: response.F || '',
+        G: response.G || '',
+        A1: response.A1 || '',
+        B1: response.B1 || '',
+        C1: response.C1 || '',
+        D1: response.D1 || '',
+        E1: response.E1 || '',
+        F1: response.F1 || '',
+        G1: response.G1 || '',
+        ML1: response.ML1 || '',
+        ML2: response.ML2 || '',
+        ML3: response.ML3 || '',
+        ML4: response.ML4 || '',
+        ML5: response.ML5 || '',
+        AL1: response.AL1 || '',
+        AL2: response.AL2 || '',
+        AL3: response.AL3 || '',
+        AL4: response.AL4 || '',
+        AL5: response.AL5 || ''
+      });
+      
+      console.log(response);
+    };
+
+    fetchData();
+  }, [user]);
 
   return (
     <div className="timetable-container">
@@ -274,7 +389,7 @@ const Timetable = ({ user }) => {
                         style={{
                           width: '100%',
                           padding: '8px',
-                          border: '1px solid #ddd',
+                          border: '1px solid #000000ff',
                           borderRadius: '4px',
                           fontSize: '14px'
                         }}
@@ -299,7 +414,7 @@ const Timetable = ({ user }) => {
                         style={{
                           width: '100%',
                           padding: '8px',
-                          border: '1px solid #ddd',
+                          border: '1px solid #000000ff',
                           borderRadius: '4px',
                           fontSize: '14px'
                         }}
@@ -324,7 +439,7 @@ const Timetable = ({ user }) => {
                         style={{
                           width: '100%',
                           padding: '8px',
-                          border: '1px solid #ddd',
+                          border: '1px solid #000000ff',
                           borderRadius: '4px',
                           fontSize: '14px'
                         }}
@@ -339,7 +454,7 @@ const Timetable = ({ user }) => {
                   {['AL1', 'AL2', 'AL3', 'AL4', 'AL5'].map(slot => (
                     <div key={slot} style={{ marginBottom: '10px' }}>
                       <div style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        {slot} (3-6):
+                        {slot} (2-5):
                       </div>
                       <input
                         type="text"
@@ -349,7 +464,7 @@ const Timetable = ({ user }) => {
                         style={{
                           width: '100%',
                           padding: '8px',
-                          border: '1px solid #ddd',
+                          border: '1px solid #000000ff',
                           borderRadius: '4px',
                           fontSize: '14px'
                         }}
@@ -413,12 +528,22 @@ const Timetable = ({ user }) => {
               return (
                 <div
                   key={`${day}-${time}`}
-                  className={`timetable-cell ${classData ? `occupied ${getClassType(classData.type)}` : 'empty'}`}
+                  className={`timetable-cell ${classData ? 'occupied' : 'empty'}`}
+                  style={{
+                    backgroundColor: classData ? getSlotColor(classData.room.replace('Slot ', '')) : '#f8f9fa',
+                    border: 'none',
+                    color: '#333',
+                    fontWeight: classData ? 'bold' : 'normal'
+                  }}
                 >
                   {classData ? (
                     <div className="class-info">
-                      <div className="subject-name">{classData.subject}</div>
-                      <div className="room-info">{classData.room}</div>
+                      <div className="subject-name" style={{ fontSize: '12px', marginBottom: '2px' }}>
+                        {classData.subject}
+                      </div>
+                      <div className="room-info" style={{ fontSize: '10px', opacity: '0.8' }}>
+                        {classData.room}
+                      </div>
                     </div>
                   ) : null}
                 </div>
