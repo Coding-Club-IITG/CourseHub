@@ -8,8 +8,6 @@ import SubHeading from "../../components/subheading";
 import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
 import QuizCard from "./components/quizcard";
-import { getQuizEvents } from "../../api/Quiz";
-//import { getQuizEventByUserId, getQuizEvents } from "../../api/Quiz";
 import Footer from "../../components/footer";
 
 import FavouriteCard from "./components/favouritecard";
@@ -205,7 +203,16 @@ const Dashboard = () => {
                     </div>
 
                     {/* MY QUIZZES */}
-                    <SubHeading text={"MY QUIZZES"} color={"light"} type={"bold"} />
+                    <div className="quizzes-header">
+                        <SubHeading text={"MY QUIZZES"} color={"light"} type={"bold"} />
+                        <button 
+                            className="view-all-quizzes-btn"
+                            onClick={() => navigate('/myquizzes')}
+                            title="View All Quizzes"
+                        >
+                            View All
+                        </button>
+                    </div>
                     <Space amount={20} />
                     <div className="coursecard-container">
                         {quizzes.length > 0 ? (

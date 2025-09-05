@@ -101,11 +101,15 @@ export const getQuizEvents = async () => {
     }
 };
 
-export const modifyQuizEvent = async (eventId) => {
+export const modifyQuizEvent = async (eventId, eventData) => {
     try {
         const response = await fetch(`${server}/api/quiz/modify/${eventId}`, {
             method: 'PUT',
-            credentials: 'include'
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(eventData)
         });
         const data = await response.json();
         if(!response.ok) {
