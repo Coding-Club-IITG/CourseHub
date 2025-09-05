@@ -1,0 +1,29 @@
+.quizcard {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f5;
+    transition: box-shadow 0.2s;
+}
+.quizcard-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.quizcard-code {
+    color: #6c63ff;
+}
+.quizcard-name {
+    color: #333;
+}
+.quizcard-date {
+    margin-top: 8px;
+    font-size: 0.95em;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+}

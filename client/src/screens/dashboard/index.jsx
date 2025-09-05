@@ -7,7 +7,11 @@ import NavBar from "../../components/navbar";
 import SubHeading from "../../components/subheading";
 import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
+import QuizCard from "./components/quizcard";
+import { getQuizEvents } from "../../api/Quiz";
+//import { getQuizEventByUserId, getQuizEvents } from "../../api/Quiz";
 import Footer from "../../components/footer";
+
 import FavouriteCard from "./components/favouritecard";
 
 import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
@@ -26,6 +30,19 @@ import { AddNewCourseAPI, GetExamDates } from "../../api/User";
 import { toast } from "react-toastify";
 
 const Dashboard = () => {
+    const [quizzes, setQuizzes] = useState([]);
+    useEffect(() => {
+        async function fetchQuizzes() {
+            try {
+                const data = await getQuizEvents();
+                console.log("Quizzes fetched:", data);
+                setQuizzes(data || []);
+            } catch (err) {
+                setQuizzes([]);
+            }
+        }
+        fetchQuizzes();
+    }, []);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state) => state.user);
@@ -185,6 +202,43 @@ const Dashboard = () => {
                             }}
                         /> */}
                     </div>
+
+                    {/* MY QUIZZES */}
+                    <SubHeading text={"MY QUIZZES"} color={"light"} type={"bold"} />
+                    <Space amount={20} />
+                    <div className="coursecard-container">
+                        {quizzes.length > 0 ? (
+                            [...quizzes]
+                                .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
+                                .map((quiz, idx) => (
+                                    <QuizCard
+                                        key={idx}
+                                        code={quiz.course}
+                                        name={quiz.eventName}
+                                        date={
+                                            quiz.eventDate
+                                                ? new Date(quiz.eventDate).toLocaleDateString()
+                                                : ""
+                                        }
+                                        day={
+                                            quiz.eventDate
+                                                ? new Date(quiz.eventDate).toLocaleDateString(
+                                                      "en-US",
+                                                      {
+                                                          weekday: "long",
+                                                      }
+                                                  )
+                                                : ""
+                                        }
+                                        color={getColors(idx)}
+                                    />
+                                ))
+                        ) : (
+                            <div style={{ padding: "16px", color: "#888" }}>
+                                No quizzes scheduled
+                            </div>
+                        )}
+                    </div>
                     <Space amount={50} />
 
                     <SubHeading text={"OTHERS"} color={"light"} type={"bold"} />
@@ -212,15 +266,6 @@ const Dashboard = () => {
                         <CourseCard
                             type={"ADD"}
                             setClicked={() => {
-                                // dispatch(
-                                //     AddNewCourseLocal({
-                                //         _id: "638f1709897b3c84b7d8d32c",
-                                //         name: "Introduction to Engineering Drawing",
-                                //         code: "ce101",
-                                //         color: "#DBCEFF",
-                                //     })
-                                // );
-                                // console.log(user);
                                 addCourseModalShowHandler();
                             }}
                         />
