@@ -15,11 +15,6 @@ const quizEventSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    // courseName: {
-    //     type: String,
-    //     required: true,
-    //     trim: true
-    // },
     createdAt: {
         type: Date,
         default: Date.now
