@@ -24,6 +24,7 @@ import { AddNewCourseLocal, ClearLocalCourses } from "../../actions/user_actions
 import AddCourseModal from "./components/addcoursemodal";
 import { AddNewCourseAPI, GetExamDates } from "../../api/User";
 import { toast } from "react-toastify";
+import { getQuizEvents } from "../../api/Quiz";
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -32,7 +33,7 @@ const Dashboard = () => {
 
     const [midSem, setMidSem] = useState(0);
     const [endSem, setEndSem] = useState(0);
-
+    getQuizEvents();
     const contributionHandler = (event) => {
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];

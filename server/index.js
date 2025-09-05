@@ -31,6 +31,7 @@ import brRoutes from "./modules/br/br.routes.js";
 import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
+import quizRoutes from "./modules/quizzes/quizzes.routes.js";
 import links from "./links.js";
 
 const app = express();
@@ -75,6 +76,7 @@ app.use("/api/br", brRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/folder", folderRoutes);
 app.use("/api/year", yearRoutes);
+app.use("/api/quiz", quizRoutes);
 
 app.use(
     "/homepage",

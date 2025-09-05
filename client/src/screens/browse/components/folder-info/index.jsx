@@ -20,6 +20,7 @@ import server from "../../../../api/server";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
+import QuizScheduleModal from "../quiz-schedule-modal";
 
 const FolderInfo = ({
     isBR,
@@ -39,6 +40,7 @@ const FolderInfo = ({
     const [childType, setChildType] = useState("File");
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [showQuizModal, setShowQuizModal] = useState(false);
 
     const user = useSelector((state) => state.user.user);
     const isReadOnlyCourse = user?.readOnly?.some(
@@ -297,6 +299,17 @@ const FolderInfo = ({
                                 </span>
                             </button>
                         )}
+
+                        {/* Schedule Quiz button - only for BRs */}
+                        {!isReadOnlyCourse && isBR && (
+                            <button
+                                className="btn primary"
+                                onClick={() => setShowQuizModal(true)}
+                            >
+                                <span className="icon plus-icon"></span>
+                                <span className="text">Schedule Quiz</span>
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -314,6 +327,13 @@ const FolderInfo = ({
                     onCancel={() => setShowConfirm(false)}
                 />
             )}
+
+            {/* Quiz Schedule Modal */}
+            <QuizScheduleModal
+                isOpen={showQuizModal}
+                onClose={() => setShowQuizModal(false)}
+                courseCode={courseCode}
+            />
         </>
     );
 };
