@@ -1,0 +1,49 @@
+.quizcard {
+    width: 190px;
+    min-height: 150px;
+    background-color: #fff;
+    padding: 10px;
+    margin: 10px;
+    transition: 150ms ease;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+.quizcard-code {
+    background-color: #000;
+    color: #fff;
+    padding: 3px 10px;
+    //text-align: center;
+    text-align: left;
+    font-family: "Bold";
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    margin-top: 0;
+    width: fit-content;
+}
+.quizcard-name {
+    color: #333;
+    font-family: "Bold";
+    font-size: 1.4rem;
+    text-align: left;
+    margin-bottom: 10px;
+    width: 100%;
+}
+.quizcard-date {
+    color: #555;
+    font-family: "Bold";
+    font-size: 1.1rem;
+    text-align: left;
+    margin-bottom: 10px;
+    width: 100%;
+}
+.quizcard-day {
+    color: #555;
+    font-family: "Bold";
+    font-size: 0.95em;
+    text-align: left;
+    width: 100%;
+}

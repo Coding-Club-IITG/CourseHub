@@ -32,6 +32,7 @@ import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import quizRoutes from "./modules/quizzes/quizzes.routes.js";
+import quizRoutes from "./modules/quizzes/quizzes.routes.js";
 import links from "./links.js";
 
 

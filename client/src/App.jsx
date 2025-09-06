@@ -6,6 +6,7 @@ import LoadingPage from "./loading.jsx";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import PrivateRoutes from "./router_utils/PrivateRoutes";
 import ProfilePage from "./screens/profile.js";
+import MyQuizzes from "./screens/myquizzes";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -90,6 +91,7 @@ const App = () => {
                     <Route element={<PrivateRoutes />}>
                         <Route element={<Dashboard />} path="dashboard" exact />
                         <Route element={<ProfilePage />} path="profile" exact />
+                        <Route element={<MyQuizzes />} path="myquizzes" exact />
                     </Route>
                     <Route element={<BrowseScreen />} path="browse">
                         <Route element={<BrowseScreen />} path=":code">

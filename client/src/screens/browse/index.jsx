@@ -483,28 +483,23 @@ const BrowseScreen = () => {
                 ) : (
                     <div className="left">
                         <h4 className="heading">MY COURSES</h4>
-                        {user.user?.courses?.map((course, idx) => {
-                            return (
-                                <Collapsible
-                                    color={getColors(idx)}
-                                    key={`user-course-${idx}`}
-                                    course={course}
-                                    isReadOnly={false}
-                                />
-                            );
-                        })}
-                        {user.localCourses?.map((course, idx) => {
-                            return (
-                                <Collapsible
-                                    color={course.color}
-                                    key={`local-course-${idx}`}
-                                    course={course}
-                                />
-                            );
-                        })}
+                        {user.user?.courses?.map((course, idx) => (
+                            <Collapsible
+                                color={getColors(idx)}
+                                key={`user-course-${idx}`}
+                                course={course}
+                                isReadOnly={false}
+                            />
+                        ))}
+                        {user.localCourses?.map((course, idx) => (
+                            <Collapsible
+                                color={course.color}
+                                key={`local-course-${idx}`}
+                                course={course}
+                            />
+                        ))}
 
                         {user.user?.readOnly?.length > 0 && <h4 className="heading">OTHERS</h4>}
-
                         {user.user?.readOnly?.map((course, idx) => (
                             <Collapsible
                                 color={course.color}
@@ -519,11 +514,9 @@ const BrowseScreen = () => {
                         )}
                         {user.user?.isBR &&
                             user.user?.previousCourses?.length > 0 &&
-                            user.user?.previousCourses?.map((course, idx) => {
-                                return (
-                                    <Collapsible color={getColors(idx)} key={idx} course={course} />
-                                );
-                            })}
+                            user.user?.previousCourses?.map((course, idx) => (
+                                <Collapsible color={getColors(idx)} key={idx} course={course} />
+                            ))}
                     </div>
                 )}
                 {!isMobile && (
