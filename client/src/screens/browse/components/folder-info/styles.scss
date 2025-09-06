@@ -27,6 +27,39 @@
             .folder-name {
                 font-family: "Bold";
                 font-size: 1.5rem;
+
+            }
+
+            .prof-name {
+                font-family: "Regular";
+                font-size: 1rem;
+                padding-left: 5px;
+                color: #333;
+            }
+
+            .prof-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                
+                .edit-prof-btn {
+                    display: inline-block;
+                    background: url(../browsefolder/edit.svg), none;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    height: 16px;
+                    width: 16px;
+                    margin-left: 5px;
+                    vertical-align: middle;
+                    cursor: pointer;
+                    opacity: 1; // always visible
+                    transition: transform 0.15s ease-in-out;
+                }
+
+                .edit-prof-btn:hover {
+                    transform: scale(1.06);
+                }
             }
 
             .folder-actions {

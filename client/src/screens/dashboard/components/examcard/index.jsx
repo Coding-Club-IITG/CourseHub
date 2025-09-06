@@ -1,7 +1,7 @@
 import "./styles.scss";
-const ExamCard = ({ days, name, color }) => {
+const ExamCard = ({ days, name, color, onClick=()=>{} }) => {
 	return (
-		<div className="exam-card" style={{ backgroundColor: color }}>
+		<div className="exam-card" style={{ backgroundColor: color }} onClick={onClick}>
 			<div className="ndays">
 				<p className="days">{days ? days : 0}</p>
 			</div>

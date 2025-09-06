@@ -3,6 +3,7 @@ import { model, Schema } from "mongoose";
 const FolderSchema = Schema({
     course: { type: String, required: true },
     //id: { type: String, required: true },
+    profName: {type:String, },
     name: { type: String, required: true },
     childType: { type: String, enum: ["File", "Folder"], required: true },
     //path: { type: String, required: true },
@@ -28,6 +29,7 @@ const CourseSchema = Schema(
         code: { type: String, required: true, unique: true },
         children: { type: [{ type: Schema.Types.ObjectId, ref: "Folder" }], default: [] },
         books: [{ type: String }],
+        quiz: {}
     },
     { timestamps: true }
 );

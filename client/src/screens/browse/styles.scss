@@ -17,10 +17,12 @@
         height: 1vh; // Extremely thin for very small screens
     }
 }
+
 .controller {
     &::-webkit-scrollbar {
         display: none;
     }
+
     display: flex;
     height: 92vh; // Keep original desktop height
 
@@ -36,11 +38,13 @@
     @media (max-width: 480px) {
         height: 98.8vh; // Compensate for 1.2vh navbar
     }
+
     .left {
         flex: 3;
         max-width: 300px;
         border-right: 1px solid rgba(0, 0, 0, 0.33);
         overflow-y: auto;
+
         .heading {
             padding: 10px 20px;
             font-family: "Bold";
@@ -48,6 +52,7 @@
             background-color: #fecf6f;
         }
     }
+
     .middle {
         flex: 6;
         border-right: 1px solid rgba(0, 0, 0, 0.33);
@@ -59,26 +64,32 @@
             flex-wrap: wrap;
             // justify-content: space-between;
         }
+
         .empty-message {
             font-size: 1.2rem;
         }
+
         &::-webkit-scrollbar {
             display: none;
         }
     }
+
     .right {
         flex: 1;
         max-width: 200px;
         background-color: #000;
         color: #fff;
+
         .year-content {
             display: flex;
             flex-direction: column-reverse;
+
             .year-title {
                 padding: 10px 20px;
                 font-family: "Bold";
                 font-size: 1.2rem;
             }
+
             .year {
                 cursor: pointer;
                 padding: 10px 20px;
@@ -87,9 +98,11 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+
                 &.selected {
                     color: #000;
                     background-color: #fff;
+
                     .delete {
                         background: url(./components/browsefolder/Delete.svg), none;
 
@@ -109,10 +122,12 @@
                         border-radius: 2px;
                     }
                 }
+
                 &.selected:hover .delete {
                     opacity: 1;
                 }
             }
+
             &.add-year {
                 border-top: 1px solid #333;
                 margin-top: 10px;
@@ -245,11 +260,9 @@
                 box-shadow: 0 0 0 4px rgba(254, 207, 111, 0.12),
                     0 4px 12px rgba(254, 207, 111, 0.15);
                 transform: translateY(-2px); // More pronounced lift
-                background: linear-gradient(
-                    135deg,
-                    #ffffff 0%,
-                    #fffbf7 100%
-                ); // Warm focus background
+                background: linear-gradient(135deg,
+                        #ffffff 0%,
+                        #fffbf7 100%); // Warm focus background
             }
 
             &:hover:not(:disabled) {
@@ -501,4 +514,40 @@
         height: 12vh;
         margin-bottom: 0;
     }
+}
+
+// ...existing code...
+
+.input_profname {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid black;
+    border-radius: 0;
+    background-color: #fff;
+    font-size: 1rem;
+    color: #333;
+    margin-top: 6px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+
+    &:focus {
+        outline: none;
+        border-color: #fecf6f;
+        box-shadow: 0 0 0 2px rgba(254, 207, 111, 0.2);
+    }
+
+    &::placeholder {
+        color: black;
+        font-style: italic;
+
+    }
+}
+
+.label_section {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #333;
+    font-size: 0.95rem;
+    display: block;
 }

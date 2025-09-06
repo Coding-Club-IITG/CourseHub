@@ -9,6 +9,7 @@ import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
 import Footer from "../../components/footer";
 import FavouriteCard from "./components/favouritecard";
+import { getAllQuizEvents } from "../../api/Quiz";
 
 import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 import formatName from "../../utils/formatName";
 import formatBranch from "../../utils/formatBranch";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getColors } from "../../utils/colors";
 import { LoadCourses } from "../../actions/filebrowser_actions";
 import Contributions from "../contributions";
@@ -32,6 +33,13 @@ const Dashboard = () => {
 
     const [midSem, setMidSem] = useState(0);
     const [endSem, setEndSem] = useState(0);
+    const [quizzes, setQuizzes] = useState([]);
+    const [quizDate, setquizdate] = useState(0);
+    const targetRef = useRef(null);
+
+    const handleScroll = () => {
+        targetRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     const contributionHandler = (event) => {
         const collection = document.getElementsByClassName("contri");
@@ -102,6 +110,53 @@ const Dashboard = () => {
         }
         run();
     }, []);
+    // 
+    useEffect(() => {
+        const fetchQuizzes = async () => {
+            try {
+                const all_quizzes = await getAllQuizEvents();
+                if (!all_quizzes) {
+                    console.log("Quizzes error fetching");
+                    return;
+                }
+
+                console.log(all_quizzes);
+                const now = Date.now();
+
+                const user_quizzes = all_quizzes.filter((quiz) =>{
+                    if(user?.user?.courses.find(course => course.code === quiz.course)){
+                        if (new Date(quiz.eventDate).getTime() >= now){
+                           return true;
+                        }
+                        else
+                            return false;
+
+                    }}
+                )
+                //user_quizzes.find().sort({eventDate:1})
+                setQuizzes(user_quizzes);
+
+            } catch (error) {
+                console.error("Error fetching quizzes:", error);
+            }
+        };
+
+        fetchQuizzes();
+    }, [user]);
+    useEffect(() => {
+        if (quizzes.length > 0 && quizzes[0]?.eventDate) {
+            const now = Date.now();
+
+            const daysTillQuiz = Math.ceil(
+                ((new Date(quizzes[0].eventDate).getTime()) - now) / (1000 * 3600 * 24)
+            );
+            console.log("daystill quiz:", daysTillQuiz);
+            setquizdate(daysTillQuiz);
+        }
+    }, [quizzes]);
+
+
+
 
     const handleClick = (code) => {
         let Code = code.replaceAll(" ", "");
@@ -137,16 +192,22 @@ const Dashboard = () => {
                         </div>
 
                         <div className="exam-card-container">
-                            {midSem >= 0 && (
+                            {/* {midSem >= 0 && (
                                 <ExamCard days={midSem} name={"Mid-Sem Exam"} color={"#FECF6F"} />
-                            )}
-                            {endSem >= 0 && (
-                                <ExamCard days={endSem} name={"End-Sem Exam"} color={"#FECF6F"} />
-                            )}
+                            )} */}
+                                {(quizzes.length && quizDate > 0) &&
+                                    (<ExamCard days={quizDate} name={quizzes[0].course} color={"#FECF6F"} onClick={handleScroll} />)
+                                }
+
+                            {midSem > 0 ?
+                                (<ExamCard days={midSem} name={"Mid-Sem Exam"} color={"#FECF6F"} />) :
+                                (<ExamCard days={endSem} name={"End-Sem Exam"} color={"#FECF6F"} />)
+                            }
                         </div>
                     </div>
                     <Space amount={50} />
                     <SubHeading text={"MY COURSES"} color={"light"} type={"bold"} />
+                    <div ref={targetRef}></div>
                     <Space amount={20} />
                     <div className="coursecard-container">
                         {user.user.courses.map((course, index) => (

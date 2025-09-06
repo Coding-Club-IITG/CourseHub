@@ -20,11 +20,13 @@ const YearInfo = ({
     courseCode,
     course, // years list
     currYear,
+
 }) => {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
     const [showConfirmDel, setShowConfirmDel] = useState(false);
     const [newYearName, setNewYearName] = useState("");
+    const [newprofName, setNewProfName] = useState("");
     const [isAddingYear, setIsAddingYear] = useState(false);
     const user = useSelector((state) => state.user.user);
     const isReadOnlyCourse = user?.readOnly?.some(
@@ -48,6 +50,7 @@ const YearInfo = ({
         if (isAddingYear) return;
         setIsAddingYear(true);
         const yearName = newYearName.trim();
+        const profName = newprofName.trim();
 
         if (!yearName) {
             setIsAddingYear(false);
@@ -75,6 +78,7 @@ const YearInfo = ({
             const newYear = await addYear({
                 name: yearName.trim(),
                 course: courseCode,
+                profName: profName.trim(),
             });
 
             course.push(newYear);
@@ -179,6 +183,8 @@ const YearInfo = ({
                                     // onInputChange={(e) => setNewFolderName(e.target.value)}
                                     yearName={newYearName}
                                     onYearNameChange={setNewYearName}
+                                    profName={newprofName}
+                                    onProfNameChange={setNewProfName}
                                     onConfirm={handleConfirmAddYear}
                                     onCancel={() => setShowConfirm(false)}
                                     confirmText="Create"

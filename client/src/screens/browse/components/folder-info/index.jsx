@@ -6,6 +6,7 @@ import Share from "../../../share";
 import { useState } from "react";
 import { createFolder } from "../../../../api/Folder";
 import { getCourse } from "../../../../api/Course";
+import { editProfName } from "../../../../api/Year";
 import {
     ChangeCurrentCourse,
     ChangeCurrentYearData,
@@ -25,6 +26,7 @@ const FolderInfo = ({
     isBR,
     path,
     name,
+    prof,
     canDownload,
     contributionHandler,
     folderId,
@@ -35,7 +37,9 @@ const FolderInfo = ({
     const currYear = useSelector((state) => state.fileBrowser.currentYear);
     const currentData = useSelector((state) => state.fileBrowser.currentData);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [showEditProf, setShowEditProf] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
+    const [editProfNameValue, setEditProfNameValue] = useState("");
     const [childType, setChildType] = useState("File");
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -236,6 +240,37 @@ const FolderInfo = ({
             setIsDownloading(false);
         }
     };
+
+    const handleEditProf = () => {
+        setEditProfNameValue(prof || "");
+        setShowEditProf(true);
+    };
+
+    const handleConfirmEditProf = async () => {
+        if (!folderId) return;
+
+        try {
+            await editProfName({
+                yearId: folderId,
+                profName: editProfNameValue.trim(),
+            });
+
+            // Update the local state by refreshing the folder data
+            dispatch(RefreshCurrentFolder());
+
+            toast.success("Professor name updated successfully!");
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to update professor name");
+        }
+
+        setShowEditProf(false);
+        setEditProfNameValue("");
+    };
+
+    const cancelEditProf = () => {
+        setShowEditProf(false);
+        setEditProfNameValue("");
+    };
     return (
         <>
             <div className="folder-info">
@@ -243,6 +278,16 @@ const FolderInfo = ({
                     <p className="path">{path}</p>
                     <div className="curr-folder">
                         <p className="folder-name">{name}</p>
+                        <div className="prof-container">
+                            {prof && (<p className="prof-name">Prof. {prof}</p>)}
+                            {isBR && !isReadOnlyCourse && (
+                                <div
+                                    className="edit-prof-btn"
+                                    onClick={handleEditProf}
+                                    title="Edit Professor Name"
+                                ></div>
+                            )}
+                        </div>
                         <div className="folder-actions">
                             {folderId && courseCode && (
                                 <>
@@ -313,6 +358,65 @@ const FolderInfo = ({
                     onConfirm={handleConfirmCreateFolder}
                     onCancel={() => setShowConfirm(false)}
                 />
+            )}
+
+            {/* Edit Professor Name Dialog (styled like Add Year) */}
+            {showEditProf && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0, 0, 0, 0.4)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 1000,
+                    }}
+                >
+                    <div className="addfolder-wrapper" style={{
+                        backgroundColor: "white",
+                        padding: "24px",
+                        borderRadius: "0px",
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+                        minWidth: "400px",
+                        maxWidth: "500px"
+                    }}>
+                        <div className="head">📁 Edit Professor</div>
+                        <div className="disclaimer">Update the professor name for this year</div>
+
+                        <div className="section" id="bottommarginneeded">
+                            <label htmlFor="profname" className="label_section">
+                                PROFESSOR NAME:
+                            </label>
+                            <input
+                                type="text"
+                                name="profname"
+                                className="input_profname"
+                                value={editProfNameValue}
+                                onChange={(e) => setEditProfNameValue(e.target.value)}
+                                placeholder="Enter professor name"
+                            />
+                        </div>
+
+                        <div className="addfolderbuttoncontainer">
+                            <div
+                                className="button cancelbutton addfolderbutton"
+                                onClick={cancelEditProf}
+                            >
+                                CANCEL
+                            </div>
+                            <div
+                                className={`button submitbutton addfolderbutton`}
+                                onClick={handleConfirmEditProf}
+                            >
+                                SAVE
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );

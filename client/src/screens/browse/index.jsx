@@ -534,6 +534,7 @@ const BrowseScreen = () => {
                                     isBR={user.user.isBR}
                                     path={folderData?.path ? folderData.path : HeaderText}
                                     name={folderData?.name ? folderData.name : HeaderText}
+                                    prof={folderData?.profName ? folderData.profName : ""}
                                     canDownload={folderData?.childType === "File"}
                                     contributionHandler={contributionHandler}
                                     folderId={folderData?._id}

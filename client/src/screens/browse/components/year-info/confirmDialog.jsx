@@ -22,6 +22,8 @@ const ConfirmDialog = ({
     show,
     yearName = "",
     onYearNameChange = () => {},
+    profName= "",
+    onProfNameChange = () => {},
     onCancel,
     onConfirm,
     course,
@@ -60,6 +62,19 @@ const ConfirmDialog = ({
                             course={course}
                         />
                     </select>
+                </div>
+                <div className="section" id="bottommarginneeded">
+                    <label htmlFor="profname" className="label_section">
+                        Professor Name:
+                    </label>
+                    <input
+                        type="text"
+                        name="profname"
+                        className="input_profname"
+                        value={profName}
+                        onChange={(e) => onProfNameChange(e.target.value)}
+                        placeholder="Enter professor name"
+                    />
                 </div>
                 
                 <div className="addfolderbuttoncontainer">

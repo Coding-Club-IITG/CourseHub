@@ -15,10 +15,11 @@ API.interceptors.request.use((req) => {
     return req;
 });
 
-export const addYear = async ({ name, course }) => {
+export const addYear = async ({ name, course, profName }) => {
     const { data } = await API.post("/year", {
         name,
         course,
+        profName,
         childType: "Folder",
         Children: [],
     });
@@ -28,6 +29,14 @@ export const addYear = async ({ name, course }) => {
 export const deleteYear = async ({ folder, courseCode }) => {
     const { data } = await API.delete("/year/delete", {
         data: { folder, courseCode },
+    });
+    return data;
+};
+
+export const editProfName = async ({ yearId, profName }) => {
+    const { data } = await API.put("/year/edit-prof", {
+        yearId,
+        profName,
     });
     return data;
 };
