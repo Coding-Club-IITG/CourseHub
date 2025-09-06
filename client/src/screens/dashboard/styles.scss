@@ -24,6 +24,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: 0;
+    margin-bottom: 32px; // Add this for spacing below MY COURSES
 }
 
 .fav-container {
@@ -36,7 +37,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .view-all-quizzes-btn {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.3);
@@ -46,13 +47,13 @@
         font-size: 0.9rem;
         cursor: pointer;
         transition: all 0.2s ease;
-        
+
         &:hover {
             background: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-1px);
         }
-        
+
         &:active {
             transform: translateY(0);
         }
@@ -93,7 +94,7 @@
     }
 
     // Profile section spacing improvements
-    .split > div:first-child {
+    .split>div:first-child {
         .heading {
             margin-bottom: 8px;
             line-height: 1.2;
@@ -119,13 +120,14 @@
     .coursecard-container {
         justify-content: space-between;
         padding: 0 5px;
+        margin-bottom: 24px; // Optionally, for mobile screens
     }
-    
+
     .quizzes-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
-        
+
         .view-all-quizzes-btn {
             align-self: flex-end;
             font-size: 0.8rem;
@@ -140,7 +142,7 @@
     }
 
     // Enhanced profile section spacing for small screens
-    .split > div:first-child {
+    .split>div:first-child {
         .heading {
             margin-bottom: 6px;
             line-height: 1.1;

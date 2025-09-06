@@ -124,14 +124,14 @@ const MyQuizzes = () => {
 
     return (
         <div className="App">
-            <NavBar/>
+            <NavBar />
             <Container color={"dark"}>
                 <Space amount={20} />
                 <div className="myquizzes-header">
                     <Heading text={"My Quizzes"} type={"bold"} color={"light"} />
-                    <SubHeading 
-                        text={"Manage and view your quiz schedule"} 
-                        color={"light"} 
+                    <SubHeading
+                        text={"Manage and view your quiz schedule"}
+                        color={"light"}
                     />
                 </div>
                 <Space amount={30} />
@@ -150,38 +150,36 @@ const MyQuizzes = () => {
                                                 ? new Date(quiz.eventDate).toLocaleDateString()
                                                 : ""
                                         }
-                                        day={
+                                        time={
                                             quiz.eventDate
-                                                ? new Date(quiz.eventDate).toLocaleDateString(
-                                                      "en-US",
-                                                      {
-                                                          weekday: "long",
-                                                      }
-                                                  )
+                                                ? new Date(quiz.eventDate).toLocaleTimeString("en-US", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })
                                                 : ""
                                         }
                                         color={getColors(idx)}
                                     >
-                                    {user.user?.isBR && (
-                                        <div className="quiz-actions">
-                                            <span
-                                                className="rename-tick"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleEditQuiz(quiz);
-                                                }}
-                                                title="Edit Quiz"
-                                            ></span>
-                                            <span
-                                                className="delete"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteQuiz(quiz._id, quiz.eventName);
-                                                }}
-                                                title="Delete Quiz"
-                                            ></span>
-                                        </div>
-                                    )}
+                                        {user.user?.isBR && (
+                                            <div className="quiz-actions">
+                                                <span
+                                                    className="rename-tick"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditQuiz(quiz);
+                                                    }}
+                                                    title="Edit Quiz"
+                                                ></span>
+                                                <span
+                                                    className="delete"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteQuiz(quiz._id, quiz.eventName);
+                                                    }}
+                                                    title="Delete Quiz"
+                                                ></span>
+                                            </div>
+                                        )}
                                     </QuizCard>
                                 </div>
                             ))}
@@ -190,7 +188,7 @@ const MyQuizzes = () => {
                     <div className="no-quizzes">
                         <div className="no-quizzes-text">No quizzes scheduled</div>
                         <div className="no-quizzes-subtext">
-                            {user.user?.isBR 
+                            {user.user?.isBR
                                 ? "Create quizzes from the dashboard to see them here"
                                 : "Quizzes will appear here when they are scheduled"
                             }
@@ -212,17 +210,22 @@ const MyQuizzes = () => {
                                     <input
                                         type="text"
                                         value={editForm.eventName}
-                                        onChange={(e) => setEditForm({...editForm, eventName: e.target.value})}
+                                        onChange={(e) => setEditForm({ ...editForm, eventName: e.target.value })}
                                         placeholder="Enter quiz name"
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Course Code</label>
+                                    <label>Course Code </label>
                                     <input
                                         type="text"
                                         value={editForm.course}
-                                        onChange={(e) => setEditForm({...editForm, course: e.target.value})}
-                                        placeholder="Enter course code"
+                                        readOnly
+                                        style={{
+                                            backgroundColor: '#f5f5f5',
+                                            color: '#666',
+                                            cursor: 'not-allowed'
+                                        }}
+                                        placeholder="Course code cannot be changed"
                                     />
                                 </div>
                                 <div className="form-group">
@@ -230,7 +233,7 @@ const MyQuizzes = () => {
                                     <input
                                         type="date"
                                         value={editForm.eventDate}
-                                        onChange={(e) => setEditForm({...editForm, eventDate: e.target.value})}
+                                        onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
                                     />
                                 </div>
                             </div>

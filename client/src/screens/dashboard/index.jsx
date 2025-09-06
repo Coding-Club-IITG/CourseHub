@@ -31,31 +31,13 @@ import { getQuizEvents } from "../../api/Quiz";
 
 const Dashboard = () => {
     const [quizzes, setQuizzes] = useState([]);
-    useEffect(() => {
-        async function fetchQuizzes() {
-            try {
-                const data = await getQuizEvents();
-                console.log("Quizzes fetched:", data);
-                setQuizzes(data || []);
-            } catch (err) {
-                setQuizzes([]);
-            }
-        }
-        fetchQuizzes();
-    }, []);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state) => state.user);
 
     const [midSem, setMidSem] = useState(0);
     const [endSem, setEndSem] = useState(0);
-    const [quizzes, setQuizzes] = useState([]);
     const [quizDate, setquizdate] = useState(0);
-    const targetRef = useRef(null);
-
-    const handleScroll = () => {
-        targetRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
 
     const contributionHandler = (event) => {
         const collection = document.getElementsByClassName("contri");
@@ -212,7 +194,7 @@ const Dashboard = () => {
                                 <ExamCard days={midSem} name={"Mid-Sem Exam"} color={"#FECF6F"} />
                             )} */}
                                 {(quizzes.length && quizDate > 0) &&
-                                    (<ExamCard days={quizDate} name={quizzes[0].course} color={"#FECF6F"} onClick={handleScroll} />)
+                                    (<ExamCard days={quizDate} name={quizzes[0].course} color={"#FECF6F"} onClick={()=>{ navigate('/myquizzes')}} />)
                                 }
 
                             {midSem > 0 ?
@@ -223,7 +205,6 @@ const Dashboard = () => {
                     </div>
                     <Space amount={50} />
                     <SubHeading text={"MY COURSES"} color={"light"} type={"bold"} />
-                    <div ref={targetRef}></div>
                     <Space amount={20} />
                     <div className="coursecard-container">
                         {user.user.courses.map((course, index) => (
@@ -289,14 +270,12 @@ const Dashboard = () => {
                                                 ? new Date(quiz.eventDate).toLocaleDateString()
                                                 : ""
                                         }
-                                        day={
+                                        time={
                                             quiz.eventDate
-                                                ? new Date(quiz.eventDate).toLocaleDateString(
-                                                      "en-US",
-                                                      {
-                                                          weekday: "long",
-                                                      }
-                                                  )
+                                                ? new Date(quiz.eventDate).toLocaleTimeString("en-US", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })
                                                 : ""
                                         }
                                         color={getColors(idx)}
