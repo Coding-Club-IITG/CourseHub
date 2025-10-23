@@ -10,7 +10,7 @@ router.get("/", isAuthenticated, ContributionController.GetMyContributions);
 router.get("/all", ContributionController.GetAllContributions);
 router.delete("/:contributionId", ContributionController.DeleteContribution);
 router.post("/", catchAsync(ContributionController.CreateNewContribution));
-router.post("/upload", upload.array("file"), catchAsync(ContributionController.HandleFileUpload));
+router.post("/upload", upload.array("files"), catchAsync(ContributionController.HandleFileUpload));
 router.post(
     "/upload/mobile",
     isAuthenticated,
