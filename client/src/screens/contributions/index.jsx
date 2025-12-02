@@ -2,6 +2,7 @@ import Wrapper from "./components/wrapper";
 import SectionC from "./components/sectionC";
 import axios from "axios";
 import { FilePond, registerPlugin } from "react-filepond";
+import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import "filepond/dist/filepond.min.css";
 import { useEffect, useRef, useState } from "react";
 import "./styles.scss";
@@ -18,6 +19,9 @@ import {
     RefreshCurrentFolder,
     ChangeCurrentYearData,
 } from "../../actions/filebrowser_actions";
+
+registerPlugin(FilePondPluginFileValidateType);
+
 const Contributions = () => {
     const uploadedBy = useSelector((state) => state.user.user._id);
     const userName = useSelector((state) => state.user.user.name);
@@ -35,26 +39,25 @@ const Contributions = () => {
     const [isUploading, setIsUploading] = useState(false);
 
     // const [contributionId, setContributionId] = useState("");
-
+    const [files, setFiles] = useState([]);
     let pond = useRef();
 
     const handleUpdateFiles = (fileItems) => {
+        setFiles(fileItems);
         if (fileItems.length > 0) setSubmitEnabled(true);
         else setSubmitEnabled(false);
     };
 
     async function handleSubmit() {
-        if (isUploading) return;
+        if (isUploading || files.length === 0) return;
 
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
-        // console.log(toggle);
-        // console.log(isAnoynmous);
 
         try {
             setIsUploading(true);
             setSubmitEnabled(false);
-            // console.log(resp);
+            
             let resp = await CreateNewContribution({
                 parentFolder: currentFolder._id,
                 courseCode: currentFolder.course,
@@ -63,21 +66,34 @@ const Contributions = () => {
                 contributionId,
                 uploadedBy,
             });
-            // console.log(resp);
-            await pond.current.processFiles();
+
+            const formData = new FormData();
+            files.forEach((fileItem, index) => {
+                formData.append(`files`, fileItem.file);
+            });
+
+            await fetch(`${server}/api/contribution/upload`, {
+                method: 'POST',
+                headers: {
+                    "contribution-id": contributionId,
+                    username: userName,
+                },
+                body: formData
+            });
+
             pond.current.removeFiles();
             contributionSection.classList.remove("show");
             toast.success("Files uploaded successfully!");
             setContributionId(uuidv4());
             setSubmitEnabled(true);
+            
         } catch (error) {
             setSubmitEnabled(true);
             contributionSection.classList.remove("show");
-            toast.error("Upload failed. Please try again!");
-            // console.log(error);
         } finally {
             setIsUploading(false);
         }
+
 
         //refresh the course in session storage to include the new file.
         try {
@@ -114,16 +130,9 @@ const Contributions = () => {
                         allowMultiple={true}
                         onupdatefiles={handleUpdateFiles}
                         maxFiles={40}
-                        server={{
-                            url: `${server}/api/contribution/upload`,
-                            process: {
-                                headers: {
-                                    "contribution-id": contributionId,
-                                    username: userName,
-                                },
-                            },
-                        }}
                         instantUpload={false}
+                        acceptedFileTypes={['application/pdf', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
+                        fileValidateTypeLabelExpectedTypes="Expects PDF and PowerPoint files"
                         allowProcess={false}
                         allowRevert={false}
                         ref={(ref) => {
