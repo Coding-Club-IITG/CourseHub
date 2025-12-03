@@ -31,6 +31,15 @@ const Contributions = () => {
     const code = currentFolder?.course;
     const [contributionId, setContributionId] = useState("");
     const dispatch = useDispatch();
+    const allowed_file_types = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'video/mp4',
+        'video/x-matroska', // mkv
+        'image/png',
+        'image/jpeg'
+    ]
+
     useEffect(() => {
         setContributionId(uuidv4());
     }, []);
@@ -71,6 +80,8 @@ const Contributions = () => {
             files.forEach((fileItem, index) => {
                 formData.append(`files`, fileItem.file);
             });
+
+            pond.current.processFiles();
 
             await fetch(`${server}/api/contribution/upload`, {
                 method: 'POST',
@@ -131,12 +142,18 @@ const Contributions = () => {
                         onupdatefiles={handleUpdateFiles}
                         maxFiles={40}
                         instantUpload={false}
-                        acceptedFileTypes={['application/pdf', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
+                        acceptedFileTypes={allowed_file_types}
                         fileValidateTypeLabelExpectedTypes="Expects PDF and PowerPoint files"
-                        allowProcess={false}
+                        allowProcess={true}
                         allowRevert={false}
                         ref={(ref) => {
                             pond.current = ref;
+                        }}
+                        server={{
+                            process: (fieldName, file, metadata, load) => {
+                                load();
+                            },
+                            revert: null,
                         }}
                     />
                 </div>
