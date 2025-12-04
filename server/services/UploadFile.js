@@ -46,7 +46,7 @@ async function CreateFolder(contributionId) {
         const { data } = await axios.post(url, _data, config);
         return data.id;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         if (error.response.status === 409) {
             const folderId = await GetFolderId(contributionId);
             return folderId;

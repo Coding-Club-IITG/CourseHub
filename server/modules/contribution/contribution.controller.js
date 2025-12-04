@@ -51,44 +51,62 @@ async function GetAllContributions(req, res, next) {
 async function HandleFileUpload(req, res, next) {
     console.log("Handling File Upload");
     const contributionId = req.headers["contribution-id"];
-    const files = req.files; // Changed from req.file to req.files for array handling
+    const username = req.headers.username;
+    const files = req.files; 
 
-    // Check if files were uploaded
     if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files were uploaded" });
     }
 
-    // Handle multiple files
     const uploadedFiles = [];
 
-    for (const file of files) {
-        // Files names
-        let initialPath = file.path;
-        let newFilename = file.filename;
-        let originalFilename = file.originalname;
+    try {
+        for (const file of files) {
+            // Files names
+            let initialPath = file.path;
+            let newFilename = file.filename;
+            let originalFilename = file.originalname;
 
-        let wordArr = originalFilename.split(".");
-        let fileExtension = wordArr[wordArr.length - 1];
-        let finalFileName = "";
+            let wordArr = originalFilename.split(".");
+            let fileExtension = wordArr[wordArr.length - 1];
+            let finalFileName = "";
 
-        for (let i = 0; i < wordArr.length - 1; i++) {
-            finalFileName += wordArr[i];
+            for (let i = 0; i < wordArr.length - 1; i++) {
+                finalFileName += wordArr[i];
+            }
+            finalFileName += "~" + username;
+            finalFileName += "." + fileExtension;
+
+            const finalPath = initialPath.slice(0, initialPath.indexOf(newFilename));
+
+            await fs.promises.rename(finalPath + newFilename, finalPath + finalFileName);
+            const fileId = await UploadFile(contributionId, finalPath, finalFileName);
+            
+            if (fileId) {
+                await HandleFileToDB(contributionId, fileId);
+                uploadedFiles.push({ 
+                    fileId, 
+                    originalName: originalFilename,
+                    finalName: finalFileName 
+                });
+            }
+            
+            await fs.promises.unlink(finalPath + finalFileName);
         }
-        finalFileName += "~" + req.headers.username;
-        finalFileName += "." + fileExtension;
 
-        const finalPath = initialPath.slice(0, initialPath.indexOf(newFilename));
+        console.log(`Successfully uploaded ${uploadedFiles.length} files`);
+        return res.json({ 
+            files: uploadedFiles, 
+            count: uploadedFiles.length 
+        });
 
-        await fs.promises.rename(finalPath + newFilename, finalPath + finalFileName);
-        const fileId = await UploadFile(contributionId, finalPath, finalFileName);
-        if (fileId) {
-            await HandleFileToDB(contributionId, fileId);
-            uploadedFiles.push({ fileId, originalName: originalFilename });
-        }
-        await fs.promises.unlink(finalPath + finalFileName);
+    } catch (error) {
+        console.error("File upload error:", error);
+        return res.status(500).json({ 
+            error: "File upload failed", 
+            details: error.message 
+        });
     }
-
-    return res.json({ files: uploadedFiles, count: uploadedFiles.length });
 }
 
 async function CreateNewContribution(req, res, next) {
