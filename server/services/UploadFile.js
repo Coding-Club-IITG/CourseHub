@@ -46,7 +46,7 @@ async function CreateFolder(contributionId) {
         const { data } = await axios.post(url, _data, config);
         return data.id;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         if (error.response.status === 409) {
             const folderId = await GetFolderId(contributionId);
             return folderId;
@@ -69,13 +69,13 @@ async function createUploadSession(folderId, fileName) {
         const { data } = await axios.post(url, {}, config);
         return { url: data?.uploadUrl, access_token };
     } catch (error) {
+        console.log(error);
         return false;
     }
 }
 
 async function UploadFile(contributionId, filePath, fileName) {
-    const folderId = await CreateFolder(contributionId);
-    if (!folderId) return false; //error here
+    const folderId = parent_item_id;
     const { url, access_token } = await createUploadSession(folderId, fileName);
     if (!url) {
         console.log("Error uploading!");
