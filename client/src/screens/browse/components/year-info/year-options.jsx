@@ -1,6 +1,6 @@
 const currentDate = new Date();
 const currentMonth = currentDate.getMonth() + 1; 
-const acadYear = (currentMonth >= 1 && currentMonth <= 5) ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
+const acadYear = currentDate.getFullYear();
 
 const Yroptions = ({
     course,
