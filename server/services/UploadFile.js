@@ -69,13 +69,13 @@ async function createUploadSession(folderId, fileName) {
         const { data } = await axios.post(url, {}, config);
         return { url: data?.uploadUrl, access_token };
     } catch (error) {
+        console.log(error);
         return false;
     }
 }
 
 async function UploadFile(contributionId, filePath, fileName) {
-    const folderId = await CreateFolder(contributionId);
-    if (!folderId) return false; //error here
+    const folderId = parent_item_id;
     const { url, access_token } = await createUploadSession(folderId, fileName);
     if (!url) {
         console.log("Error uploading!");
