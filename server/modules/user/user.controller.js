@@ -3,9 +3,22 @@ import User, { RemoveCourse } from "./user.model.js";
 import { addToFavourites, removeFromFavourites, AddNewCourse , AddReadOnlyCourse,  RemoveReadOnly } from "./user.model.js";
 import { updateUserData } from "./user.model.js";
 import BR from "../br/br.model.js";
+import { UserUpdate } from "../miscellaneous/miscellaneous.model.js";
 
 export const getUser = async (req, res, next) => {
     const user = req.user;
+
+    const userUpdated = await UserUpdate.findOne({ rollNumber: user.rollNumber });
+    if (!userUpdated) {
+        res.cookie("token", "loggedout", {
+            maxAge: 0,
+            sameSite: "lax",
+            secure: false,
+            expires: new Date(Date.now()),
+            httpOnly: true,
+        });
+        return res.status(401).json({ error: "User update required, please log in again" });
+    }
 
     // Check if this user is a BR
     const isBR = await BR.findOne({ email: user.email });
