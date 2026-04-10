@@ -32,6 +32,14 @@ const Dashboard = () => {
 
     const [midSem, setMidSem] = useState(0);
     const [endSem, setEndSem] = useState(0);
+    const [openSemesters, setOpenSemesters] = useState({});
+
+    const toggleSemester = (semIndex) => {
+        setOpenSemesters((prev) => ({
+            ...prev,
+            [semIndex]: !prev[semIndex]
+        }));
+    };
 
     const contributionHandler = (event) => {
         const collection = document.getElementsByClassName("contri");
@@ -232,13 +240,16 @@ const Dashboard = () => {
                         <>
                             <div
                                 onClick={() => setShowPrevious(!showPrevious)}
-                                style={{ cursor: "pointer", display: "inline-block" }}
+                                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }}
                             >
+                                <span style={{ transition: "transform 0.2s", transform: showPrevious ? "rotate(0deg)" : "rotate(-90deg)", color: "white", fontSize: "0.85em" }}>
+                                    ▼
+                                </span>
                                 <SubHeading
                                     text={
                                         showPrevious
-                                            ? "▼ HIDE PREVIOUS COURSES"
-                                            : "▶ SHOW PREVIOUS COURSES"
+                                            ? "HIDE PREVIOUS COURSES"
+                                            : "SHOW PREVIOUS COURSES"
                                     }
                                     color={"light"}
                                     type={"bold"}
@@ -248,21 +259,34 @@ const Dashboard = () => {
                             {showPrevious && (
                                 <>
                                     {user.user.previousCourses.map((semesterGroup, semIndex) => (
-                                        <div key={semIndex}>
+                                        <div key={semIndex} style={{ marginLeft: "20px" }}>
                                             <Space amount={20} />
-                                            <SubHeading text={`Semester ${semesterGroup.semester} (${semesterGroup.year})`} color={"light"} type={"bold"} />
-                                            <Space amount={20} />
-                                            <div className="coursecard-container">
-                                                {semesterGroup.courses.map((course, index) => (
-                                                    <CourseCard
-                                                        key={course.name}
-                                                        code={course?.code?.toUpperCase()}
-                                                        name={course.name}
-                                                        color={getColors(index)}
-                                                        setClicked={() => handleClick(course.code)}
-                                                    />
-                                                ))}
+                                            <div style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }} onClick={() => toggleSemester(semIndex)}>
+                                                <span style={{ transition: "transform 0.2s", transform: openSemesters[semIndex] ? "rotate(0deg)" : "rotate(-90deg)", color: "white", fontSize: "0.85em" }}>
+                                                    ▼
+                                                </span>
+                                                <SubHeading 
+                                                    text={`Semester ${semesterGroup.semester} (${semesterGroup.year})`} 
+                                                    color={"light"} 
+                                                    type={"bold"} 
+                                                />
                                             </div>
+                                            {openSemesters[semIndex] && (
+                                                <>
+                                                    <Space amount={20} />
+                                                    <div className="coursecard-container">
+                                                        {semesterGroup.courses.map((course, index) => (
+                                                            <CourseCard
+                                                                key={course.name}
+                                                                code={course?.code?.toUpperCase()}
+                                                                name={course.name}
+                                                                color={getColors(index)}
+                                                                setClicked={() => handleClick(course.code)}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ))}
                                 </>
