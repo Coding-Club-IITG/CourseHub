@@ -13,7 +13,7 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLIENT_DIR="$REPO_DIR/client"
 SERVER_DIR="$REPO_DIR/server"
-NGINX_WEB_ROOT="/var/www/coursehub"
+NGINX_WEB_ROOT="/var/www/coursehub/client"
 PM2_APP_NAME="coursehub-backend"
 
 # ── Colours ─────────────────────────────────────────────────
@@ -50,6 +50,9 @@ deploy_frontend() {
     # Clear old build and copy new one
     sudo rm -rf "${NGINX_WEB_ROOT:?}"/*
     sudo cp -r "$CLIENT_DIR/dist/." "$NGINX_WEB_ROOT/"
+    log "Reloading nginx..."
+    sudo systemctl reload nginx
+    sudo nginx -s reload
 
     success "Frontend deployed successfully!"
 }
@@ -96,6 +99,9 @@ case "$TARGET" in
         log "Replacing files in $NGINX_WEB_ROOT ..."
         sudo rm -rf "${NGINX_WEB_ROOT:?}"/*
         sudo cp -r "$CLIENT_DIR/dist/." "$NGINX_WEB_ROOT/"
+        log "Reloading nginx..."
+        sudo systemctl reload nginx
+        sudo nginx -s reload
         success "Frontend deployed!"
 
         # Backend
