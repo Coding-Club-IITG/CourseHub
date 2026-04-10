@@ -14,26 +14,36 @@ const LoadingPage = () => {
 
     useEffect(() => {
         async function loadData() {
+            let user;
             try {
-                const { data: user } = await getUser();
-                if (!user || !user.rollNumber) {
-                    setError("Invalid user data.");
-                    return navigate("/login");
-                }
+                const { data } = await getUser();
+                user = data;
+            } catch (err) {
+                console.error("Failed to fetch user:", err);
+                toast.error("Session expired. Please log in again.");
+                setError("Session expired.");
+                return navigate("/");
+            }
 
+            if (!user || !user.rollNumber) {
+                toast.error("Invalid user data. Please log in again.");
+                setError("Invalid user data.");
+                return navigate("/");
+            }
+
+            try {
                 const { courses, previousCourses } = await fetchUserCoursesData(user);
-
                 user.courses = courses;
                 user.previousCourses = previousCourses;
-
-                dispatch(LoginUser(user));
-                navigate("/dashboard");
             } catch (err) {
-                console.error("Loading error:", err);
-                toast.error("Failed to load user data.");
-                setError("Failed to load user data.");
-                navigate("/login");
+                console.error("Failed to fetch courses:", err);
+                // Non-fatal: continue with empty courses rather than kicking user out
+                user.courses = user.courses || [];
+                user.previousCourses = user.previousCourses || [];
             }
+
+            dispatch(LoginUser(user));
+            navigate("/dashboard");
         }
 
         loadData();

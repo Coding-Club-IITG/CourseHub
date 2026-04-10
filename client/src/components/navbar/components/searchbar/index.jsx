@@ -15,7 +15,7 @@ const SearchBar = ({ type }) => {
     const [error, setError] = useState(false);
     const courses = useSelector((state) =>
         state.user.user.courses
-            .concat(state.user.user?.previousCourses)
+            .concat(state.user.user?.previousCourses?.flatMap((sem) => sem.courses) || [])
             .concat(state.user.user?.readOnly)
     );
     const [searchResultStyle, setSearchResultStyle] = useState({

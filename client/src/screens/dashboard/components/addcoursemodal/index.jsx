@@ -18,7 +18,7 @@ const AddCourseModal = ({ handleAddCourse }) => {
     const [loading, setLoading] = useState(false);
     const user = useSelector((state) => state.user);
     const userCourses = user.user?.courses || [];
-    const previousCourses = user.user?.previousCourses || [];
+    const previousCourses = user.user?.previousCourses?.flatMap(sem => sem.courses) || [];
     const readOnlyCourses = user.user?.readOnly || [];
 
     const allUserCourseCodes = [...userCourses, ...previousCourses, ...readOnlyCourses].map((c) =>

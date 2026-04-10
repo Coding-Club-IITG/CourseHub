@@ -247,25 +247,24 @@ const Dashboard = () => {
 
                             {showPrevious && (
                                 <>
-                                    <Space amount={20} />
-                                    <div className="coursecard-container">
-                                        {user.user.previousCourses.map((course, index) => (
-                                            <CourseCard
-                                                key={course.name}
-                                                code={course?.code?.toUpperCase()}
-                                                name={course.name}
-                                                color={getColors(index)}
-                                                setClicked={() => handleClick(course.code)}
-                                            />
-                                        ))}
-
-                                        {/* <CourseCard
-                                            type={"ADD"}
-                                            setClicked={() => {
-                                                addCourseModalShowHandler();
-                                            }}
-                                        /> */}
-                                    </div>
+                                    {user.user.previousCourses.map((semesterGroup, semIndex) => (
+                                        <div key={semIndex}>
+                                            <Space amount={20} />
+                                            <SubHeading text={`Semester ${semesterGroup.semester} (${semesterGroup.year})`} color={"light"} type={"bold"} />
+                                            <Space amount={20} />
+                                            <div className="coursecard-container">
+                                                {semesterGroup.courses.map((course, index) => (
+                                                    <CourseCard
+                                                        key={course.name}
+                                                        code={course?.code?.toUpperCase()}
+                                                        name={course.name}
+                                                        color={getColors(index)}
+                                                        setClicked={() => handleClick(course.code)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </>
                             )}
                         </>

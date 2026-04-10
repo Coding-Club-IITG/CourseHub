@@ -44,7 +44,7 @@ const UserReducer = (
 
             // Check if course is already in user's previous courses
             if (
-                state.user?.previousCourses?.find(
+                state.user?.previousCourses?.flatMap((sem) => sem.courses)?.find(
                     (course) =>
                         course.code.toLowerCase() === action.payload.course.code.toLowerCase()
                 )

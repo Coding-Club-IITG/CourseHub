@@ -27,7 +27,7 @@ const Contrisection = () => {
 
             const courses = [
                 ...user.user.courses,
-                ...user.user.previousCourses
+                ...(user.user.previousCourses?.flatMap(sem => sem.courses) || [])
             ];
 
             const resp = await GetBrContribution(courses);

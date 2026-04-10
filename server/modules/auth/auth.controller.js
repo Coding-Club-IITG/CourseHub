@@ -157,170 +157,133 @@ function calculateCourseSemesterNumber(rollNumber, courseYear, courseSession) {
 
 export const fetchCoursesForBr = async (rollNumber) => {
     const rollstring = rollNumber.toString();
-    var evenConfig = {
-        method: "post",
-        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data: qs.stringify({
-            cid: "All",
-            sess: "Jan-May",
-            yr: academic.currentYear,
-        }),
-    };
-    var oddConfig = {
-        method: "post",
-        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data: qs.stringify({
-            cid: "All",
-            sess: "July-Nov",
-            yr: academic.currentYear - 1,
-        }),
-    };
+    const currentYear = parseInt(academic.currentYear);
+    const startYear = 2000 + parseInt(rollstring.slice(0, 2));
 
-    const previousCourses = [];
-    const courseCodes = [];
+    const configs = [];
 
-    const [even, odd] = await Promise.all([
-            axios.post(evenConfig.url, evenConfig.data, { headers: evenConfig.headers }),
-            axios.post(oddConfig.url, oddConfig.data, { headers: oddConfig.headers }),
-        ]);
-
-        if (!even.data || !odd.data) {
-            throw new AppError(500, "Something went wrong");
+    for (let yr = startYear; yr <= currentYear; yr++) {
+        // Jan-May session
+        if (yr > startYear) {
+            const isCurrentSession = (yr === currentYear && academic.session === "Jan-May");
+            if (!isCurrentSession) {
+                configs.push({
+                    sess: "Jan-May",
+                    yr: yr,
+                    req: {
+                        method: "post",
+                        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        data: qs.stringify({ cid: "All", sess: "Jan-May", yr: yr })
+                    }
+                });
+            }
         }
 
-        const $even = cheerio.load(even.data);
-        const $odd = cheerio.load(odd.data);
-
-        // First pass: collect course codes from both semesters and normalize them
-        $even("tr").each((i, elem) => {
-            const details = $even(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text(); //course code
-
-            if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-                // Normalize the code: remove spaces and convert to uppercase
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-                courseCodes.push({
-                    original: rawCode,
-                    normalized: normalizedCode,
+        // July-Nov session
+        if (yr < currentYear || (yr === currentYear && academic.session === "July-Nov")) {
+            const isCurrentSession = (yr === currentYear && academic.session === "July-Nov");
+            if (!isCurrentSession) {
+                configs.push({
+                    sess: "July-Nov",
+                    yr: yr,
+                    req: {
+                        method: "post",
+                        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        data: qs.stringify({ cid: "All", sess: "July-Nov", yr: yr })
+                    }
                 });
             }
-        });
-        $odd("tr").each((i, elem) => {
-            const details = $odd(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text(); //course code
-
-            if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-                // Normalize the code: remove spaces and convert to uppercase
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-                courseCodes.push({
-                    original: rawCode,
-                    normalized: normalizedCode,
-                });
-            }
-        });
-
-        // Fetch course names from database using both normalized and original codes
-        const CourseModel = (await import("../course/course.model.js")).default;
-        const normalizedCodes = courseCodes.map((c) => c.normalized);
-        const originalCodes = courseCodes.map((c) => c.original);
-        const allCodes = [...normalizedCodes, ...originalCodes];
-        const dbCourses = await CourseModel.find({
-            code: { $in: allCodes },
-        });
-
-        const evenCourses = [];
-        const oddCourses = [];
-
-        // Second pass: build courses array with names
-        $even("tr").each((i, elem) => {
-            const details = $even(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text(); //course code
-
-            if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-
-                // Find course name from database first - try both normalized and original codes
-                const dbCourse = dbCourses.find(
-                    (course) =>
-                        course.code === normalizedCode ||
-                        course.code === rawCode ||
-                        course.code.replace(/\s+/g, "").toUpperCase() === normalizedCode
-                );
-
-                let name;
-                if (dbCourse) {
-                    name = dbCourse.name;
-                } else {
-                    // Try courselist with both normalized and original codes
-                    name = courselist[normalizedCode] || courselist[rawCode];
-                }
-
-                evenCourses.push({
-                    name,
-                    code: normalizedCode, // Store the normalized code consistently
-                });
-            }
-        });
-        $odd("tr").each((i, elem) => {
-            const details = $odd(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text(); //course code
-
-            if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-
-                // Find course name from database first - try both normalized and original codes
-                const dbCourse = dbCourses.find(
-                    (course) =>
-                        course.code === normalizedCode ||
-                        course.code === rawCode ||
-                        course.code.replace(/\s+/g, "").toUpperCase() === normalizedCode
-                );
-
-                let name;
-                if (dbCourse) {
-                    name = dbCourse.name;
-                } else {
-                    // Try courselist with both normalized and original codes
-                    name = courselist[normalizedCode] || courselist[rawCode];
-                }
-
-                oddCourses.push({
-                    name,
-                    code: normalizedCode, // Store the normalized code consistently
-                });
-            }
-        });
-        if (evenCourses.length > 0) {
-            previousCourses.push({
-                semester: calculateCourseSemesterNumber(rollNumber, academic.currentYear, "Jan-May"),
-                year: academic.currentYear,
-                courses: evenCourses
-            });
         }
-        
-        if (oddCourses.length > 0) {
-            previousCourses.push({
-                semester: calculateCourseSemesterNumber(rollNumber, academic.currentYear - 1, "July-Nov"),
-                year: academic.currentYear - 1,
-                courses: oddCourses
-            });
-        }
-
-    if (previousCourses.length === 0) {
-        throw new AppError(404, "No courses found for this roll number");
     }
 
-    // Update user previousCourses using findOneAndUpdate to avoid version conflicts
+    const responses = await Promise.all(
+        configs.map(async (c) => {
+             const res = await axios.post(c.req.url, c.req.data, { headers: c.req.headers });
+             return { data: res.data, sess: c.sess, yr: c.yr };
+        })
+    );
+
+    for (const res of responses) {
+        if (!res.data) throw new AppError(500, "Something went wrong fetching courses");
+    }
+
+    const courseCodes = [];
+    
+    responses.forEach((resObj) => {
+        const $ = cheerio.load(resObj.data);
+        $("tr").each((i, elem) => {
+            const details = $(elem).find("td");
+            const studentRollNo = details.eq(2).text();
+            const rawCode = details.eq(3).text();
+
+            if (rawCode && studentRollNo == rollstring && !rawCode.includes("SA")) {
+                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
+                courseCodes.push({ original: rawCode, normalized: normalizedCode });
+            }
+        });
+    });
+
+    const CourseModel = (await import("../course/course.model.js")).default;
+    const normalizedCodes = courseCodes.map((c) => c.normalized);
+    const originalCodes = courseCodes.map((c) => c.original);
+    const allCodes = [...normalizedCodes, ...originalCodes];
+    const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
+
+    const previousCourses = [];
+
+    responses.forEach((resObj) => {
+        const semesterCourses = [];
+        const $ = cheerio.load(resObj.data);
+        $("tr").each((i, elem) => {
+            const details = $(elem).find("td");
+            const studentRollNo = details.eq(2).text();
+            const rawCode = details.eq(3).text();
+
+            if (rawCode && studentRollNo == rollstring && !rawCode.includes("SA")) {
+                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
+
+                const dbCourse = dbCourses.find(
+                    (course) =>
+                        course.code === normalizedCode ||
+                        course.code === rawCode ||
+                        course.code.replace(/\s+/g, "").toUpperCase() === normalizedCode
+                );
+
+                let name;
+                if (dbCourse) {
+                    name = dbCourse.name;
+                } else {
+                    name = courselist[normalizedCode] || courselist[rawCode];
+                }
+
+                if (!semesterCourses.some(c => c.code === normalizedCode)) {
+                    semesterCourses.push({ name, code: normalizedCode });
+                }
+            }
+        });
+
+        if (semesterCourses.length > 0) {
+            previousCourses.push({
+                semester: calculateCourseSemesterNumber(rollNumber, resObj.yr, resObj.sess),
+                year: resObj.yr,
+                courses: semesterCourses
+            });
+        }
+    });
+
+    previousCourses.sort((a, b) => a.semester - b.semester);
+
+    if (previousCourses.length === 0) {
+        await User.findOneAndUpdate(
+            { rollNumber },
+            { previousCourses: [] },
+            { new: true, upsert: false }
+        );
+        return [];
+    }
+
     await User.findOneAndUpdate(
         { rollNumber },
         { previousCourses: previousCourses },
@@ -487,7 +450,7 @@ export const mobileRedirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-      redirect_uri: links.COURSEHUB_MOBILE_REDIRECT,
+        redirect_uri: links.COURSEHUB_MOBILE_REDIRECT,
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,

@@ -314,7 +314,7 @@ const BrowseScreen = () => {
         ...(user.user?.courses || []),
         ...(user.localCourses || []),
         ...(user.user?.readOnly || []),
-        ...(user.user?.isBR && user.user?.previousCourses ? user.user.previousCourses : []),
+        ...(user.user?.isBR && user.user?.previousCourses ? user.user.previousCourses.flatMap(sem => sem.courses) : []),
     ];
 
     // Helper: get all years for dropdown (from currCourse)
@@ -519,11 +519,16 @@ const BrowseScreen = () => {
                         )}
                         {user.user?.isBR &&
                             user.user?.previousCourses?.length > 0 &&
-                            user.user?.previousCourses?.map((course, idx) => {
-                                return (
-                                    <Collapsible color={getColors(idx)} key={idx} course={course} />
-                                );
-                            })}
+                            user.user?.previousCourses?.map((semesterGroup, semIdx) => (
+                                <div key={semIdx}>
+                                    <h5 className="heading" style={{ fontSize: "0.85em", marginTop: "10px", color: "gray" }}>
+                                        Semester {semesterGroup.semester} ({semesterGroup.year})
+                                    </h5>
+                                    {semesterGroup.courses.map((course, idx) => (
+                                        <Collapsible color={getColors(idx)} key={idx} course={course} />
+                                    ))}
+                                </div>
+                            ))}
                     </div>
                 )}
                 {!isMobile && (
