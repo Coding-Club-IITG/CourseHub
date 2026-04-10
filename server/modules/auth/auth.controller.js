@@ -143,6 +143,18 @@ export const fetchCourses = async (rollNumber) => {
     return courses;
 };
 
+function calculateCourseSemesterNumber(rollNumber, courseYear, courseSession) {
+    const joinYear = 2000 + parseInt(rollNumber.toString().slice(0, 2));
+    const diff = courseYear - joinYear;
+    let sem = 1;
+    if (courseSession.toLowerCase() === "july-nov") {
+        sem = 2 * diff + 1;
+    } else if (courseSession.toLowerCase() === "jan-may" || courseSession.toLowerCase() === "jan - may") {
+        sem = 2 * diff;
+    }
+    return Math.max(1, sem);
+}
+
 export const fetchCoursesForBr = async (rollNumber) => {
     const rollstring = rollNumber.toString();
     var evenConfig = {
@@ -170,95 +182,10 @@ export const fetchCoursesForBr = async (rollNumber) => {
         }),
     };
 
-    const courses = [];
+    const previousCourses = [];
     const courseCodes = [];
 
-    if (rollstring.slice(0, 2) == "24") {
-        const newroll = parseInt("2501" + rollstring.slice(4, 6) + "001");
-        var config = {
-            method: "post",
-            url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            data: qs.stringify({
-                cid: "All",
-                sess: academic.session,
-                yr: academic.currentYear,
-            }),
-        };
-
-        const response = await axios.post(config.url, config.data, {
-            headers: config.headers,
-        });
-
-        if (!response.data) {
-            throw new AppError(500, "Something went wrong");
-        }
-
-        const $ = cheerio.load(response.data);
-
-        // First pass: collect course codes and normalize them
-        $("tr").each((i, elem) => {
-            const details = $(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text(); //course code
-
-            if (rawCode && studentRollNo == newroll && !rawCode.includes("SA")) {
-                // Normalize the code: remove spaces and convert to uppercase
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-                courseCodes.push({
-                    original: rawCode,
-                    normalized: normalizedCode,
-                });
-            }
-        });
-
-        // Fetch course names from database using both normalized and original codes
-        const CourseModel = (await import("../course/course.model.js")).default;
-        const normalizedCodes = courseCodes.map((c) => c.normalized);
-        const originalCodes = courseCodes.map((c) => c.original);
-        const allCodes = [...normalizedCodes, ...originalCodes];
-        const dbCourses = await CourseModel.find({
-            code: { $in: allCodes },
-        });
-
-        // Second pass: build courses array with names
-        $("tr").each((i, elem) => {
-            const details = $(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text(); //course code
-
-            if (rawCode && studentRollNo == newroll && !rawCode.includes("SA")) {
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-
-                // Find course name from database first - try both normalized and original codes
-                const dbCourse = dbCourses.find(
-                    (course) =>
-                        course.code === normalizedCode ||
-                        course.code === rawCode ||
-                        course.code.replace(/\s+/g, "").toUpperCase() === normalizedCode
-                );
-
-                let name;
-                if (dbCourse) {
-                    name = dbCourse.name;
-                } else {
-                    // Try courselist with both normalized and original codes
-                    name = courselist[normalizedCode] || courselist[rawCode];
-                }
-
-                courses.push({
-                    name,
-                    code: normalizedCode, // Store the normalized code consistently
-                });
-            }
-        });
-        if (courses.length === 0) {
-            throw new AppError(404, "No courses found for this roll number");
-        }
-    } else {
-        const [even, odd] = await Promise.all([
+    const [even, odd] = await Promise.all([
             axios.post(evenConfig.url, evenConfig.data, { headers: evenConfig.headers }),
             axios.post(oddConfig.url, oddConfig.data, { headers: oddConfig.headers }),
         ]);
@@ -309,6 +236,9 @@ export const fetchCoursesForBr = async (rollNumber) => {
             code: { $in: allCodes },
         });
 
+        const evenCourses = [];
+        const oddCourses = [];
+
         // Second pass: build courses array with names
         $even("tr").each((i, elem) => {
             const details = $even(elem).find("td");
@@ -334,7 +264,7 @@ export const fetchCoursesForBr = async (rollNumber) => {
                     name = courselist[normalizedCode] || courselist[rawCode];
                 }
 
-                courses.push({
+                evenCourses.push({
                     name,
                     code: normalizedCode, // Store the normalized code consistently
                 });
@@ -364,26 +294,40 @@ export const fetchCoursesForBr = async (rollNumber) => {
                     name = courselist[normalizedCode] || courselist[rawCode];
                 }
 
-                courses.push({
+                oddCourses.push({
                     name,
                     code: normalizedCode, // Store the normalized code consistently
                 });
             }
         });
-    }
+        if (evenCourses.length > 0) {
+            previousCourses.push({
+                semester: calculateCourseSemesterNumber(rollNumber, academic.currentYear, "Jan-May"),
+                year: academic.currentYear,
+                courses: evenCourses
+            });
+        }
+        
+        if (oddCourses.length > 0) {
+            previousCourses.push({
+                semester: calculateCourseSemesterNumber(rollNumber, academic.currentYear - 1, "July-Nov"),
+                year: academic.currentYear - 1,
+                courses: oddCourses
+            });
+        }
 
-    if (courses.length === 0) {
+    if (previousCourses.length === 0) {
         throw new AppError(404, "No courses found for this roll number");
     }
 
     // Update user previousCourses using findOneAndUpdate to avoid version conflicts
     await User.findOneAndUpdate(
         { rollNumber },
-        { previousCourses: courses },
+        { previousCourses: previousCourses },
         { new: true, upsert: false }
     );
 
-    return courses;
+    return previousCourses;
 };
 
 const getDepartment = async (access_token, roll) => {

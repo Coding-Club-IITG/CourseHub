@@ -70,7 +70,13 @@ export const validateUser = function (obj) {
         degree: Joi.string().required(),
         courses: Joi.array().required(),
         isBR: Joi.boolean().optional(),
-        previousCourses: Joi.array().required(),
+        previousCourses: Joi.array().items(
+            Joi.object({
+                semester: Joi.number().required(),
+                year: Joi.number().required(),
+                courses: Joi.array().required()
+            })
+        ).required(),
         department: Joi.string().required(),
         readOnly: Joi.array().required(),
     });
