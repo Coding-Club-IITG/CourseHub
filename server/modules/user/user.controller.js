@@ -2,8 +2,8 @@ import AppError from "../../utils/appError.js";
 import User, { RemoveCourse } from "./user.model.js";
 import { addToFavourites, removeFromFavourites, AddNewCourse , AddReadOnlyCourse,  RemoveReadOnly } from "./user.model.js";
 import { updateUserData } from "./user.model.js";
+import UserUpdate from "./userUpdate.model.js";
 import BR from "../br/br.model.js";
-import { UserUpdate } from "../miscellaneous/miscellaneous.model.js";
 
 export const getUser = async (req, res, next) => {
     const user = req.user;

@@ -21,11 +21,7 @@ import courselist from "../course/course.list.js";
 import aesjs from "aes-js";
 import EncryptText from "../../utils/encryptAES.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
-import { UserUpdate } from "../miscellaneous/miscellaneous.model.js";
-import {
-    createCourseSnapshotOnce,
-    createUserSnapshotHelper,
-} from "../snapshot/snapshot.controller.js";
+import UserUpdate from "../user/userUpdate.model.js";
 
 import BR from "../br/br.model.js";
 
@@ -368,8 +364,6 @@ export const redirectHandler = async (req, res, next) => {
 
     const token = existingUser.generateJWT();
 
-    await createCourseSnapshotOnce(existingUser);
-
     res.cookie("token", token, {
         maxAge: 2073600000,
         sameSite: "lax",
@@ -456,8 +450,6 @@ export const mobileRedirectHandler = async (req, res, next) => {
     }
 
     const token = existingUser.generateJWT();
-    await createUserSnapshotHelper(existingUser);
-    await createCourseSnapshotOnce(existingUser);
 
     return res.redirect(`${appConfig.mobileURL}://success?token=${token}`);
 };

@@ -3,7 +3,7 @@ import CourseModel, { FileModel, FolderModel } from "../course/course.model.js";
 import fs from "fs";
 import csv from "csv-parser";
 import User from "../user/user.model.js";
-import { UserUpdate } from "../miscellaneous/miscellaneous.model.js";
+import UserUpdate from "../user/userUpdate.model.js";
 import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
 
