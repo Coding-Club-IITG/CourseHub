@@ -4,6 +4,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import ImageKit from "imagekit";
 import links from "../../links.js";
+import logger from "../../utils/logger.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const imagekit = new ImageKit({
@@ -39,7 +40,7 @@ async function PostFeedBack(req, res) {
         const screenshots = [];
 
         for (const photo of photos) {
-            console.log(photo);
+            logger.info(photo);
             const image = await imagekit.upload({
                 file: photo.buffer,
                 fileName: photo.originalname,
@@ -56,7 +57,7 @@ async function PostFeedBack(req, res) {
             message: data,
         });
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         res.status(500).json({ success: false, message: error.message });
     }
 }

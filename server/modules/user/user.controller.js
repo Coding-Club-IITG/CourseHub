@@ -20,7 +20,6 @@ export const getUser = async (req, res, next) => {
         return res.status(401).json({ error: "User update required, please log in again" });
     }
 
-    // Check if this user is a BR
     const isBR = await BR.findOne({ email: user.email });
 
     const responseUser = {
@@ -30,7 +29,6 @@ export const getUser = async (req, res, next) => {
         rollNumber: user.rollNumber,
         semester: user.semester,
         degree: user.degree,
-        //branch: user.branch,
         courses: user.courses,
         department: user.department,
         favourites: user.favourites,
@@ -46,13 +44,6 @@ export const getUser = async (req, res, next) => {
     return res.status(200).json(responseUser);
 };
 
-//not used
-export const createUser = async (req, res) => {
-    const data = req.body;
-    const user = new User(data);
-    const savedUser = await user.save();
-    res.json(savedUser);
-};
 export const updateUserController = async (req, res) => {
     const data = req.body;
     updateUserData(req.user._id, data);

@@ -3,7 +3,6 @@ import { deleteFile } from "../file/file.controller.js";
 
 async function createFolder(req, res) {
     const { name, course, parentFolder, childType } = req.body;
-    console.log(req.body);
     const newFolder = await FolderModel.create({
         name,
         course,
@@ -19,6 +18,7 @@ async function createFolder(req, res) {
 
     return res.json(newFolder);
 }
+
 async function deleteFolder(req, res) {
     const { folder, parentFolderId } = req.body;
     const folderId = folder._id;
@@ -29,11 +29,8 @@ async function deleteFolder(req, res) {
                 $pull: { children: folderId },
             });
         }
-        // const deleted = await FolderModel.findByIdAndDelete(folderId);
-        // if (!deleted) {
-        //     return res.status(404).json({ message: "Folder not found" });
-        // }
-        recursiveDelete(folder);
+
+        await recursiveDelete(folder);
 
         return res.json({ success: true, folderId });
     } catch (err) {
@@ -54,7 +51,6 @@ async function recursiveDelete(folder) {
     }
     else if (folder.childType === "File") {
         for (const file of folder.children) {
-            console.log(file);
             await deleteFile(file);
         }
         await FolderModel.findByIdAndDelete(folder._id);

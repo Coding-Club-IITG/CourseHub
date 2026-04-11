@@ -2,18 +2,15 @@ import Contribution from "./contribution.model.js";
 import Joi from "joi";
 import AppError from "../../utils/appError.js";
 import validatePayload from "../../utils/validate.js";
-import formidable from "formidable";
 import UploadFile from "../../services/UploadFile.js";
 import fs from "fs";
 import { FolderModel } from "../course/course.model.js";
-import { CLIENT_RENEG_LIMIT } from "tls";
-import { logger } from "@azure/identity";
+import logger from "../../utils/logger.js";
 
 async function ContributionCreation(contributionId, data) {
     const existingContribution = await Contribution.findOne({ contributionId });
     if (!existingContribution) {
         const newContribution = await Contribution.create({ ...data, contributionId });
-        // console.log("new contri");
         return newContribution;
     }
     const updatedContribution = await Contribution.findOneAndUpdate(
@@ -21,25 +18,25 @@ async function ContributionCreation(contributionId, data) {
         { ...data },
         { new: true }
     );
-    console.log("updated contri");
     return updatedContribution;
 }
 
 async function HandleFileToDB(contributionId, fileId) {
     const existingContribution = await Contribution.findOne({ contributionId });
-    const parentFolder = await FolderModel.findOne({ _id: existingContribution.parentFolder });
 
     if (!existingContribution) {
         const newContribution = await Contribution.create({ contributionId, files: [fileId] });
-        console.log("new contri");
         return newContribution;
     }
+
+    const parentFolder = await FolderModel.findOne({ _id: existingContribution.parentFolder });
+
     existingContribution.files.push(fileId);
-    parentFolder.children.push(fileId);
+    if (parentFolder) {
+        parentFolder.children.push(fileId);
+        await parentFolder.save();
+    }
     await existingContribution.save();
-    await parentFolder.save();
-    console.log("updated contri");
-    console.log(`Added file ${fileId} to contribution ${contributionId}`);
     return existingContribution;
 }
 
@@ -49,20 +46,17 @@ async function GetAllContributions(req, res, next) {
 }
 
 async function HandleFileUpload(req, res, next) {
-    console.log("Handling File Upload");
+    logger.info("Handling File Upload");
     const contributionId = req.headers["contribution-id"];
-    const files = req.files; // Changed from req.file to req.files for array handling
+    const files = req.files;
 
-    // Check if files were uploaded
     if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files were uploaded" });
     }
 
-    // Handle multiple files
     const uploadedFiles = [];
 
     for (const file of files) {
-        // Files names
         let initialPath = file.path;
         let newFilename = file.filename;
         let originalFilename = file.originalname;
@@ -94,7 +88,6 @@ async function HandleFileUpload(req, res, next) {
 async function CreateNewContribution(req, res, next) {
     const payloadSchema = {
         contributionId: Joi.string().required(),
-        //year: Joi.string().required(),
         uploadedBy: Joi.string().required(),
         courseCode: Joi.string().required(),
         parentFolder: Joi.string().required(),
@@ -124,15 +117,13 @@ async function GetMyContributions(req, res, next) {
 
 async function DeleteContribution(req, res, next) {
     const { contributionId } = req.params;
-    const deleted = await Contribution.deleteOne({ contributionId });
-    console.log(deleted);
+    await Contribution.deleteOne({ contributionId });
     res.json({ deleted: true });
 }
 
 async function MobileFileUploadHandler(req, res, next) {
     const payloadSchema = {
         contributionId: Joi.string().required(),
-        //year: Joi.string().required(),
         uploadedBy: Joi.string().required(),
         courseCode: Joi.string().required(),
         parentFolder: Joi.string().required(),
@@ -148,42 +139,47 @@ async function MobileFileUploadHandler(req, res, next) {
     }
 
     const contributionId = data.contributionId;
-    const files = req.files;
-    let fileName = [];
-    files.map((file) => {
-        // Files names
+    const files = req.files ? req.files : req.file ? [req.file] : [];
 
-        let initialPath = file.path;
-        let newFilename = file.filename;
-        let originalFilename = file.originalname;
+    if (!files.length) {
+        return res.status(400).json({ error: "No files were uploaded" });
+    }
 
-        let wordArr = originalFilename.split(".");
-        let fileExtension = wordArr[wordArr.length - 1];
+    const newContribution = await ContributionCreation(data.contributionId, data);
+    const uploadedFiles = [];
+
+    for (const file of files) {
+        const initialPath = file.path;
+        const newFilename = file.filename;
+        const originalFilename = file.originalname;
+
+        const wordArr = originalFilename.split(".");
+        const fileExtension = wordArr[wordArr.length - 1];
         let finalFileName = "";
 
         for (let i = 0; i < wordArr.length - 1; i++) {
             finalFileName += wordArr[i];
         }
-        finalFileName += "~" + req.user.name;
-        finalFileName += "." + fileExtension;
-        fileNames.push(finalFileName);
+
+        finalFileName += `~${req.user.name}.${fileExtension}`;
 
         const finalPath = initialPath.slice(0, initialPath.indexOf(newFilename));
 
-        fs.rename(finalPath + newFilename, finalPath + finalFileName, async () => {
-            // await HandleFileToDB(contributionId, finalFileName);
-            await UploadFile(contributionId, finalPath, finalFileName);
-        });
-    });
+        await fs.promises.rename(finalPath + newFilename, finalPath + finalFileName);
+        const fileId = await UploadFile(contributionId, finalPath, finalFileName);
 
-    // const newContribution = await ContributionCreation(data.contributionId, data);
-    const newContribution = await Contribution.create({
-        ...data,
-        fileName: [...fileNames],
-    });
+        if (fileId) {
+            await HandleFileToDB(contributionId, fileId);
+            uploadedFiles.push({ fileId, originalName: originalFilename });
+        }
+
+        await fs.promises.unlink(finalPath + finalFileName);
+    }
+
     return res.json({
         created: true,
         data: newContribution,
+        files: uploadedFiles,
     });
 }
 

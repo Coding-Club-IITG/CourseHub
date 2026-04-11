@@ -3,7 +3,25 @@ import CourseModel, { FolderModel, FileModel } from "./course.model.js";
 import logger from "../../utils/logger.js";
 import SearchResults from "../search/search.model.js";
 import courselist from "./course.list.js";
-import { response } from "express";
+
+const COURSE_CHILDREN_POPULATE_DEPTH = 5;
+
+const buildChildrenPopulate = (depth) => {
+    if (depth <= 0) return undefined;
+
+    const populate = {
+        strictPopulate: false,
+        path: "children",
+        select: "-__v",
+    };
+
+    const nestedPopulate = buildChildrenPopulate(depth - 1);
+    if (nestedPopulate) {
+        populate.populate = nestedPopulate;
+    }
+
+    return populate;
+};
 
 const createCourse = async (code) => {
     const course = CourseModel.create({
@@ -21,58 +39,20 @@ export const getCourse = async (req, res, next) => {
 
     if (!code) throw new AppError(400, "Missing Course Id");
     let course = await CourseModel.findOne({ code: code })
-        .populate({
-            path: "children",
-            select: "-__v",
-            populate: {
-                path: "children",
-                select: "-__v",
-                populate: {
-                    strictPopulate: false,
-                    path: "children",
-                    select: "-__v",
-                    populate: {
-                        strictPopulate: false,
-                        path: "children",
-                        select: "-__v",
-                        populate: {
-                            strictPopulate: false,
-                            path: "children",
-                            select: "-__v",
-                            populate: {
-                                strictPopulate: false,
-                                path: "children",
-                                select: "-__v",
-                                populate: {
-                                    strictPopulate: false,
-                                    path: "children",
-                                    select: "-__v",
-                                    populate: {
-                                        strictPopulate: false,
-                                        path: "children",
-                                        select: "-__v",
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        })
+        .populate(buildChildrenPopulate(COURSE_CHILDREN_POPULATE_DEPTH))
         .select("-__v");
 
     if (!course) {
         course = await createCourse(code);
     }
 
-    //function to sort the years in descending order for displaying in frontend
     const sortYear = (a, b) => {
         if (a?.name > b?.name) return 1;
-        else if(a?.name < b?.name) return -1;
+        else if (a?.name < b?.name) return -1;
         else return 1;
     }
 
-    if(course?.children.length > 1) course.children.sort(sortYear);
+    if (course?.children.length > 1) course.children.sort(sortYear);
     return res.json({ found: true, ...course["_doc"] });
 };
 

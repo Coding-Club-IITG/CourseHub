@@ -1,10 +1,17 @@
 import { FileModel, FolderModel } from "../course/course.model.js";
 import { DeleteFile } from "../../services/UploadFile.js";
+import logger from "../../utils/logger.js";
+import { isValidObjectId } from "mongoose";
 
-// Verify file
 export const verifyFile = async (req, res) => {
     try {
-        const file = await FileModel.findById(req.params.id);
+        const { id } = req.params;
+        
+        if (!id || !isValidObjectId(id)) {
+            return res.status(400).json({ message: "Invalid file ID" });
+        }
+        
+        const file = await FileModel.findById(id);
         if (!file) return res.status(404).json({ message: "File not found" });
 
         file.isVerified = true;
@@ -12,42 +19,43 @@ export const verifyFile = async (req, res) => {
 
         res.status(200).json({ message: "File verified successfully", file });
     } catch (err) {
+        logger.error(err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
 
-// Unverify file (delete it)
 export const unverifyFile = async (req, res) => {
     try {
-        //Delete file object from DB
-        const folderId = req.body.folderId;
-        await FolderModel.findByIdAndUpdate(folderId, {$pull: {children: req.params.id}});
-        const file = await FileModel.findByIdAndDelete(req.params.id);
+        const { id } = req.params;
+        const { folderId, oneDriveId } = req.body;
+        
+        if (!folderId || !oneDriveId) {
+            return res.status(400).json({ message: "folderId and oneDriveId required" });
+        }
+        
+        await FolderModel.findByIdAndUpdate(folderId, { $pull: { children: id } });
+        const file = await FileModel.findByIdAndDelete(id);
         if (!file) return res.status(404).json({ message: "File not found" });
 
-        //Delete file object from Onedrive
-        await DeleteFile(req.body.oneDriveId);
+        await DeleteFile(oneDriveId);
 
         res.status(200).json({ message: "File deleted (unverified) successfully" });
     } catch (err) {
+        logger.error(err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
 
-//Delete File function for folders
 export const deleteFile = async (file) => {
-    console.log(file.fileId);
     await FileModel.findByIdAndDelete(file._id);
     await DeleteFile(file.fileId);
 }
 
 export const getAllFiles = async (req, res) => {
     try {
-        console.log(req.user);
         let files;
 
         if (req.user.isBR === true) {
-            // BR gets everything
             files = await FileModel.find().sort({ uploadedAt: -1 });
         } else {
             // Regular users get only verified files
@@ -56,8 +64,7 @@ export const getAllFiles = async (req, res) => {
 
         res.status(200).json(files);
     } catch (err) {
-        console.log(req.user);
-        console.error("Error fetching files:", err);
+        logger.error({ err, userId: req.user?._id }, "Error fetching files");
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -66,19 +73,20 @@ export const getAllFiles = async (req, res) => {
 export const getFileLink = async (req, res) => {
     try {
         const fileId = req.params.id;
-        console.log(fileId);
-        const file = await FileModel.find({_id: fileId}).populate('webUrl');
+        if (!fileId || !isValidObjectId(fileId)) {
+            return res.status(400).json({ message: "Invalid file ID" });
+        }
+
+        const file = await FileModel.findById(fileId).select("webUrl downloadUrl name");
         
         if (!file) {
             return res.status(404).json({ message: "File not found" });
         }
 
-        // Fixed: Return the webUrl properly
-        return res.status(200).json({file });
+        return res.status(200).json({ file });
         
     } catch (error) {
-        // Added error handling
-        console.error('Error fetching file link:', error);
+        logger.error(error, "Error fetching file link");
         return res.status(500).json({ message: "Internal server error" });
     }
 };

@@ -8,6 +8,7 @@ import dataCSE from "./data/dataCSE.js";
 import dataECE from "./data/dataECE.js";
 import dataEEE from "./data/dataEEE.js";
 import dataMnC from "./data/dataMnC.js";
+import logger from "../../utils/logger.js";
 
 
 const upload= async (branchData)=>{
@@ -18,7 +19,7 @@ const upload= async (branchData)=>{
             await course.save();
             }
         }catch(e){
-            console.log(e);
+            logger.error(e);
         }
     }
 }

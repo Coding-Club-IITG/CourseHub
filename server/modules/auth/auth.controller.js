@@ -21,7 +21,6 @@ import courselist from "../course/course.list.js";
 import aesjs from "aes-js";
 import EncryptText from "../../utils/encryptAES.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
-import academicdata from "../../config/academic.js";
 import { UserUpdate } from "../miscellaneous/miscellaneous.model.js";
 import {
     createCourseSnapshotOnce,
@@ -29,35 +28,71 @@ import {
 } from "../snapshot/snapshot.controller.js";
 
 import BR from "../br/br.model.js";
-import { read } from "fs";
-//not used
+
 export const loginHandler = (req, res) => {
     res.redirect(
         `https://login.microsoftonline.com/850aa78d-94e1-4bc6-9cf3-8c11b530701c/oauth2/v2.0/authorize?client_id=${clientid}&response_type=code&redirect_uri=${redirect_uri}&scope=user.read%20offline_access&state=12345`
     );
 };
+
 export const guestLoginHanlder = async (req, res, next) => {
     const guest = await User.findOne({ email: "guest@coursehubiitg.in" });
     if (!guest) return next(new AppError(500, "Something went wrong."));
     const token = guest.generateJWT();
     res.json({ token });
 };
-// export const makeGuestHanlder = async (req, res, next) => {
-//     const user = await User.create({
-//         name: "Guest",
-//         email: "guest@coursehubiitg.in",
-//         rollNumber: 123456789,
-//         semester: 2,
-//         degree: "BTECH",
-//         courses: [],
-//         department: "Guest Login",
-//         favourites: [],
-//     });
-//     res.send(user);
-// };
+
+// Helper function to parse courses from HTML response
+function parseCoursesFromHtml(htmlData, rollNumber) {
+    const $ = cheerio.load(htmlData);
+    const courseCodes = [];
+    
+    $("tr").each((i, elem) => {
+        const details = $(elem).find("td");
+        const studentRollNo = details.eq(2).text();
+        const rawCode = details.eq(3).text();
+        
+        if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
+            const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
+            courseCodes.push({
+                original: rawCode,
+                normalized: normalizedCode,
+            });
+        }
+    });
+    
+    return courseCodes;
+}
+
+// Helper function to get course names from database and courselist
+async function resolveCourseNames(courseCodes, dbCourses) {
+    const courses = [];
+    const seenCodes = new Set();
+    
+    for (const { original, normalized } of courseCodes) {
+        if (seenCodes.has(normalized)) continue;
+        seenCodes.add(normalized);
+        
+        const dbCourse = dbCourses.find(
+            (course) =>
+                course.code === normalized ||
+                course.code === original ||
+                course.code.replace(/\s+/g, "").toUpperCase() === normalized
+        );
+        
+        const name = dbCourse?.name || courselist[normalized] || courselist[original];
+        
+        courses.push({
+            name,
+            code: normalized,
+        });
+    }
+    
+    return courses;
+}
 
 export const fetchCourses = async (rollNumber) => {
-    var config = {
+    const config = {
         method: "post",
         url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
         headers: {
@@ -69,77 +104,36 @@ export const fetchCourses = async (rollNumber) => {
             yr: academic.currentYear,
         }),
     };
+    
     const response = await axios.post(config.url, config.data, {
         headers: config.headers,
     });
+    
     if (!response.data) {
         throw new AppError(500, "Something went wrong");
     }
-    const $ = cheerio.load(response.data);
-    const courses = [];
-
-    // Get all course codes first and normalize them
-    const courseCodes = [];
-    $("tr").each((i, elem) => {
-        const details = $(elem).find("td");
-        const studentRollNo = details.eq(2).text();
-        const rawCode = details.eq(3).text(); //course code
-        if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-            // Normalize the code: remove spaces and convert to uppercase
-            const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-            courseCodes.push({
-                original: rawCode,
-                normalized: normalizedCode,
-            });
-        }
-    });
-
-    // Fetch course names from database using both normalized and original codes
-    const CourseModel = (await import("../course/course.model.js")).default;
-    const normalizedCodes = courseCodes.map((c) => c.normalized);
-    const originalCodes = courseCodes.map((c) => c.original);
-    const allCodes = [...normalizedCodes, ...originalCodes];
-    const dbCourses = await CourseModel.find({
-        code: { $in: allCodes },
-    });
-
-    $("tr").each((i, elem) => {
-        const details = $(elem).find("td");
-        const studentRollNo = details.eq(2).text();
-        const rawCode = details.eq(3).text();
-
-        if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-            const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-
-            // Find course name from database first - try both normalized and original codes
-            const dbCourse = dbCourses.find(
-                (course) =>
-                    course.code === normalizedCode ||
-                    course.code === rawCode ||
-                    course.code.replace(/\s+/g, "").toUpperCase() === normalizedCode
-            );
-
-            let name;
-            if (dbCourse) {
-                name = dbCourse.name;
-            } else {
-                // Try courselist with both normalized and original codes
-                name = courselist[normalizedCode] || courselist[rawCode];
-            }
-
-            courses.push({
-                name,
-                code: normalizedCode, // Store the normalized code consistently
-            });
-        }
-    });
-
-    if (courses.length === 0) {
+    
+    const courseCodes = parseCoursesFromHtml(response.data, rollNumber);
+    
+    if (courseCodes.length === 0) {
         throw new AppError(404, "No courses found for this roll number");
     }
-
-    // Update user courses using findOneAndUpdate to avoid version conflicts
-    await User.findOneAndUpdate({ rollNumber }, { courses }, { new: true, upsert: false });
+    
+    const CourseModel = (await import("../course/course.model.js")).default;
+    const allCodes = [
+        ...courseCodes.map((c) => c.normalized),
+        ...courseCodes.map((c) => c.original),
+    ];
+    const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
+    
+    const courses = await resolveCourseNames(courseCodes, dbCourses);
+    
+    await User.findOneAndUpdate(
+        { rollNumber },
+        { courses },
+        { new: true, upsert: false }
+    );
+    
     return courses;
 };
 
@@ -163,130 +157,77 @@ export const fetchCoursesForBr = async (rollNumber) => {
     const configs = [];
 
     for (let yr = startYear; yr <= currentYear; yr++) {
-        // Jan-May session
-        if (yr > startYear) {
-            const isCurrentSession = (yr === currentYear && academic.session === "Jan-May");
-            if (!isCurrentSession) {
-                configs.push({
-                    sess: "Jan-May",
-                    yr: yr,
-                    req: {
-                        method: "post",
-                        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        data: qs.stringify({ cid: "All", sess: "Jan-May", yr: yr })
-                    }
-                });
-            }
+        if (yr > startYear && (yr !== currentYear || academic.session !== "Jan-May")) {
+            configs.push({
+                sess: "Jan-May",
+                yr: yr,
+                req: {
+                    method: "post",
+                    url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    data: qs.stringify({ cid: "All", sess: "Jan-May", yr: yr })
+                }
+            });
         }
 
-        // July-Nov session
-        if (yr < currentYear || (yr === currentYear && academic.session === "July-Nov")) {
-            const isCurrentSession = (yr === currentYear && academic.session === "July-Nov");
-            if (!isCurrentSession) {
-                configs.push({
-                    sess: "July-Nov",
-                    yr: yr,
-                    req: {
-                        method: "post",
-                        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        data: qs.stringify({ cid: "All", sess: "July-Nov", yr: yr })
-                    }
-                });
-            }
+        if ((yr < currentYear || (yr === currentYear && academic.session === "July-Nov")) && 
+            (yr !== currentYear || academic.session !== "July-Nov")) {
+            configs.push({
+                sess: "July-Nov",
+                yr: yr,
+                req: {
+                    method: "post",
+                    url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    data: qs.stringify({ cid: "All", sess: "July-Nov", yr: yr })
+                }
+            });
         }
     }
 
     const responses = await Promise.all(
         configs.map(async (c) => {
-             const res = await axios.post(c.req.url, c.req.data, { headers: c.req.headers });
-             return { data: res.data, sess: c.sess, yr: c.yr };
+            const res = await axios.post(c.req.url, c.req.data, { headers: c.req.headers });
+            return { data: res.data, sess: c.sess, yr: c.yr };
         })
     );
 
-    for (const res of responses) {
+    responses.forEach((res) => {
         if (!res.data) throw new AppError(500, "Something went wrong fetching courses");
-    }
+    });
 
     const courseCodes = [];
-    
     responses.forEach((resObj) => {
-        const $ = cheerio.load(resObj.data);
-        $("tr").each((i, elem) => {
-            const details = $(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text();
-
-            if (rawCode && studentRollNo == rollstring && !rawCode.includes("SA")) {
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-                courseCodes.push({ original: rawCode, normalized: normalizedCode });
-            }
-        });
+        const codes = parseCoursesFromHtml(resObj.data, rollstring);
+        courseCodes.push({ codes, sess: resObj.sess, yr: resObj.yr });
     });
 
     const CourseModel = (await import("../course/course.model.js")).default;
-    const normalizedCodes = courseCodes.map((c) => c.normalized);
-    const originalCodes = courseCodes.map((c) => c.original);
-    const allCodes = [...normalizedCodes, ...originalCodes];
+    const allCourseCodesFlat = courseCodes.flatMap((c) => c.codes);
+    const allCodes = [
+        ...allCourseCodesFlat.map((c) => c.normalized),
+        ...allCourseCodesFlat.map((c) => c.original),
+    ];
     const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
 
     const previousCourses = [];
 
-    responses.forEach((resObj) => {
-        const semesterCourses = [];
-        const $ = cheerio.load(resObj.data);
-        $("tr").each((i, elem) => {
-            const details = $(elem).find("td");
-            const studentRollNo = details.eq(2).text();
-            const rawCode = details.eq(3).text();
-
-            if (rawCode && studentRollNo == rollstring && !rawCode.includes("SA")) {
-                const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
-
-                const dbCourse = dbCourses.find(
-                    (course) =>
-                        course.code === normalizedCode ||
-                        course.code === rawCode ||
-                        course.code.replace(/\s+/g, "").toUpperCase() === normalizedCode
-                );
-
-                let name;
-                if (dbCourse) {
-                    name = dbCourse.name;
-                } else {
-                    name = courselist[normalizedCode] || courselist[rawCode];
-                }
-
-                if (!semesterCourses.some(c => c.code === normalizedCode)) {
-                    semesterCourses.push({ name, code: normalizedCode });
-                }
-            }
-        });
-
-        if (semesterCourses.length > 0) {
+    for (const { codes, sess, yr } of courseCodes) {
+        if (codes.length > 0) {
+            const semesterCourses = await resolveCourseNames(codes, dbCourses);
             previousCourses.push({
-                semester: calculateCourseSemesterNumber(rollNumber, resObj.yr, resObj.sess),
-                year: resObj.yr,
+                semester: calculateCourseSemesterNumber(rollNumber, yr, sess),
+                year: yr,
                 courses: semesterCourses
             });
         }
-    });
+    }
 
     previousCourses.sort((a, b) => a.semester - b.semester);
 
-    if (previousCourses.length === 0) {
-        await User.findOneAndUpdate(
-            { rollNumber },
-            { previousCourses: [] },
-            { new: true, upsert: false }
-        );
-        return [];
-    }
-
     await User.findOneAndUpdate(
         { rollNumber },
-        { previousCourses: previousCourses },
+        { previousCourses },
         { new: true, upsert: false }
     );
 
@@ -505,7 +446,6 @@ export const mobileRedirectHandler = async (req, res, next) => {
         existingUser = await user.save();
     }
     let userUpdated = await UserUpdate.findOne({ rollNumber: roll });
-    // console.log(userUpdated);
     if (existingUser && !userUpdated) {
         const courses = await fetchCourses(userFromToken.data.surname);
         existingUser.courses = courses;
@@ -523,7 +463,6 @@ export const mobileRedirectHandler = async (req, res, next) => {
 };
 
 export const logoutHandler = (req, res, next) => {
-    //     res.clearCookie("token");
     res.cookie("token", "loggedout", {
         maxAge: 0,
         sameSite: "lax",

@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import logger from "../utils/logger.js";
+
 let emailClient = {
     email: "coursehubiitg@outlook.com",
     password: "Xidc4545#",
@@ -20,10 +22,10 @@ function sendEmail(to, subject, msg) {
     };
     transporter.sendMail(options, function (err, info) {
         if (err) {
-            console.log(err);
+            logger.error(err);
             return;
         }
-        console.log("Sent", info.response);
+        logger.info("Sent", info.response);
     });
 }
 

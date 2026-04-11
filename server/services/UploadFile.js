@@ -3,8 +3,7 @@ import { getAccessToken } from "../modules/onedrive/onedrive.routes.js";
 import axios from "axios";
 import { FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
-import { type } from "os";
-import User from "../modules/user/user.model.js";
+import logger from "../utils/logger.js";
 
 const parent_item_id = process.env.PARENT_FOLDER;
 
@@ -46,8 +45,7 @@ async function CreateFolder(contributionId) {
         const { data } = await axios.post(url, _data, config);
         return data.id;
     } catch (error) {
-        // console.log(error);
-        if (error.response.status === 409) {
+        if (error?.response?.status === 409) {
             const folderId = await GetFolderId(contributionId);
             return folderId;
         } else {
@@ -69,18 +67,19 @@ async function createUploadSession(folderId, fileName) {
         const { data } = await axios.post(url, {}, config);
         return { url: data?.uploadUrl, access_token };
     } catch (error) {
-        console.log(error);
+        logger.error(error);
         return false;
     }
 }
 
 async function UploadFile(contributionId, filePath, fileName) {
     const folderId = parent_item_id;
-    const { url, access_token } = await createUploadSession(folderId, fileName);
-    if (!url) {
-        console.log("Error uploading!");
-        return;
+    const session = await createUploadSession(folderId, fileName);
+    if (!session?.url) {
+        logger.error("Error uploading!");
+        return null;
     }
+    const { url, access_token } = session;
     const existingContribution = await Contribution.findOne({ contributionId });
     const file = fs.readFileSync(`${filePath}${fileName}`);
     const config = {
@@ -113,21 +112,20 @@ async function UploadFile(contributionId, filePath, fileName) {
         const thumbnailurl = thumbnaildata.data.value?.[0]?.medium?.url;
         const webUrl = urldata?.data?.link?.webUrl;
         const fileData = new FileModel({
-            isVerified: existingContribution.approved ? true : false, // The file is directly verified if the contribution is default approved
-            fileId: data.id, // which is what happens when BR makes a contribution
+            isVerified: !!existingContribution?.approved,
+            fileId: data.id,
             size: data.size,
             thumbnail: thumbnailurl,
             name: fileName,
             downloadUrl: `${webUrl}?download=1`,
             webUrl: webUrl,
-            // type: data.file?.mimeType,
         });
         await fileData.save();
-        console.log("File saved");
+        logger.info("File saved");
         return fileData._id;
     } catch (error) {
-        console.log(error);
-        console.log("Error uploading!");
+        logger.error(error);
+        logger.error("Error uploading!");
         return null;
     }
 }
@@ -163,7 +161,7 @@ async function DeleteFile(fileId) {
             });
         }
     } catch (err) {
-        console.log(err.response);
+        logger.error(err.response || err);
     }
 }
 

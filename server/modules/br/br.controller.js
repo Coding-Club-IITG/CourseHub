@@ -1,6 +1,8 @@
 import BR from "./br.model.js";
 import User from "../user/user.model.js";
 import { fetchCoursesForBr } from "../auth/auth.controller.js";
+import logger from "../../utils/logger.js";
+
 const updateBRs = async (req, res) => {
     try {
         const { emails } = req.body;
@@ -26,7 +28,7 @@ const updateBRs = async (req, res) => {
 
         res.status(201).json({ message: "BRs updated successfully" });
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -74,7 +76,7 @@ const getBRs = async (req, res) => {
         const brs = await User.find({ isBR: true });
         res.status(200).json({ brs });
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

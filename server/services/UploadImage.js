@@ -1,5 +1,6 @@
 import ImageKit from "imagekit";
 import ImageUploadCreds from "../config/ImageUpload.js";
+import logger from "../utils/logger.js";
 
 var imagekit = new ImageKit({
     ...ImageUploadCreds,
@@ -20,8 +21,8 @@ export const UploadImage = async (url, name, folder) => {
 
 export async function MakeImagekitFolder(foldername) {
     imagekit.deleteFolder(`/${foldername}`, function (error, result) {
-        if (error) console.log("error deleting");
-        else console.log("deleted folder", foldername);
+        if (error) logger.error("error deleting");
+        else logger.info("deleted folder", foldername);
     });
     try {
         imagekit.createFolder({

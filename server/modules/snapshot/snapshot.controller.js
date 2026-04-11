@@ -1,6 +1,7 @@
 import AppError from "../../utils/appError.js";
 import CourseModel from "../course/course.model.js";
 import UserSnapshot, { OriginalCoursesSnapshot } from "./snapshot.model.js";
+import logger from "../../utils/logger.js";
 
 export const createUserSnapshotHelper = async (user) => {
     await UserSnapshot.deleteMany({ email: user.email });
@@ -104,13 +105,13 @@ export const updateUserSnapshot = async (req, res, next) => {
 export const createCourseSnapshotOnce = async (user) => {
     const exists = await OriginalCoursesSnapshot.findOne({ email: user.email });
     if (exists) {
-        console.log("Course snapshot exists... ");
+        logger.info("Course snapshot exists...");
         return;
     }
     await createOriginalCoursesSnapshotHelper(user);
 };
 export const createOriginalCoursesSnapshotHelper = async (user) => {
-    console.log("Creating course snapshot... ");
+    logger.info("Creating course snapshot...");
 
     await OriginalCoursesSnapshot.deleteMany({ email: user.email });
     const newSnapshot = new OriginalCoursesSnapshot({ email: user.email, courses: user.courses });
