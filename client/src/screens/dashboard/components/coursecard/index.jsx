@@ -13,11 +13,8 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
     useEffect(() => {
         async function SetCourseAvailability() {
             try {
-                // const { data } = await IsCourseAvailable(code);
                 setIsAvailable(true);
-                // console.log(data.isAvailable);
             } catch (error) {
-                // console.log(error);
                 setIsAvailable(false);
             }
         }
@@ -48,7 +45,6 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
             <div
                 className={`coursecard ${isAvailable}`}
                 style={{ backgroundColor: color }}
-                // onClick={isAvailable ? setClicked : () => {}}
             >
                 {isReadOnly && (
                     <span

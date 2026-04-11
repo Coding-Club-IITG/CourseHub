@@ -70,7 +70,6 @@ const SearchBar = ({ type }) => {
             setSearched(true);
             setLoading(false);
             setError(true);
-            // console.log(error);
         }
     };
     return (
@@ -104,23 +103,7 @@ const SearchBar = ({ type }) => {
                             <SmallLoader text="Searching..." />
                         ) : fetched?.found ? (
                             <>
-                                {/* <p
-                                    style={{
-                                        color: "#fff",
-                                        backgroundColor: "#000",
-                                        cursor: "pointer",
-                                        padding: "10px",
-                                    }}
-                                    onClick={() => {
-                                        if (fetched?.isAvailable)
-                                            window.location = "/browse/" + fetched.code;
-                                    }}
-                                >
-                                    {fetched.code?.toUpperCase()}
-                                    <br />
-                                    {formatLongText(fetched.name, 39)}
-                                    {!fetched.isAvailable && " || no data"}
-                                </p> */}
+                                
                                 {fetched.results.map((result) => {
                                     return (
                                         <>

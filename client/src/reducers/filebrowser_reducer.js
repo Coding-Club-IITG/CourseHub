@@ -1,3 +1,86 @@
+const persistAllCourses = (courses) => {
+    sessionStorage.setItem("AllCourses", JSON.stringify(courses));
+    return courses;
+};
+
+const replaceFolderInTree = (nodes, targetFolder) => {
+    if (!Array.isArray(nodes) || !targetFolder?._id) return nodes;
+
+    let changed = false;
+    const nextNodes = nodes.map((node) => {
+        if (!node || typeof node !== "object") return node;
+
+        if (node._id === targetFolder._id) {
+            changed = true;
+            return targetFolder;
+        }
+
+        if (Array.isArray(node.children) && node.children.length > 0) {
+            const nextChildren = replaceFolderInTree(node.children, targetFolder);
+            if (nextChildren !== node.children) {
+                changed = true;
+                return { ...node, children: nextChildren };
+            }
+        }
+
+        return node;
+    });
+
+    return changed ? nextNodes : nodes;
+};
+
+const syncFolderIntoCourseCache = (state, folder) => {
+    if (!folder?._id || !state.currentCourseCode) {
+        return {
+            allCourseData: state.allCourseData,
+            currentCourse: state.currentCourse,
+            currentYearFolderStructure: state.currentYearFolderStructure,
+        };
+    }
+
+    const nextAllCourseData = Array.isArray(state.allCourseData)
+        ? state.allCourseData.map((course) => {
+              if (
+                  !course?.code ||
+                  course.code.toLowerCase() !== state.currentCourseCode.toLowerCase()
+              ) {
+                  return course;
+              }
+              const nextChildren = replaceFolderInTree(course.children || [], folder);
+              if (nextChildren === course.children) return course;
+              return { ...course, children: nextChildren };
+          })
+        : state.allCourseData;
+
+    const nextCurrentCourse = Array.isArray(state.currentCourse)
+        ? replaceFolderInTree(state.currentCourse, folder)
+        : state.currentCourse;
+
+    let nextCurrentYearFolderStructure = state.currentYearFolderStructure;
+
+    const activeYearFolder =
+        Array.isArray(nextCurrentCourse) &&
+        state.currentYear !== null &&
+        state.currentYear !== undefined
+            ? nextCurrentCourse[state.currentYear]
+            : null;
+
+    if (activeYearFolder?._id === folder._id) {
+        nextCurrentYearFolderStructure = Array.isArray(folder.children) ? folder.children : [];
+    } else if (Array.isArray(state.currentYearFolderStructure)) {
+        nextCurrentYearFolderStructure = replaceFolderInTree(
+            state.currentYearFolderStructure,
+            folder
+        );
+    }
+
+    return {
+        allCourseData: nextAllCourseData,
+        currentCourse: nextCurrentCourse,
+        currentYearFolderStructure: nextCurrentYearFolderStructure,
+    };
+};
+
 const FileBrowserReducer = (
     state = {
         currentCourse: null,
@@ -14,7 +97,6 @@ const FileBrowserReducer = (
         case "LOAD_COURSES":
             return { ...state, allCourseData: action.payload.allCourseData };
         case "CHANGE_CURRENT_COURSE":
-            // console.log("Changed Current Course");
 
             return {
                 ...state,
@@ -22,7 +104,6 @@ const FileBrowserReducer = (
                 currentCourseCode: action.payload.currentCourseCode,
             };
         case "UPDATE_COURSES":
-            // console.log("Updated");
             let arr = Array.isArray(state.allCourseData) ? [...state.allCourseData] : [];
             if (
                 arr.find(
@@ -38,13 +119,28 @@ const FileBrowserReducer = (
                 );
             }
             arr.push(action.payload.currentCourse);
-            sessionStorage.setItem("AllCourses", JSON.stringify(arr));
+            persistAllCourses(arr);
             return {
                 ...state,
                 allCourseData: [...arr],
             };
         case "CHANGE_CURRENT_FOLDER":
-            return { ...state, currentFolder: action.payload.currentFolder };
+            if (!action.payload.currentFolder) {
+                return { ...state, currentFolder: null };
+            }
+
+            const syncedState = syncFolderIntoCourseCache(state, action.payload.currentFolder);
+            if (syncedState.allCourseData !== state.allCourseData) {
+                persistAllCourses(syncedState.allCourseData);
+            }
+
+            return {
+                ...state,
+                currentFolder: action.payload.currentFolder,
+                allCourseData: syncedState.allCourseData,
+                currentCourse: syncedState.currentCourse,
+                currentYearFolderStructure: syncedState.currentYearFolderStructure,
+            };
         case "CHANGE_CURRENT_YEAR_DATA":
             return {
                 ...state,
@@ -60,26 +156,44 @@ const FileBrowserReducer = (
                 currentYear: null,
             };
         case "UPDATE_FILE_VERIFICATION_STATUS":
+            const verifiedFolder = {
+                ...state.currentFolder,
+                children: state.currentFolder.children.map((file) =>
+                    file._id === action.payload.fileId
+                        ? { ...file, isVerified: action.payload.status }
+                        : file
+                ),
+            };
+            const verifiedSyncedState = syncFolderIntoCourseCache(state, verifiedFolder);
+            if (verifiedSyncedState.allCourseData !== state.allCourseData) {
+                persistAllCourses(verifiedSyncedState.allCourseData);
+            }
+
             return {
                 ...state,
-                currentFolder: {
-                    ...state.currentFolder,
-                    children: state.currentFolder.children.map((file) =>
-                        file._id === action.payload.fileId
-                            ? { ...file, isVerified: action.payload.status }
-                            : file
-                    ),
-                },
+                currentFolder: verifiedFolder,
+                allCourseData: verifiedSyncedState.allCourseData,
+                currentCourse: verifiedSyncedState.currentCourse,
+                currentYearFolderStructure: verifiedSyncedState.currentYearFolderStructure,
             };
         case "REMOVE_FILE_FROM_FOLDER":
+            const folderAfterFileRemoval = {
+                ...state.currentFolder,
+                children: state.currentFolder.children.filter(
+                    (file) => file._id !== action.payload
+                ),
+            };
+            const fileRemovedSyncedState = syncFolderIntoCourseCache(state, folderAfterFileRemoval);
+            if (fileRemovedSyncedState.allCourseData !== state.allCourseData) {
+                persistAllCourses(fileRemovedSyncedState.allCourseData);
+            }
+
             return {
                 ...state,
-                currentFolder: {
-                    ...state.currentFolder,
-                    children: state.currentFolder.children.filter(
-                        (file) => file._id !== action.payload
-                    ),
-                },
+                currentFolder: folderAfterFileRemoval,
+                allCourseData: fileRemovedSyncedState.allCourseData,
+                currentCourse: fileRemovedSyncedState.currentCourse,
+                currentYearFolderStructure: fileRemovedSyncedState.currentYearFolderStructure,
             };
 
         case "REFRESH_CURRENT_FOLDER":

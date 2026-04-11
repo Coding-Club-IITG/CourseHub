@@ -33,7 +33,19 @@ import Share from "../share";
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
 
-// Custom hook to detect mobile view
+const sanitizeCourseCache = (courses) => {
+    if (!Array.isArray(courses)) return [];
+
+    const byCode = new Map();
+    for (const course of courses) {
+        if (!course || typeof course !== "object") continue;
+        if (!course.code || !Array.isArray(course.children)) continue;
+        byCode.set(course.code.toLowerCase(), course);
+    }
+
+    return Array.from(byCode.values());
+};
+
 function useIsMobile() {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     useEffect(() => {
@@ -74,16 +86,17 @@ const BrowseScreen = () => {
     const [loading, setLoading] = useState(true);
     const { code, folderId } = useParams();
     const fb = useSelector((state) => state.fileBrowser);
-    useEffect(() => {
-        sessionStorage.removeItem("AllCourses");
-    }, []);
+
     useEffect(() => {
         if (sessionStorage.getItem("AllCourses") !== null) {
             try {
-                dispatch(LoadCourses(JSON.parse(sessionStorage.getItem("AllCourses"))));
+                const parsed = JSON.parse(sessionStorage.getItem("AllCourses"));
+                const cleaned = sanitizeCourseCache(parsed);
+                sessionStorage.setItem("AllCourses", JSON.stringify(cleaned));
+                dispatch(LoadCourses(cleaned));
             } catch (error) {
+                sessionStorage.removeItem("AllCourses");
                 dispatch(LoadCourses([]));
-                // console.log("load error");
             }
         }
     }, []);
@@ -101,7 +114,6 @@ const BrowseScreen = () => {
                 setLoading(false);
             } catch (error) {
                 dispatch(LogoutUser());
-                // console.log("in index.js error loading");
                 setLoading(false);
                 navigate("/login");
             }
@@ -110,15 +122,12 @@ const BrowseScreen = () => {
         if (!user?.loggedIn) {
             getAuth();
         } else {
-            // User is already logged in, set loading to false
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        // console.log("Course loading useEffect triggered:", { loading, code, hasCode: !!code });
         if (loading || !code) {
-            // console.log("Exiting early - loading:", loading, "code:", code);
             return;
         }
         const run = async () => {
@@ -145,20 +154,9 @@ const BrowseScreen = () => {
             );
             let root = [];
             if (present || currCourse) {
-                // console.log("found in sessionStorage");
                 fetchedData = present || currCourse;
-                // console.log("Course found in cache:", {
-                //     fetchedData,
-                //     hasChildren: !!fetchedData?.children,
-                //     isArray: Array.isArray(fetchedData?.children),
-                //     childrenLength: fetchedData?.children?.length,
-                //     isMobile,
-                // });
-                // console.log(fetchedData);
                 dispatch(AddNewCourseLocal(fetchedData));
                 dispatch(ChangeCurrentCourse(fetchedData?.children || fetchedData, code));
-
-                // Auto-select default year after course is loaded
                 if (
                     fetchedData?.children &&
                     Array.isArray(fetchedData.children) &&
@@ -166,28 +164,15 @@ const BrowseScreen = () => {
                 ) {
                     const defaultYearIndex = fetchedData.children.length - 1;
                     const defaultYear = fetchedData.children[defaultYearIndex];
-                    // console.log("Checking default year:", {
-                    //     defaultYear,
-                    //     hasChildren: !!defaultYear?.children,
-                    //     childrenLength: defaultYear?.children?.length,
-                    // });
                     if (defaultYear && defaultYear.children) {
-                        // console.log(
-                        //     "Auto-selecting year after course load:",
-                        //     defaultYear.name,
-                        //     "isMobile:",
-                        //     isMobile
-                        // );
                         dispatch(
                             ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
                         );
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
                         dispatch(ChangeFolder(defaultYear));
                     } else {
-                        // console.log("Default year has no children, skipping auto-select");
                     }
                 } else {
-                    // console.log("Course has no valid children array, skipping auto-select");
                 }
             } else {
                 let fetchingToast = toast.loading("Loading course data...");
@@ -203,8 +188,6 @@ const BrowseScreen = () => {
                             code.toUpperCase()
                         )
                     );
-
-                    // Auto-select default year after course is loaded from API
                     if (
                         fetchedData?.children &&
                         Array.isArray(fetchedData.children) &&
@@ -213,12 +196,6 @@ const BrowseScreen = () => {
                         const defaultYearIndex = fetchedData.children.length - 1;
                         const defaultYear = fetchedData.children[defaultYearIndex];
                         if (defaultYear && defaultYear.children) {
-                            // console.log(
-                            //     "Auto-selecting year after API load:",
-                            //     defaultYear.name,
-                            //     "isMobile:",
-                            //     isMobile
-                            // );
                             dispatch(
                                 ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
                             );
@@ -233,31 +210,7 @@ const BrowseScreen = () => {
             }
         };
         run();
-
-        // console.log("code search");
     }, [loading, code]);
-
-    // console.log("folderData?.children: ", folderData?.children);
-
-    // useEffect(() => {
-    // console.log(fb);
-    // console.log(user);
-    // }, [fb, user]);
-
-    // const fetchCourseDataAgain = async (courseCode) => {
-    // try {
-    //     const courseCode = currCourseCode ;
-    //     const fetchedData = await getCourse(courseCode.toLowerCase());
-    //     if (fetchedData.data.found) {
-    //     dispatch(UpdateCourses(fetchedData.data));
-    //     dispatch(AddNewCourseLocal(fetchedData.data));
-    //     } else {
-    //     toast.error("Course not found!");
-    //     }
-    // } catch (error) {
-    //     console.error("Error refetching course data:", error);
-    // }
-    // };
 
     useEffect(() => {
         const refreshFolderData = async () => {
@@ -298,44 +251,29 @@ const BrowseScreen = () => {
             : currCourse
             ? "No data available for this course"
             : "Select a course...";
-
-    // Handler for back button
     const handleBackClick = () => {
         if (folderHistory.length > 0) {
             dispatch(PopFolderHistory());
         }
     };
-
-    // Check if we can go back (not at course root)
     const canGoBack = folderHistory.length > 0;
-
-    // Helper: get all courses for dropdown
     const allCourses = [
         ...(user.user?.courses || []),
         ...(user.localCourses || []),
         ...(user.user?.readOnly || []),
         ...(user.user?.isBR && user.user?.previousCourses ? user.user.previousCourses.flatMap(sem => sem.courses) : []),
     ];
-
-    // Helper: get all years for dropdown (from currCourse)
     const allYears = currCourse || [];
-
-    // Handlers for dropdowns
     const handleCourseChange = async (e) => {
         const selectedCode = e.target.value;
         if (selectedCode && selectedCode !== currCourseCode) {
             try {
-                // Clear current folder data while loading
                 dispatch(ChangeCurrentYearData(null, []));
                 dispatch(ChangeFolder(null));
                 dispatch(ClearFolderHistory()); // Clear folder history when changing courses
-
-                // Check if course is already in memory
                 let courseData = allCourseData?.find(
                     (course) => course.code?.toLowerCase() === selectedCode?.toLowerCase()
                 );
-
-                // Check session storage if not in memory
                 if (!courseData) {
                     try {
                         const sessionStorageCourses = JSON.parse(
@@ -345,11 +283,8 @@ const BrowseScreen = () => {
                             (course) => course.code?.toLowerCase() === selectedCode?.toLowerCase()
                         );
                     } catch (error) {
-                        // Session storage error, continue to fetch from API
                     }
                 }
-
-                // If still not found, fetch from API
                 if (!courseData) {
                     const fetchingToast = toast.loading("Loading course data...");
                     try {
@@ -370,11 +305,7 @@ const BrowseScreen = () => {
                         return;
                     }
                 }
-
-                // Set the course data in Redux store
                 dispatch(ChangeCurrentCourse(courseData?.children || courseData, selectedCode));
-
-                // Navigate to the course
                 navigate(`/browse/${selectedCode}`);
             } catch (error) {
                 console.error("Error loading course:", error);

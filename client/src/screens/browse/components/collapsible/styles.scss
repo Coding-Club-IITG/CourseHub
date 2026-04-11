@@ -3,7 +3,6 @@
     user-select: none;
     .main{
         cursor: pointer;
-        // justify-content: space-between;
         display: flex;
         .color{
             height: 100px;
@@ -50,16 +49,10 @@
         .collapsible-content{
             display: block;
             border-bottom: 1px solid rgba(0, 0, 0, 0.33);
-            
-            // max-height: 100%;
-            // max-height: 1000px;
         }
 
     }
     .collapsible-content{
         display: none;
-        // transition: max-height 260ms;
-        // overflow: hidden;
-        // max-height: 0;
     }
 }

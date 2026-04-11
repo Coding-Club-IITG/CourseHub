@@ -41,7 +41,6 @@ const SearchBar = ({ type, handleSetCourse }) => {
             setSearched(true);
             setLoading(true);
             const fetched = await GetSearchResult(value.split(" "));
-            // console.log(fetched.data);
             setFetched(fetched.data);
             setError(false);
             setLoading(false);
@@ -51,7 +50,6 @@ const SearchBar = ({ type, handleSetCourse }) => {
             setLoading(false);
             setError(true);
             setSelected(null);
-            // console.log(error);
         }
     };
     return (
@@ -70,7 +68,6 @@ const SearchBar = ({ type, handleSetCourse }) => {
                     setFetched({});
                 }}
                 onFocus={() => {
-                    // setOpen(true);
                 }}
                 onBlur={() => {
                     if (!fetched?.found) setOpen(false);

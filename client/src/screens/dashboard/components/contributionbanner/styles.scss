@@ -39,7 +39,6 @@ $medium: 1250px;
 
         .right {
             flex: 1;
-            // text-align: right;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -78,7 +77,6 @@ $medium: 1250px;
                 background-image: url(contribute_smallscreen.svg), none;
                 height: 250px;
                 background-position: center;
-                // display: none;
             }
 
             .right {

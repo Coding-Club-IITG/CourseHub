@@ -1,9 +1,6 @@
 .wrap {
     width: 560px;
     max-width: 600px;
-
-    // display: flex;
-    // flex-direction: column;
     &.passive {
         margin-left: 64px;
         .search {
@@ -68,7 +65,6 @@
     }
     @media screen and (max-width: 1240px) {
         width: 500px;
-        // display: none;
         .search-results {
             width: 458px;
         }
@@ -76,7 +72,6 @@
     @media screen and (max-width: 1140px) {
         max-width: 350px;
         width: 85%;
-        // display: none;
         .search-results {
             max-width: 350px;
             width: 70%;

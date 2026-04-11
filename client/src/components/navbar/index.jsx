@@ -30,8 +30,6 @@ const NavBar = () => {
     const closeMobileMenu = () => {
         setIsMobileMenuOpen(false);
     };
-
-    // Handle click outside to close menu
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -92,7 +90,7 @@ const NavBar = () => {
                             <span></span>
                         </div>
 
-                        {/* Mobile Menu - positioned relative to button */}
+                        
                         <div
                             className={`mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
                             ref={mobileMenuRef}

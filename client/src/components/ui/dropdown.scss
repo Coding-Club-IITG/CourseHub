@@ -1,4 +1,3 @@
-// CourseHub-adapted shadcn dropdown styles
 .coursehub-dropdown {
     position: relative;
     display: inline-block;
@@ -131,8 +130,6 @@
         flex-shrink: 0;
     }
 }
-
-// Animation keyframes
 @keyframes coursehub-dropdown-in {
     from {
         opacity: 0;
@@ -143,8 +140,6 @@
         transform: translateY(0) scale(1);
     }
 }
-
-// Mobile specific adjustments
 @media (max-width: 768px) {
     .coursehub-dropdown {
         &__content {
@@ -165,14 +160,10 @@
         }
     }
 }
-
-// Focus visible for better accessibility
 .coursehub-dropdown__trigger:focus-visible {
     outline: 2px solid #fecf6f;
     outline-offset: 2px;
 }
-
-// Custom scrollbar for dropdown viewport
 .coursehub-dropdown__viewport {
     &::-webkit-scrollbar {
         width: 6px;

@@ -37,7 +37,6 @@ const LoadingPage = () => {
                 user.previousCourses = previousCourses;
             } catch (err) {
                 console.error("Failed to fetch courses:", err);
-                // Non-fatal: continue with empty courses rather than kicking user out
                 user.courses = user.courses || [];
                 user.previousCourses = user.previousCourses || [];
             }
@@ -51,10 +50,10 @@ const LoadingPage = () => {
 
     return (
         <div className="loading-page">
-            {/* Circular Loader */}
+            
             <div className="loader"></div>
 
-            {/* Text */}
+            
             <div className="loading-text">
                 <h2>Fetching your courses</h2>
                 <h2>This may take up to a minute</h2>

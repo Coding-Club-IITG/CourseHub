@@ -29,8 +29,6 @@ const NavBarBrowseScreen = () => {
     const closeMobileMenu = () => {
         setIsMobileMenuOpen(false);
     };
-
-    // Handle click outside to close menu
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -71,7 +69,7 @@ const NavBarBrowseScreen = () => {
                 <span onClick={() => navigate("/dashboard")}>
                     <Logo />
                 </span>
-                {/* <SearchBar /> */}
+                
                 <div className="navlinks desktop-nav">
                     <NavLink text={"Dashboard"} onClick={() => navigate("/dashboard")} />
                     <NavLink text={"Profile"} onClick={() => navigate("/profile")} />
@@ -90,7 +88,7 @@ const NavBarBrowseScreen = () => {
                         <span></span>
                     </div>
 
-                    {/* Mobile Menu - positioned relative to button */}
+                    
                     <div
                         className={`mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
                         ref={mobileMenuRef}

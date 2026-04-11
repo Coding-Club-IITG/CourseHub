@@ -16,17 +16,17 @@
     color: #666;
 }
 
-/* Small golden circular loader */
+
 .small-golden-circular-loader {
-    border: 2px solid #d4af37; /* golden thin circle */
-    border-top: 2px solid transparent; /* makes the spin effect */
+    border: 2px solid #d4af37; 
+    border-top: 2px solid transparent; 
     border-radius: 50%;
-    width: 24px; /* smaller size for small loader */
-    height: 24px; /* smaller size for small loader */
+    width: 24px; 
+    height: 24px; 
     animation: spin 1s linear infinite;
 }
 
-/* Spin animation */
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);

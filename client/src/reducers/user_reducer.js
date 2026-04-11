@@ -3,18 +3,6 @@ const UserReducer = (
         loggedIn: false,
         user: {},
         localCourses: [
-            // {
-            //     _id: "638f1709897b3c84b7d8d32c",
-            //     name: "Introduction to Engineering Drawing",
-            //     code: "ce101",
-            //     color: "#DBCEFF",
-            // },
-            // {
-            //     _id: "638f1709897b3c84b7d8d32d",
-            //     name: "Real Analysis",
-            //     code: "ma101",
-            //     color: "#6F8FFE",
-            // },
         ],
         favourites: [],
     },
@@ -33,7 +21,6 @@ const UserReducer = (
         case "UPDATE_FAVOURITES":
             return { ...state, favourites: action.payload.favourites };
         case "ADD_COURSE_LOCAL":
-            // Check if course is already in user's regular courses
             if (
                 state.user?.courses?.find(
                     (course) =>
@@ -41,8 +28,6 @@ const UserReducer = (
                 )
             )
                 return state;
-
-            // Check if course is already in user's previous courses
             if (
                 state.user?.previousCourses?.flatMap((sem) => sem.courses)?.find(
                     (course) =>
@@ -50,8 +35,6 @@ const UserReducer = (
                 )
             )
                 return state;
-
-            // Check if course is already in user's read-only courses
             if (
                 state.user?.readOnly?.find(
                     (course) =>
@@ -59,25 +42,26 @@ const UserReducer = (
                 )
             )
                 return state;
-
-            // Check if course is already in local courses
             if (state.localCourses?.find((course) => course.code === action.payload.course.code))
                 return state;
             try {
-                let localCourses = JSON.parse(window.sessionStorage.getItem("LocalCourses"));
+                let localCourses = JSON.parse(window.localStorage.getItem("LocalCourses"));
+                if (!Array.isArray(localCourses)) {
+                    localCourses = [];
+                }
                 if (
                     !localCourses?.find(
                         (course) =>
                             course.code?.toLowerCase() === action.payload.course.code.toLowerCase()
                     )
                 ) {
-                    window.sessionStorage.setItem(
+                    window.localStorage.setItem(
                         "LocalCourses",
-                        JSON.stringify([...state.localCourses, action.payload.course])
+                        JSON.stringify([...localCourses, action.payload.course])
                     );
                 }
             } catch (error) {
-                // console.log(error);
+                window.localStorage.removeItem("LocalCourses");
             }
             return { ...state, localCourses: [...state.localCourses, action.payload.course] };
         case "LOAD_LOCAL_COURSES":
@@ -85,7 +69,6 @@ const UserReducer = (
         case "CLEAR_LOCAL_COURSES":
             return { ...state, localCourses: [] };
         case "UPDATE_USER":
-            // console.log(action.payload);
             if (action.payload.newUserData.newUserName) {
                 return {
                     ...state,

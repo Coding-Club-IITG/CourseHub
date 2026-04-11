@@ -12,9 +12,9 @@ const Folder = ({ folder, state }) => {
     const dispatch = useDispatch();
     const _state = useSelector((state) => state.fileBrowser);
     const [open, setOpen] = useState(state ? state : false);
-    const [lastFolder, setLastFolder] = useState(false);
 
-    const closeFolder = () => {
+    const closeFolder = (e) => {
+        e.stopPropagation();
         setOpen(false);
     };
 
@@ -57,7 +57,7 @@ const Folder = ({ folder, state }) => {
                             className={`${
                                 folder.childType !== "File" ? "triangle" : ""
                             }`}
-                            onClick={() => closeFolder()}
+                            onClick={closeFolder}
                         ></span>
                     </div>
                 </div>

@@ -1,7 +1,6 @@
 import Wrapper from "./components/wrapper";
 import SectionC from "./components/sectionC";
-import axios from "axios";
-import { FilePond, registerPlugin } from "react-filepond";
+import { FilePond } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import { useEffect, useRef, useState } from "react";
 import "./styles.scss";
@@ -11,20 +10,14 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import server from "../../api/server";
+import { ChangeFolder } from "../../actions/filebrowser_actions";
+import { fetchFolder } from "../../api/Folder";
 
-import { getCourse } from "../../api/Course";
-import {
-    UpdateCourses,
-    RefreshCurrentFolder,
-    ChangeCurrentYearData,
-} from "../../actions/filebrowser_actions";
 const Contributions = () => {
     const uploadedBy = useSelector((state) => state.user.user._id);
     const userName = useSelector((state) => state.user.user.name);
     const isBR = useSelector((state) => state.user.user.isBR);
-    const currYear = useSelector((state) => state.fileBrowser.currentYear);
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
-    const code = currentFolder?.course;
     const [contributionId, setContributionId] = useState("");
     const dispatch = useDispatch();
     useEffect(() => {
@@ -33,8 +26,6 @@ const Contributions = () => {
 
     const [submitEnabled, setSubmitEnabled] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-
-    // const [contributionId, setContributionId] = useState("");
 
     let pond = useRef();
 
@@ -48,14 +39,11 @@ const Contributions = () => {
 
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
-        // console.log(toggle);
-        // console.log(isAnoynmous);
 
         try {
             setIsUploading(true);
             setSubmitEnabled(false);
-            // console.log(resp);
-            let resp = await CreateNewContribution({
+            await CreateNewContribution({
                 parentFolder: currentFolder._id,
                 courseCode: currentFolder.course,
                 description: "default",
@@ -63,7 +51,6 @@ const Contributions = () => {
                 contributionId,
                 uploadedBy,
             });
-            // console.log(resp);
             await pond.current.processFiles();
             pond.current.removeFiles();
             contributionSection.classList.remove("show");
@@ -74,27 +61,14 @@ const Contributions = () => {
             setSubmitEnabled(true);
             contributionSection.classList.remove("show");
             toast.error("Upload failed. Please try again!");
-            // console.log(error);
         } finally {
             setIsUploading(false);
         }
 
-        //refresh the course in session storage to include the new file.
         try {
-            let loadingCourseToastId = toast.loading("Loading course data...");
-            const currCourse = await getCourse(code);
-            const { data } = currCourse;
-            if (!data.found) {
-                toast.dismiss(loadingCourseToastId);
-                toast.error("Couldn't find course data!");
-                return;
-            }
-            dispatch(RefreshCurrentFolder());
-            dispatch(UpdateCourses(data));
-            dispatch(ChangeCurrentYearData(currYear, data.children[currYear].children));
-            toast.dismiss(loadingCourseToastId);
+            const updatedFolder = await fetchFolder(currentFolder._id);
+            dispatch(ChangeFolder(updatedFolder));
         } catch (error) {
-            // console.log(error);
             return null;
         }
     }

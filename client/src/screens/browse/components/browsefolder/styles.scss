@@ -11,8 +11,6 @@
     &:hover {
         transform: translateY(-2px);
     }
-
-    // Mobile styles for 2 folders per row - dynamic squares with larger width
     @media (max-width: 768px) {
         width: calc(50% - 4px); // Reduced gap for larger folders
         height: auto; // Let aspect-ratio control height
@@ -21,8 +19,6 @@
         min-width: 0; // Allow shrinking
         max-width: none; // Allow full expansion
     }
-
-    // Very small screens - same dynamic approach
     @media (max-width: 480px) {
         width: calc(50% - 4px); // Same calculation
         height: auto; // Let aspect-ratio control height
@@ -58,8 +54,6 @@
             .path {
                 padding: 30px 50px 0px 15px;
                 font-size: 0.9rem;
-
-                // Mobile adjustments
                 @media (max-width: 768px) {
                     padding: 20px 35px 0px 12px;
                     font-size: 0.8rem;
@@ -91,8 +85,6 @@
                 min-width: 0;
                 line-height: 1.3;
                 display: inline-block;
-
-                // Mobile adjustments
                 @media (max-width: 768px) {
                     font-size: 1rem;
                     padding: 0px 12px;
@@ -119,8 +111,6 @@
                     transform: translateY(-2px);
                     opacity: 0;
                     transition: opacity 0.2s ease-in-out;
-
-                    // Mobile adjustments
                     @media (max-width: 768px) {
                         height: 16px;
                         width: 16px;

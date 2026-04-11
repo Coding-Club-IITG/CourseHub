@@ -1,4 +1,3 @@
-//import "./styles.scss";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { useSelector } from "react-redux";
@@ -7,8 +6,10 @@ import { getCourse } from "../../../../api/Course";
 import { useDispatch } from "react-redux";
 import {
     ChangeCurrentYearData,
+    ChangeCurrentCourse,
     ChangeFolder,
-    LoadCourses,
+    UpdateCourses,
+    ClearFolderHistory,
     RefreshCurrentFolder,
 } from "../../../../actions/filebrowser_actions";
 
@@ -31,14 +32,6 @@ const YearInfo = ({
         (c) => c.code.toLowerCase() === courseCode?.toLowerCase()
     );
 
-    const sortYear = (a, b) => {
-        if (a?.name > b?.name) return 1;
-        else if (a?.name < b?.name) return -1;
-        else return 1;
-    };
-
-    if (course?.length > 1) course.sort(sortYear);
-
     const handleAddYear = () => {
         setNewYearName("");
         setShowConfirm(true);
@@ -53,7 +46,6 @@ const YearInfo = ({
             setIsAddingYear(false);
             return;
         }
-        // Prevent adding duplicate year names
         if (course.some((y) => y.name.toLowerCase() === yearName.toLowerCase())) {
             toast.error(`Year "${yearName}" already exists.`);
             setIsAddingYear(false);
@@ -72,19 +64,45 @@ const YearInfo = ({
                 setIsAddingYear(false);
                 return;
             }
-            const newYear = await addYear({
+            const selectedYearId = course?.[currYear]?._id;
+
+            await addYear({
                 name: yearName.trim(),
                 course: courseCode,
             });
 
-            course.push(newYear);
-            //dispatch(LoadCourses());
-            dispatch(ChangeCurrentYearData(course.length - 1, []));
-            dispatch(ChangeFolder(newYear));
+            const refreshed = await getCourse(courseCode);
+            if (!refreshed.data?.found) {
+                toast.error("Course not found after creating year.");
+                setIsAddingYear(false);
+                return;
+            }
+
+            const latestCourse = refreshed.data;
+            const latestYears = Array.isArray(latestCourse.children) ? latestCourse.children : [];
+
+            let nextYearIndex = 0;
+            if (selectedYearId) {
+                const existingYearIndex = latestYears.findIndex((y) => y._id === selectedYearId);
+                if (existingYearIndex >= 0) {
+                    nextYearIndex = existingYearIndex;
+                }
+            }
+
+            const nextYearFolder = latestYears[nextYearIndex] || null;
+            const nextYearChildren = Array.isArray(nextYearFolder?.children)
+                ? nextYearFolder.children
+                : [];
+
+            dispatch(UpdateCourses(latestCourse));
+            dispatch(ChangeCurrentCourse(latestYears, latestCourse.code));
+            dispatch(ChangeCurrentYearData(nextYearIndex, nextYearChildren));
+            dispatch(ChangeFolder(nextYearFolder));
+            dispatch(ClearFolderHistory());
+            dispatch(RefreshCurrentFolder());
 
             toast.success(`Year "${yearName}" added`);
         } catch (error) {
-            // console.log(error);
             toast.error("Failed to add year.");
         }
         setShowConfirm(false);
@@ -101,14 +119,35 @@ const YearInfo = ({
                 folder: course[currYear],
                 courseCode: courseCode,
             });
-            course.splice(currYear, 1);
-            // dispatch(LoadCourses());
-            dispatch(ChangeCurrentYearData(course.length - 1, []));
-            dispatch(ChangeFolder(course[course.length - 1]));
+
+            const refreshed = await getCourse(courseCode);
+            if (!refreshed.data?.found) {
+                toast.error("Course not found after deleting year.");
+                setShowConfirmDel(false);
+                return;
+            }
+
+            const latestCourse = refreshed.data;
+            const latestYears = Array.isArray(latestCourse.children) ? latestCourse.children : [];
+
+            const nextYearIndex = latestYears.length
+                ? Math.min(currYear, latestYears.length - 1)
+                : null;
+            const nextYearFolder =
+                nextYearIndex !== null && nextYearIndex >= 0 ? latestYears[nextYearIndex] : null;
+            const nextYearChildren = Array.isArray(nextYearFolder?.children)
+                ? nextYearFolder.children
+                : [];
+
+            dispatch(UpdateCourses(latestCourse));
+            dispatch(ChangeCurrentCourse(latestYears, latestCourse.code));
+            dispatch(ChangeCurrentYearData(nextYearIndex, nextYearChildren));
+            dispatch(ChangeFolder(nextYearFolder));
+            dispatch(ClearFolderHistory());
+            dispatch(RefreshCurrentFolder());
 
             toast.success("Year deleted successfully!");
         } catch (err) {
-            // console.log(err);
             toast.error("Failed to delete year.");
         }
         setShowConfirmDel(false);
@@ -175,8 +214,6 @@ const YearInfo = ({
                                 <ConfirmDialog
                                     show={showConfirm}
                                     input={true}
-                                    // inputValue={newFolderName}
-                                    // onInputChange={(e) => setNewFolderName(e.target.value)}
                                     yearName={newYearName}
                                     onYearNameChange={setNewYearName}
                                     onConfirm={handleConfirmAddYear}

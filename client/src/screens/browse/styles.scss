@@ -3,8 +3,6 @@
     height: 8vh; // Keep original desktop height
     background-color: #000;
     color: #fff;
-
-    // Make topbar much thinner on mobile - more aggressive breakpoint
     @media (max-width: 1024px) {
         height: 6vh; // Very thin for tablet and mobile
     }
@@ -23,8 +21,6 @@
     }
     display: flex;
     height: 92vh; // Keep original desktop height
-
-    // Adjust controller height for mobile to account for much thinner navbar
     @media (max-width: 1024px) {
         height: 98vh; // Compensate for 2vh navbar
     }
@@ -57,7 +53,6 @@
             padding: 20px 20px;
             display: flex;
             flex-wrap: wrap;
-            // justify-content: space-between;
         }
         .empty-message {
             font-size: 1.2rem;
@@ -139,8 +134,6 @@
         }
     }
 }
-
-// Mobile-specific styles for dropdowns
 .mobile-dropdowns {
     padding: 16px;
     background-color: #f5f5f5;
@@ -184,8 +177,6 @@
         }
     }
 }
-
-// Compact dropdowns for mobile - premium UI design
 .mobile-dropdowns-compact {
     display: flex;
     gap: 12px;
@@ -194,8 +185,6 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); // Deeper shadow
     position: relative;
-
-    // Add subtle top border accent
     &::before {
         content: "";
         position: absolute;
@@ -209,13 +198,9 @@
     .dropdown-group-compact {
         flex: 1;
         min-width: 0; // Allow flex items to shrink below their content size
-
-        // First dropdown (course) takes 2/3 of the space
         &:first-child {
             flex: 2;
         }
-
-        // Second dropdown (year) takes 1/3 of the space
         &:last-child {
             flex: 1;
         }
@@ -284,8 +269,6 @@
                 }
             }
         }
-
-        // Ensure coursehub-dropdown components work properly within mobile context
         .coursehub-dropdown {
             width: 100%;
 
@@ -327,8 +310,6 @@
         width: 100%; // Full width for empty message
     }
 }
-
-// Mobile back button styles
 .mobile-back-btn-circular {
     position: fixed;
     bottom: 2rem;
@@ -412,8 +393,6 @@
         }
     }
 }
-
-// Responsive adjustments
 @media (max-width: 768px) {
     .controller {
         flex-direction: column;

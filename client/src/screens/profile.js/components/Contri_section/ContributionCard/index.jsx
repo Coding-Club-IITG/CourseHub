@@ -14,7 +14,6 @@ export default function ContributionCard(props) {
         setDialogType("verify");
         setOnConfirmAction(() => async () => {
             try {
-                //console.log("Verifying file:", props?.file?._id);
                 await verifyFile(props?.file?._id);
                 props.verify();
                 toast.success("File verified!");

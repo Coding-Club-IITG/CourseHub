@@ -1,17 +1,20 @@
-let found = null;
-
 const search = (folders, id) => {
-    for (let folder of folders) {
-        if (folder._id === id) {
-            found = folder;
-            break;
+    if (!Array.isArray(folders) || !id) return null;
+
+    for (const folder of folders) {
+        if (folder?._id === id) {
+            return folder;
         }
-        if (folder.childType === "Folder") search(folder.children, id);
+
+        if (folder?.childType === "Folder") {
+            const result = search(folder.children, id);
+            if (result) return result;
+        }
     }
+
+    return null;
 };
-const searchFolderById = (root, id) => {
-    search(root, id);
-    return found;
-};
+
+const searchFolderById = (root, id) => search(root, id);
 
 export default searchFolderById;

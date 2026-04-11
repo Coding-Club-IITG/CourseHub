@@ -1,7 +1,6 @@
 .footer-container {
 
     display: flex;
-    // flex-direction: column;
     justify-content: space-between;
     align-items: start;
     background-color: #000000;
@@ -33,7 +32,6 @@
                 width: 24px;
                 height: 24px;
                 display: block;
-                // background-color: white;
                 margin: 2px;
                 &.website{
                     background: url(./assets/Website.svg);
@@ -73,7 +71,6 @@
         .right-heading, .bold-text{
             font-family: "Bold";
         }
-        // font-size: 0.8rem;
     }
     
     @media screen and (max-width: 980px) {

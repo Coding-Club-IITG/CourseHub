@@ -35,17 +35,14 @@ const AddCourseModal = ({ handleAddCourse }) => {
 
     async function handleSearch() {
         if (btnState === "disabled") return;
-        // console.log("search");
         try {
             setLoading(true);
             setErr(null);
             let searchArr;
             if (/\d/.test(code)) {
-                //if code contains number then pass it as one element array
                 let codeWithoutSpace = code.replace(/\s+/g, "");
                 searchArr = [codeWithoutSpace];
             } else {
-                //if code does not contain number then split it and pass array of words
                 searchArr = code.split(" ");
             }
             const { data } = await GetSearchResult(searchArr);

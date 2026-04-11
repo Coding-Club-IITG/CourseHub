@@ -23,7 +23,7 @@
     font-family: "Regular";
 }
 
-/* Toast Container Styles */
+
 .toast-container .Toastify__toast {
     border-radius: 8px;
     min-height: 50px;
@@ -35,7 +35,7 @@
     color: #374151;
 }
 
-/* Mobile specific toast styles */
+
 @media screen and (max-width: 768px) {
     .toast-container .Toastify__toast {
         margin-bottom: 0.5rem;

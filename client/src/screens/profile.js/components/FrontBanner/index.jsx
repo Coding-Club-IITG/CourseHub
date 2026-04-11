@@ -15,7 +15,6 @@ const FrontBanner = () => {
     const dispatch = useDispatch();
     const [isNameEdit, setIsNameEdit] = useState(false);
     const user = useSelector((state) => state.user);
-    // console.log(user);
     const [userName, setUserName] = useState(formatName(user?.user?.name));
 
     function editNameHandler(newName) {

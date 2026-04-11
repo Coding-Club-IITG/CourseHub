@@ -14,12 +14,23 @@ import ErrorScreen from "./screens/error";
 import { LoadLocalCourses } from "./actions/user_actions";
 import MobilePage from "./mobile.jsx";
 
+const sanitizeLocalCourses = (courses) => {
+    if (!Array.isArray(courses)) return [];
+
+    const byCode = new Map();
+    for (const course of courses) {
+        if (!course || typeof course !== "object") continue;
+        if (!course.code) continue;
+        byCode.set(course.code.toLowerCase(), course);
+    }
+
+    return Array.from(byCode.values());
+};
+
 const App = () => {
     const [initial, setInitial] = useState(true);
     const isLoggedIn = useSelector((state) => state.user.loggedIn);
     const dispatch = useDispatch();
-
-    // Detect if device is mobile
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     useEffect(() => {
@@ -41,18 +52,23 @@ const App = () => {
         if (!initial) return;
 
         try {
-            const localCourses = window.localStorage.getItem("LocalCourses");
-            if (!localCourses) return;
+            const localCoursesRaw =
+                window.localStorage.getItem("LocalCourses") ||
+                window.sessionStorage.getItem("LocalCourses");
+            if (!localCoursesRaw) return;
 
-            const parsedCourses = JSON.parse(localCourses);
-            if (Array.isArray(parsedCourses)) {
-                dispatch(LoadLocalCourses(parsedCourses)); // ✅ Use localStorage
-            } else {
-                throw new Error("Invalid course format");
+            const parsedCourses = JSON.parse(localCoursesRaw);
+            const cleanedCourses = sanitizeLocalCourses(parsedCourses);
+            window.localStorage.setItem("LocalCourses", JSON.stringify(cleanedCourses));
+            window.sessionStorage.removeItem("LocalCourses");
+
+            if (cleanedCourses.length > 0) {
+                dispatch(LoadLocalCourses(cleanedCourses));
             }
         } catch (error) {
             console.error("Error loading local courses:", error);
             window.localStorage.removeItem("LocalCourses");
+            window.sessionStorage.removeItem("LocalCourses");
         }
     }, [initial, dispatch]);
 

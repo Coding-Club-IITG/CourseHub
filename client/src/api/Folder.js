@@ -1,7 +1,5 @@
 import axios from "axios";
 import serverRoot from "./server";
-
-// Create axios instance with baseURL and withCredentials
 const API = axios.create({
     baseURL: `${serverRoot}/api`,
     withCredentials: true,
@@ -37,13 +35,14 @@ export const fetchFolder = async (folderId) => {
     }
     const data = response.data;
     return data;
-}
+};
 
 export const renameFolder = async (folderId, newName) => {
     const response = await API.post("/folder/rename", {
-        data: {folderId, newName},
-    })
-    if(response.status !== 200){
+        data: { folderId, newName },
+    });
+    if (response.status !== 200) {
         throw new Error("Failed to rename folder");
     }
-}
+    return response.data;
+};

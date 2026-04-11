@@ -2,8 +2,6 @@
     width: 60%;
     position: relative;
     max-width: 600px;
-    // display: flex;
-    // flex-direction: column;
     &.cpassive{
         margin: 0px;
         .csearch{
@@ -18,7 +16,6 @@
         }
     }
     .csearch{
-        // margin: 0 20px;
         display: flex;
         justify-content: flex-end;
         input{
@@ -63,7 +60,6 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        // background-color: rgba(63, 63, 63, 0.699);
         z-index: 2;
         margin-top: 42px;
         color: #222;
@@ -78,18 +74,12 @@
         }
     }
     @media screen and (max-width: 1240px) {
-        // width: 500px;
-        // display: none;
         .csearch-results{
-            // width: 458px;
         }
         
     }
     @media screen and (max-width: 1140px) {
-        // width: 350px;
-        // display: none;
         .csearch-results{
-            // width: 308px;
         }
     }
 }

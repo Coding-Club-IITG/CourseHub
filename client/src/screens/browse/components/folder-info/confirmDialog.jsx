@@ -31,39 +31,6 @@ const ConfirmDialog = ({
     if (!show) return null;
 
     return (
-        // <div style={styles.overlay}>
-        //     <div style={styles.dialog}>
-        //         <h2 style={styles.heading}>Enter Folder Name</h2>
-        //         {input && (
-        //             <input
-        //                 type="text"
-        //                 placeholder="Folder name"
-        //                 value={inputValue}
-        //                 onChange={onInputChange}
-        //                 style={styles.input}
-        //             />
-        //         )}
-        //         <select
-        //             value={childType}
-        //             onChange={(e) => onChildTypeChange(e.target.value)}
-        //             style={styles.select}
-        //         >
-        //             <option value="" disabled>
-        //                 Select child type
-        //             </option>
-        //             <option value="File">File</option>
-        //             <option value="Folder">Folder</option>
-        //         </select>
-        //         <div style={styles.buttonGroup}>
-        //             <button style={styles.cancelBtn} onClick={onCancel}>
-        //                 {cancelText}
-        //             </button>
-        //             <button style={styles.confirmBtn} onClick={onConfirm}>
-        //                 {confirmText}
-        //             </button>
-        //         </div>
-        //     </div>
-        // </div>
         <div style={styles.overlay}>
             <Wrapper>
                 <div className="head">📁 Add Folder</div>

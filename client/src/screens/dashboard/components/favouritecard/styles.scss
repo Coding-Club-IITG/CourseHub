@@ -4,7 +4,6 @@
     margin: 10px;
     transition: 200ms ease;
     &:hover {
-        // transform: translateY(-3px);
         transform: scale(1.02);
         .close{
             cursor: pointer;
@@ -40,7 +39,6 @@
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        // display: block;
         display: none;
 
     }

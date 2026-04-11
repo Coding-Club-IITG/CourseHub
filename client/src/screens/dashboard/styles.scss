@@ -54,8 +54,6 @@
         padding: 0 5px;
     }
 }
-
-// Mobile overflow fix - only affects mobile screens
 @media screen and (max-width: 768px) {
     .App {
         overflow-x: hidden;
@@ -64,8 +62,6 @@
     .split {
         gap: 25px;
     }
-
-    // Profile section spacing improvements
     .split > div:first-child {
         .heading {
             margin-bottom: 8px;
@@ -99,8 +95,6 @@
     .split {
         gap: 20px;
     }
-
-    // Enhanced profile section spacing for small screens
     .split > div:first-child {
         .heading {
             margin-bottom: 6px;
@@ -147,8 +141,6 @@
     font-size: 1.5rem;
     font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
-
-// Mobile favourites improvements
 @media screen and (max-width: 768px) {
     .fav-container {
         justify-content: center;

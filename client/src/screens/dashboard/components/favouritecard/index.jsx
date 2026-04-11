@@ -26,7 +26,6 @@ const FavouriteCard = ({ type = "file", color, path, name, subject, code, id, _i
             pending: "Removing from favourites.",
         });
         resp.then((data) => {
-            // console.log("data", data);
             if (data?.data?.favourites) {
                 dispatch(UpdateFavourites(data.data.favourites));
                 toast.success("Removed.");

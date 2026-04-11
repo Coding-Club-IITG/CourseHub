@@ -53,7 +53,6 @@ const Dashboard = () => {
     };
     const handleAddCourse = async ({ code, name }) => {
         try {
-            // check if course already exists
             const found = user.user?.courses?.find(
                 (course) => course.code.toLowerCase() === code.toLowerCase()
             );
@@ -62,20 +61,10 @@ const Dashboard = () => {
                 toast.info("Course already exists.");
                 return;
             }
-            // add to user in DB
             await AddNewCourseAPI(code, name);
             location.reload();
         } catch (error) {
-            // console.log(error);
         }
-        // dispatch(
-        //     AddNewCourseLocal({
-        //         _id,
-        //         name,
-        //         code,
-        //         color,
-        //     })
-        // );
     };
 
     useEffect(() => {
@@ -86,7 +75,6 @@ const Dashboard = () => {
                 dispatch(LoadCourses(JSON.parse(sessionStorage.getItem("AllCourses"))));
             } catch (error) {
                 dispatch(LoadCourses([]));
-                // console.log("load error");
             }
         }
     }, []);
@@ -94,7 +82,6 @@ const Dashboard = () => {
     useEffect(() => {
         async function run() {
             try {
-                // console.log("Exam Dates");
                 const { data } = await GetExamDates();
                 const { dates } = data;
                 const midSemDate = new Date(dates.midSem);
@@ -105,7 +92,6 @@ const Dashboard = () => {
                 const daysEndSem = parseInt((endSemDate.getTime() - now) / (1000 * 3600 * 24));
                 setEndSem(daysEndSem);
             } catch (error) {
-                // console.log(error);
             }
         }
         run();
@@ -116,7 +102,6 @@ const Dashboard = () => {
         dispatch(ChangeCurrentCourse(null, Code.toUpperCase()));
         navigate(`/browse/${Code.toUpperCase()}`);
     };
-    // console.log(user);
 
     useEffect(() => {
         dispatch(ResetFileBrowserState());
@@ -167,31 +152,9 @@ const Dashboard = () => {
                                 isReadOnly={false}
                             />
                         ))}
-                        {/* {user.localCourses.map((course) => (
-                        <CourseCard
-                            key={course.name}
-                            code={course?.code?.toUpperCase()}
-                            name={course.name}
-                            color={course.color}
-                            setClicked={() => handleClick(course.code)}
-                        />
-                    ))} */}
+                        
 
-                        {/* <CourseCard
-                            type={"ADD"}
-                            setClicked={() => {
-                                // dispatch(
-                                //     AddNewCourseLocal({
-                                //         _id: "638f1709897b3c84b7d8d32c",
-                                //         name: "Introduction to Engineering Drawing",
-                                //         code: "ce101",
-                                //         color: "#DBCEFF",
-                                //     })
-                                // );
-                                // console.log(user);
-                                addCourseModalShowHandler();
-                            }}
-                        /> */}
+                        
                     </div>
                     <Space amount={50} />
 
@@ -208,27 +171,10 @@ const Dashboard = () => {
                                 isReadOnly={true}
                             />
                         ))}
-                        {/* {user.localCourses.map((course) => (
-                        <CourseCard
-                            key={course.name}
-                            code={course?.code?.toUpperCase()}
-                            name={course.name}
-                            color={course.color}
-                            setClicked={() => handleClick(course.code)}
-                        />
-                    ))} */}
+                        
                         <CourseCard
                             type={"ADD"}
                             setClicked={() => {
-                                // dispatch(
-                                //     AddNewCourseLocal({
-                                //         _id: "638f1709897b3c84b7d8d32c",
-                                //         name: "Introduction to Engineering Drawing",
-                                //         code: "ce101",
-                                //         color: "#DBCEFF",
-                                //     })
-                                // );
-                                // console.log(user);
                                 addCourseModalShowHandler();
                             }}
                         />

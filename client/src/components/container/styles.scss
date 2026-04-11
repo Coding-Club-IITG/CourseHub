@@ -21,8 +21,6 @@
             padding: 0px;
         }
     }
-
-    // Mobile overflow fix - only affects mobile screens
     @media screen and (max-width: 768px) {
         .container-content {
             padding: 10px 16px;

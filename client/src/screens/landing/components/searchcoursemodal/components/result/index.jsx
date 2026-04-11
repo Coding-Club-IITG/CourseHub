@@ -19,10 +19,10 @@ const Result = ({ _id, code, name, handleModalClose, isAvailable }) => {
             }}
         >
             <span className="code">{code.toUpperCase()}</span>
-            {/* <div className="dflex"> */}
+            
             <span className="name">{capitalise(formatLongText(name, 40))}</span>
             <span className="info">{!isAvailable && "UNAVAILABLE"}</span>
-            {/* </div> */}
+            
         </div>
     );
 };

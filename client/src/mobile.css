@@ -57,7 +57,7 @@
     }
 }
 
-/* Mobile responsiveness */
+
 @media (max-width: 480px) {
     .box {
         padding-top: 5vh;

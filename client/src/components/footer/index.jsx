@@ -30,25 +30,7 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-            {/* <div className="right">
-                <span className="right-heading">CourseHub Team</span>
-                <span className="span-name website-and-backend">
-                    <span className="bold-text">Website and Backend: </span>
-                    Ankit Das, Kuldeep Ranjan
-                </span>
-                <span className="span-name footer-app">
-                    <span className="bold-text">App: </span>
-                    Harshit Seksaria, Ambesh Dixit, Lakshit Sethia, Priyanshu Srivastava
-                </span>
-                <span className="span-name footer-lead">
-                    <span className="bold-text">Team Lead and Design: </span>
-                    Atharva Tagalpallewar
-                </span>
-                <span className="span-name footer-lead">
-                    <span className="bold-text">Founder and Mentor: </span>
-                    Atishay Jain, Kunal Garg
-                </span>
-            </div> */}
+            
         </footer>
     );
 };

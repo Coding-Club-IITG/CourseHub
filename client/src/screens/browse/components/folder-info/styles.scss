@@ -59,8 +59,6 @@
             }
         }
     }
-
-    // Main actions container - holds all buttons
     .main-actions {
         display: flex;
         align-items: center;
@@ -119,8 +117,6 @@
                     box-shadow: none;
                 }
             }
-
-            // Different button variants
             &.download {
                 background-color: #000; // Black for download
 
@@ -146,8 +142,6 @@
             }
         }
     }
-
-    // Legacy support for existing btn-container
     .btn-container {
         display: flex;
         justify-content: flex-end;

@@ -5,7 +5,6 @@ nav {
 
     .active {
         .nav-content {
-            // max-width: 1400px;
             margin: auto;
             padding: 20px 64px 20px 64px;
             display: flex;
@@ -93,8 +92,6 @@ nav {
     .passive {
         display: none;
     }
-
-    // Mobile Menu Overlay - Fixed positioning relative to toggle button
     .mobile-menu {
         position: absolute;
         top: 100%;
@@ -107,8 +104,6 @@ nav {
         visibility: hidden;
         transition: all 0.3s ease;
         pointer-events: none;
-
-        // Only show on mobile and when open
         @media screen and (max-width: 768px) {
             right: 20px; // Adjust for mobile padding
             &.open {
@@ -117,8 +112,6 @@ nav {
                 pointer-events: auto;
             }
         }
-
-        // Hide completely on desktop
         @media screen and (min-width: 769px) {
             display: none !important;
         }
@@ -166,8 +159,6 @@ nav {
             display: block;
             max-width: 1400px;
             margin: auto;
-            // padding-left: 30px;
-            // padding-right: 30px;
             display: flex;
             justify-content: flex-start;
         }

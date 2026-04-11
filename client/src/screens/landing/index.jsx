@@ -37,7 +37,6 @@ const LandingPage = () => {
                 navigate(`/dashboard`);
             } catch (error) {
                 dispatch(LogoutUser());
-                // console.log(error.message);
                 setLoading(false);
             }
         }
@@ -73,10 +72,7 @@ const LandingPage = () => {
                         </div>
                         <div className="btn-container">
                             <MicrosoftSignIn setClicked={handleLogin} />
-                            {/* <div className="line"></div>
-                            <SearchCourseButton
-                                searchCourseShowModalHandler={searchCourseShowModalHandler}
-                            /> */}
+                            
                         </div>
                     </div>
                 </div>

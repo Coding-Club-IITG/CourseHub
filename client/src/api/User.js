@@ -20,14 +20,11 @@ export const handleLogin = () => {
     window.location.href = `${serverRoot}/api/auth/login`;
 };
 export const AddNewCourseAPI = async (code, name) => {
-    // const resp = await axios.post(`${serverRoot}/api/user/course`, { code, name });
     const resp = await axios.post(`${serverRoot}/api/user/readonly`, { code, name });
-    // console.log(resp);
     return resp;
 };
 export const DeleteCourseAPI = async (code) => {
     const resp = await axios.delete(`${serverRoot}/api/user/readonly/${code}`);
-    // console.log(resp);
     return resp;
 };
 
@@ -39,7 +36,6 @@ export const AddToFavourites = async (id, name, path, code) => {
         code: code,
     };
     const resp = await axios.post(`${serverRoot}/api/user/favourites`, data);
-    // console.log(resp);
     return resp;
 };
 export const RemoveFromFavourites = async (id) => {
