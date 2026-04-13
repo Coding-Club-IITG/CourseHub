@@ -110,12 +110,16 @@ const BrowseScreen = () => {
                     setLoading(false);
                     return;
                 }
+                if (data.needsCourseSync) {
+                    setLoading(false);
+                    return navigate("/loading");
+                }
                 dispatch(LoginUser(data));
                 setLoading(false);
             } catch (error) {
                 dispatch(LogoutUser());
                 setLoading(false);
-                navigate("/login");
+                navigate("/");
             }
         }
 

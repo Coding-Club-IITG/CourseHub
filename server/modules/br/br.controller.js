@@ -3,6 +3,13 @@ import User from "../user/user.model.js";
 import { fetchCoursesForBr } from "../auth/auth.controller.js";
 import logger from "../../utils/logger.js";
 
+const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
+
+const findUserByEmailInsensitive = async (email) => {
+    if (!email) return null;
+    return User.findOne({ email }).collation({ locale: "en", strength: 2 });
+};
+
 const updateBRs = async (req, res) => {
     try {
         const { emails } = req.body;
@@ -12,7 +19,9 @@ const updateBRs = async (req, res) => {
         }
 
         for (const { email } of emails) {
-            const user = await User.findOne({ email });
+            const normalizedEmail = normalizeEmail(email);
+            if (!normalizedEmail) continue;
+            const user = await findUserByEmailInsensitive(normalizedEmail);
 
             if (user) {
                 if (!user.isBR) {
@@ -20,9 +29,17 @@ const updateBRs = async (req, res) => {
                     await fetchCoursesForBr(user.rollNumber);
                     await user.save();
                 }
-                await BR.updateOne({ email }, { $set: { email } }, { upsert: true });
+                await BR.updateOne(
+                    { email: normalizedEmail },
+                    { $set: { email: normalizedEmail } },
+                    { upsert: true }
+                );
             } else {
-                await BR.updateOne({ email }, { $set: { email } }, { upsert: true });
+                await BR.updateOne(
+                    { email: normalizedEmail },
+                    { $set: { email: normalizedEmail } },
+                    { upsert: true }
+                );
             }
         }
 
@@ -35,15 +52,26 @@ const updateBRs = async (req, res) => {
 
 const createBR = async (req, res) => {
     try {
-        const { email } = req.body;
+        const normalizedEmail = normalizeEmail(req.body?.email);
 
-        if (!email) return res.status(400).json({ error: "email is required" });
+        if (!normalizedEmail) return res.status(400).json({ error: "email is required" });
 
-        const exists = await BR.findOne({ email });
+        const exists = await BR.findOne({ email: normalizedEmail });
         if (exists) return res.status(409).json({ error: "BR already exists" });
-        const br = await BR.create({ email });
+
+        const user = await findUserByEmailInsensitive(normalizedEmail);
+        if (user) {
+            if (!user.isBR) {
+                user.isBR = true;
+                await user.save();
+            }
+            await fetchCoursesForBr(user.rollNumber);
+        }
+
+        const br = await BR.create({ email: normalizedEmail });
         res.status(201).json({ message: "BR added", br });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -59,14 +87,15 @@ const getAll = async (req, res, next) => {
 
 const deleteBR = async (req, res) => {
     try {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ error: "email is required" });
+        const normalizedEmail = normalizeEmail(req.body?.email);
+        if (!normalizedEmail) return res.status(400).json({ error: "email is required" });
 
-        const br = await BR.findOneAndDelete({ email });
+        const br = await BR.findOneAndDelete({ email: normalizedEmail });
         if (!br) return res.status(404).json({ error: "BR not found" });
 
         res.status(200).json({ message: "BR deleted successfully" });
     } catch (error) {
+        logger.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

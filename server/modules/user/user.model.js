@@ -120,8 +120,12 @@ export const getUserFromToken = async function (access_token) {
 // };
 
 export const findUserWithEmail = async function (email) {
-    const user = await User.findOne({ email: email });
-    // console.log("found user with email", user);
+    const normalizedEmail = email?.toString().trim().toLowerCase();
+    if (!normalizedEmail) return false;
+    const user = await User.findOne({ email: normalizedEmail }).collation({
+        locale: "en",
+        strength: 2,
+    });
     if (!user) return false;
     return user;
 };

@@ -7,7 +7,8 @@
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
-        "destroyDB": "node scripts/deleteAllCourses.js && node scripts/deleteAllFolders.js && node scripts/deleteAllFiles.js && node scripts/deleteAllSearchResults.js"
+        "destroyDB": "node scripts/deleteAllCourses.js && node scripts/deleteAllFolders.js && node scripts/deleteAllFiles.js && node scripts/deleteAllSearchResults.js",
+        "seed:app": "node scripts/seed_app.js"
     },
     "keywords": [],
     "author": "",

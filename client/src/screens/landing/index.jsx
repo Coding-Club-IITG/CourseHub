@@ -32,6 +32,10 @@ const LandingPage = () => {
                     setLoading(false);
                     return;
                 }
+                if (data.needsCourseSync) {
+                    setLoading(false);
+                    return navigate("/loading");
+                }
                 dispatch(LoginUser(data));
                 setLoading(false);
                 navigate(`/dashboard`);

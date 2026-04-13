@@ -5,6 +5,8 @@ import { updateUserData } from "./user.model.js";
 import UserUpdate from "./userUpdate.model.js";
 import BR from "../br/br.model.js";
 
+const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
+
 export const getUser = async (req, res, next) => {
     const user = req.user;
 
@@ -20,7 +22,35 @@ export const getUser = async (req, res, next) => {
         return res.status(401).json({ error: "User update required, please log in again" });
     }
 
-    const isBR = await BR.findOne({ email: user.email });
+    const normalizedEmail = normalizeEmail(user.email);
+    const brDoc = normalizedEmail
+        ? await BR.findOne({ email: normalizedEmail }).collation({
+              locale: "en",
+              strength: 2,
+          })
+        : null;
+
+    if (brDoc && !user.isBR) {
+        user.isBR = true;
+        await user.save();
+
+        res.cookie("token", "loggedout", {
+            maxAge: 0,
+            sameSite: "lax",
+            secure: false,
+            expires: new Date(Date.now()),
+            httpOnly: true,
+        });
+
+        return res
+            .status(401)
+            .json({ error: "BR access updated. Please log in again.", forceLogout: true });
+    }
+
+    const isBranchRep = !!user.isBR || !!brDoc;
+
+    const previousCourses = Array.isArray(user.previousCourses) ? user.previousCourses : [];
+    const needsCourseSync = isBranchRep && previousCourses.length === 0;
 
     const responseUser = {
         _id: user._id,
@@ -33,12 +63,13 @@ export const getUser = async (req, res, next) => {
         department: user.department,
         favourites: user.favourites,
         deviceToken: user.deviceToken,
-        isBR: !!isBR,
+        isBR: isBranchRep,
         readOnly: user.readOnly,
+        needsCourseSync,
     };
 
-    if (isBR) {
-        responseUser.previousCourses = user.previousCourses;
+    if (isBranchRep) {
+        responseUser.previousCourses = previousCourses;
     }
 
     return res.status(200).json(responseUser);

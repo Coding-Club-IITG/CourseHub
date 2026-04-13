@@ -22,6 +22,8 @@ import UserUpdate from "../user/userUpdate.model.js";
 
 import BR from "../br/br.model.js";
 
+const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
+
 export const loginHandler = (req, res) => {
     res.redirect(
         `https://login.microsoftonline.com/850aa78d-94e1-4bc6-9cf3-8c11b530701c/oauth2/v2.0/authorize?client_id=${clientid}&response_type=code&redirect_uri=${redirect_uri}&scope=user.read%20offline_access&state=12345`
@@ -315,14 +317,18 @@ export const redirectHandler = async (req, res, next) => {
     }
 
     const roll = userFromToken.data.surname;
+    const normalizedEmail = normalizeEmail(userFromToken.data.mail);
 
     if (!roll) {
         throw new AppError(401, "Sign in using Institute Account");
     }
 
-    let existingUser = await findUserWithEmail(userFromToken.data.mail);
+    let existingUser = await findUserWithEmail(normalizedEmail);
 
-    let br = await BR.findOne({ email: userFromToken.data.mail });
+    let br = await BR.findOne({ email: normalizedEmail }).collation({
+        locale: "en",
+        strength: 2,
+    });
 
     if (!existingUser) {
         const department = await getDepartment(AccessToken, roll);
@@ -331,7 +337,7 @@ export const redirectHandler = async (req, res, next) => {
             name: userFromToken.data.displayName,
             degree: userFromToken.data.jobTitle,
             rollNumber: userFromToken.data.surname,
-            email: userFromToken.data.mail,
+            email: normalizedEmail,
             semester: calculateSemester(userFromToken.data.surname),
             courses: [],
             department: department,
@@ -348,6 +354,11 @@ export const redirectHandler = async (req, res, next) => {
         const user = new User(userData);
         existingUser = await user.save();
         newUser = true;
+    }
+
+    if (existingUser && br && !existingUser.isBR) {
+        existingUser.isBR = true;
+        await existingUser.save();
     }
 
     let userUpdated = await UserUpdate.findOne({ rollNumber: roll });
@@ -372,6 +383,15 @@ export const redirectHandler = async (req, res, next) => {
     if (newUser || (existingUser && !userUpdated)) {
         return res.redirect(`${appConfig.clientURL}/loading`);
     }
+
+    const needsCourseSync =
+        !!existingUser?.isBR &&
+        (!Array.isArray(existingUser.previousCourses) || existingUser.previousCourses.length === 0);
+
+    if (needsCourseSync) {
+        return res.redirect(`${appConfig.clientURL}/loading`);
+    }
+
     res.redirect(`${appConfig.clientURL}/dashboard`);
 };
 
@@ -411,9 +431,14 @@ export const mobileRedirectHandler = async (req, res, next) => {
     if (!userFromToken || !userFromToken.data) throw new AppError(401, "Access Denied");
 
     const roll = userFromToken.data.surname;
+    const normalizedEmail = normalizeEmail(userFromToken.data.mail);
     if (!roll) throw new AppError(401, "Sign in using Institute Account");
 
-    let existingUser = await findUserWithEmail(userFromToken.data.mail); //find with email
+    let existingUser = await findUserWithEmail(normalizedEmail);
+    const br = await BR.findOne({ email: normalizedEmail }).collation({
+        locale: "en",
+        strength: 2,
+    });
 
     if (!existingUser) {
         const courses = await fetchCourses(userFromToken.data.surname);
@@ -423,11 +448,14 @@ export const mobileRedirectHandler = async (req, res, next) => {
             name: userFromToken.data.displayName,
             degree: userFromToken.data.jobTitle,
             rollNumber: userFromToken.data.surname,
-            email: userFromToken.data.mail,
+            email: normalizedEmail,
             // branch: department, //calculate branch
             semester: calculateSemester(userFromToken.data.surname),
             courses: courses,
             department: department,
+            isBR: !!br,
+            previousCourses: [],
+            readOnly: [],
         };
 
         const { error } = validateUser(userData);
@@ -436,6 +464,17 @@ export const mobileRedirectHandler = async (req, res, next) => {
         const user = new User(userData);
         existingUser = await user.save();
     }
+
+    if (existingUser && br && !existingUser.isBR) {
+        existingUser.isBR = true;
+        await existingUser.save();
+    }
+
+    if (existingUser && br && (!Array.isArray(existingUser.previousCourses) || existingUser.previousCourses.length === 0)) {
+        await fetchCoursesForBr(existingUser.rollNumber);
+        existingUser = await User.findById(existingUser._id);
+    }
+
     let userUpdated = await UserUpdate.findOne({ rollNumber: roll });
     if (existingUser && !userUpdated) {
         const courses = await fetchCourses(userFromToken.data.surname);
