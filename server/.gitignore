@@ -6,5 +6,4 @@ access-token.token
 refresh_token.token
 onedrive-access-token.token
 onedrive-refresh-token.token
-links.js
 .DS_Store

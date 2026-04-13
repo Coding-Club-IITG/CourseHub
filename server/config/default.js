@@ -1,13 +1,13 @@
 import "dotenv/config";
 
+const parsedPort = Number(process.env.PORT);
+
 export default {
-    port: process.env.PORT || 8080,
+    port: Number.isNaN(parsedPort) ? undefined : parsedPort,
     mongoURI: process.env.MONGO_URI,
     clientURL: process.env.CLIENT_URL,
-    // clientURL: "https://www.coursehubiitg.in",
-    mobileURL: "coursehub",
     jwtSecret: process.env.JWT_SECRET,
-    aesKey: process.env.AESKEY,
-    adminJwtSecret: "32rytfhgv456ryt43ertfgy45rtfhhab",
-    serverVersion: 2.0,
+    adminJwtSecret: process.env.ADMIN_JWT_SECRET,
+    localApiBaseUrl: process.env.API_BASE_URL,
+    coursehubMobileRedirect: process.env.COURSEHUB_MOBILE_REDIRECT,
 };

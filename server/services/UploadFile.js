@@ -5,7 +5,7 @@ import { FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
 import logger from "../utils/logger.js";
 
-const parent_item_id = process.env.PARENT_FOLDER;
+const parent_item_id = process.env.ONEDRIVE_FOLDER_ID;
 
 async function GetFolderId(contributionId) {
     const access_token = await getAccessToken();

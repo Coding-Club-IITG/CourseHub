@@ -32,7 +32,7 @@ const userSchema = Schema({
 userSchema.methods.generateJWT = function () {
     var user = this;
     var token = jwt.sign(
-        { user: user._id, serverVersion: config.serverVersion, isBR: user.isBR },
+        { user: user._id, isBR: user.isBR },
         config.jwtSecret,
         {
             expiresIn: "24d",
@@ -46,9 +46,6 @@ userSchema.statics.findByJWT = async function (token) {
         var user = this;
         var decoded = jwt.verify(token, config.jwtSecret);
         const id = decoded.user;
-        const SV = decoded.serverVersion;
-        if (!SV) return false;
-        if (SV !== config.serverVersion) return false;
         const fetchedUser = await user.findOne({ _id: id });
         if (!fetchedUser) return false;
         return fetchedUser;

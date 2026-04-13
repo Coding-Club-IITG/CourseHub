@@ -10,35 +10,8 @@ import CourseModel, { FolderModel, FileModel } from "../course/course.model.js";
 import path from "path";
 
 const router = express.Router();
-
-import { MakeImagekitFolder, UploadImage } from "../../services/UploadImage.js";
 import SearchResults from "../search/search.model.js";
-// router.post("/upload", async (req, res) => {
-//     // fs.writeFile(__dirname + "/output.pdf", req.file?.buffer, (err: any) => {
-//     //     if (err) {
-//     //         console.error(err);
-//     //     }
-//     // });
-//     await handleUpload(req.file?.buffer);
-//     res.sendStatus(200);
-// });
-// async function handleUpload(file) {
-//     try {
-//         var access_token = await generateAccessToken();
-//         console.log(access_token);
-//         var headers = {
-//             Authorization: `Bearer ${access_token}`,
-//         };
-//         const resp = await axios.put(
-//             "https://graph.microsoft.com/v1.0/me/drive/items/01OXYV374UNHP7FBR4UVBLPK2WPXMCR2TW:/test.txt:/content",
-//             file
-//         );
-//         console.log(resp.data);
-//         return resp.data;
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
+
 
 router.get(
     "/generatedevicecode",
@@ -51,7 +24,7 @@ router.get(
 
         var config = {
             method: "post",
-            url: `https://login.microsoftonline.com/${settings.authTenant}/oauth2/v2.0/devicecode`,
+            url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/devicecode`,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
@@ -257,10 +230,6 @@ export async function visitCourseById(id) {
     const required_course = children.find((course) => course.id === id);
     // console.log(required_course);
     if (!required_course) throw new AppError(404, "Not Found!");
-    const imagekitfoldercreated = await MakeImagekitFolder(
-        required_course.name.split("-")[0].trim().toLowerCase()
-    );
-    if (!imagekitfoldercreated) throw new AppError(500, "Imagekit folder creation error");
     const folder_data = await visitFolder(required_course, required_course.name.toLowerCase());
 
     await CourseModel.create({
@@ -341,12 +310,6 @@ async function visitFile(file, currCourse) {
     };
     // const thumbnail = await getThumbnail(file.id);
 
-    const uploadedImage = await UploadImage(
-        file?.thumbnails[0]?.medium?.url,
-        file.id,
-        currCourse.split("-")[0].trim().toLowerCase()
-    );
-    // console.log(uploadedImage);
     //make mongoose file
     const NewFile = await FileModel.create({
         course: currCourse,
@@ -354,7 +317,7 @@ async function visitFile(file, currCourse) {
         id: file.id,
         // webUrl: file.webUrl,
         size: file.size * 0.000001,
-        thumbnail: uploadedImage?.url ? uploadedImage.url : "null",
+        thumbnail: file?.thumbnails?.[0]?.medium?.url || "null",
         // downloadUrl: file["@microsoft.graph.downloadUrl"],
     });
     return NewFile._id;
@@ -396,7 +359,7 @@ async function refreshAccessToken() {
 
     var config = {
         method: "post",
-        url: `https://login.microsoftonline.com/${settings.authTenant}/oauth2/v2.0/token`,
+        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/token`,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             Host: "login.microsoftonline.com",
@@ -425,7 +388,7 @@ async function generateAccessToken() {
 
     var config = {
         method: "post",
-        url: `https://login.microsoftonline.com/${settings.authTenant}/oauth2/v2.0/token`,
+        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/token`,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
         },

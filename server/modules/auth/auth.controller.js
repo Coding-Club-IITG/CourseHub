@@ -5,10 +5,9 @@ import catchAsync from "../../utils/catchAsync.js";
 import cheerio from "cheerio";
 
 import appConfig from "../../config/default.js";
-import links from "../../links.js";
 
-const clientid = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_VALUE;
+const clientid = process.env.AZURE_CLIENT_ID;
+const clientSecret = process.env.AZURE_CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
 
 import { findUserWithEmail, getUserFromToken, validateUser } from "../user/user.model.js";
@@ -18,8 +17,6 @@ import User from "../user/user.model.js";
 import academic from "../../config/academic.js";
 import courselist from "../course/course.list.js";
 
-import aesjs from "aes-js";
-import EncryptText from "../../utils/encryptAES.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import UserUpdate from "../user/userUpdate.model.js";
 
@@ -385,7 +382,7 @@ export const mobileRedirectHandler = async (req, res, next) => {
         client_secret: clientSecret,
         client_id: clientid,
         //redirect_uri: redirect_uri,
-        redirect_uri: links.COURSEHUB_MOBILE_REDIRECT,
+        redirect_uri: appConfig.coursehubMobileRedirect,
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
@@ -451,7 +448,7 @@ export const mobileRedirectHandler = async (req, res, next) => {
 
     const token = existingUser.generateJWT();
 
-    return res.redirect(`${appConfig.mobileURL}://success?token=${token}`);
+    return res.redirect(`coursehub://success?token=${token}`);
 };
 
 export const logoutHandler = (req, res, next) => {
