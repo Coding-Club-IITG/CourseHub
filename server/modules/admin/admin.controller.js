@@ -1,7 +1,7 @@
 import AppError from "../../utils/appError.js";
 import CourseModel, { FileModel, FolderModel } from "../course/course.model.js";
 import Contribution from "../contribution/contribution.model.js";
-import { getAllCourseIds, visitCourseById } from "../onedrive/onedrive.routes.js";
+import { getAllCourseIds, visitCourseById } from "../onedrive/onedrive.controller.js";
 import SearchResults from "../search/search.model.js";
 import Admin from "./admin.model.js";
 import {

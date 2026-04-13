@@ -1,0 +1,378 @@
+import axios from "axios";
+import qs from "querystring";
+import AppError from "../../utils/appError.js";
+import settings from "../../config/onedrive.js";
+import fs from "fs";
+
+import CourseModel, { FolderModel, FileModel } from "../course/course.model.js";
+import SearchResults from "../search/search.model.js";
+
+const coursehub_id = process.env.ONEDRIVE_FOLDER_ID;
+
+export async function generateDeviceCode(req, res) {
+    const data = qs.stringify({
+        tenant: settings.tenantId,
+        client_id: settings.clientId,
+        scope: "user.read offline_access files.readwrite",
+    });
+
+    const config = {
+        method: "post",
+        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/devicecode`,
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data,
+    };
+
+    const response = await axios.post(config.url, config.data, {
+        headers: config.headers,
+    });
+
+    if (!response.data) throw new AppError(500, "Something went wrong");
+
+    console.log(response.data.user_code);
+
+    fs.writeFileSync("./onedrive-device-code.token", response.data.device_code, "utf-8");
+    if (fs.existsSync("./onedrive-access-token.token")) {
+        fs.unlinkSync("./onedrive-access-token.token");
+        fs.unlinkSync("./onedrive-refresh-token.token");
+    }
+
+    return res.status(200).json({
+        status: "success",
+        data: {
+            message: response.data,
+        },
+    });
+}
+
+export async function getAccessCode(req, res) {
+    const token = await getAccessToken();
+    return res.status(200).json({
+        status: "success",
+        data: {
+            access_token: token,
+        },
+    });
+}
+
+export async function makeAllCourses(req, res) {
+    await visitAllFiles();
+    return res.sendStatus(200);
+}
+
+export async function makeCourseById(req, res) {
+    await visitCourseById(req.params.id);
+    return res.sendStatus(200);
+}
+
+export async function getCourseIds(req, res) {
+    const data = await getAllCourseIds();
+    return res.send(data);
+}
+
+export async function thumbnail(req, res) {
+    const fileId = req.body.fileId;
+    const thumbnaillink = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/thumbnails`;
+    const access_token = await getAccessToken();
+    const thumbnaildata = await axios.get(thumbnaillink, {
+        headers: {
+            Authorization: `Bearer ${access_token}`,
+        },
+    });
+    const thumbnailurl = thumbnaildata.data.value?.[0]?.medium?.url;
+    await FileModel.updateOne({ fileId }, { $set: { thumbnail: thumbnailurl } });
+    return res.status(200).json(thumbnailurl);
+}
+
+export async function getFile(req, res) {
+    const resp = await getFileDownloadLink(req.params.id);
+    return res.json({ url: resp });
+}
+
+export async function getFilePreview(req, res) {
+    const { fileID } = req.params;
+    const resp = await getFileWebUrl(fileID);
+    return res.json({ url: resp });
+}
+
+export async function getFileDownload(req, res) {
+    const { fileID } = req.params;
+    const resp = await getFileDownloadLink(fileID);
+    return res.json({ url: resp });
+}
+
+async function getFileDownloadLink(file_id) {
+    const access_token = await getAccessToken();
+    const headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${file_id}`;
+    const data = await getRequest(url, headers);
+    return data["@microsoft.graph.downloadUrl"];
+}
+
+async function getFileWebUrl(file_id) {
+    const access_token = await getAccessToken();
+    const headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${file_id}/createLink`;
+
+    const data = await postRequest(url, headers);
+    return data.link.webUrl;
+}
+
+export async function getAllCourseIds() {
+    const access_token = await getAccessToken();
+    const headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${coursehub_id}/children`;
+    const data = await getRequest(url, headers);
+    const children = data.value;
+    const resp = [];
+    children.map((child) => {
+        resp.push({ name: child.name, id: child.id });
+    });
+    return resp;
+}
+
+async function visitAllFiles() {
+    const access_token = await getAccessToken();
+    const headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${coursehub_id}/children`;
+    const data = await getRequest(url, headers);
+    const children = data.value;
+    const folders = children.map(async (child) => {
+        const folder_data = await visitFolder(child, child.name.toLowerCase());
+        return folder_data;
+    });
+    const resolved_folders = await Promise.all(folders);
+    resolved_folders.map(async (folder) => {
+        await CourseModel.create({
+            name: folder.name.split("-")[1].trim().toLowerCase(),
+            code: folder.name.split("-")[0].trim().toLowerCase(),
+            children: folder.children,
+        });
+        const searchDocument = await SearchResults.find({
+            code: folder.name.split("-")[0].trim().toLowerCase(),
+        });
+        console.log(searchDocument);
+        if (!searchDocument) {
+            await SearchResults.create({
+                name: folder.name.split("-")[1].trim().toLowerCase(),
+                code: folder.name.split("-")[0].trim().toLowerCase(),
+                isAvailable: true,
+            });
+            console.log("Created", folder.name);
+        } else {
+            await SearchResults.updateOne(
+                { code: folder.name.split("-")[0].trim().toLowerCase() },
+                {
+                    isAvailable: true,
+                }
+            );
+            console.log("Updated", folder.name);
+        }
+    });
+    return "ok";
+}
+
+export async function visitCourseById(id) {
+    const access_token = await getAccessToken();
+    const headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${coursehub_id}/children`;
+    const data = await getRequest(url, headers);
+    const children = data.value;
+    const required_course = children.find((course) => course.id === id);
+    if (!required_course) throw new AppError(404, "Not Found!");
+    const folder_data = await visitFolder(required_course, required_course.name.toLowerCase());
+
+    await CourseModel.create({
+        name: required_course.name.split("-")[1].trim().toLowerCase(),
+        code: required_course.name.split("-")[0].trim().toLowerCase(),
+        children: folder_data.children,
+    });
+    const searchDocument = await SearchResults.findOne({
+        code: required_course.name.split("-")[0].trim().toLowerCase(),
+    });
+    if (!searchDocument) {
+        await SearchResults.create({
+            name: required_course.name.split("-")[1].trim().toLowerCase(),
+            code: required_course.name.split("-")[0].trim().toLowerCase(),
+            isAvailable: true,
+        });
+        console.log("Created", required_course.name);
+    } else {
+        await SearchResults.updateOne(
+            { code: required_course.name.split("-")[0].trim().toLowerCase() },
+            {
+                isAvailable: true,
+            }
+        );
+        console.log("Updated", required_course.name);
+    }
+
+    return "ok";
+}
+
+async function visitFolder(folder, currCourse, prevFolder) {
+    const access_token = await getAccessToken();
+    const headers = {
+        Authorization: `Bearer ${access_token}`,
+        Host: "graph.microsoft.com",
+    };
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folder.id}/children?$expand=thumbnails`;
+    const data = await getRequest(url, headers);
+    const children = data.value;
+    let childType = "File";
+
+    const folders = children.map(async function (child) {
+        if (child.folder) {
+            const prevFolderName = prevFolder ? `${prevFolder}/` : "";
+            const passName = prevFolderName + folder.name;
+            childType = "Folder";
+            const nestedData = await visitFolder(child, currCourse, passName);
+            return nestedData;
+        }
+
+        const fileData = await visitFile(child, currCourse);
+        return fileData;
+    });
+
+    const res = await Promise.all(folders);
+    const prevFolderName = prevFolder ? `${prevFolder}/` : "root/";
+    const NewFolder = await FolderModel.create({
+        course: currCourse.split("-")[0].trim().toLowerCase(),
+        name: folder.name,
+        childType,
+        children: res,
+        path: prevFolderName,
+        id: folder.id,
+    });
+    return NewFolder;
+}
+
+async function visitFile(file, currCourse) {
+    const NewFile = await FileModel.create({
+        course: currCourse,
+        name: file.name,
+        id: file.id,
+        size: file.size * 0.000001,
+        thumbnail: file?.thumbnails?.[0]?.medium?.url || "null",
+    });
+    return NewFile._id;
+}
+
+export async function getAccessToken() {
+    let data;
+    if (fs.existsSync("./onedrive-refresh-token.token")) {
+        data = await refreshAccessToken();
+    } else {
+        data = await generateAccessToken();
+    }
+    return data.access_token;
+}
+
+async function refreshAccessToken() {
+    const data = qs.stringify({
+        client_id: settings.clientId,
+        client_secret: settings.clientSecret,
+        refresh_token: `${fs.readFileSync("./onedrive-refresh-token.token", "utf-8")}`,
+        grant_type: "refresh_token",
+    });
+
+    const config = {
+        method: "post",
+        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/token`,
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Host: "login.microsoftonline.com",
+        },
+        data,
+    };
+    const response = await axios.post(config.url, config.data, {
+        headers: config.headers,
+    });
+
+    if (!response.data) throw new AppError(500, "Something went wrong");
+
+    fs.writeFileSync("./onedrive-access-token.token", response.data.access_token, "utf-8");
+    fs.writeFileSync("./onedrive-refresh-token.token", response.data.refresh_token, "utf-8");
+
+    return response.data;
+}
+
+async function generateAccessToken() {
+    const data = qs.stringify({
+        tenant: settings.tenantId,
+        client_id: settings.clientId,
+        device_code: `${fs.readFileSync("./onedrive-device-code.token", "utf-8")}`,
+        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+    });
+
+    const config = {
+        method: "post",
+        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/token`,
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data,
+    };
+    const response = await axios.post(config.url, config.data, {
+        headers: config.headers,
+    });
+
+    if (!response.data) throw new AppError(500, "Something went wrong");
+
+    fs.writeFileSync("./onedrive-access-token.token", response.data.access_token, "utf-8");
+    fs.writeFileSync("./onedrive-refresh-token.token", response.data.refresh_token, "utf-8");
+
+    return response.data;
+}
+
+export async function getRequest(url, headers) {
+    const config = {
+        method: "get",
+        url,
+        headers,
+    };
+
+    const response = await axios.get(config.url, {
+        headers: config.headers,
+    });
+
+    if (!response.data) throw new AppError(500, "Something went wrong");
+
+    return response.data;
+}
+
+export async function postRequest(url, headers, params) {
+    const data = qs.stringify(params);
+    const config = {
+        method: "post",
+        url,
+        headers,
+        data,
+    };
+
+    const response = await axios.post(config.url, config.data, {
+        headers: config.headers,
+    });
+
+    if (!response.data) throw new AppError(500, "Something went wrong");
+
+    return response.data;
+}

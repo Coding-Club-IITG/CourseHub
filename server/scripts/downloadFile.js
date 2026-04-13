@@ -1,4 +1,4 @@
-import { getAccessToken } from "../modules/onedrive/onedrive.routes.js";
+import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
 const encodeGraphShareUrl = (shareUrl) => {
     let base64;
   

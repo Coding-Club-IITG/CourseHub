@@ -1,5 +1,5 @@
 import fs from "fs";
-import { getAccessToken } from "../modules/onedrive/onedrive.routes.js";
+import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
 import axios from "axios";
 import { FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";

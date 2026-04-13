@@ -1,5 +1,5 @@
 import fs from "fs";
-import { getAccessToken, getRequest, postRequest, visitCourseById } from "../onedrive/onedrive.routes.js";
+import { getAccessToken, getRequest, postRequest, visitCourseById } from "../onedrive/onedrive.controller.js";
 import axios from "axios";
 
 export async function moveAllFolderFiles(fromFolderId, toFolderId) {
