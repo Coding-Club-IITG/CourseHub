@@ -4,6 +4,7 @@ import axios from "axios";
 import { FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
 import logger from "../utils/logger.js";
+import { logGraphError } from "../utils/graphError.js";
 
 const parent_item_id = process.env.ONEDRIVE_FOLDER_ID;
 
@@ -67,7 +68,7 @@ async function createUploadSession(folderId, fileName) {
         const { data } = await axios.post(url, {}, config);
         return { url: data?.uploadUrl, access_token };
     } catch (error) {
-        logger.error(error);
+        logGraphError(logger, error, "Failed to create Graph upload session");
         return false;
     }
 }
@@ -124,8 +125,7 @@ async function UploadFile(contributionId, filePath, fileName) {
         logger.info("File saved");
         return fileData._id;
     } catch (error) {
-        logger.error(error);
-        logger.error("Error uploading!");
+        logGraphError(logger, error, "Failed to upload file to Microsoft Graph");
         return null;
     }
 }
@@ -161,7 +161,7 @@ async function DeleteFile(fileId) {
             });
         }
     } catch (err) {
-        logger.error(err.response || err);
+        logGraphError(logger, err, "Failed to delete file from Microsoft Graph");
     }
 }
 

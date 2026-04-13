@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import AppError from "./utils/appError.js";
 import logger from "./utils/logger.js";
+import { extractGraphErrorDetails, isGraphError } from "./utils/graphError.js";
 import config from "./config/default.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
@@ -73,8 +74,27 @@ app.use(
 
 // Error handler
 app.use((err, req, res, next) => {
-    logger.error(err.message);
-    console.log(err);
+    if (isGraphError(err)) {
+        const details = err.graphDetails || extractGraphErrorDetails(err);
+        logger.error(
+            {
+                graph: details,
+                route: req.originalUrl,
+                method: req.method,
+            },
+            "Microsoft Graph request failed"
+        );
+    } else {
+        logger.error(
+            {
+                message: err.message,
+                route: req.originalUrl,
+                method: req.method,
+            },
+            "Unhandled request error"
+        );
+    }
+
     const { status = 500, message = "Something went wrong!" } = err;
     return res.status(status).json({
         error: true,

@@ -1,70 +1,105 @@
 import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
+import logger from "../utils/logger.js";
+import { extractGraphErrorDetails, formatGraphErrorMessage } from "../utils/graphError.js";
 const encodeGraphShareUrl = (shareUrl) => {
     let base64;
-  
-  if (typeof Buffer !== 'undefined') {
-    // Node.js environment
-    base64 = Buffer.from(shareUrl, "utf8").toString("base64");
-  } else {
-    // Browser environment
-    base64 = btoa(shareUrl);
-  }
+    if (typeof Buffer !== "undefined") {
+        // Node.js environment
+        base64 = Buffer.from(shareUrl, "utf8").toString("base64");
+    } else {
+        // Browser environment
+        base64 = btoa(shareUrl);
+    }
 
-  console.log(`u!${base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`);
-  
-  return `u!${base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
+    return `u!${base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
 };
 
+export const downloadFiles = async (req, res) => {
+    const access = await getAccessToken();
+    const endpoint = "https://graph.microsoft.com/v1.0/shares/{encoded}/driveItem";
 
-
- export const downloadFiles = async (req, res) => {
-   const access = await getAccessToken();
-  try {
-    const inputUrl = req.body?.url;
-    if (!inputUrl) {
-      return res.status(400).json({ error: "Please provide a SharePoint/OneDrive share URL in request body as `url`." });
-    }
-
-    const encoded = encodeGraphShareUrl(inputUrl);
-    console.log("Encoded URL:", encoded);
-
-    // IMPORTANT: await the fetch so `response` is a Response object
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/shares/${encoded}/driveItem`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${access}`
+    try {
+        const inputUrl = req.body?.url;
+        if (!inputUrl) {
+            return res
+                .status(400)
+                .json({ error: "Please provide a SharePoint/OneDrive share URL in request body as `url`." });
         }
-      }
-    );
 
-    // check for HTTP errors
-    if (!response.ok) {
-      const text = await response.text().catch(() => null);
-      console.error("Graph API returned error:", response.status, response.statusText, text);
-      return res.status(502).json({ error: "Failed to fetch from Microsoft Graph", status: response.status, detail: text });
+        const encoded = encodeGraphShareUrl(inputUrl);
+        const resolvedEndpoint = endpoint.replace("{encoded}", encoded);
+
+        const response = await fetch(resolvedEndpoint, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+        });
+
+        if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            let parsedPayload = text;
+            try {
+                parsedPayload = text ? JSON.parse(text) : text;
+            } catch {
+                parsedPayload = text;
+            }
+
+            const details = extractGraphErrorDetails({
+                config: { method: "get", url: resolvedEndpoint },
+                response: {
+                    status: response.status,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    data: parsedPayload,
+                },
+            });
+
+            logger.error({ graph: details }, "Graph share lookup failed");
+            return res.status(502).json({
+                error: "Failed to fetch file details from Microsoft Graph",
+                status: details.status,
+                code: details.code,
+                detail: details.message,
+                requestId: details.requestId,
+            });
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+            const details = extractGraphErrorDetails({
+                config: { method: "get", url: resolvedEndpoint },
+                response: { status: 502, data },
+            });
+            logger.error({ graph: details }, "Graph returned an error payload");
+
+            return res.status(502).json({
+                error: "Microsoft Graph responded with an error",
+                detail: details.message,
+                code: details.code,
+                requestId: details.requestId,
+            });
+        }
+
+        const downloadLink = data["@microsoft.graph.downloadUrl"];
+        if (!downloadLink) {
+            logger.error(
+                {
+                    graph: {
+                        endpoint: resolvedEndpoint,
+                        message: "Missing @microsoft.graph.downloadUrl in Graph response",
+                    },
+                },
+                "Graph response missing download URL"
+            );
+
+            return res.status(500).json({ error: "No download link found in Graph response." });
+        }
+
+        return res.status(200).json({ downloadLink });
+    } catch (err) {
+        const details = extractGraphErrorDetails(err);
+        logger.error({ graph: details }, formatGraphErrorMessage(details, "Unexpected Graph download error"));
+        return res.status(500).json({ error: "Internal server error", detail: details.message });
     }
-
-    // parse JSON (this works because the Graph endpoint returns JSON metadata)
-    const data = await response.json();
-
-    if (data.error) {
-      console.error("Error object from Graph:", data.error);
-      return res.status(502).json({ error: "Microsoft Graph responded with an error", detail: data.error });
-    }
-
-    const downloadLink = data["@microsoft.graph.downloadUrl"];
-    if (!downloadLink) {
-      console.error("No download link found in Graph response:", data);
-      return res.status(500).json({ error: "No download link found in Graph response." });
-    }
-
-    // Return the direct download link (or you can proxy the file by fetching downloadLink)
-    return res.status(200).json({ downloadLink });
-
-  } catch (err) {
-    console.error("Unexpected error in downloadFiles:", err);
-    return res.status(500).json({ error: "Internal server error", detail: err?.message ?? err });
-  }
 };

@@ -3,6 +3,7 @@ import qs from "querystring";
 import AppError from "../../utils/appError.js";
 import settings from "../../config/onedrive.js";
 import fs from "fs";
+import { extractGraphErrorDetails, formatGraphErrorMessage } from "../../utils/graphError.js";
 
 import CourseModel, { FolderModel, FileModel } from "../course/course.model.js";
 import SearchResults from "../search/search.model.js";
@@ -350,13 +351,23 @@ export async function getRequest(url, headers) {
         headers,
     };
 
-    const response = await axios.get(config.url, {
-        headers: config.headers,
-    });
+    try {
+        const response = await axios.get(config.url, {
+            headers: config.headers,
+        });
 
-    if (!response.data) throw new AppError(500, "Something went wrong");
+        if (!response.data) throw new AppError(500, "Something went wrong");
 
-    return response.data;
+        return response.data;
+    } catch (error) {
+        const details = extractGraphErrorDetails(error);
+        const appError = new AppError(
+            details.status || 502,
+            formatGraphErrorMessage(details, "Microsoft Graph GET request failed")
+        );
+        appError.graphDetails = details;
+        throw appError;
+    }
 }
 
 export async function postRequest(url, headers, params) {
@@ -368,11 +379,21 @@ export async function postRequest(url, headers, params) {
         data,
     };
 
-    const response = await axios.post(config.url, config.data, {
-        headers: config.headers,
-    });
+    try {
+        const response = await axios.post(config.url, config.data, {
+            headers: config.headers,
+        });
 
-    if (!response.data) throw new AppError(500, "Something went wrong");
+        if (!response.data) throw new AppError(500, "Something went wrong");
 
-    return response.data;
+        return response.data;
+    } catch (error) {
+        const details = extractGraphErrorDetails(error);
+        const appError = new AppError(
+            details.status || 502,
+            formatGraphErrorMessage(details, "Microsoft Graph POST request failed")
+        );
+        appError.graphDetails = details;
+        throw appError;
+    }
 }
