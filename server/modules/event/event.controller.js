@@ -1,4 +1,4 @@
-import EventModel, { mobileUpdateModel } from "./event.model.js";
+import EventModel from "./event.model.js";
 import AppError from "../../utils/appError.js";
 
 async function GetExamDates(req, res, next) {
@@ -9,16 +9,10 @@ async function GetExamDates(req, res, next) {
     return res.json({ dates: examDates.otherDates });
 }
 
-async function GetLatestMobileVersion(req, res, next) {
-    const { platform } = req.params;
-    const updateDetails = await mobileUpdateModel.findOne({ platform: platform });
-    return res.json({ details: updateDetails });
-}
-
 async function CreateEvent(req, res) {
     const content = req.body;
     const event = await EventModel.create(content);
     return res.status(201).json({ event });
 }
 
-export default { GetExamDates, GetLatestMobileVersion, CreateEvent };
+export default { GetExamDates, CreateEvent };
