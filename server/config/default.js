@@ -9,5 +9,4 @@ export default {
     jwtSecret: process.env.JWT_SECRET,
     adminJwtSecret: process.env.ADMIN_JWT_SECRET,
     localApiBaseUrl: process.env.API_BASE_URL,
-    coursehubMobileRedirect: process.env.COURSEHUB_MOBILE_REDIRECT,
 };
