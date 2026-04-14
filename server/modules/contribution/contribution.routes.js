@@ -5,7 +5,7 @@ import catchAsync from "../../utils/catchAsync.js";
 import isAuthenticated from "../../middleware/isAuthenticated.js";
 import multer from "multer";
 
-export const upload = multer({ dest: "external/contributions" });
+export const upload = multer({ dest: "external/uploads" });
 router.get("/", isAuthenticated, ContributionController.GetMyContributions);
 router.get("/all", ContributionController.GetAllContributions);
 router.delete("/:contributionId", ContributionController.DeleteContribution);

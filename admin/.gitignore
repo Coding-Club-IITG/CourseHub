@@ -12,7 +12,9 @@ dist
 dist-ssr
 *.local
 package-lock.json
-src/apis/server.js
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*
