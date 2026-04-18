@@ -4,11 +4,15 @@ import AppError from "../../utils/appError.js";
 import settings from "../../config/onedrive.js";
 import fs from "fs";
 import { extractGraphErrorDetails, formatGraphErrorMessage } from "../../utils/graphError.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 
 import CourseModel, { FolderModel, FileModel } from "../course/course.model.js";
 import SearchResults from "../search/search.model.js";
 
 const coursehub_id = process.env.ONEDRIVE_FOLDER_ID;
+
+const getCourseCodeFromFolderName = (name) => normalizeCourseCode(name?.split("-")[0]);
+const getCourseNameFromFolderName = (name) => name?.split("-")[1]?.trim() || "";
 
 export async function generateDeviceCode(req, res) {
     const data = qs.stringify({
@@ -154,37 +158,39 @@ async function visitAllFiles() {
     const data = await getRequest(url, headers);
     const children = data.value;
     const folders = children.map(async (child) => {
-        const folder_data = await visitFolder(child, child.name.toLowerCase());
+        const folder_data = await visitFolder(child, child.name);
         return folder_data;
     });
     const resolved_folders = await Promise.all(folders);
-    resolved_folders.map(async (folder) => {
+    await Promise.all(resolved_folders.map(async (folder) => {
+        const courseCode = getCourseCodeFromFolderName(folder.name);
+        const courseName = getCourseNameFromFolderName(folder.name);
         await CourseModel.create({
-            name: folder.name.split("-")[1].trim().toLowerCase(),
-            code: folder.name.split("-")[0].trim().toLowerCase(),
+            name: courseName,
+            code: courseCode,
             children: folder.children,
         });
-        const searchDocument = await SearchResults.find({
-            code: folder.name.split("-")[0].trim().toLowerCase(),
+        const searchDocument = await SearchResults.findOne({
+            code: getCourseCodeCaseInsensitiveRegex(courseCode),
         });
         console.log(searchDocument);
         if (!searchDocument) {
             await SearchResults.create({
-                name: folder.name.split("-")[1].trim().toLowerCase(),
-                code: folder.name.split("-")[0].trim().toLowerCase(),
+                name: courseName,
+                code: courseCode,
                 isAvailable: true,
             });
             console.log("Created", folder.name);
         } else {
             await SearchResults.updateOne(
-                { code: folder.name.split("-")[0].trim().toLowerCase() },
+                { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
                 {
                     isAvailable: true,
                 }
             );
             console.log("Updated", folder.name);
         }
-    });
+    }));
     return "ok";
 }
 
@@ -199,26 +205,28 @@ export async function visitCourseById(id) {
     const children = data.value;
     const required_course = children.find((course) => course.id === id);
     if (!required_course) throw new AppError(404, "Not Found!");
-    const folder_data = await visitFolder(required_course, required_course.name.toLowerCase());
+    const folder_data = await visitFolder(required_course, required_course.name);
+    const courseCode = getCourseCodeFromFolderName(required_course.name);
+    const courseName = getCourseNameFromFolderName(required_course.name);
 
     await CourseModel.create({
-        name: required_course.name.split("-")[1].trim().toLowerCase(),
-        code: required_course.name.split("-")[0].trim().toLowerCase(),
+        name: courseName,
+        code: courseCode,
         children: folder_data.children,
     });
     const searchDocument = await SearchResults.findOne({
-        code: required_course.name.split("-")[0].trim().toLowerCase(),
+        code: getCourseCodeCaseInsensitiveRegex(courseCode),
     });
     if (!searchDocument) {
         await SearchResults.create({
-            name: required_course.name.split("-")[1].trim().toLowerCase(),
-            code: required_course.name.split("-")[0].trim().toLowerCase(),
+            name: courseName,
+            code: courseCode,
             isAvailable: true,
         });
         console.log("Created", required_course.name);
     } else {
         await SearchResults.updateOne(
-            { code: required_course.name.split("-")[0].trim().toLowerCase() },
+            { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
             {
                 isAvailable: true,
             }
@@ -238,6 +246,7 @@ async function visitFolder(folder, currCourse, prevFolder) {
     const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folder.id}/children?$expand=thumbnails`;
     const data = await getRequest(url, headers);
     const children = data.value;
+    const normalizedCourseCode = getCourseCodeFromFolderName(currCourse);
     let childType = "File";
 
     const folders = children.map(async function (child) {
@@ -245,18 +254,18 @@ async function visitFolder(folder, currCourse, prevFolder) {
             const prevFolderName = prevFolder ? `${prevFolder}/` : "";
             const passName = prevFolderName + folder.name;
             childType = "Folder";
-            const nestedData = await visitFolder(child, currCourse, passName);
+            const nestedData = await visitFolder(child, normalizedCourseCode, passName);
             return nestedData;
         }
 
-        const fileData = await visitFile(child, currCourse);
+        const fileData = await visitFile(child, normalizedCourseCode);
         return fileData;
     });
 
     const res = await Promise.all(folders);
     const prevFolderName = prevFolder ? `${prevFolder}/` : "root/";
     const NewFolder = await FolderModel.create({
-        course: currCourse.split("-")[0].trim().toLowerCase(),
+        course: normalizedCourseCode,
         name: folder.name,
         childType,
         children: res,
@@ -268,7 +277,7 @@ async function visitFolder(folder, currCourse, prevFolder) {
 
 async function visitFile(file, currCourse) {
     const NewFile = await FileModel.create({
-        course: currCourse,
+        course: normalizeCourseCode(currCourse),
         name: file.name,
         id: file.id,
         size: file.size * 0.000001,

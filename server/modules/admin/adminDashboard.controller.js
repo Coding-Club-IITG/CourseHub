@@ -6,6 +6,7 @@ import User from "../user/user.model.js";
 import UserUpdate from "../user/userUpdate.model.js";
 import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -29,9 +30,9 @@ export async function uploadCourses(req, res, next) {
                 await Promise.all(
                     results.map(async ({ code, name }) => {
                         if (!code || !name) return null;
-                        const codeUpper = code.trim().toUpperCase();
+                        const codeUpper = normalizeCourseCode(code);
                         let course = await CourseModel.findOne({
-                            code: new RegExp(`^${codeUpper}$`, "i"),
+                            code: getCourseCodeCaseInsensitiveRegex(codeUpper),
                         });
                         if (!course) {
                             course = await CourseModel.create({ code: codeUpper, name });
@@ -61,56 +62,70 @@ export async function renameCourse(req, res, next) {
         return next(new AppError(400, "Name required"));
     }
 
-    const codeUpper = code.trim().toUpperCase();
+    const codeUpper = normalizeCourseCode(code);
+    if (!codeUpper) {
+        return next(new AppError(400, "Course code required"));
+    }
+    const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
 
     // If a newCode is provided, check for conflicts (case-insensitive, trimmed)
     if (newCode) {
-        const newCodeUpper = newCode.trim().toUpperCase();
+        const newCodeUpper = normalizeCourseCode(newCode);
         // If the new code is different from the current code, ensure it doesn't already exist
         if (newCodeUpper !== codeUpper) {
-            const conflict = await CourseModel.findOne({ code: newCodeUpper });
+            const conflict = await CourseModel.findOne({
+                code: getCourseCodeCaseInsensitiveRegex(newCodeUpper),
+            });
             if (conflict) {
                 return next(new AppError(400, "Course code already exists"));
             }
 
             // 1. Update all folders with the old code to use the new code
-            const foldersToUpdate = await FolderModel.find({ course: codeUpper });
+            const foldersToUpdate = await FolderModel.find({ course: codeRegex });
             const folderUpdateResult = await FolderModel.updateMany(
-                { course: codeUpper },
+                { course: codeRegex },
                 { course: newCodeUpper }
             );
 
             // 2. Update all users' courses that have the old course code
-            const usersWithCourses = await User.find({ "courses.code": codeUpper });
+            const usersWithCourses = await User.find({
+                "courses.code": { $regex: `^${codeUpper}$`, $options: "i" },
+            });
             const courseUpdateResult = await User.updateMany(
-                { "courses.code": codeUpper },
+                { "courses.code": { $regex: `^${codeUpper}$`, $options: "i" } },
                 { $set: { "courses.$.code": newCodeUpper } }
             );
 
-            const usersWithPreviousCourses = await User.find({ "previousCourses.code": codeUpper });
+            const usersWithPreviousCourses = await User.find({
+                "previousCourses.code": { $regex: `^${codeUpper}$`, $options: "i" },
+            });
             const previousCourseUpdateResult = await User.updateMany(
-                { "previousCourses.code": codeUpper },
+                { "previousCourses.code": { $regex: `^${codeUpper}$`, $options: "i" } },
                 { $set: { "previousCourses.$.code": newCodeUpper } }
             );
 
-            const usersWithReadOnly = await User.find({ "readOnly.code": codeUpper });
+            const usersWithReadOnly = await User.find({
+                "readOnly.code": { $regex: `^${codeUpper}$`, $options: "i" },
+            });
             const readOnlyUpdateResult = await User.updateMany(
-                { "readOnly.code": codeUpper },
+                { "readOnly.code": { $regex: `^${codeUpper}$`, $options: "i" } },
                 { $set: { "readOnly.$.code": newCodeUpper } }
             );
 
             // 3. Update all contributions with the old course code
-            const contributionsToUpdate = await Contribution.find({ courseCode: codeUpper });
+            const contributionsToUpdate = await Contribution.find({
+                courseCode: getCourseCodeCaseInsensitiveRegex(codeUpper),
+            });
             const contributionUpdateResult = await Contribution.updateMany(
-                { courseCode: codeUpper },
+                { courseCode: getCourseCodeCaseInsensitiveRegex(codeUpper) },
                 { courseCode: newCodeUpper }
             );
         }
     }
 
     const course = await CourseModel.findOneAndUpdate(
-        { code: codeUpper },
-        { name, code: newCode ? newCode.trim().toUpperCase() : codeUpper },
+        { code: codeRegex },
+        { name, code: newCode ? normalizeCourseCode(newCode) : codeUpper },
         { new: true }
     );
     if (!course) {
@@ -137,9 +152,13 @@ export async function renameCourse(req, res, next) {
 
     const users = await User.find({
         $or: [
-            { courses: { $elemMatch: { code: codeUpper } } },
-            { previousCourses: { $elemMatch: { code: codeUpper } } },
-            { readOnly: { $elemMatch: { code: codeUpper } } },
+            { courses: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
+            {
+                previousCourses: {
+                    $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } },
+                },
+            },
+            { readOnly: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
         ],
     });
 
@@ -169,11 +188,15 @@ export async function deleteCourse(req, res, next) {
         return next(new AppError(400, "Course code required"));
     }
 
-    const codeUpper = code.trim().toUpperCase();
+    const codeUpper = normalizeCourseCode(code);
+    if (!codeUpper) {
+        return next(new AppError(400, "Course code required"));
+    }
+    const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
 
     try {
         // Find the course first
-        const course = await CourseModel.findOne({ code: codeUpper });
+        const course = await CourseModel.findOne({ code: codeRegex });
         if (!course) {
             return next(new AppError(404, "Course not found"));
         }
@@ -181,22 +204,24 @@ export async function deleteCourse(req, res, next) {
         // Find all users who have this course and remove it from their lists
         const users = await User.find({
             $or: [
-                { courses: { $elemMatch: { code: codeUpper } } },
-                { previousCourses: { $elemMatch: { code: codeUpper } } },
-                { readOnly: { $elemMatch: { code: codeUpper } } },
+                { courses: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
+                { previousCourses: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
+                { readOnly: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
             ],
         });
 
         // Remove the course from each user's lists
         for (const user of users) {
             // Remove from courses array
-            user.courses = user.courses.filter((c) => c.code !== codeUpper);
+            user.courses = user.courses.filter((c) => normalizeCourseCode(c.code) !== codeUpper);
 
             // Remove from previousCourses array
-            user.previousCourses = user.previousCourses.filter((c) => c.code !== codeUpper);
+            user.previousCourses = user.previousCourses.filter(
+                (c) => normalizeCourseCode(c.code) !== codeUpper
+            );
 
             // Remove from readOnly array
-            user.readOnly = user.readOnly.filter((c) => c.code !== codeUpper);
+            user.readOnly = user.readOnly.filter((c) => normalizeCourseCode(c.code) !== codeUpper);
 
             await user.save();
 
@@ -205,10 +230,8 @@ export async function deleteCourse(req, res, next) {
         }
 
         // Delete all associated folders and files
-        const codeLower = codeUpper.toLowerCase();
-
         // Find all folders associated with this course
-        const courseFolders = await FolderModel.find({ course: codeLower }).populate("children");
+        const courseFolders = await FolderModel.find({ course: codeRegex }).populate("children");
 
         // Process folders that contain files first
         for (const folder of courseFolders) {
@@ -233,19 +256,19 @@ export async function deleteCourse(req, res, next) {
         }
 
         // Now delete all folders associated with this course
-        await FolderModel.deleteMany({ course: codeLower });
+        await FolderModel.deleteMany({ course: codeRegex });
 
         // Delete all contributions related to this course
-        const contributionsDeleted = await Contribution.deleteMany({ courseCode: codeUpper });
+        const contributionsDeleted = await Contribution.deleteMany({ courseCode: codeRegex });
 
         // Update search results to mark course as unavailable
-        const searchResult = await SearchResults.findOne({ code: codeLower });
+        const searchResult = await SearchResults.findOne({ code: codeRegex });
         if (searchResult) {
-            await SearchResults.updateOne({ code: codeLower }, { isAvailable: false });
+            await SearchResults.updateOne({ code: codeRegex }, { isAvailable: false });
         }
 
         // Finally, delete the course from the database
-        await CourseModel.deleteOne({ code: codeUpper });
+        await CourseModel.deleteOne({ code: codeRegex });
 
         res.json({
             message: "Course deleted successfully",

@@ -6,6 +6,7 @@ import {
     isCourseUpdated,
 } from "./course.controller.js";
 import CourseModel from "./course.model.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 const router = express.Router();
 
 import catchAsync from "../../utils/catchAsync.js";
@@ -14,15 +15,22 @@ router.post("/create/:code", async (req, res) => {
     try {
         const { code } = req.params;
         const { name } = req.body;
+        const normalizedCode = normalizeCourseCode(code);
 
-        const existingCourse = await CourseModel.findOne({ code: code.toUpperCase() });
+        if (!normalizedCode) {
+            return res.status(400).json({ message: "Invalid course code" });
+        }
+
+        const existingCourse = await CourseModel.findOne({
+            code: getCourseCodeCaseInsensitiveRegex(normalizedCode),
+        });
 
         if (existingCourse) {
             return res.status(200).json({ message: "Course already exists" });
         }
 
         const newCourse = new CourseModel({
-            code: code.toUpperCase(),
+            code: normalizedCode,
             name,
             children: [],
             metadata: {},

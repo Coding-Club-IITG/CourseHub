@@ -13,6 +13,12 @@ import {
 } from "./admin.utils.js";
 import fs from "fs";
 import csv from "csv-parser";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+
+const buildCourseFilePrefixMatcher = (code) => ({
+    $regex: `^${normalizeCourseCode(code)}\\s-\\s`,
+    $options: "i",
+});
 
 async function createAdmin(req, res, next) {
     const { body } = req;
@@ -41,29 +47,32 @@ async function getDBCourses(req, res, next) {
 }
 
 async function deleteCourseByCode(req, res, next) {
-    let { code } = req.params;
-    code = code.replaceAll(" ", "");
-    const search = await SearchResults.findOne({ code: code.toLowerCase() });
+    const normalizedCode = normalizeCourseCode(req.params.code);
+    if (!normalizedCode) return next(new AppError(400, "invalid course code"));
+    const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(normalizedCode);
+
+    const search = await SearchResults.findOne({ code: courseCodeRegex });
     if (!search) return next(new AppError(400, "invalid course code"));
-    await CourseModel.deleteOne({ code: code.toLowerCase() });
-    await FolderModel.deleteMany({ course: code.toLowerCase() });
-    await FileModel.deleteMany({ course: `${code.toLowerCase()} - ${search.name.toLowerCase()}` });
-    await SearchResults.updateOne({ code: code.toLowerCase() }, { isAvailable: false });
+    await CourseModel.deleteOne({ code: courseCodeRegex });
+    await FolderModel.deleteMany({ course: courseCodeRegex });
+    await FileModel.deleteMany({ course: buildCourseFilePrefixMatcher(normalizedCode) });
+    await SearchResults.updateOne({ code: courseCodeRegex }, { isAvailable: false });
     return res.json({ deleted: true });
 }
 
 async function makeCourseById(req, res, next) {
     let { body } = req;
     let { id, code } = body;
-    code = code.replaceAll(" ", "");
-    const search = await SearchResults.findOne({ code: code.toLowerCase() });
+    const normalizedCode = normalizeCourseCode(code);
+    if (!normalizedCode) return next(new AppError(400, "invalid course code"));
+    const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(normalizedCode);
+
+    const search = await SearchResults.findOne({ code: courseCodeRegex });
     if (search) {
-        await CourseModel.deleteOne({ code: code.toLowerCase() });
-        await FolderModel.deleteMany({ course: code.toLowerCase() });
-        await FileModel.deleteMany({
-            course: `${code.toLowerCase()} - ${search.name.toLowerCase()}`,
-        });
-        await SearchResults.updateOne({ code: code }, { isAvailable: false });
+        await CourseModel.deleteOne({ code: courseCodeRegex });
+        await FolderModel.deleteMany({ course: courseCodeRegex });
+        await FileModel.deleteMany({ course: buildCourseFilePrefixMatcher(normalizedCode) });
+        await SearchResults.updateOne({ code: courseCodeRegex }, { isAvailable: false });
     }
     await visitCourseById(id);
     return res.json({ created: true });
@@ -72,7 +81,9 @@ async function makeCourseById(req, res, next) {
 async function uploadToFolder(req, res, next) {
     let { body } = req;
     let { contributionId, toFolderId, courseCode } = body;
-    courseCode = courseCode.replaceAll(" ", "");
+    courseCode = normalizeCourseCode(courseCode);
+    if (!courseCode) return next(new AppError(400, "invalid course code"));
+    const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(courseCode);
     const _fromFolderId = await getFolderIdByName(contributionId);
 
     const resp = await moveAllFolderFiles(_fromFolderId, toFolderId);
@@ -80,17 +91,16 @@ async function uploadToFolder(req, res, next) {
     const allCourses = await getAllCourseIds();
 
     const courseIdObj = allCourses.find(
-        (course) => course.name.split("-")[0].trim().toLowerCase() === courseCode.toLowerCase()
+        (course) => normalizeCourseCode(course.name.split("-")[0].trim()) === courseCode
     );
+    if (!courseIdObj) return next(new AppError(404, "Course not found in OneDrive"));
     const courseId = courseIdObj.id;
-    const search = await SearchResults.findOne({ code: courseCode.toLowerCase() });
+    const search = await SearchResults.findOne({ code: courseCodeRegex });
     if (search) {
-        await CourseModel.deleteOne({ code: courseCode.toLowerCase() });
-        await FolderModel.deleteMany({ course: courseCode.toLowerCase() });
-        await FileModel.deleteMany({
-            course: `${courseCode.toLowerCase()} - ${search.name.toLowerCase()}`,
-        });
-        await SearchResults.updateOne({ code: courseCode.toLowerCase() }, { isAvailable: false });
+        await CourseModel.deleteOne({ code: courseCodeRegex });
+        await FolderModel.deleteMany({ course: courseCodeRegex });
+        await FileModel.deleteMany({ course: buildCourseFilePrefixMatcher(courseCode) });
+        await SearchResults.updateOne({ code: courseCodeRegex }, { isAvailable: false });
     }
     await visitCourseById(courseId);
     await Contribution.updateOne({ contributionId: contributionId }, { approved: true });
@@ -98,9 +108,9 @@ async function uploadToFolder(req, res, next) {
 }
 
 async function getCourseFolder(req, res, next) {
-    let { code } = req.params;
-    code = code.replaceAll(" ", "");
-    const existingCourse = await CourseModel.findOne({ code: code.toLowerCase() })
+    const code = normalizeCourseCode(req.params.code);
+    if (!code) return next(new AppError(400, "invalid course code"));
+    const existingCourse = await CourseModel.findOne({ code: getCourseCodeCaseInsensitiveRegex(code) })
         .populate({
             path: "children",
             select: "-__v",

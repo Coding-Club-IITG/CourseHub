@@ -16,6 +16,7 @@ import User from "../user/user.model.js";
 
 import academic from "../../config/academic.js";
 import courselist from "../course/course.list.js";
+import { getCourseCodeCaseInsensitiveRegex, normalizeCourseCode } from "../../utils/course.js";
 
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import UserUpdate from "../user/userUpdate.model.js";
@@ -48,7 +49,7 @@ function parseCoursesFromHtml(htmlData, rollNumber) {
         const rawCode = details.eq(3).text();
         
         if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-            const normalizedCode = rawCode.replace(/\s+/g, "").toUpperCase();
+            const normalizedCode = normalizeCourseCode(rawCode);
             courseCodes.push({
                 original: rawCode,
                 normalized: normalizedCode,
@@ -70,9 +71,8 @@ async function resolveCourseNames(courseCodes, dbCourses) {
         
         const dbCourse = dbCourses.find(
             (course) =>
-                course.code === normalized ||
-                course.code === original ||
-                course.code.replace(/\s+/g, "").toUpperCase() === normalized
+                normalizeCourseCode(course.code) === normalized ||
+                normalizeCourseCode(course.code) === normalizeCourseCode(original)
         );
         
         const name = dbCourse?.name || courselist[normalized] || courselist[original];
@@ -116,9 +116,11 @@ export const fetchCourses = async (rollNumber) => {
     
     const CourseModel = (await import("../course/course.model.js")).default;
     const allCodes = [
-        ...courseCodes.map((c) => c.normalized),
-        ...courseCodes.map((c) => c.original),
-    ];
+        ...courseCodes.map((c) => normalizeCourseCode(c.normalized)),
+        ...courseCodes.map((c) => normalizeCourseCode(c.original)),
+    ]
+        .filter(Boolean)
+        .map(getCourseCodeCaseInsensitiveRegex);
     const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
     
     const courses = await resolveCourseNames(courseCodes, dbCourses);
@@ -200,9 +202,11 @@ export const fetchCoursesForBr = async (rollNumber) => {
     const CourseModel = (await import("../course/course.model.js")).default;
     const allCourseCodesFlat = courseCodes.flatMap((c) => c.codes);
     const allCodes = [
-        ...allCourseCodesFlat.map((c) => c.normalized),
-        ...allCourseCodesFlat.map((c) => c.original),
-    ];
+        ...allCourseCodesFlat.map((c) => normalizeCourseCode(c.normalized)),
+        ...allCourseCodesFlat.map((c) => normalizeCourseCode(c.original)),
+    ]
+        .filter(Boolean)
+        .map(getCourseCodeCaseInsensitiveRegex);
     const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
 
     const previousCourses = [];

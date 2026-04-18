@@ -4,6 +4,7 @@ import { addToFavourites, removeFromFavourites, AddNewCourse , AddReadOnlyCourse
 import { updateUserData } from "./user.model.js";
 import UserUpdate from "./userUpdate.model.js";
 import BR from "../br/br.model.js";
+import { normalizeCourseCode } from "../../utils/course.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
@@ -88,7 +89,7 @@ export const addToFavouriteController = async (req, res, next) => {
         data.name,
         data.id,
         data.path,
-        data.code
+        normalizeCourseCode(data.code)
     );
     return res.status(200).json(updatedUser);
 };
@@ -96,7 +97,7 @@ export const addNewCourse = async (req, res, next) => {
     const data = req.body;
     if (!data.code || !data.name) return res.sendStatus(400);
 
-    const updatedUser = await AddNewCourse(req.user._id, data.code, data.name);
+    const updatedUser = await AddNewCourse(req.user._id, normalizeCourseCode(data.code), data.name);
     return res.status(200).json(updatedUser);
 };
 
@@ -104,14 +105,18 @@ export const addReadOnly = async (req, res, next) => {
     const data = req.body;
     if (!data.code || !data.name) return res.sendStatus(400);
 
-    const updatedUser = await AddReadOnlyCourse(req.user._id, data.code, data.name);
+    const updatedUser = await AddReadOnlyCourse(
+        req.user._id,
+        normalizeCourseCode(data.code),
+        data.name
+    );
     return res.status(200).json(updatedUser);
 };
 
 export const deleteCourse = async (req, res, next) => {
     const { code } = req.params;
     if (!code) return res.sendStatus(400);
-    const updatedUser = await RemoveCourse(req.user._id, code);
+    const updatedUser = await RemoveCourse(req.user._id, normalizeCourseCode(code));
 
     return res.status(200).json(updatedUser);
 };
@@ -119,7 +124,7 @@ export const deleteCourse = async (req, res, next) => {
 export const deleteReadOnly = async (req, res, next) => {
     const { code } = req.params;
     if (!code) return res.sendStatus(400);
-    const updatedUser = await RemoveReadOnly(req.user._id, code);
+    const updatedUser = await RemoveReadOnly(req.user._id, normalizeCourseCode(code));
 
     return res.status(200).json(updatedUser);
 };
