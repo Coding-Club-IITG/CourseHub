@@ -3,6 +3,7 @@ import CourseModel, { FolderModel, FileModel } from "./course.model.js";
 import logger from "../../utils/logger.js";
 import SearchResults from "../search/search.model.js";
 import courselist from "./course.list.js";
+import { bootstrapCourseFolders } from "./course.service.js";
 
 const COURSE_CHILDREN_POPULATE_DEPTH = 5;
 
@@ -24,12 +25,17 @@ const buildChildrenPopulate = (depth) => {
 };
 
 const createCourse = async (code) => {
-    const course = CourseModel.create({
-        code: code.toUpperCase().replaceAll(" ", ""),
+    const normalizedCode = code.toUpperCase().replaceAll(" ", "");
+    const course = await CourseModel.create({
+        code: normalizedCode.toUpperCase(), // Ensure uppercase as per other logic
         name: courselist[code.slice(0, 2) + " " + code.slice(-3)] || "Name Unavailable",
         children: [],
         books: [],
     });
+
+    // Bootstrap folders
+    await bootstrapCourseFolders(course.code);
+
     return course;
 };
 
@@ -38,7 +44,7 @@ export const getCourse = async (req, res, next) => {
     logger.info(`GET /course/${code}`);
 
     if (!code) throw new AppError(400, "Missing Course Id");
-    let course = await CourseModel.findOne({ code: code })
+    let course = await CourseModel.findOne({ code: code.toUpperCase() })
         .populate(buildChildrenPopulate(COURSE_CHILDREN_POPULATE_DEPTH))
         .select("-__v");
 
@@ -59,12 +65,12 @@ export const getCourse = async (req, res, next) => {
 export const deleteCourseByCode = async (req, res, next) => {
     const { code } = req.params;
     if (!code) throw new AppError(400, "Missing Course Id");
-    const search = await SearchResults.findOne({ code: code.toLowerCase() });
-    await FolderModel.deleteMany({ course: code.toLowerCase() });
+    const search = await SearchResults.findOne({ code: code.toUpperCase() });
+    await FolderModel.deleteMany({ course: code.toUpperCase() });
     await FileModel.deleteMany({
-        course: `${code.toLowerCase()} - ${search.modelName.toLowerCase()}`,
+        course: `${code.toUpperCase()} - ${search.modelName.toLowerCase()}`,
     });
-    await CourseModel.deleteOne({ code: code.toLowerCase() });
+    await CourseModel.deleteOne({ code: code.toUpperCase() });
     res.sendStatus(200);
 };
 
