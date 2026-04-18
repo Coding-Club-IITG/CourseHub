@@ -121,68 +121,6 @@ async function DeleteContribution(req, res, next) {
     res.json({ deleted: true });
 }
 
-async function MobileFileUploadHandler(req, res, next) {
-    const payloadSchema = {
-        contributionId: Joi.string().required(),
-        uploadedBy: Joi.string().required(),
-        courseCode: Joi.string().required(),
-        parentFolder: Joi.string().required(),
-        approved: Joi.bool(),
-        description: Joi.string().required(),
-        isAnonymous: Joi.boolean().required(),
-    };
-    const data = req.body;
-
-    const valid = validatePayload(payloadSchema, data);
-    if (valid.error) {
-        return next(new AppError(400, valid.error));
-    }
-
-    const contributionId = data.contributionId;
-    const files = req.files ? req.files : req.file ? [req.file] : [];
-
-    if (!files.length) {
-        return res.status(400).json({ error: "No files were uploaded" });
-    }
-
-    const newContribution = await ContributionCreation(data.contributionId, data);
-    const uploadedFiles = [];
-
-    for (const file of files) {
-        const initialPath = file.path;
-        const newFilename = file.filename;
-        const originalFilename = file.originalname;
-
-        const wordArr = originalFilename.split(".");
-        const fileExtension = wordArr[wordArr.length - 1];
-        let finalFileName = "";
-
-        for (let i = 0; i < wordArr.length - 1; i++) {
-            finalFileName += wordArr[i];
-        }
-
-        finalFileName += `~${req.user.name}.${fileExtension}`;
-
-        const finalPath = initialPath.slice(0, initialPath.indexOf(newFilename));
-
-        await fs.promises.rename(finalPath + newFilename, finalPath + finalFileName);
-        const fileId = await UploadFile(contributionId, finalPath, finalFileName);
-
-        if (fileId) {
-            await HandleFileToDB(contributionId, fileId);
-            uploadedFiles.push({ fileId, originalName: originalFilename });
-        }
-
-        await fs.promises.unlink(finalPath + finalFileName);
-    }
-
-    return res.json({
-        created: true,
-        data: newContribution,
-        files: uploadedFiles,
-    });
-}
-
 // date format : YYYY-MM-DD
 async function GetContributionsUpdatedSince(req, res, next) {
     const { date } = req.body;
@@ -222,7 +160,6 @@ export default {
     CreateNewContribution,
     HandleFileUpload,
     GetMyContributions,
-    MobileFileUploadHandler,
     DeleteContribution,
     GetContributionsUpdatedSince,
     GetBrContribution

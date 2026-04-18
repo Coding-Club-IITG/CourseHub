@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import config from "../config/default.js";
 import EventModel from "../modules/event/event.model.js";
 import BR from "../modules/br/br.model.js";
+import Admin from "../modules/admin/admin.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +48,23 @@ const seedBrFromEnv = async () => {
     console.log(`Added BR email to list: ${emailId}`);
 };
 
+const seedDefaultAdmin = async () => {
+    const userId = "admin";
+    const password = "admin";
+
+    let admin = await Admin.findOne({ userId });
+
+    if (!admin) {
+        await Admin.create({ userId, password });
+        console.log("Added default admin: admin");
+        return;
+    }
+
+    admin.password = password;
+    await admin.save();
+    console.log("Updated default admin credentials for: admin");
+};
+
 const seedExamDates = async () => {
     try {
         const mongoUri = config.mongoURI || process.env.MONGODB_URI;
@@ -69,6 +87,9 @@ const seedExamDates = async () => {
 
         console.log("Seeding BR from EMAIL_ID...");
         await seedBrFromEnv();
+
+        console.log("Seeding default admin account...");
+        await seedDefaultAdmin();
 
         console.log("Seed completed successfully.");
         console.log(created);

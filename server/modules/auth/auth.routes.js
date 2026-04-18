@@ -3,7 +3,6 @@ const router = express.Router();
 import catchAsync from "../../utils/catchAsync.js";
 import {
     redirectHandler,
-    mobileRedirectHandler,
     loginHandler,
     logoutHandler,
     guestLoginHanlder,
@@ -37,7 +36,6 @@ router.post("/fetchCoursesForBr", async (req, res, next) => {
 });
 
 router.get("/login/redirect", catchAsync(redirectHandler));
-router.get("/login/redirect/mobile", catchAsync(mobileRedirectHandler));
 
 router.get("/logout", logoutHandler);
 

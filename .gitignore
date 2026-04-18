@@ -7,3 +7,4 @@ refresh_token.token
 onedrive-access-token.token
 onedrive-refresh-token.token
 .DS_Store
+.worktrees/
