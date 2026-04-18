@@ -105,20 +105,22 @@ const FileBrowserReducer = (
             };
         case "UPDATE_COURSES":
             let arr = Array.isArray(state.allCourseData) ? [...state.allCourseData] : [];
-            if (
-                arr.find(
-                    (course) =>
-                        course.code?.toLowerCase() ===
-                        action.payload.currentCourse.code.toLowerCase()
-                )
-            ) {
-                arr = arr.filter(
-                    (course) =>
-                        course.code?.toLowerCase() !==
-                        action.payload.currentCourse.code.toLowerCase()
-                );
+            const incomingCourse = action.payload.currentCourse;
+            const incomingCode = incomingCourse?.code?.toLowerCase();
+            if (!incomingCode) {
+                return state;
             }
-            arr.push(action.payload.currentCourse);
+
+            const existingCourse = arr.find((course) => course.code?.toLowerCase() === incomingCode);
+            const existingHasTree =
+                Array.isArray(existingCourse?.children) && existingCourse.children.length > 0;
+            const incomingHasTree =
+                Array.isArray(incomingCourse?.children) && incomingCourse.children.length > 0;
+
+            const nextCourse = existingHasTree && !incomingHasTree ? existingCourse : incomingCourse;
+
+            arr = arr.filter((course) => course.code?.toLowerCase() !== incomingCode);
+            arr.push(nextCourse);
             persistAllCourses(arr);
             return {
                 ...state,

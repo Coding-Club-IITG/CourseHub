@@ -32,19 +32,7 @@ import { useNavigate } from "react-router-dom";
 import Share from "../share";
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
-
-const sanitizeCourseCache = (courses) => {
-    if (!Array.isArray(courses)) return [];
-
-    const byCode = new Map();
-    for (const course of courses) {
-        if (!course || typeof course !== "object") continue;
-        if (!course.code || !Array.isArray(course.children)) continue;
-        byCode.set(course.code.toLowerCase(), course);
-    }
-
-    return Array.from(byCode.values());
-};
+import { findCachedCourse, hasUsableCourseTree, sanitizeCourseCache } from "../../utils/courseCache";
 
 function useIsMobile() {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -146,16 +134,12 @@ const BrowseScreen = () => {
 
             let currCourse = null;
             try {
-                currCourse = allCourseData?.find(
-                    (course) => course.code?.toLowerCase() === code?.toLowerCase()
-                );
+                currCourse = findCachedCourse(allCourseData, code);
             } catch (error) {
                 sessionStorage.removeItem("AllCourses");
                 location.reload();
             }
-            const present = sessionStorageCourses?.find(
-                (course) => course.code?.toLowerCase() === code.toLowerCase()
-            );
+            const present = findCachedCourse(sessionStorageCourses, code);
             let root = [];
             if (present || currCourse) {
                 fetchedData = present || currCourse;
@@ -184,6 +168,12 @@ const BrowseScreen = () => {
                 if (response.data.found) {
                     toast.dismiss(fetchingToast);
                     fetchedData = response.data;
+                    if (!hasUsableCourseTree(fetchedData)) {
+                        const refetched = await getCourse(code.toUpperCase());
+                        if (refetched.data?.found) {
+                            fetchedData = refetched.data;
+                        }
+                    }
                     dispatch(UpdateCourses(fetchedData));
                     dispatch(AddNewCourseLocal(fetchedData));
                     dispatch(
@@ -276,16 +266,16 @@ const BrowseScreen = () => {
                 dispatch(ChangeFolder(null));
                 dispatch(ClearFolderHistory()); // Clear folder history when changing courses
                 let courseData = allCourseData?.find(
-                    (course) => course.code?.toLowerCase() === selectedCode?.toLowerCase()
+                    (course) =>
+                        hasUsableCourseTree(course) &&
+                        course.code?.toLowerCase() === selectedCode?.toLowerCase()
                 );
                 if (!courseData) {
                     try {
                         const sessionStorageCourses = JSON.parse(
                             sessionStorage.getItem("AllCourses")
                         );
-                        courseData = sessionStorageCourses?.find(
-                            (course) => course.code?.toLowerCase() === selectedCode?.toLowerCase()
-                        );
+                        courseData = findCachedCourse(sessionStorageCourses, selectedCode);
                     } catch (error) {
                     }
                 }
@@ -295,6 +285,12 @@ const BrowseScreen = () => {
                         const response = await getCourse(selectedCode.toUpperCase());
                         if (response.data?.found) {
                             courseData = response.data;
+                            if (!hasUsableCourseTree(courseData)) {
+                                const refetched = await getCourse(selectedCode.toUpperCase());
+                                if (refetched.data?.found) {
+                                    courseData = refetched.data;
+                                }
+                            }
                             dispatch(UpdateCourses(courseData));
                             dispatch(AddNewCourseLocal(courseData));
                             toast.dismiss(fetchingToast);

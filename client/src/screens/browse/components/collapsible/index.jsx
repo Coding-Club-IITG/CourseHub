@@ -15,6 +15,7 @@ import SmallLoader from "../../../../components/SmallLoader";
 import searchFolderById from "../../../../utils/searchFolderById";
 import { toast } from "react-toastify";
 import { capitalise } from "../../../../utils/capitalise";
+import { findCachedCourse, hasUsableCourseTree } from "../../../../utils/courseCache";
 
 const Collapsible = ({ course, color, state = false }) => {
     const normalizedCode = useMemo(
@@ -39,16 +40,12 @@ const Collapsible = ({ course, color, state = false }) => {
         currCourseCode?.replaceAll(" ", "").toLowerCase() === normalizedCode;
 
     const getCachedCourse = () => {
-        const cachedInStore = allCourseData?.find(
-            (entry) => entry.code?.replaceAll(" ", "").toLowerCase() === normalizedCode
-        );
+        const cachedInStore = findCachedCourse(allCourseData, normalizedCode);
         if (cachedInStore) return cachedInStore;
 
         try {
             const fromSession = JSON.parse(sessionStorage.getItem("AllCourses"));
-            return fromSession?.find(
-                (entry) => entry.code?.replaceAll(" ", "").toLowerCase() === normalizedCode
-            );
+            return findCachedCourse(fromSession, normalizedCode);
         } catch (e) {
             return null;
         }
@@ -101,7 +98,13 @@ const Collapsible = ({ course, color, state = false }) => {
                 return;
             }
 
-            const fetchedCourse = response.data;
+            let fetchedCourse = response.data;
+            if (!hasUsableCourseTree(fetchedCourse)) {
+                const refetched = await getCourse(course.code?.replaceAll(" ", ""));
+                if (refetched?.data?.found) {
+                    fetchedCourse = refetched.data;
+                }
+            }
             dispatch(UpdateCourses(fetchedCourse));
             setNotFound(false);
             setError(false);
