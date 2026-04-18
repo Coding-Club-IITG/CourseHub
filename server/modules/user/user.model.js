@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import config from "../../config/default.js";
 import { logger } from "@azure/identity";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
+import { normalizeCourseCode } from "../../utils/course.js";
 
 const userSchema = Schema({
     name: { type: String, required: true },
@@ -147,8 +148,9 @@ export const addToFavourites = async (userid, name, id, path, code) => {
 export const AddNewCourse = async (userid, code, name) => {
     const UserData = await User.findById(userid);
     const color = getRandomColor();
+    const normalizedCode = normalizeCourseCode(code);
     UserData.courses.push({
-        code,
+        code: normalizedCode,
         name,
         color,
     });
@@ -159,8 +161,9 @@ export const AddNewCourse = async (userid, code, name) => {
 export const AddReadOnlyCourse = async (userid, code, name) => {
     const UserData = await User.findById(userid);
     const color = getRandomColor();
+    const normalizedCode = normalizeCourseCode(code);
     UserData.readOnly.push({
-        code,
+        code: normalizedCode,
         name,
         color,
     });
@@ -170,8 +173,9 @@ export const AddReadOnlyCourse = async (userid, code, name) => {
 
 export const RemoveCourse = async (userid, code) => {
     const UserData = await User.findById(userid);
+    const normalizedCode = normalizeCourseCode(code);
     let filtered = UserData.courses.filter(
-        (course) => course.code.toLowerCase() !== code.toLowerCase()
+        (course) => normalizeCourseCode(course.code) !== normalizedCode
     );
     UserData.courses = filtered;
     const updatedUser = await UserData.save();
@@ -180,8 +184,9 @@ export const RemoveCourse = async (userid, code) => {
 
 export const RemoveReadOnly = async (userid, code) => {
     const UserData = await User.findById(userid);
+    const normalizedCode = normalizeCourseCode(code);
     let filtered = UserData.readOnly.filter(
-        (course) => course.code.toLowerCase() !== code.toLowerCase()
+        (course) => normalizeCourseCode(course.code) !== normalizedCode
     );
     UserData.readOnly = filtered;
     const updatedUser = await UserData.save();

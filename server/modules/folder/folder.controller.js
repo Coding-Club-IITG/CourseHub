@@ -1,11 +1,12 @@
 import { FolderModel } from "../course/course.model.js";
 import { deleteFile } from "../file/file.controller.js";
+import { normalizeCourseCode } from "../../utils/course.js";
 
 async function createFolder(req, res) {
     const { name, course, parentFolder, childType } = req.body;
     const newFolder = await FolderModel.create({
         name,
-        course,
+        course: normalizeCourseCode(course),
         childType,
         children: [],
     });

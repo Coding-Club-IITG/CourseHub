@@ -6,6 +6,7 @@ import UploadFile from "../../services/UploadFile.js";
 import fs from "fs";
 import { FolderModel } from "../course/course.model.js";
 import logger from "../../utils/logger.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 
 async function ContributionCreation(contributionId, data) {
     const existingContribution = await Contribution.findOne({ contributionId });
@@ -95,6 +96,7 @@ async function CreateNewContribution(req, res, next) {
         description: Joi.string().required(),
     };
     const data = req.body;
+    data.courseCode = normalizeCourseCode(data.courseCode);
 
     const valid = validatePayload(payloadSchema, data);
     if (valid.error) {
@@ -128,7 +130,7 @@ async function GetContributionsUpdatedSince(req, res, next) {
     const d = new Date(date);
     const contributions = await Contribution.find({ updatedAt: { $gte: d } });
     let codeSet = new Set();
-    contributions.map((c) => codeSet.add(c.courseCode.toUpperCase()));
+    contributions.map((c) => codeSet.add(normalizeCourseCode(c.courseCode)));
     let codes = [];
     codeSet.forEach((c) => codes.push(c));
     return res.json({ codes, contributions });
@@ -141,9 +143,9 @@ async function GetBrContribution(req, res, next) {
         if (!courses || !Array.isArray(courses)) {
             return res.status(400).json({ error: "courses array required" });
         }
-        const codes = courses.map((course) => course.code);
+        const codes = courses.map((course) => normalizeCourseCode(course.code)).filter(Boolean);
         const contributions = await Contribution.find({
-            courseCode: { $in: codes }
+            courseCode: { $in: codes.map(getCourseCodeCaseInsensitiveRegex) },
         }).populate({
             path: "files",
         });

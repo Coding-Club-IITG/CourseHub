@@ -1,18 +1,25 @@
 import { FolderModel } from "../course/course.model.js";
 import CourseModel from "../course/course.model.js";
 import { deleteFile } from "../file/file.controller.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 
 async function addYear(req, res) {
     const { name, course} = req.body;
+    const normalizedCourseCode = normalizeCourseCode(course);
     const newYear = await FolderModel.create({
         name,
-        course,
+        course: normalizedCourseCode || course,
         children: [],
         childType:"Folder"
     });
 
-    if (course) {
-        const parent = await CourseModel.findOne({code:course});
+    if (normalizedCourseCode) {
+        const parent = await CourseModel.findOne({
+            code: getCourseCodeCaseInsensitiveRegex(normalizedCourseCode),
+        });
+        if (!parent) {
+            return res.status(404).json({ message: "Course not found" });
+        }
         parent.children.push(newYear._id);
         await parent.save();
     }
@@ -23,11 +30,12 @@ async function addYear(req, res) {
 async function deleteYear(req, res) {
     const { folder, courseCode } = req.body;
     const folderId = folder._id;
+    const normalizedCourseCode = normalizeCourseCode(courseCode);
 
     try {
-        if (courseCode) {
+        if (normalizedCourseCode) {
             await CourseModel.findOneAndUpdate(
-                {code: courseCode}, 
+                { code: getCourseCodeCaseInsensitiveRegex(normalizedCourseCode) }, 
                 {$pull: { children: folderId }}
             );
         }
