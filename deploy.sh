@@ -12,12 +12,15 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="$REPO_DIR/$(basename "${BASH_SOURCE[0]}")"
 CLIENT_DIR="$REPO_DIR/client"
 ADMIN_DIR="$REPO_DIR/admin"
 SERVER_DIR="$REPO_DIR/server"
 NGINX_WEB_ROOT="/var/www/coursehub/client"
 NGINX_ADMIN_WEB_ROOT="/var/www/coursehub/admin"
 PM2_APP_NAME="coursehub-backend"
+GIT_REMOTE="origin"
+DEPLOY_BRANCH="prod"
 
 # ── Colours ─────────────────────────────────────────────────
 GREEN="\033[0;32m"
@@ -33,14 +36,39 @@ warn()    { echo -e "${YELLOW}[!]${RESET} $*"; }
 error()   { echo -e "${RED}[✘]${RESET} $*" >&2; }
 header()  { echo -e "\n${BOLD}${CYAN}══ $* ══${RESET}\n"; }
 
+ensure_script_is_executable() {
+    if [[ ! -x "$SCRIPT_PATH" ]]; then
+        log "Making deploy script executable for next runs (chmod +x)..."
+        chmod +x "$SCRIPT_PATH" || warn "Could not chmod +x $SCRIPT_PATH"
+    fi
+}
+
+sync_repo_to_deploy_branch() {
+    header "Syncing Repository"
+
+    log "Fetching latest '$DEPLOY_BRANCH' from '$GIT_REMOTE'..."
+    git -C "$REPO_DIR" fetch "$GIT_REMOTE" "$DEPLOY_BRANCH"
+
+    local current_branch
+    current_branch="$(git -C "$REPO_DIR" rev-parse --abbrev-ref HEAD)"
+    if [[ "$current_branch" != "$DEPLOY_BRANCH" ]]; then
+        log "Switching branch: $current_branch -> $DEPLOY_BRANCH"
+        git -C "$REPO_DIR" checkout "$DEPLOY_BRANCH"
+    else
+        log "Already on branch '$DEPLOY_BRANCH'."
+    fi
+
+    log "Pulling only '$DEPLOY_BRANCH' from '$GIT_REMOTE'..."
+    git -C "$REPO_DIR" pull --ff-only "$GIT_REMOTE" "$DEPLOY_BRANCH"
+
+    success "Repository synced to '$GIT_REMOTE/$DEPLOY_BRANCH'."
+}
+
 # ── Argument parsing ─────────────────────────────────────────
 TARGET="${1:-all}"  # all | frontend | admin | backend
 
 deploy_frontend() {
     header "Deploying Frontend"
-
-    log "Pulling latest changes..."
-    git -C "$REPO_DIR" pull
 
     log "Installing client dependencies..."
     cd "$CLIENT_DIR"
@@ -63,9 +91,6 @@ deploy_frontend() {
 deploy_admin() {
     header "Deploying Admin Frontend"
 
-    log "Pulling latest changes..."
-    git -C "$REPO_DIR" pull
-
     log "Installing admin dependencies..."
     cd "$ADMIN_DIR"
     npm install
@@ -87,9 +112,6 @@ deploy_admin() {
 deploy_backend() {
     header "Deploying Backend"
 
-    log "Pulling latest changes..."
-    git -C "$REPO_DIR" pull
-
     log "Installing server dependencies..."
     cd "$SERVER_DIR"
     npm install
@@ -104,6 +126,9 @@ deploy_backend() {
 echo -e "\n${BOLD}CourseHub Deployment${RESET}  —  target: ${YELLOW}${TARGET}${RESET}"
 START=$(date +%s)
 
+ensure_script_is_executable
+sync_repo_to_deploy_branch
+
 case "$TARGET" in
     frontend)
         deploy_frontend
@@ -115,10 +140,7 @@ case "$TARGET" in
         deploy_backend
         ;;
     all)
-        # Pull once, deploy both
         header "Full Deployment"
-        log "Pulling latest changes..."
-        git -C "$REPO_DIR" pull
 
         # Frontend
         log "Installing client dependencies..."
