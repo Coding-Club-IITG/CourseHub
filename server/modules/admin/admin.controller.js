@@ -54,7 +54,14 @@ async function deleteCourseByCode(req, res, next) {
     const search = await SearchResults.findOne({ code: courseCodeRegex });
     if (!search) return next(new AppError(400, "invalid course code"));
     await CourseModel.deleteOne({ code: courseCodeRegex });
-    await FolderModel.deleteMany({ course: courseCodeRegex });
+    const courseFolders = await FolderModel.find({ courses: courseCodeRegex });
+    for (const folder of courseFolders) {
+        if (folder.courses.length > 1) {
+            await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: normalizedCode } });
+        } else {
+            await FolderModel.deleteOne({ _id: folder._id });
+        }
+    }
     await FileModel.deleteMany({ course: buildCourseFilePrefixMatcher(normalizedCode) });
     await SearchResults.updateOne({ code: courseCodeRegex }, { isAvailable: false });
     return res.json({ deleted: true });
@@ -70,7 +77,14 @@ async function makeCourseById(req, res, next) {
     const search = await SearchResults.findOne({ code: courseCodeRegex });
     if (search) {
         await CourseModel.deleteOne({ code: courseCodeRegex });
-        await FolderModel.deleteMany({ course: courseCodeRegex });
+        const courseFolders = await FolderModel.find({ courses: courseCodeRegex });
+    for (const folder of courseFolders) {
+        if (folder.courses.length > 1) {
+            await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: normalizedCode } });
+        } else {
+            await FolderModel.deleteOne({ _id: folder._id });
+        }
+    }
         await FileModel.deleteMany({ course: buildCourseFilePrefixMatcher(normalizedCode) });
         await SearchResults.updateOne({ code: courseCodeRegex }, { isAvailable: false });
     }
@@ -98,7 +112,14 @@ async function uploadToFolder(req, res, next) {
     const search = await SearchResults.findOne({ code: courseCodeRegex });
     if (search) {
         await CourseModel.deleteOne({ code: courseCodeRegex });
-        await FolderModel.deleteMany({ course: courseCodeRegex });
+        const courseFolders = await FolderModel.find({ courses: courseCodeRegex });
+        for (const folder of courseFolders) {
+            if (folder.courses.length > 1) {
+                await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: courseCode } });
+            } else {
+                await FolderModel.deleteOne({ _id: folder._id });
+            }
+        }
         await FileModel.deleteMany({ course: buildCourseFilePrefixMatcher(courseCode) });
         await SearchResults.updateOne({ code: courseCodeRegex }, { isAvailable: false });
     }

@@ -19,7 +19,7 @@ const BrowseFolder = ({
     const isBR = useSelector((state) => state.user.user.isBR);
     const [showConfirm, setShowConfirm] = useState(false);
     const user = useSelector((state) => state.user.user);
-    const courseCode = subject || folderData?.course;
+    const courseCode = subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
     const isReadOnlyCourse =
         user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
         !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
@@ -58,7 +58,7 @@ const BrowseFolder = ({
 
     const handleDelete = async (e) => {
         try {
-            await deleteFolder({ folder: folderData, parentFolderId: parentFolder._id });
+            await deleteFolder({ folder: folderData, parentFolderId: parentFolder._id, courseCode });
             toast.success("Folder deleted successfully!");
             dispatch(
                 ChangeFolder({

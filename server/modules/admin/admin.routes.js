@@ -4,8 +4,8 @@ import adminController from "./admin.controller.js";
 import AppError from "../../utils/appError.js";
 import isAdmin from "../../middleware/isAdmin.js";
 import multer from "multer";
-import { uploadCourses, renameCourse, deleteCourse } from "./adminDashboard.controller.js";
 import { adminLogin, adminLogout } from "./auth.controller.js";
+import { uploadCourses, renameCourse, deleteCourse, linkLegacyCourse, bulkLinkCourses } from "./adminDashboard.controller.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -42,7 +42,9 @@ router.post(
 );
 
 router.post("/courses/upload", isAdmin, upload.single("file"), uploadCourses);
+router.post("/courses/bulk-link", isAdmin, upload.single("file"), bulkLinkCourses);
 router.patch("/course/:code", isAdmin, renameCourse);
+router.post("/course/:code/link", isAdmin, linkLegacyCourse);
 router.delete("/course/:code/delete", isAdmin, catchAsync(deleteCourse));
 
 export default router;

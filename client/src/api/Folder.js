@@ -21,15 +21,18 @@ export const createFolder = async ({ name, course, parentFolder, childType }) =>
     return data;
 };
 
-export const deleteFolder = async ({ folder, parentFolderId }) => {
+export const deleteFolder = async ({ folder, parentFolderId, courseCode }) => {
     const { data } = await API.delete(`/folder/delete`, {
-        data: { folder, parentFolderId },
+        data: { folder, parentFolderId, courseCode },
     });
     return data;
 };
 
-export const fetchFolder = async (folderId) => {
-    const response = await API.get(`/folder/content/${folderId}`);
+export const fetchFolder = async (folderId, courseCode) => {
+    const url = courseCode 
+        ? `/folder/content/${folderId}?courseCode=${courseCode}` 
+        : `/folder/content/${folderId}`;
+    const response = await API.get(url);
     if (response.status !== 200) {
         throw new Error("Failed to fetch folder data");
     }

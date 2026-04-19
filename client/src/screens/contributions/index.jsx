@@ -18,6 +18,7 @@ const Contributions = () => {
     const userName = useSelector((state) => state.user.user.name);
     const isBR = useSelector((state) => state.user.user.isBR);
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
+    const currentCourseCode = useSelector((state) => state.fileBrowser.currentCourseCode);
     const [contributionId, setContributionId] = useState("");
     const dispatch = useDispatch();
     useEffect(() => {
@@ -45,7 +46,7 @@ const Contributions = () => {
             setSubmitEnabled(false);
             await CreateNewContribution({
                 parentFolder: currentFolder._id,
-                courseCode: currentFolder.course,
+                courseCode: currentCourseCode || (currentFolder.courses ? currentFolder.courses[0] : currentFolder.course),
                 description: "default",
                 approved: false,
                 contributionId,
@@ -66,7 +67,7 @@ const Contributions = () => {
         }
 
         try {
-            const updatedFolder = await fetchFolder(currentFolder._id);
+            const updatedFolder = await fetchFolder(currentFolder._id, currentCourseCode);
             dispatch(ChangeFolder(updatedFolder));
         } catch (error) {
             return null;

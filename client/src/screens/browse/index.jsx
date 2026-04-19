@@ -401,7 +401,7 @@ const BrowseScreen = () => {
                                             key={folder._id}
                                             path={folder.path}
                                             name={folder.name}
-                                            subject={folder.course}
+                                            subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
                                             folderData={folder}
                                             parentFolder={folderData}
                                             isMobileView={isMobile}
@@ -473,7 +473,7 @@ const BrowseScreen = () => {
                                     canDownload={folderData?.childType === "File"}
                                     contributionHandler={contributionHandler}
                                     folderId={folderData?._id}
-                                    courseCode={folderData?.course}
+                                    courseCode={currCourseCode || (folderData?.courses ? folderData.courses[0] : folderData.course)}
                                 />
                             )}
                             <div className="files">
@@ -499,7 +499,7 @@ const BrowseScreen = () => {
                                             key={folder._id}
                                             path={folder.path}
                                             name={folder.name}
-                                            subject={folder.course}
+                                            subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
                                             folderData={folder}
                                             parentFolder={folderData}
                                         />

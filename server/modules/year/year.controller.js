@@ -8,7 +8,7 @@ async function addYear(req, res) {
     const normalizedCourseCode = normalizeCourseCode(course);
     const newYear = await FolderModel.create({
         name,
-        course: normalizedCourseCode || course,
+        courses: [normalizedCourseCode || course],
         children: [],
         childType:"Folder"
     });
@@ -39,16 +39,38 @@ async function deleteYear(req, res) {
                 {$pull: { children: folderId }}
             );
         }
-        // const deleted = await FolderModel.findByIdAndDelete(folderId);
-        // if (!deleted) {
-        //     return res.status(404).json({ message: "Folder not found" });
-        // }
-        recursiveDelete(folder);
+
+        const folderDoc = await FolderModel.findById(folderId);
+        if (folderDoc) {
+            if (folderDoc.courses.length > 1) {
+                // Remove this course from the shared folder and its descendants
+                await removeCourseFromFolderRecursive(folderId, normalizedCourseCode);
+            } else {
+                // Last course using this folder, delete it
+                await recursiveDelete(folder);
+            }
+        }
 
         return res.json({ success: true, folderId });
     } catch (err) {
         console.error("Error deleting year:", err);
         return res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+async function removeCourseFromFolderRecursive(folderId, codeToRemove) {
+    const folder = await FolderModel.findById(folderId);
+    if (!folder) return;
+
+    await FolderModel.updateOne(
+        { _id: folderId },
+        { $pull: { courses: codeToRemove } }
+    );
+
+    if (folder.childType === "Folder") {
+        for (const childId of folder.children) {
+            await removeCourseFromFolderRecursive(childId, codeToRemove);
+        }
     }
 }
 

@@ -80,7 +80,14 @@ export const deleteCourseByCode = async (req, res, next) => {
     if (!normalizedCode) throw new AppError(400, "Missing Course Id");
 
     const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(normalizedCode);
-    await FolderModel.deleteMany({ course: courseCodeRegex });
+    const courseFolders = await FolderModel.find({ courses: courseCodeRegex });
+    for (const folder of courseFolders) {
+        if (folder.courses.length > 1) {
+            await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: normalizedCode } });
+        } else {
+            await FolderModel.deleteOne({ _id: folder._id });
+        }
+    }
     await FileModel.deleteMany({
         course: { $regex: `^${normalizedCode}\\s-\\s`, $options: "i" },
     });
