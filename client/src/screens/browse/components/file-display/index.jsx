@@ -46,9 +46,19 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
     const currCourseCode = useSelector((state) => state.fileBrowser?.currentCourseCode);
     const currFolderId = useSelector((state) => state.fileBrowser?.currentFolder?._id);
     const currentUser = useSelector((state) => state.user.user);
-    const isReadOnlyCourse = currentUser?.readOnly?.some(
-        (c) => c.code.toLowerCase() === currCourseCode?.toLowerCase()
-    );
+    const isReadOnlyCourse =
+        currentUser?.readOnly?.some(
+            (c) => c.code.toLowerCase() === currCourseCode?.toLowerCase()
+        ) &&
+        !currentUser?.courses?.some(
+            (c) => c.code.toLowerCase() === currCourseCode?.toLowerCase()
+        ) &&
+        !(
+            currentUser?.isBR &&
+            currentUser?.previousCourses?.some((sem) =>
+                sem.courses.some((c) => c.code.toLowerCase() === currCourseCode?.toLowerCase())
+            )
+        );
 
     if (!file.isVerified && !currentUser?.isBR) {
         return null;

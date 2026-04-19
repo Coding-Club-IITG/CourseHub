@@ -31,9 +31,15 @@ const FolderInfo = ({
     const [isDownloading, setIsDownloading] = useState(false);
 
     const user = useSelector((state) => state.user.user);
-    const isReadOnlyCourse = user?.readOnly?.some(
-        (c) => c.code.toLowerCase() === courseCode?.toLowerCase()
-    );
+    const isReadOnlyCourse =
+        user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
+        !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
+        !(
+            user?.isBR &&
+            user?.previousCourses?.some((sem) =>
+                sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
+            )
+        );
 
     const handleCreateFolder = () => {
         setNewFolderName("");
