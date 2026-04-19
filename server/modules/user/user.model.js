@@ -30,6 +30,24 @@ const userSchema = Schema({
     deviceToken: { type: String, default: "" },
 });
 
+userSchema.pre("save", function (next) {
+    const user = this;
+    if (
+        user.isModified("courses") ||
+        user.isModified("previousCourses") ||
+        user.isModified("readOnly")
+    ) {
+        const courseCodes = new Set([
+            ...user.courses.map((c) => normalizeCourseCode(c.code)),
+            ...(user.previousCourses?.flatMap((sem) =>
+                sem.courses.map((c) => normalizeCourseCode(c.code))
+            ) || []),
+        ]);
+        user.readOnly = user.readOnly.filter((c) => !courseCodes.has(normalizeCourseCode(c.code)));
+    }
+    next();
+});
+
 userSchema.methods.generateJWT = function () {
     var user = this;
     var token = jwt.sign(
@@ -147,8 +165,18 @@ export const addToFavourites = async (userid, name, id, path, code) => {
 };
 export const AddNewCourse = async (userid, code, name) => {
     const UserData = await User.findById(userid);
-    const color = getRandomColor();
     const normalizedCode = normalizeCourseCode(code);
+
+    if (UserData.courses.some((c) => normalizeCourseCode(c.code) === normalizedCode))
+        return UserData;
+
+    const color = getRandomColor();
+
+    // Remove from readOnly if present
+    UserData.readOnly = UserData.readOnly.filter(
+        (course) => normalizeCourseCode(course.code) !== normalizedCode
+    );
+
     UserData.courses.push({
         code: normalizedCode,
         name,
@@ -160,8 +188,24 @@ export const AddNewCourse = async (userid, code, name) => {
 
 export const AddReadOnlyCourse = async (userid, code, name) => {
     const UserData = await User.findById(userid);
-    const color = getRandomColor();
     const normalizedCode = normalizeCourseCode(code);
+
+    if (UserData.readOnly.some((c) => normalizeCourseCode(c.code) === normalizedCode))
+        return UserData;
+
+    // Check if in courses
+    const inCourses = UserData.courses.some(
+        (course) => normalizeCourseCode(course.code) === normalizedCode
+    );
+    if (inCourses) return UserData;
+
+    // Check if in previousCourses
+    const inPrevious = UserData.previousCourses?.some((sem) =>
+        sem.courses.some((course) => normalizeCourseCode(course.code) === normalizedCode)
+    );
+    if (inPrevious) return UserData;
+
+    const color = getRandomColor();
     UserData.readOnly.push({
         code: normalizedCode,
         name,

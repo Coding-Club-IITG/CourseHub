@@ -125,11 +125,11 @@ export const fetchCourses = async (rollNumber) => {
     
     const courses = await resolveCourseNames(courseCodes, dbCourses);
     
-    await User.findOneAndUpdate(
-        { rollNumber },
-        { courses },
-        { new: true, upsert: false }
-    );
+    const user = await User.findOne({ rollNumber });
+    if (user) {
+        user.courses = courses;
+        await user.save();
+    }
     
     return courses;
 };
@@ -224,11 +224,11 @@ export const fetchCoursesForBr = async (rollNumber) => {
 
     previousCourses.sort((a, b) => a.semester - b.semester);
 
-    await User.findOneAndUpdate(
-        { rollNumber },
-        { previousCourses },
-        { new: true, upsert: false }
-    );
+    const user = await User.findOne({ rollNumber });
+    if (user) {
+        user.previousCourses = previousCourses;
+        await user.save();
+    }
 
     return previousCourses;
 };
