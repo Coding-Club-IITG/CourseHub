@@ -5,6 +5,7 @@ import settings from "../../config/onedrive.js";
 import fs from "fs";
 import { extractGraphErrorDetails, formatGraphErrorMessage } from "../../utils/graphError.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { uploadThumbnail, isImageKitUrl } from "../../services/imagekit.js";
 
 import CourseModel, { FolderModel, FileModel } from "../course/course.model.js";
 import SearchResults from "../search/search.model.js";
@@ -79,16 +80,30 @@ export async function getCourseIds(req, res) {
 
 export async function thumbnail(req, res) {
     const fileId = req.body.fileId;
-    const thumbnaillink = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/thumbnails`;
+
+    // 1. Already a permanent ImageKit URL in DB — return immediately
+    const file = await FileModel.findOne({ fileId }).select("thumbnail");
+    if (file?.thumbnail && isImageKitUrl(file.thumbnail)) {
+        return res.status(200).json(file.thumbnail);
+    }
+
+    // 2. Fetch a fresh temporary URL from Graph API (legacy files with expired OneDrive URLs)
     const access_token = await getAccessToken();
-    const thumbnaildata = await axios.get(thumbnaillink, {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    });
+    const thumbnaildata = await axios.get(
+        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/thumbnails`,
+        { headers: { Authorization: `Bearer ${access_token}` } }
+    );
     const thumbnailurl = thumbnaildata.data.value?.[0]?.medium?.url;
-    await FileModel.updateOne({ fileId }, { $set: { thumbnail: thumbnailurl } });
-    return res.status(200).json(thumbnailurl);
+    if (!thumbnailurl) throw new AppError(404, "Thumbnail not found");
+
+    // 3. Download raw image bytes and upload to ImageKit as WebP permanently
+    const imgResponse = await axios.get(thumbnailurl, { responseType: "arraybuffer" });
+    const { url: permanentUrl, fileId: imagekitFileId } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
+
+    // 4. Persist permanent URL to DB so this file never hits Graph API again
+    await FileModel.updateOne({ fileId }, { $set: { thumbnail: permanentUrl, imagekitFileId } });
+
+    return res.status(200).json(permanentUrl);
 }
 
 export async function getFile(req, res) {

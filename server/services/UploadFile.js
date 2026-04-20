@@ -5,6 +5,7 @@ import { FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
 import logger from "../utils/logger.js";
 import { logGraphError } from "../utils/graphError.js";
+import { uploadThumbnail, deleteThumbnail } from "./imagekit.js";
 
 const parent_item_id = process.env.ONEDRIVE_FOLDER_ID;
 
@@ -92,37 +93,53 @@ async function UploadFile(contributionId, filePath, fileName) {
         const { data } = await axios.put(url, file, config);
         const createurllink = `https://graph.microsoft.com/v1.0/me/drive/items/${data.id}/createLink`;
         const thumbnaillink = `https://graph.microsoft.com/v1.0/me/drive/items/${data.id}/thumbnails`;
-        const urldata = await axios.post(
-            createurllink,
-            {
-                type: "view",
-                scope: "organization",
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${access_token}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-        const thumbnaildata = await axios.get(thumbnaillink, {
-            headers: {
-                Authorization: `Bearer ${access_token}`,
-            },
-        });
-        const thumbnailurl = thumbnaildata.data.value?.[0]?.medium?.url;
+
+        // Run createLink and thumbnail fetch in parallel
+        const [urldata, thumbnaildata] = await Promise.all([
+            axios.post(
+                createurllink,
+                { type: "view", scope: "organization" },
+                {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            ),
+            axios.get(thumbnaillink, {
+                headers: { Authorization: `Bearer ${access_token}` },
+            }),
+        ]);
+
+        const tempThumbnailUrl = thumbnaildata.data.value?.[0]?.medium?.url;
         const webUrl = urldata?.data?.link?.webUrl;
+
         const fileData = new FileModel({
             isVerified: !!existingContribution?.approved,
             fileId: data.id,
             size: data.size,
-            thumbnail: thumbnailurl,
+            thumbnail: tempThumbnailUrl,
             name: fileName,
             downloadUrl: `${webUrl}?download=1`,
             webUrl: webUrl,
         });
         await fileData.save();
         logger.info("File saved");
+
+        // Upload thumbnail to ImageKit in the background — don't block the response
+        if (tempThumbnailUrl) {
+            (async () => {
+                try {
+                    const imgResponse = await axios.get(tempThumbnailUrl, { responseType: "arraybuffer" });
+                    const { url: permanentUrl, fileId: imagekitFileId } = await uploadThumbnail(data.id, Buffer.from(imgResponse.data));
+                    await FileModel.updateOne({ fileId: data.id }, { thumbnail: permanentUrl, imagekitFileId });
+                    logger.info(`ImageKit thumbnail stored for ${data.id}`);
+                } catch (thumbErr) {
+                    logger.warn(`ImageKit thumbnail upload failed for ${data.id}: ${thumbErr.message}`);
+                }
+            })();
+        }
+
         return fileData._id;
     } catch (error) {
         logGraphError(logger, error, "Failed to upload file to Microsoft Graph");
@@ -132,6 +149,15 @@ async function UploadFile(contributionId, filePath, fileName) {
 
 async function DeleteFile(fileId) {
     const access_token = await getAccessToken();
+
+    // Delete ImageKit thumbnail in the background — don't block the response
+    FileModel.findOne({ fileId }, { imagekitFileId: 1 }).lean().then((fileDoc) => {
+        if (fileDoc?.imagekitFileId) {
+            deleteThumbnail(fileDoc.imagekitFileId).catch((ikErr) => {
+                logger.warn(`ImageKit thumbnail deletion failed for ${fileId}: ${ikErr.message}`);
+            });
+        }
+    }).catch(() => {});
 
     try {
         //obtain parent folder onedrive id
