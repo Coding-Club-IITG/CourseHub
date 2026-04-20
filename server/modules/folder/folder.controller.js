@@ -1,4 +1,4 @@
-import { FolderModel } from "../course/course.model.js";
+import { FolderModel, FileModel } from "../course/course.model.js";
 import { deleteFile } from "../file/file.controller.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
@@ -89,23 +89,35 @@ async function getFolderContent(req, res) {
     const { folderId } = req.params;
     const { courseCode } = req.query;
     try {
-        const folder = await FolderModel.findById(folderId).populate('children');
+        const folder = await FolderModel.findById(folderId);
         if (!folder) {
             return res.status(404).json({ message: "Folder not found" });
         }
+
+        // Programmatically populate based on the folder's childType
+        // Mongoose refPath on arrays can be unreliable.
+        // We use the 'model' option to tell it exactly what collection to look at.
+        await folder.populate({
+            path: 'children',
+            model: folder.childType // This will be either "File" or "Folder"
+        });
+        
+        const folderObj = folder.toObject();
         
         // Filter out shared folders that have been "unlinked" by this specific course
         if (courseCode) {
             const normalizedCode = normalizeCourseCode(courseCode);
-            folder.children = folder.children.filter(child => {
-                if (child.childType === "Folder") {
-                    return child.courses && child.courses.includes(normalizedCode);
+            folderObj.children = folderObj.children.filter(child => {
+                // Keep if it is a File (which don't have courses/childType)
+                // OR if it's a Folder that includes the requested course code
+                if (child && typeof child === 'object' && child.childType === "Folder") {
+                    return Array.isArray(child.courses) && child.courses.includes(normalizedCode);
                 }
-                return true; // Keep files, as they are intrinsically shared
+                return !!child; // Keep verified files or other items
             });
         }
         
-        return res.json(folder);
+        return res.json(folderObj);
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
@@ -126,3 +138,4 @@ async function renameFolder(req, res) {
 }
 
 export { createFolder, deleteFolder, getFolderContent, renameFolder };
+
