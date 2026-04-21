@@ -1,5 +1,7 @@
+import { writeAllCoursesCache } from "../utils/frontendCache";
+
 const persistAllCourses = (courses) => {
-    sessionStorage.setItem("AllCourses", JSON.stringify(courses));
+    writeAllCoursesCache(courses);
     return courses;
 };
 

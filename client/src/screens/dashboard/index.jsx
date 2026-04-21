@@ -24,6 +24,7 @@ import { AddNewCourseLocal, ClearLocalCourses } from "../../actions/user_actions
 import AddCourseModal from "./components/addcoursemodal";
 import { AddNewCourseAPI, GetExamDates } from "../../api/User";
 import { toast } from "react-toastify";
+import { clearLegacySessionLocalCoursesCache, readAllCoursesCache } from "../../utils/frontendCache";
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -68,14 +69,11 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        sessionStorage.removeItem("LocalCourses");
+        clearLegacySessionLocalCoursesCache();
         dispatch(ClearLocalCourses());
-        if (sessionStorage.getItem("AllCourses") !== null) {
-            try {
-                dispatch(LoadCourses(JSON.parse(sessionStorage.getItem("AllCourses"))));
-            } catch (error) {
-                dispatch(LoadCourses([]));
-            }
+        const cleaned = readAllCoursesCache();
+        if (cleaned.length > 0) {
+            dispatch(LoadCourses(cleaned));
         }
     }, []);
 

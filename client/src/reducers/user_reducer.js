@@ -1,3 +1,5 @@
+import { upsertLocalCourseCache, clearLocalCoursesCache } from "../utils/frontendCache";
+
 const UserReducer = (
     state = {
         loggedIn: false,
@@ -44,25 +46,7 @@ const UserReducer = (
                 return state;
             if (state.localCourses?.find((course) => course.code === action.payload.course.code))
                 return state;
-            try {
-                let localCourses = JSON.parse(window.localStorage.getItem("LocalCourses"));
-                if (!Array.isArray(localCourses)) {
-                    localCourses = [];
-                }
-                if (
-                    !localCourses?.find(
-                        (course) =>
-                            course.code?.toLowerCase() === action.payload.course.code.toLowerCase()
-                    )
-                ) {
-                    window.localStorage.setItem(
-                        "LocalCourses",
-                        JSON.stringify([...localCourses, action.payload.course])
-                    );
-                }
-            } catch (error) {
-                window.localStorage.removeItem("LocalCourses");
-            }
+            upsertLocalCourseCache(action.payload.course);
             return { ...state, localCourses: [...state.localCourses, action.payload.course] };
         case "LOAD_LOCAL_COURSES":
             return { ...state, localCourses: [...state.localCourses, ...action.payload.courses] };
