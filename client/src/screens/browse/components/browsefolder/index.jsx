@@ -31,6 +31,7 @@ const BrowseFolder = ({
         );
 
     const [isEditing, setIsEditing] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const setFolderName = async (newName) => {
         try {
@@ -57,7 +58,9 @@ const BrowseFolder = ({
     };
 
     const handleDelete = async (e) => {
+        if (isDeleting) return;
         try {
+            setIsDeleting(true);
             await deleteFolder({ folder: folderData, parentFolderId: parentFolder._id, courseCode });
             toast.success("Folder deleted successfully!");
             dispatch(
@@ -68,13 +71,16 @@ const BrowseFolder = ({
                     ),
                 })
             );
+            setShowConfirm(false);
         } catch (err) {
             toast.error("Failed to delete folder.");
+        } finally {
+            setIsDeleting(false);
         }
-        setShowConfirm(false);
     };
 
     const cancelDelete = () => {
+        if (isDeleting) return;
         setShowConfirm(false);
     };
 
@@ -131,6 +137,7 @@ const BrowseFolder = ({
                     type="delete"
                     onConfirm={handleDelete}
                     onCancel={cancelDelete}
+                    isLoading={isDeleting}
                 />
             )}
         </>

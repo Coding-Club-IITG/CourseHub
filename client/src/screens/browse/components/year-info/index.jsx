@@ -27,6 +27,7 @@ const YearInfo = ({
     const [showConfirmDel, setShowConfirmDel] = useState(false);
     const [newYearName, setNewYearName] = useState("");
     const [isAddingYear, setIsAddingYear] = useState(false);
+    const [isDeletingYear, setIsDeletingYear] = useState(false);
     const user = useSelector((state) => state.user.user);
     const isReadOnlyCourse =
         user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
@@ -120,7 +121,9 @@ const YearInfo = ({
     };
 
     const handleConfirmDeleteYear = async (e) => {
+        if (isDeletingYear) return;
         try {
+            setIsDeletingYear(true);
             await deleteYear({
                 folder: course[currYear],
                 courseCode: courseCode,
@@ -130,6 +133,7 @@ const YearInfo = ({
             if (!refreshed.data?.found) {
                 toast.error("Course not found after deleting year.");
                 setShowConfirmDel(false);
+                setIsDeletingYear(false);
                 return;
             }
 
@@ -153,13 +157,16 @@ const YearInfo = ({
             dispatch(RefreshCurrentFolder());
 
             toast.success("Year deleted successfully!");
+            setShowConfirmDel(false);
         } catch (err) {
             toast.error("Failed to delete year.");
+        } finally {
+            setIsDeletingYear(false);
         }
-        setShowConfirmDel(false);
     };
 
     const cancelDelete = () => {
+        if (isDeletingYear) return;
         setShowConfirmDel(false);
     };
 
@@ -196,6 +203,7 @@ const YearInfo = ({
                                             type="delete"
                                             onConfirm={handleConfirmDeleteYear}
                                             onCancel={cancelDelete}
+                                            isLoading={isDeletingYear}
                                         />
                                     ) : null}
                                 </div>
