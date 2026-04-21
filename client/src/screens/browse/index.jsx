@@ -27,7 +27,6 @@ import { AddNewCourseLocal, LoginUser, LogoutUser } from "../../actions/user_act
 import { getUser } from "../../api/User";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
-import { fetchFolder } from "../../api/Folder";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Share from "../share";
@@ -212,9 +211,12 @@ const BrowseScreen = () => {
             if (!folderData?._id || !currCourseCode) return;
 
             try {
-                const updatedFolder = await fetchFolder(folderData._id, currCourseCode);
-                if (updatedFolder) {
-                    dispatch(ChangeFolder(updatedFolder));
+                const res = await getCourse(currCourseCode);
+                if (res.data?.found) {
+                    const updatedFolder = findFolderById(res.data.children, folderData._id);
+                    if (updatedFolder) {
+                        dispatch(ChangeFolder(updatedFolder));
+                    }
                 }
             } catch (err) {
                 toast.error("Could not refresh folder view.");
@@ -223,6 +225,17 @@ const BrowseScreen = () => {
 
         refreshFolderData();
     }, [refreshKey]);
+
+    const findFolderById = (folders, id) => {
+        for (const folder of folders) {
+            if (folder._id === id) return folder;
+            if (folder.children?.length) {
+                const result = findFolderById(folder.children, id);
+                if (result) return result;
+            }
+        }
+        return null;
+    };
 
     const HeaderText =
         folderData?.childType === "File"
