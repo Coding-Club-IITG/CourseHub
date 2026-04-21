@@ -16,6 +16,7 @@ import searchFolderById from "../../../../utils/searchFolderById";
 import { toast } from "react-toastify";
 import { capitalise } from "../../../../utils/capitalise";
 import { findCachedCourse, hasUsableCourseTree } from "../../../../utils/courseCache";
+import { readAllCoursesCache } from "../../../../utils/frontendCache";
 
 const Collapsible = ({ course, color, state = false }) => {
     const normalizedCode = useMemo(
@@ -44,7 +45,7 @@ const Collapsible = ({ course, color, state = false }) => {
         if (cachedInStore) return cachedInStore;
 
         try {
-            const fromSession = JSON.parse(sessionStorage.getItem("AllCourses"));
+            const fromSession = readAllCoursesCache();
             return findCachedCourse(fromSession, normalizedCode);
         } catch (e) {
             return null;

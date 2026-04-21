@@ -24,7 +24,7 @@ export const bootstrapCourseFolders = async (courseCode) => {
             examSubFolders.map((name) =>
                 FolderModel.create({
                     name,
-                    course: actualCourseCode,
+                    courses: [actualCourseCode],
                     childType: "File",
                     children: [],
                 })
@@ -34,7 +34,7 @@ export const bootstrapCourseFolders = async (courseCode) => {
         // 3. Create Exams Folder with sub-folders
         const examsFolder = await FolderModel.create({
             name: "Exams",
-            course: actualCourseCode,
+            courses: [actualCourseCode],
             childType: "Folder",
             children: examSubFolderDocs.map((doc) => doc._id),
         });
@@ -45,7 +45,7 @@ export const bootstrapCourseFolders = async (courseCode) => {
             otherFolders.map((name) =>
                 FolderModel.create({
                     name,
-                    course: actualCourseCode,
+                    courses: [actualCourseCode],
                     childType: "File",
                     children: [],
                 })
@@ -55,7 +55,7 @@ export const bootstrapCourseFolders = async (courseCode) => {
         // 5. Create Year Folder
         const yearFolder = await FolderModel.create({
             name: year,
-            course: actualCourseCode,
+            courses: [actualCourseCode],
             childType: "Folder",
             children: [examsFolder._id, ...otherFolderDocs.map((doc) => doc._id)],
         });

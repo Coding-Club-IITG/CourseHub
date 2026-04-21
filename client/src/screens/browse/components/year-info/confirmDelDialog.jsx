@@ -70,7 +70,7 @@ const styles = {
 };
 
 
-const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel }) => {
+const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) => {
     if (!isOpen) return null;
 
     return (
@@ -83,11 +83,15 @@ const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel }) => {
                     Do you want to permanently delete this year? This action cannot be undone.
                 </p>
                 <div style={styles.buttonGroup}>
-                    <button style={styles.cancelBtn} onClick={onCancel}>
+                    <button style={styles.cancelBtn} onClick={onCancel} disabled={isLoading}>
                         Cancel
                     </button>
-                    <button style={styles.deleteBtn} onClick={onConfirm}>
-                        Delete
+                    <button
+                        style={{ ...styles.deleteBtn, opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "Deleting..." : "Delete"}
                     </button>
                 </div>
             </div>

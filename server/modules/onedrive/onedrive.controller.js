@@ -265,7 +265,7 @@ async function visitFolder(folder, currCourse, prevFolder) {
     const res = await Promise.all(folders);
     const prevFolderName = prevFolder ? `${prevFolder}/` : "root/";
     const NewFolder = await FolderModel.create({
-        course: normalizedCourseCode,
+        courses: [normalizedCourseCode],
         name: folder.name,
         childType,
         children: res,

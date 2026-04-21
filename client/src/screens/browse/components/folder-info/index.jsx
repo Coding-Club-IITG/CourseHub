@@ -99,7 +99,7 @@ const FolderInfo = ({
 
     const downloadFolder = async (id, folderPath = "") => {
         try {
-            const data = await fetchFolder(id);
+            const data = await fetchFolder(id, courseCode);
 
             const zip = new JSZip();
 

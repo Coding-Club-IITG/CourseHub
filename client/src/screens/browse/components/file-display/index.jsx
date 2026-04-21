@@ -152,7 +152,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
                 onError={() => {
                     async function thumbnailrefresh() {
                         await getThumbnail(file.fileId);
-                        const updatedFolder = await fetchFolder(currFolderId);
+                        const updatedFolder = await fetchFolder(currFolderId, currCourseCode);
                         dispatch(ChangeFolder(updatedFolder));
                     }
                     thumbnailrefresh();

@@ -33,6 +33,7 @@ import Share from "../share";
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
 import { findCachedCourse, hasUsableCourseTree, sanitizeCourseCache } from "../../utils/courseCache";
+import { readAllCoursesCache, clearAllCoursesCache } from "../../utils/frontendCache";
 
 function useIsMobile() {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -76,16 +77,9 @@ const BrowseScreen = () => {
     const fb = useSelector((state) => state.fileBrowser);
 
     useEffect(() => {
-        if (sessionStorage.getItem("AllCourses") !== null) {
-            try {
-                const parsed = JSON.parse(sessionStorage.getItem("AllCourses"));
-                const cleaned = sanitizeCourseCache(parsed);
-                sessionStorage.setItem("AllCourses", JSON.stringify(cleaned));
-                dispatch(LoadCourses(cleaned));
-            } catch (error) {
-                sessionStorage.removeItem("AllCourses");
-                dispatch(LoadCourses([]));
-            }
+        const cleaned = readAllCoursesCache();
+        if (cleaned.length > 0) {
+            dispatch(LoadCourses(cleaned));
         }
     }, []);
 
@@ -126,17 +120,13 @@ const BrowseScreen = () => {
             let sessionStorageCourses = null;
             let fetchedData = null;
 
-            try {
-                sessionStorageCourses = JSON.parse(sessionStorage.getItem("AllCourses"));
-            } catch (error) {
-                sessionStorageCourses = null;
-            }
+            sessionStorageCourses = readAllCoursesCache();
 
             let currCourse = null;
             try {
                 currCourse = findCachedCourse(allCourseData, code);
             } catch (error) {
-                sessionStorage.removeItem("AllCourses");
+                clearAllCoursesCache();
                 location.reload();
             }
             const present = findCachedCourse(sessionStorageCourses, code);
@@ -272,9 +262,7 @@ const BrowseScreen = () => {
                 );
                 if (!courseData) {
                     try {
-                        const sessionStorageCourses = JSON.parse(
-                            sessionStorage.getItem("AllCourses")
-                        );
+                        const sessionStorageCourses = readAllCoursesCache();
                         courseData = findCachedCourse(sessionStorageCourses, selectedCode);
                     } catch (error) {
                     }
@@ -401,7 +389,7 @@ const BrowseScreen = () => {
                                             key={folder._id}
                                             path={folder.path}
                                             name={folder.name}
-                                            subject={folder.course}
+                                            subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
                                             folderData={folder}
                                             parentFolder={folderData}
                                             isMobileView={isMobile}
@@ -473,7 +461,7 @@ const BrowseScreen = () => {
                                     canDownload={folderData?.childType === "File"}
                                     contributionHandler={contributionHandler}
                                     folderId={folderData?._id}
-                                    courseCode={folderData?.course}
+                                    courseCode={currCourseCode || (folderData?.courses ? folderData.courses[0] : folderData.course)}
                                 />
                             )}
                             <div className="files">
@@ -499,7 +487,7 @@ const BrowseScreen = () => {
                                             key={folder._id}
                                             path={folder.path}
                                             name={folder.name}
-                                            subject={folder.course}
+                                            subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
                                             folderData={folder}
                                             parentFolder={folderData}
                                         />

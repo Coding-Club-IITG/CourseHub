@@ -102,7 +102,40 @@ const deleteBR = async (req, res) => {
 
 const getBRs = async (req, res) => {
     try {
-        const brs = await User.find({ isBR: true });
+        // Fetch the definitive list of BRs from the BR collection
+        const brRecords = await BR.find({});
+        const brEmails = brRecords.map((br) => br.email);
+
+        // Fetch user details for those who have registered
+        const users = await User.find({ email: { $in: brEmails } });
+        
+        // Map users by email for quick lookup
+        const userMap = {};
+        for (const user of users) {
+            userMap[user.email.toLowerCase()] = user;
+        }
+
+        // Construct the final list
+        const brs = brRecords.map((br) => {
+            const user = userMap[br.email.toLowerCase()];
+            if (user) {
+                return {
+                    email: user.email,
+                    name: user.name || "N/A",
+                    degree: user.degree || "N/A",
+                    department: user.department || "N/A",
+                    semester: user.semester || "N/A",
+                };
+            }
+            return {
+                email: br.email,
+                name: "Pending Registration",
+                degree: "N/A",
+                department: "N/A",
+                semester: "N/A",
+            };
+        });
+
         res.status(200).json({ brs });
     } catch (error) {
         logger.error(error);

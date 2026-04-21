@@ -12,19 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useSelector, useDispatch } from "react-redux";
 import ErrorScreen from "./screens/error";
 import { LoadLocalCourses } from "./actions/user_actions";
-
-const sanitizeLocalCourses = (courses) => {
-    if (!Array.isArray(courses)) return [];
-
-    const byCode = new Map();
-    for (const course of courses) {
-        if (!course || typeof course !== "object") continue;
-        if (!course.code) continue;
-        byCode.set(course.code.toLowerCase(), course);
-    }
-
-    return Array.from(byCode.values());
-};
+import { migrateLegacyLocalCoursesFromSession, readLocalCoursesCache } from "./utils/frontendCache";
 
 const App = () => {
     const [initial, setInitial] = useState(true);
@@ -51,23 +39,14 @@ const App = () => {
         if (!initial) return;
 
         try {
-            const localCoursesRaw =
-                window.localStorage.getItem("LocalCourses") ||
-                window.sessionStorage.getItem("LocalCourses");
-            if (!localCoursesRaw) return;
-
-            const parsedCourses = JSON.parse(localCoursesRaw);
-            const cleanedCourses = sanitizeLocalCourses(parsedCourses);
-            window.localStorage.setItem("LocalCourses", JSON.stringify(cleanedCourses));
-            window.sessionStorage.removeItem("LocalCourses");
-
-            if (cleanedCourses.length > 0) {
-                dispatch(LoadLocalCourses(cleanedCourses));
+            const cleanedCourses = migrateLegacyLocalCoursesFromSession();
+            const fromLocal = readLocalCoursesCache();
+            const bootstrapCourses = cleanedCourses.length > 0 ? cleanedCourses : fromLocal;
+            if (bootstrapCourses.length > 0) {
+                dispatch(LoadLocalCourses(bootstrapCourses));
             }
         } catch (error) {
             console.error("Error loading local courses:", error);
-            window.localStorage.removeItem("LocalCourses");
-            window.sessionStorage.removeItem("LocalCourses");
         }
     }, [initial, dispatch]);
 
