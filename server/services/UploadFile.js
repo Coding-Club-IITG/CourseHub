@@ -118,7 +118,7 @@ async function UploadFile(contributionId, filePath, fileName) {
             isVerified: !!existingContribution?.approved,
             fileId: data.id,
             size: data.size,
-            thumbnail: tempThumbnailUrl,
+            thumbnail: tempThumbnailUrl ? { url: tempThumbnailUrl } : undefined,
             name: fileName,
             downloadUrl: `${webUrl}?download=1`,
             webUrl: webUrl,
@@ -131,8 +131,17 @@ async function UploadFile(contributionId, filePath, fileName) {
             (async () => {
                 try {
                     const imgResponse = await axios.get(tempThumbnailUrl, { responseType: "arraybuffer" });
-                    const { url: permanentUrl, fileId: imagekitFileId } = await uploadThumbnail(data.id, Buffer.from(imgResponse.data));
-                    await FileModel.updateOne({ fileId: data.id }, { thumbnail: permanentUrl, imagekitFileId });
+                    const { url: permanentUrl, fileId: imagekitFileId, path: imagekitPath } = await uploadThumbnail(data.id, Buffer.from(imgResponse.data));
+                    await FileModel.updateOne(
+                        { fileId: data.id },
+                        {
+                            thumbnail: {
+                                url: permanentUrl,
+                                fileId: imagekitFileId,
+                                path: imagekitPath,
+                            },
+                        }
+                    );
                     logger.info(`ImageKit thumbnail stored for ${data.id}`);
                 } catch (thumbErr) {
                     logger.warn(`ImageKit thumbnail upload failed for ${data.id}: ${thumbErr.message}`);
@@ -151,9 +160,10 @@ async function DeleteFile(fileId) {
     const access_token = await getAccessToken();
 
     // Delete ImageKit thumbnail in the background — don't block the response
-    FileModel.findOne({ fileId }, { imagekitFileId: 1 }).lean().then((fileDoc) => {
-        if (fileDoc?.imagekitFileId) {
-            deleteThumbnail(fileDoc.imagekitFileId).catch((ikErr) => {
+    FileModel.findOne({ fileId }).lean().then((fileDoc) => {
+        const imagekitId = fileDoc?.thumbnail?.fileId || fileDoc?.imagekitFileId;
+        if (imagekitId) {
+            deleteThumbnail(imagekitId).catch((ikErr) => {
                 logger.warn(`ImageKit thumbnail deletion failed for ${fileId}: ${ikErr.message}`);
             });
         }

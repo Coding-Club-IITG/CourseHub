@@ -32,7 +32,11 @@ export async function uploadThumbnail(fileId, imageBuffer) {
             pre: "f-webp,q-80",         // convert to WebP quality 80 at edge
         },
     });
-    return { url: response.url, fileId: response.fileId };
+    return {
+        url: response.url,
+        fileId: response.fileId,
+        path: response.filePath || `/thumbnails/${fileId}.webp`,
+    };
 }
 
 /**

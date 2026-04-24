@@ -13,8 +13,11 @@ const FileSchema = Schema({
     name: { type: String, required: true },
     fileId: { type: String, required: true },
     size: { type: String, required: true },
-    thumbnail: { type: String },
-    imagekitFileId: { type: String },
+    thumbnail: {
+        url: { type: String },
+        fileId: { type: String },
+        path: { type: String },
+    },
     webUrl: { type: String, required: true },
     downloadUrl: { type: String, required: true },
     isVerified: { type: Boolean, default: false, required: true },

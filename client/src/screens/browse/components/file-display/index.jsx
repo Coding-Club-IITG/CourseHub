@@ -66,6 +66,8 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
     const dispatch = useDispatch();
 
     const preview_url = file.webUrl;
+    const thumbnailUrl =
+        typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
 
     const handleDownload = async () => {
         if (!isLoggedIn) {
@@ -147,7 +149,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             }`}
         >
             <img
-                src={file.thumbnail}
+                src={thumbnailUrl}
                 style={{ display: "none" }}
                 onError={() => {
                     async function thumbnailrefresh() {
@@ -161,7 +163,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             <div
                 className="img-preview"
                 style={{
-                    background: `url(${file.thumbnail}) center/cover no-repeat`,
+                    background: `url(${thumbnailUrl}) center/cover no-repeat`,
                 }}
             >
                 <div className="top">

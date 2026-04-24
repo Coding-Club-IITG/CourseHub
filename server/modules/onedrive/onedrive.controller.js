@@ -83,8 +83,13 @@ export async function thumbnail(req, res) {
 
     // 1. Already a permanent ImageKit URL in DB — return immediately
     const file = await FileModel.findOne({ fileId }).select("thumbnail");
-    if (file?.thumbnail && isImageKitUrl(file.thumbnail)) {
-        return res.status(200).json(file.thumbnail);
+    const storedThumbnailUrl =
+        typeof file?.thumbnail === "string"
+            ? file.thumbnail
+            : file?.thumbnail?.url;
+
+    if (storedThumbnailUrl && isImageKitUrl(storedThumbnailUrl)) {
+        return res.status(200).json(storedThumbnailUrl);
     }
 
     // 2. Fetch a fresh temporary URL from Graph API (legacy files with expired OneDrive URLs)
@@ -98,10 +103,21 @@ export async function thumbnail(req, res) {
 
     // 3. Download raw image bytes and upload to ImageKit as WebP permanently
     const imgResponse = await axios.get(thumbnailurl, { responseType: "arraybuffer" });
-    const { url: permanentUrl, fileId: imagekitFileId } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
+    const { url: permanentUrl, fileId: imagekitFileId, path: imagekitPath } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
 
     // 4. Persist permanent URL to DB so this file never hits Graph API again
-    await FileModel.updateOne({ fileId }, { $set: { thumbnail: permanentUrl, imagekitFileId } });
+    await FileModel.updateOne(
+        { fileId },
+        {
+            $set: {
+                thumbnail: {
+                    url: permanentUrl,
+                    fileId: imagekitFileId,
+                    path: imagekitPath,
+                },
+            },
+        }
+    );
 
     return res.status(200).json(permanentUrl);
 }
@@ -296,7 +312,9 @@ async function visitFile(file, currCourse) {
         name: file.name,
         id: file.id,
         size: file.size * 0.000001,
-        thumbnail: file?.thumbnails?.[0]?.medium?.url || "null",
+        thumbnail: {
+            url: file?.thumbnails?.[0]?.medium?.url || "null",
+        },
     });
     return NewFile._id;
 }
