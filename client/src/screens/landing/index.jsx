@@ -9,13 +9,15 @@ import { useState } from "react";
 import { getUser, handleLogin } from "../../api/User";
 import AddCourseModal from "./components/searchcoursemodal";
 import Loader from "../../components/Loader";
+import { clearLegacySessionLocalCoursesCache } from "../../utils/frontendCache";
+
 const LandingPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        sessionStorage.removeItem("LocalCourses");
+        clearLegacySessionLocalCoursesCache();
     }, []);
 
     const searchCourseShowModalHandler = (event) => {

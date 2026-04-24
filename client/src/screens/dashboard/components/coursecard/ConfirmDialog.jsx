@@ -69,7 +69,7 @@ const styles = {
     },
 };
 
-const ConfirmDialog = ({ isOpen, onConfirm, onCancel }) => {
+const ConfirmDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) => {
     if (!isOpen) return null;
 
     return (
@@ -81,11 +81,15 @@ const ConfirmDialog = ({ isOpen, onConfirm, onCancel }) => {
                     Do you want to remove this course? It can be added again.
                 </p>
                 <div style={styles.buttonGroup}>
-                    <button style={styles.cancelBtn} onClick={onCancel}>
+                    <button style={styles.cancelBtn} onClick={onCancel} disabled={isLoading}>
                         Cancel
                     </button>
-                    <button style={styles.deleteBtn} onClick={onConfirm}>
-                        Delete
+                    <button
+                        style={{ ...styles.deleteBtn, opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "Removing..." : "Delete"}
                     </button>
                 </div>
             </div>

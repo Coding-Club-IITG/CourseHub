@@ -55,14 +55,17 @@ export const getCourse = async (req, res, next) => {
     if (!normalizedCode) throw new AppError(400, "Missing Course Id");
     const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(normalizedCode);
 
-    let course = await CourseModel.findOne({ code: courseCodeRegex })
+    let courseDoc = await CourseModel.findOne({ code: courseCodeRegex })
         .populate(buildChildrenPopulate(COURSE_CHILDREN_POPULATE_DEPTH))
         .select("-__v");
 
-    if (!course) {
-        course = await createCourse(normalizedCode);
+    if (!courseDoc) {
+        courseDoc = await createCourse(normalizedCode);
     }
-    if (!course) throw new AppError(500, "Failed to create course");
+    if (!courseDoc) throw new AppError(500, "Failed to create course");
+
+    // Convert to plain object to avoid issues with Mongoose internal state
+    const courseObj = courseDoc.toObject();
 
     const sortYear = (a, b) => {
         if (a?.name > b?.name) return 1;
@@ -70,8 +73,11 @@ export const getCourse = async (req, res, next) => {
         else return 1;
     }
 
-    if (course?.children.length > 1) course.children.sort(sortYear);
-    return res.json({ found: true, ...course["_doc"] });
+    if (courseObj?.children && courseObj.children.length > 1) {
+        courseObj.children.sort(sortYear);
+    }
+
+    return res.json({ found: true, ...courseObj });
 };
 
 export const deleteCourseByCode = async (req, res, next) => {
@@ -80,16 +86,20 @@ export const deleteCourseByCode = async (req, res, next) => {
     if (!normalizedCode) throw new AppError(400, "Missing Course Id");
 
     const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(normalizedCode);
-    await FolderModel.deleteMany({ course: courseCodeRegex });
+    const courseFolders = await FolderModel.find({ courses: courseCodeRegex });
+    for (const folder of courseFolders) {
+        if (folder.courses.length > 1) {
+            await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: normalizedCode } });
+        } else {
+            await FolderModel.deleteOne({ _id: folder._id });
+        }
+    }
     await FileModel.deleteMany({
         course: { $regex: `^${normalizedCode}\\s-\\s`, $options: "i" },
     });
     await CourseModel.deleteOne({ code: courseCodeRegex });
     res.sendStatus(200);
 };
-
-// update course
-// delete existing course -> fetch new structure from onedrive
 
 export const getAllCourses = async (req, res, next) => {
     const allCourse = await CourseModel.find().select("_id name code");

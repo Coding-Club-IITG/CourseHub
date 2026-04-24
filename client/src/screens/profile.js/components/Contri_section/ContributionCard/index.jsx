@@ -10,18 +10,23 @@ export default function ContributionCard(props) {
     const [showDialog, setShowDialog] = useState(false);
     const [dialogType, setDialogType] = useState("verify");
     const [onConfirmAction, setOnConfirmAction] = useState(() => () => {});
+    const [isProcessing, setIsProcessing] = useState(false);
+
     const handleVerify = async () => {
         setDialogType("verify");
         setOnConfirmAction(() => async () => {
+            if (isProcessing) return;
             try {
+                setIsProcessing(true);
                 await verifyFile(props?.file?._id);
                 props.verify();
                 toast.success("File verified!");
+                setShowDialog(false);
             } catch (err) {
                 console.error("Error verifying:", err);
                 toast.error("Failed to verify file.");
             } finally {
-                setShowDialog(false);
+                setIsProcessing(false);
             }
         });
         setShowDialog(true);
@@ -30,15 +35,18 @@ export default function ContributionCard(props) {
     const handleUnverify = async () => {
         setDialogType("delete");
         setOnConfirmAction(() => async () => {
+            if (isProcessing) return;
             try {
+                setIsProcessing(true);
                 await unverifyFile(props?.file?._id, props?.file?.fileId, props.parentFolder);
                 props.unverify();
                 toast.success("File deleted!");
+                setShowDialog(false);
             } catch (err) {
                 console.error("Error deleting:", err);
                 toast.error("Failed to delete file.");
             } finally {
-                setShowDialog(false);
+                setIsProcessing(false);
             }
         });
         setShowDialog(true);
@@ -80,6 +88,7 @@ export default function ContributionCard(props) {
                 type={dialogType}
                 onConfirm={onConfirmAction}
                 onCancel={() => setShowDialog(false)}
+                isLoading={isProcessing}
             />
         </div>
     );

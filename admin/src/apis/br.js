@@ -16,6 +16,32 @@ export const fetchBRs = async () => {
     }
 };
 
+// Create a single BR
+export const createBR = async (email) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}api/br/create`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer admin-coursehub-cc23-golang",
+            },
+            body: JSON.stringify({ email }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || result.message || "Failed to create BR");
+        }
+
+        return result;
+    } catch (error) {
+        console.error("Error creating single BR:", error);
+        throw error;
+    }
+};
+
 // Parse CSV and upload BRs
 export const uploadBRs = async (file) => {
     try {

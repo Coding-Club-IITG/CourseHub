@@ -9,6 +9,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
     const [isAvailable, setIsAvailable] = useState(true);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
 
     useEffect(() => {
         async function SetCourseAvailability() {
@@ -22,16 +23,22 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
     }, []);
 
     const handleRemove = async () => {
+        if (isRemoving) return;
         try {
+            setIsRemoving(true);
             const resp = await DeleteCourseAPI(code);
             location.reload();
         } catch (error) {
             toast.error("Something went wrong!");
+            setIsRemoving(false);
+            setShowConfirm(false);
         }
-        setShowConfirm(false);
     };
 
-    const cancelRemove = () => setShowConfirm(false);
+    const cancelRemove = () => {
+        if (isRemoving) return;
+        setShowConfirm(false);
+    };
 
     return type === "ADD" ? (
         <div className="coursecard ADD" onClick={setClicked}>
@@ -77,6 +84,7 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
                     type="delete"
                     onConfirm={handleRemove}
                     onCancel={cancelRemove}
+                    isLoading={isRemoving}
                 />
             )}
         </>

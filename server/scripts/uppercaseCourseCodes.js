@@ -143,10 +143,20 @@ const normalizeFolderCourses = async () => {
     let updatedCount = 0;
 
     for (const folder of folders) {
-        const normalizedCourseCode = normalizeCourseCode(folder.course);
-        if (!normalizedCourseCode || folder.course === normalizedCourseCode) continue;
+        if (!folder.courses || !folder.courses.length) continue;
+        let needsUpdate = false;
+        const normalizedCourses = folder.courses.map(code => {
+            const normalizedCourseCode = normalizeCourseCode(code);
+            if (normalizedCourseCode && normalizedCourseCode !== code) {
+                needsUpdate = true;
+                return normalizedCourseCode;
+            }
+            return code;
+        });
 
-        folder.course = normalizedCourseCode;
+        if (!needsUpdate) continue;
+
+        folder.courses = normalizedCourses;
         await folder.save();
         updatedCount += 1;
     }
