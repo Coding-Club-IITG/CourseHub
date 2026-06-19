@@ -88,6 +88,7 @@ app.use((err, req, res, next) => {
         logger.error(
             {
                 message: err.message,
+                microsoftResponse: err.response?.data,
                 route: req.originalUrl,
                 method: req.method,
             },

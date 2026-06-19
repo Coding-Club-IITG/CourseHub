@@ -319,14 +319,45 @@ async function visitFile(file, currCourse) {
     return NewFile._id;
 }
 
+// export async function getAccessToken() {
+//     let data;
+//     if (fs.existsSync("./onedrive-refresh-token.token")) {
+//         data = await refreshAccessToken();
+//     } else {
+//         data = await generateAccessToken();
+//     }
+//     return data.access_token;
+// }
+let cachedAccessToken = null;
+let tokenExpiry = 0;
+
 export async function getAccessToken() {
+
+    if (
+        cachedAccessToken &&
+        Date.now() < tokenExpiry
+    ) {
+        console.log("Using cached token");
+        return cachedAccessToken;
+    }
+
+    console.log("Fetching fresh token");
+
     let data;
+
     if (fs.existsSync("./onedrive-refresh-token.token")) {
         data = await refreshAccessToken();
     } else {
         data = await generateAccessToken();
     }
-    return data.access_token;
+
+    cachedAccessToken = data.access_token;
+
+    tokenExpiry =
+        Date.now() +
+        (data.expires_in - 60) * 1000;
+
+    return cachedAccessToken;
 }
 
 async function refreshAccessToken() {

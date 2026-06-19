@@ -8,6 +8,7 @@ import { getThumbnail } from "../../../../api/File";
 import clientRoot from "../../../../api/server";
 import capitalise from "../../../../utils/capitalise.js";
 import Share from "../../../share";
+import API_BASE_URL from "../../../../api/server";
 import { verifyFile, unverifyFile } from "../../../../api/File";
 import {
     RemoveFileFromFolder,
@@ -18,12 +19,14 @@ import { getFileDownloadLink } from "../../../../api/File";
 import { fetchFolder } from "../../../../api/Folder.js";
 
 const FileDisplay = ({ file, path, code, isMobileView = false }) => {
+    console.log(file._id);
+
     const user = useSelector((state) => state.user?.user);
     const fileSize = formatFileSize(file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogType, setDialogType] = useState("verify");
-    const [onConfirmAction, setOnConfirmAction] = useState(() => () => {});
+    const [onConfirmAction, setOnConfirmAction] = useState(() => () => { });
     const [isProcessing, setIsProcessing] = useState(false);
 
     let name = file.name;
@@ -96,7 +99,10 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             toast.error("Please login to preview file.");
             return;
         }
-        window.open(preview_url, "_blank");
+        window.open(
+            `${API_BASE_URL}/api/contribution/view/${file._id}`,
+            "_blank"
+        );
     };
 
 
@@ -144,9 +150,8 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
 
     return (
         <div
-            className={`file-display ${
-                user?.isBR ? (file.isVerified ? "verified" : "unverified") : ""
-            }`}
+            className={`file-display ${user?.isBR ? (file.isVerified ? "verified" : "unverified") : ""
+                }`}
         >
             <img
                 src={thumbnailUrl}
