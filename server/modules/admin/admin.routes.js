@@ -26,9 +26,9 @@ router.post(
     catchAsync(adminController.createAdmin)
 );
 
-router.get("/course/:code/dashboard", getCourseDashboardData);
-router.post("/contribution/action", handleContribution);
-router.delete("/node/:type/:id", deleteNode);
+router.get("/course/:code/dashboard", isAdmin, catchAsync(getCourseDashboardData));
+router.post("/contribution/action", isAdmin, catchAsync(handleContribution));
+router.delete("/node/:type/:id", isAdmin,catchAsync(deleteNode));
 router.get("/", isAdmin, catchAsync(adminController.getAdmin));
 router.get("/onedrivecourses", isAdmin, catchAsync(adminController.getOnedriveCourses));
 router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));
@@ -41,7 +41,7 @@ router.get("/contribution/id/:folderName", isAdmin, catchAsync(adminController.g
 router.post("/contribution/markapproved", isAdmin, catchAsync(adminController.markApproved));
 router.post(
     "/contribution/bootstrapnewcourse",
-    isAdmin,
+    isAdmin,    
     catchAsync(adminController.createNewCourseFolders)
 );
 

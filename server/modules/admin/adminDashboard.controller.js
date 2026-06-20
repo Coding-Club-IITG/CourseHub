@@ -10,6 +10,7 @@ import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../ut
 import { runSync } from "../../scripts/syncCoursesCache.js";
 import { error } from "console";
 import mongoose from "mongoose";
+import {deleteFile} from "../file/file.controller.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -57,118 +58,127 @@ export async function uploadCourses(req, res, next) {
         });
 }
 
+const buildChildren= (depth = 8) => 
+{
+    if(depth <= 0)
+    {
+        return undefined;
+    }
+    const populate = { strictPopulate: false, path: "children"};
+    const nested = buildChildren(depth - 1);
+    
+    if (nested) 
+    {
+        populate.populate = nested;   
+    }
+    return populate;
+};
+
 export async function getCourseDashboardData(req,res,next)
 {
-    try
-    {
-        const {code} = req.params;
-        const codeUpper = normalizeCourseCode(code);
-        const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
-        
-        const course = await CourseModel.findOne({ code: codeRegex })
-            .populate({
-                path: "children", 
-                populate: {
-                    path: "children", 
-                    strictPopulate: false, 
-                    populate: {
-                        path: "children", 
-                        strictPopulate: false, 
-                        populate: {
-                            path: "children", 
-                            strictPopulate: false 
-                        }
-                    }
-                }
-            });
 
-        const studentCount = await User.countDocuments({"courses.code": { $regex: `^${codeUpper}$`, $options: "i" }});
-        const contributions = await Contribution.find({ courseCode: codeRegex }).sort({ createdAt: -1 }).populate("files");
-
-        res.json({course,studentCount,contributions});
-    }
-
-    catch(error)
-    {
-        return next(new AppError(500,"Failed to fetch dashboard data: " + error.message));
-    }
-}
-
-export async function deleteNode(req,res,next) 
-{
-    const {type, id} = req.params;
+    const {code} = req.params;
+    const codeUpper = normalizeCourseCode(code);
+    const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
     
-    try
-    {
-        const targetId = new mongoose.Types.ObjectId(id);
-        await CourseModel.updateMany({children:id}, {$pull : {children: id}});
-        await FolderModel.updateMany({children:id}, {$pull : {children: id}});
+    const course = await CourseModel.findOne({ code: codeRegex }).populate(buildChildren());
 
-        if(type == "file")
-        {
-            await Contribution.updateMany({}, { $pull: { files: targetId } });
-            await Contribution.deleteMany({ files: { $size: 0 } });
-            
-            await FileModel.findByIdAndDelete(targetId);
-        }
-        else if(type == "folder")
-        {
-            await FolderModel.findByIdAndDelete(id);
-        }
-        return res.json({ success: true, message: `${type} deleted successfully.` });
-    }
-    catch(error)
-    {
+    const studentCount = await User.countDocuments({"courses.code": { $regex: `^${codeUpper}$`, $options: "i" }});
+    const contributions = await Contribution.find({ courseCode: codeRegex }).sort({ createdAt: -1 }).populate("files");
 
-    }
+    res.json({course,studentCount,contributions});
 }
+
+async function deleteFolderTree(folderId)
+{
+    const folder = await FolderModel.findById(folderId);
+    
+    if(folder.childType === "Folder")
+    {
+        for(const childId of folder.children)
+        {
+            await deleteFolderTree(childID);
+        }
+    }
+    else if(folder.childType === "file")
+    {
+        for(const fileId of folder.children)
+        {
+            const file = await FileModel.findById(fileId);
+            if(file)
+            {
+                await deleteFile(file);
+            }
+        }
+    }
+
+    await FolderModel.findByIdAndDelete(folderId);  
+}
+
+export const deleteNode = async (req, res, next) => {
+    const { type, id } = req.params;
+
+    await CourseModel.updateMany({ children: id }, { $pull: { children: id } });
+    await FolderModel.updateMany({ children: id }, { $pull: { children: id } });
+
+    if (type === "file") 
+    {
+        const file = await FileModel.findById(id);
+        if (!file) return next(new AppError(404, "File not found"));
+
+        await Contribution.updateMany({}, { $pull: { files: id } });
+        await Contribution.deleteMany({ files: { $size: 0 } });
+        await deleteFile(file);                         
+    } 
+    else 
+    {
+        await deleteFolderTree(id);                     
+    }
+
+    return res.json({ success: true, message: `${type} deleted successfully.` });
+};
+
 
 export async function handleContribution(req,res,next) 
 {
     const {contributionId, action} = req.body;
-    try
+
+    const contribution = await Contribution.findOne({contributionId:contributionId}).populate("files");
+    
+    if(action == "approve")
     {
-        const contribution = await Contribution.findOne({contributionId:contributionId}).populate("files");
-        
-        if(action == "approve")
-        {
-            contribution.approved = true;
-            await contribution.save();
+        contribution.approved = true;
+        await contribution.save();
 
-            for (let file of contribution.files) 
-            {
-                await FileModel.findByIdAndUpdate(file._id, { isVerified: true });
-            }
-            return res.json({ success: true, message: "Contribution approved and files published." });
+        for (const file of contribution.files) 
+        {
+            await FileModel.findByIdAndUpdate(file._id, { isVerified: true });
         }
-        else if(action == "reject")
+        return res.json({ success: true, message: "Contribution approved and files published." });
+    }
+
+    else if(action == "reject")
+    {
+        const parentFolder = await FolderModel.findById(contribution.parentFolder);
+        
+        for (const file of contribution.files) 
         {
-            contribution.approved = false;
-            const parentFolder = await FolderModel.findById(contribution.parentFolder);
-            
-            for (let file of contribution.files) 
-            {
-                if(parentFolder)
-                {
-                    parentFolder.children = parentFolder.children.filter(
-                        childId => childId.toString() !== file._id.toString()
-                    );
-                }
-
-                await FileModel.findByIdAndDelete(file._id);
-            }
-
             if(parentFolder)
             {
-                await parentFolder.save();
+                parentFolder.children = parentFolder.children.filter(
+                    childId => childId.toString() !== file._id.toString()
+                );
             }
-            await Contribution.findByIdAndDelete(contribution._id);
-            return res.json({ success: true, message: "Contribution denied files rejected."});
-        }
-    }
-    catch(error)
-    {
 
+            await deleteFile(file);
+        }
+
+        if(parentFolder)
+        {
+            await parentFolder.save();
+        }
+        await Contribution.findByIdAndDelete(contribution._id);
+        return res.json({ success: true, message: "Contribution denied files rejected."});
     }
 
 }
