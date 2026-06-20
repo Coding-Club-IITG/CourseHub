@@ -81,8 +81,11 @@ export async function getCourseIds(req, res) {
 export async function thumbnail(req, res) {
     const fileId = req.body.fileId;
 
-    // 1. Already a permanent ImageKit URL in DB — return immediately
-    const file = await FileModel.findOne({ fileId }).select("thumbnail");
+    // 1. Already a permanent ImageKit URL in DB — return immediately.
+    // .lean() returns the raw stored value so legacy string thumbnails stay
+    // strings (a hydrated doc wraps the nested `thumbnail` path as an object,
+    // which breaks the `typeof === "string"` check below).
+    const file = await FileModel.findOne({ fileId }).select("thumbnail").lean();
     const storedThumbnailUrl =
         typeof file?.thumbnail === "string"
             ? file.thumbnail
