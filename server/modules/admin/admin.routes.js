@@ -6,6 +6,7 @@ import isAdmin from "../../middleware/isAdmin.js";
 import multer from "multer";
 import { adminLogin, adminLogout } from "./auth.controller.js";
 import { uploadCourses, renameCourse, deleteCourse, linkLegacyCourse, bulkLinkCourses, syncCoursesCacheController } from "./adminDashboard.controller.js";
+import {getCourseDashboardData, handleContribution} from "./adminDashboard.controller.js"
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -25,6 +26,9 @@ router.post(
     catchAsync(adminController.createAdmin)
 );
 
+router.get("/course/:code/dashboard", getCourseDashboardData);
+router.post("/contribution/action", handleContribution);
+router.delete("/node/:type/:id", deleteNode);
 router.get("/", isAdmin, catchAsync(adminController.getAdmin));
 router.get("/onedrivecourses", isAdmin, catchAsync(adminController.getOnedriveCourses));
 router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));

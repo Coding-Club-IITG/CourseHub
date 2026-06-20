@@ -8,6 +8,8 @@ import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { runSync } from "../../scripts/syncCoursesCache.js";
+import { error } from "console";
+import mongoose from "mongoose";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -53,6 +55,122 @@ export async function uploadCourses(req, res, next) {
                 next(new AppError(500, "Failed to process CSV"));
             }
         });
+}
+
+export async function getCourseDashboardData(req,res,next)
+{
+    try
+    {
+        const {code} = req.params;
+        const codeUpper = normalizeCourseCode(code);
+        const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
+        
+        const course = await CourseModel.findOne({ code: codeRegex })
+            .populate({
+                path: "children", 
+                populate: {
+                    path: "children", 
+                    strictPopulate: false, 
+                    populate: {
+                        path: "children", 
+                        strictPopulate: false, 
+                        populate: {
+                            path: "children", 
+                            strictPopulate: false 
+                        }
+                    }
+                }
+            });
+
+        const studentCount = await User.countDocuments({"courses.code": { $regex: `^${codeUpper}$`, $options: "i" }});
+        const contributions = await Contribution.find({ courseCode: codeRegex }).sort({ createdAt: -1 }).populate("files");
+
+        res.json({course,studentCount,contributions});
+    }
+
+    catch(error)
+    {
+        return next(new AppError(500,"Failed to fetch dashboard data: " + error.message));
+    }
+}
+
+export async function deleteNode(req,res,next) 
+{
+    const {type, id} = req.params;
+    
+    try
+    {
+        const targetId = new mongoose.Types.ObjectId(id);
+        await CourseModel.updateMany({children:id}, {$pull : {children: id}});
+        await FolderModel.updateMany({children:id}, {$pull : {children: id}});
+
+        if(type == "file")
+        {
+            await Contribution.updateMany({}, { $pull: { files: targetId } });
+            await Contribution.deleteMany({ files: { $size: 0 } });
+            
+            await FileModel.findByIdAndDelete(targetId);
+        }
+        else if(type == "folder")
+        {
+            await FolderModel.findByIdAndDelete(id);
+        }
+        return res.json({ success: true, message: `${type} deleted successfully.` });
+    }
+    catch(error)
+    {
+
+    }
+}
+
+export async function handleContribution(req,res,next) 
+{
+    const {contributionId, action} = req.body;
+    try
+    {
+        const contribution = await Contribution.findOne({contributionId:contributionId}).populate("files");
+        
+        if(action == "approve")
+        {
+            contribution.approved = true;
+            await contribution.save();
+
+            for (let file of contribution.files) 
+            {
+                await FileModel.findByIdAndUpdate(file._id, { isVerified: true });
+            }
+            return res.json({ success: true, message: "Contribution approved and files published." });
+        }
+        else if(action == "reject")
+        {
+            contribution.approved = false;
+            const parentFolder = await FolderModel.findById(contribution.parentFolder);
+            
+            for (let file of contribution.files) 
+            {
+                if(parentFolder)
+                {
+                    parentFolder.children = parentFolder.children.filter(
+                        childId => childId.toString() !== file._id.toString()
+                    );
+                }
+
+                await FileModel.findByIdAndDelete(file._id);
+            }
+
+            if(parentFolder)
+            {
+                await parentFolder.save();
+            }
+            await Contribution.findByIdAndDelete(contribution._id);
+            return res.json({ success: true, message: "Contribution denied files rejected."});
+        }
+    }
+    catch(error)
+    {
+
+    }
+
 }
 
 export async function renameCourse(req, res, next) {

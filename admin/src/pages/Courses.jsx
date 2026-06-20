@@ -27,8 +27,11 @@ import { Badge } from "@/components/ui/badge";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { fetchCourses, updateCourseName, bulkSyncCourses, deleteCourse } from "@/apis/courses";
+import { useNavigate } from "react-router-dom";
+import { FaEye } from "react-icons/fa"; // Add FaEye to your react-icons import
 
 function Courses() {
+    const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
@@ -602,6 +605,14 @@ function Courses() {
                                                     <div className="flex items-center space-x-2">
                                                         {editingCode === course.code ? null : (
                                                             <>
+                                                            <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 hover:bg-blue-100/80 transition-all duration-200 transform hover:scale-110"
+                                                            title="View Course Dashboard"
+                                                            onClick={() => navigate(`/courses/${course.code}`)}>
+                                                            <FaEye className="h-4 w-4 text-blue-600" />
+                                                            </Button>
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
