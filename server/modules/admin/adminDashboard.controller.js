@@ -58,7 +58,7 @@ export async function uploadCourses(req, res, next) {
         });
 }
 
-const buildChildren= (depth = 8) => 
+const buildChildren = (depth = 8) => 
 {
     if(depth <= 0)
     {
@@ -97,10 +97,10 @@ async function deleteFolderTree(folderId)
     {
         for(const childId of folder.children)
         {
-            await deleteFolderTree(childID);
+            await deleteFolderTree(childId);
         }
     }
-    else if(folder.childType === "file")
+    else if(folder.childType === "File")
     {
         for(const fileId of folder.children)
         {
