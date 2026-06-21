@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams} from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
 import {
@@ -72,11 +72,9 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
 
 export default function CourseDashboard() {
     const { code } = useParams();
-    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
-    const [activeTab, setActiveTab] = useState("structure");
 
     useEffect(() => {
         loadData();
@@ -234,7 +232,9 @@ export default function CourseDashboard() {
                                         <FiFile />
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <div className="break-all text-sm font-semibold">{contribution.contributionId}</div>
+                                        <div className="text-sm font-semibold">
+                                            {contribution.files?.map(f => f.name).join(", ") || contribution.contributionId}
+                                        </div>
                                         <div className="text-xs text-slate-600">Awaiting review</div>
                                     </div>
                                     <div className="flex flex-shrink-0 gap-2">

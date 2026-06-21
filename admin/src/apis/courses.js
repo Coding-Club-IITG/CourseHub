@@ -210,7 +210,7 @@ export const handleContribution = async (contributionId, action) => {
                 "Content-Type": "application/json",
                 Authorization: "Bearer admin-coursehub-cc23-golang",
             },
-            body: JSON.stringify({ contributionId, action }),
+            body: JSON.stringify({ contributionId, action}),
             credentials: "include",
         });
         if (!response.ok)

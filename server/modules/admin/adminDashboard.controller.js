@@ -112,10 +112,11 @@ async function deleteFolderTree(folderId)
         }
     }
 
-    await FolderModel.findByIdAndDelete(folderId);  
+    await FolderModel.findByIdAndDelete(folderId);
 }
 
-export const deleteNode = async (req, res, next) => {
+export const deleteNode = async (req, res, next) => 
+{
     const { type, id } = req.params;
 
     await CourseModel.updateMany({ children: id }, { $pull: { children: id } });
