@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import BrTable from "../components/brTable";
 import UploadBRs from "../components/UploadBRs";
-import { fetchBRs, createBR } from "@/apis/br";
+import { fetchBRs, createBR ,deleteBR } from "@/apis/br";
 import { FaPlus, FaUpload } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,26 @@ export default function BranchRepresentatives() {
                 setTimeout(() => setAddSuccess(null), 3000);
             }
         }
-    };
+    }    
+    
+    const handleDeleteBR = async(email) => {
+        const isConfirmed = window.confirm(`Are you sure you want to remove ${email} as a Branch Representative ?`);
+        if(!isConfirmed){
+            return ;
+        }
+        // error == er ;
+        try {
+            setLoading(true);
+            await deleteBR(email);
+            await loadBRs();
+        }
+        catch(er){
+            console.error("Failed to delete BR :" , er);
+            setError(er.message || "An error occurred while trying to remove the BR" );
+            setLoading(false);
+        }
+
+    }
 
     return (
         <div className="p-6 space-y-6">
@@ -126,7 +145,7 @@ export default function BranchRepresentatives() {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6">
                 {loading && <p>Loading...</p>}
                 {error && <p className="text-red-500">{error}</p>}
-                {!loading && !error && <BrTable brs={brs} />}
+                {!loading && !error && <BrTable brs={brs} onDelete={handleDeleteBR}  />}
             </div>
 
             {showUploadModal && (

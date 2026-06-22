@@ -92,6 +92,12 @@ const deleteBR = async (req, res) => {
 
         const br = await BR.findOneAndDelete({ email: normalizedEmail });
         if (!br) return res.status(404).json({ error: "BR not found" });
+        
+        const user = await findUserByEmailInsensitive(normalizedEmail);
+        if (user) {
+            user.isBR = false;
+            await user.save();
+        }
 
         res.status(200).json({ message: "BR deleted successfully" });
     } catch (error) {
