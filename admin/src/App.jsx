@@ -25,20 +25,20 @@ function App() {
                                 }
                             />
                             <Route
+                                path="/admin/students"
+                                element={
+                                    <PrivateRoute>
+                                        <Students />
+                                    </PrivateRoute>
+                                }
+                            />
+                            <Route
                                 path="/admin/courses"
                                 element={
                                     <PrivateRoute>
                                         <Courses />
                                     </PrivateRoute>
                                 }
-                            />
-                            <Route
-                                path="/admin/students"
-                                element={
-                                    <PrivateRoute>
-                                         <Students />
-                                    </PrivateRoute>
-                                 }
                             />
                             <Route
                                 path="/admin/course-linking"

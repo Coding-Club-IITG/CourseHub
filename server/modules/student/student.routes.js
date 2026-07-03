@@ -17,4 +17,4 @@ router.put("/refresh/:id", isAdmin, catchAsync(refreshStudentCourses));
 router.post("/semester-reset", isAdmin, catchAsync(semesterReset));
 router.delete("/:id", isAdmin, catchAsync(deleteStudent));
 
-export default router;
+export default router

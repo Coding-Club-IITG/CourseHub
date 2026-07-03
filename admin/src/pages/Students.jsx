@@ -8,6 +8,7 @@ import {
 } from "@/apis/student";
 import AddBRs from "../components/AddBRs";
 import { FaRedo, FaSearch, FaSync, FaTrash, FaChevronDown, FaChevronUp, FaPlus, FaUserGraduate, FaUsers } from "react-icons/fa";
+
 const ConfirmDialog = ({ message, onConfirm, onCancel, loading }) => (
     <div
         className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50"
@@ -32,9 +33,7 @@ const ConfirmDialog = ({ message, onConfirm, onCancel, loading }) => (
                     disabled={loading}
                     className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                    {loading && (
-                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
-                    )}
+                    {loading && <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />}
                     {loading ? "Processing..." : "Confirm"}
                 </button>
             </div>
@@ -48,7 +47,7 @@ export default function Students() {
     const [searching, setSearching] = useState(false);
     const [error, setError] = useState(null);
 
-   const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [expandedId, setExpandedId] = useState(null);
     const [showBROnly, setShowBROnly] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -61,7 +60,7 @@ export default function Students() {
     const [resetSuccess, setResetSuccess] = useState(null);
     const [resetError, setResetError] = useState(null);
 
-const loadStudents = useCallback(async () => {
+    const loadStudents = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -83,7 +82,6 @@ const loadStudents = useCallback(async () => {
             loadStudents();
             return;
         }
-
         setSearching(true);
         const timer = setTimeout(async () => {
             try {
@@ -96,13 +94,10 @@ const loadStudents = useCallback(async () => {
                 setSearching(false);
             }
         }, 500);
-
         return () => clearTimeout(timer);
     }, [searchQuery, showBROnly, loadStudents]);
 
-    const handleToggleExpand = (id) => {
-        setExpandedId((prev) => (prev === id ? null : id));
-    };
+    const handleToggleExpand = (id) => setExpandedId((prev) => (prev === id ? null : id));
 
     const handleRowRefresh = async (id) => {
         setRowLoadingId(id);
@@ -151,13 +146,12 @@ const loadStudents = useCallback(async () => {
 
     return (
         <div className="p-6 space-y-6">
+            {/* Header */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-                        <p className="text-gray-500 mt-1 text-sm">
-                            View and manage all registered students
-                        </p>
+                        <p className="text-gray-500 mt-1 text-sm">View and manage all registered students</p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                         {showBROnly && (
@@ -194,6 +188,7 @@ const loadStudents = useCallback(async () => {
                         )}
                     </div>
 
+                    {/* All Students / BRs Only toggle */}
                     <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
                         <button
                             onClick={() => setShowBROnly(false)}
@@ -220,23 +215,22 @@ const loadStudents = useCallback(async () => {
                     </div>
                 </div>
             </div>
+
+            {/* Status banners */}
             {resetSuccess && (
                 <div className="flex items-center justify-between p-4 rounded-xl border bg-green-50 border-green-200 text-green-700 text-sm">
                     {resetSuccess}
-                    <button onClick={() => setResetSuccess(null)} className="text-green-500 hover:text-green-700 ml-4">
-                        ✕
-                    </button>
+                    <button onClick={() => setResetSuccess(null)} className="text-green-500 hover:text-green-700 ml-4">✕</button>
                 </div>
             )}
             {resetError && (
                 <div className="flex items-center justify-between p-4 rounded-xl border bg-red-50 border-red-200 text-red-700 text-sm">
                     {resetError}
-                    <button onClick={() => setResetError(null)} className="text-red-400 hover:text-red-600 ml-4">
-                        ✕
-                    </button>
+                    <button onClick={() => setResetError(null)} className="text-red-400 hover:text-red-600 ml-4">✕</button>
                 </div>
             )}
 
+            {/* Table card */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-base font-semibold text-gray-800">
@@ -255,13 +249,9 @@ const loadStudents = useCallback(async () => {
                         {searching ? "Searching..." : "Loading..."}
                     </div>
                 )}
-
                 {!isLoading && error && (
-                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">
-                        {error}
-                    </p>
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">{error}</p>
                 )}
-
                 {!isLoading && !error && students.length === 0 && (
                     <div className="text-center py-16 text-gray-400 text-sm">
                         {showBROnly ? "No branch representatives found." : "No students found."}
@@ -273,24 +263,12 @@ const loadStudents = useCallback(async () => {
                         <table className="min-w-full divide-y divide-gray-100">
                             <thead>
                                 <tr className="bg-gray-50/80">
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Roll Number
-                                    </th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Name
-                                    </th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Email
-                                    </th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Degree
-                                    </th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Semester
-                                    </th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Actions
-                                    </th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll Number</th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Degree</th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Semester</th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
                                     <th className="py-3 px-4 w-8"></th>
                                 </tr>
                             </thead>
@@ -298,17 +276,10 @@ const loadStudents = useCallback(async () => {
                                 {students.map((student) => {
                                     const isExpanded = expandedId === student._id;
                                     const isRowLoading = rowLoadingId === student._id;
-
                                     return (
                                         <React.Fragment key={student._id}>
-                                            <tr
-                                                className={`transition-colors ${
-                                                    isExpanded ? "bg-blue-50/40" : "hover:bg-gray-50/60"
-                                                }`}
-                                            >
-                                                <td className="py-3.5 px-4 text-sm font-medium text-gray-900">
-                                                    {student.rollNumber}
-                                                </td>
+                                            <tr className={`transition-colors ${isExpanded ? "bg-blue-50/40" : "hover:bg-gray-50/60"}`}>
+                                                <td className="py-3.5 px-4 text-sm font-medium text-gray-900">{student.rollNumber}</td>
                                                 <td className="py-3.5 px-4 text-sm text-gray-700">{student.name}</td>
                                                 <td className="py-3.5 px-4 text-sm text-gray-500">{student.email}</td>
                                                 <td className="py-3.5 px-4 text-sm text-gray-500">{student.degree}</td>
@@ -316,15 +287,9 @@ const loadStudents = useCallback(async () => {
                                                 <td className="py-3.5 px-4">
                                                     <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() =>
-                                                                setRowConfirm({
-                                                                    type: "refresh",
-                                                                    id: student._id,
-                                                                    label: student.name,
-                                                                })
-                                                            }
+                                                            onClick={() => setRowConfirm({ type: "refresh", id: student._id, label: student.name })}
                                                             disabled={isRowLoading}
-                                                            title="Refresh courses"
+                                                            title="Reset courses (re-fetched on next login)"
                                                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                                         >
                                                             {isRowLoading && rowConfirm?.type === "refresh" ? (
@@ -334,13 +299,7 @@ const loadStudents = useCallback(async () => {
                                                             )}
                                                         </button>
                                                         <button
-                                                            onClick={() =>
-                                                                setRowConfirm({
-                                                                    type: "delete",
-                                                                    id: student._id,
-                                                                    label: student.name,
-                                                                })
-                                                            }
+                                                            onClick={() => setRowConfirm({ type: "delete", id: student._id, label: student.name })}
                                                             disabled={isRowLoading}
                                                             title="Delete student"
                                                             className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -358,11 +317,7 @@ const loadStudents = useCallback(async () => {
                                                         onClick={() => handleToggleExpand(student._id)}
                                                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                                                     >
-                                                        {isExpanded ? (
-                                                            <FaChevronUp className="h-3 w-3" />
-                                                        ) : (
-                                                            <FaChevronDown className="h-3 w-3" />
-                                                        )}
+                                                        {isExpanded ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
                                                     </button>
                                                 </td>
                                             </tr>
@@ -372,54 +327,30 @@ const loadStudents = useCallback(async () => {
                                                     <td colSpan={7} className="px-6 py-4">
                                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-3">
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                                                                    Department
-                                                                </p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Department</p>
                                                                 <p className="text-gray-700">{student.department}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                                                                    BR Status
-                                                                </p>
-                                                                <span
-                                                                    className={`inline-block text-xs px-2 py-0.5 rounded-md font-medium ${
-                                                                        student.isBR
-                                                                            ? "bg-green-100 text-green-700 border border-green-200"
-                                                                            : "bg-gray-100 text-gray-500 border border-gray-200"
-                                                                    }`}
-                                                                >
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">BR Status</p>
+                                                                <span className={`inline-block text-xs px-2 py-0.5 rounded-md font-medium ${student.isBR ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"}`}>
                                                                     {student.isBR ? "Branch Rep" : "Regular Student"}
                                                                 </span>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                                                                    Courses Enrolled
-                                                                </p>
-                                                                <p className="text-gray-700">
-                                                                    {student.courses?.length || 0}
-                                                                </p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Courses Enrolled</p>
+                                                                <p className="text-gray-700">{student.courses?.length || 0}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                                                                    Student ID
-                                                                </p>
-                                                                <p className="text-gray-700 font-mono text-xs">
-                                                                    {student._id}
-                                                                </p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Student ID</p>
+                                                                <p className="text-gray-700 font-mono text-xs">{student._id}</p>
                                                             </div>
                                                         </div>
-
                                                         {student.courses?.length > 0 && (
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
-                                                                    Current Courses
-                                                                </p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Current Courses</p>
                                                                 <div className="flex flex-wrap gap-1.5">
                                                                     {student.courses.map((course, idx) => (
-                                                                        <span
-                                                                            key={idx}
-                                                                            className="text-xs bg-white border border-gray-200 px-2 py-1 rounded-md text-gray-600"
-                                                                        >
+                                                                        <span key={idx} className="text-xs bg-white border border-gray-200 px-2 py-1 rounded-md text-gray-600">
                                                                             {course.code}
                                                                         </span>
                                                                     ))}
@@ -443,20 +374,17 @@ const loadStudents = useCallback(async () => {
                     message={
                         rowConfirm.type === "delete"
                             ? `Delete ${rowConfirm.label}? This will permanently remove their student record and cannot be undone.`
-                            : `Refresh courses for ${rowConfirm.label}?`
+                            : `Reset courses for ${rowConfirm.label}? Their courses will be re-fetched the next time they log in.`
                     }
                     loading={rowLoadingId === rowConfirm.id}
-                    onConfirm={() =>
-                        rowConfirm.type === "delete"
-                            ? handleRowDelete(rowConfirm.id)
-                            : handleRowRefresh(rowConfirm.id)
-                    }
+                    onConfirm={() => rowConfirm.type === "delete" ? handleRowDelete(rowConfirm.id) : handleRowRefresh(rowConfirm.id)}
                     onCancel={() => setRowConfirm(null)}
                 />
             )}
-{showResetConfirm && (
+
+            {showResetConfirm && (
                 <ConfirmDialog
-                    message="This will clear the course list for every student in the database. This action cannot be undone."
+                    message="This will delete all UserUpdate records and clear every student's course list. Courses will be re-fetched when students next log in. This cannot be undone."
                     loading={resetLoading}
                     onConfirm={handleSemesterReset}
                     onCancel={() => setShowResetConfirm(false)}
@@ -464,10 +392,7 @@ const loadStudents = useCallback(async () => {
             )}
 
             {showAddModal && (
-                <AddBRs
-                    onSuccess={loadStudents}
-                    onClose={() => setShowAddModal(false)}
-                />
+                <AddBRs onSuccess={loadStudents} onClose={() => setShowAddModal(false)} />
             )}
         </div>
     );

@@ -1,15 +1,14 @@
 import User from "../user/user.model.js";
-import { fetchCoursesForBr } from "../auth/auth.controller.js";
+import UserUpdate from "../user/userUpdate.model.js";
 import logger from "../../utils/logger.js";
 
 // GET /api/student/all?isBR=true
-// Returns every student, sorted by rollNumber descending.
-// If isBR=true is passed, only returns students who are Branch Representatives.
+// Returns every student sorted by rollNumber descending.
+// Pass isBR=true to only return Branch Representatives.
 const getAllStudents = async (req, res) => {
     try {
         const { isBR } = req.query;
         const filter = isBR === "true" ? { isBR: true } : {};
-
         const students = await User.find(filter).sort({ rollNumber: -1 });
         res.status(200).json({ students });
     } catch (error) {
@@ -19,9 +18,8 @@ const getAllStudents = async (req, res) => {
 };
 
 // GET /api/student/search?q=...&isBR=true
-// Searches students by name or rollNumber using a MongoDB $or regex query.
-// If isBR=true is passed, results are additionally restricted to Branch Representatives.
-// Results are still sorted by rollNumber descending.
+// Searches by name or rollNumber using $or regex.
+// Pass isBR=true to restrict results to Branch Representatives.
 const searchStudents = async (req, res) => {
     try {
         const { q = "", isBR } = req.query;
@@ -33,21 +31,18 @@ const searchStudents = async (req, res) => {
         }
 
         const searchRegex = new RegExp(q, "i");
-        const orConditions = [{ name: { $regex: searchRegex } }];
-
-        // rollNumber is stored as a Number, so only add a numeric match
-        // if the query looks like a number (partial roll number searches
-        // like "2210" are matched via regex against the stringified field
-        // using $expr, since Mongo can't $regex a Number field directly).
-        orConditions.push({
-            $expr: {
-                $regexMatch: {
-                    input: { $toString: "$rollNumber" },
-                    regex: q,
-                    options: "i",
+        const orConditions = [
+            { name: { $regex: searchRegex } },
+            {
+                $expr: {
+                    $regexMatch: {
+                        input: { $toString: "$rollNumber" },
+                        regex: q,
+                        options: "i",
+                    },
                 },
             },
-        });
+        ];
 
         const students = await User.find({ ...brFilter, $or: orConditions }).sort({ rollNumber: -1 });
         res.status(200).json({ students });
@@ -58,14 +53,21 @@ const searchStudents = async (req, res) => {
 };
 
 // PUT /api/student/refresh/:id
+// Deletes the student's UserUpdate record so their courses are safely
+// re-fetched from the academic portal on their next login.
+// (Per issue #144 — directly calling fetchCoursesForBr would block the
+// server for 30-40s and only update previousCourses, not current courses.)
 const refreshStudentCourses = async (req, res) => {
     try {
         const { id } = req.params;
         const student = await User.findById(id);
         if (!student) return res.status(404).json({ error: "Student not found" });
 
-        await fetchCoursesForBr(student.rollNumber);
-        res.status(200).json({ message: "Courses refreshed successfully" });
+        await UserUpdate.deleteOne({ rollNumber: student.rollNumber });
+
+        res.status(200).json({
+            message: "Student update record reset successfully. Courses will be re-fetched on next login.",
+        });
     } catch (error) {
         logger.error(error);
         res.status(500).json({ error: "Internal Server Error" });
@@ -73,6 +75,7 @@ const refreshStudentCourses = async (req, res) => {
 };
 
 // DELETE /api/student/:id
+// Permanently deletes a student document.
 const deleteStudent = async (req, res) => {
     try {
         const { id } = req.params;
@@ -87,11 +90,18 @@ const deleteStudent = async (req, res) => {
 };
 
 // POST /api/student/semester-reset
+// Deletes all UserUpdate tracking records (forcing re-fetch on next login)
+// and atomically clears the courses array on every User document.
 const semesterReset = async (req, res) => {
     try {
+        // Delete all user update tracking logs so the SSO scraper runs again
+        await UserUpdate.deleteMany({});
+
+        // Clear current course associations
         const result = await User.updateMany({}, { $set: { courses: [] } });
+
         res.status(200).json({
-            message: "Semester reset successful. All student courses cleared.",
+            message: "Semester reset successful. All student updates cleared and course lists reset.",
             modifiedCount: result.modifiedCount,
         });
     } catch (error) {
