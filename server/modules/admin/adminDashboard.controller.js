@@ -92,6 +92,11 @@ export async function getCourseDashboardData(req,res,next)
 async function deleteFolderTree(folderId)
 {
     const folder = await FolderModel.findById(folderId);
+
+    if(!folder)
+    {
+        return;
+    }
     
     if(folder.childType === "Folder")
     {
@@ -118,9 +123,11 @@ async function deleteFolderTree(folderId)
 export const deleteNode = async (req, res, next) => 
 {
     const { type, id } = req.params;
+   
+    const objectId = new mongoose.Types.ObjectId(id);
 
-    await CourseModel.updateMany({ children: id }, { $pull: { children: id } });
-    await FolderModel.updateMany({ children: id }, { $pull: { children: id } });
+    await CourseModel.updateMany({ children: objectId }, { $pull: { children: objectId } });
+    await FolderModel.updateMany({ children: objectId }, { $pull: { children: objectId } });
 
     if (type === "file") 
     {

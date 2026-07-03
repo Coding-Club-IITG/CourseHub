@@ -610,7 +610,7 @@ function Courses() {
                                                             size="sm"
                                                             className="h-8 w-8 p-0 hover:bg-blue-100/80 transition-all duration-200 transform hover:scale-110"
                                                             title="View Course Dashboard"
-                                                            onClick={() => navigate(`/courses/${course.code}`)}>
+                                                            onClick={() => navigate(`/admin/courses/${course.code}`)}>
                                                             <FaEye className="h-4 w-4 text-blue-600" />
                                                             </Button>
                                                                 <Button
