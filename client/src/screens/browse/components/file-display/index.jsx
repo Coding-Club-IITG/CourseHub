@@ -68,12 +68,13 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             )
         );
 
-    if (!file.isVerified && !currentUser?.isBR) {
-        return null;
-    }
     const currentFolder = useSelector((state) => state.fileBrowser?.currentFolder);
     const [isEditing, setIsEditing] = useState(false);
     const dispatch = useDispatch();
+
+    if (!file.isVerified && !currentUser?.isBR) {
+        return null;
+    }
     const preview_url = file.webUrl;
     const thumbnailUrl =
         typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
