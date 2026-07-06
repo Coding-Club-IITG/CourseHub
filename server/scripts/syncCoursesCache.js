@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import axios from "axios";
-import cheerio from "cheerio";
 import qs from "qs";
 import dotenv from "dotenv";
 import path from "path";
@@ -15,7 +14,7 @@ import config from "../config/default.js";
 import academic from "../config/academic.js";
 import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import logger from "../utils/logger.js";
-import { normalizeCourseCode } from "../utils/course.js";
+import { parseCourseAllotmentsFromHtml } from "../utils/course.js";
 
 export async function runSync() {
     logger.info(`Starting course cache synchronization for ${academic.session} ${academic.currentYear}...`);
@@ -41,27 +40,7 @@ export async function runSync() {
     }
 
     logger.info("Academic portal data received. Parsing HTML...");
-    const $ = cheerio.load(response.data);
-
-    // 2. Extract allotments
-    const allotments = {}; // rollNumber -> Set of course codes
-    
-    $("tr").each((i, elem) => {
-        const details = $(elem).find("td");
-        const rollStr = details.eq(2).text().trim();
-        const rawCode = details.eq(3).text().trim();
-
-        if (rollStr && rawCode && !rawCode.includes("SA")) {
-            const roll = parseInt(rollStr);
-            if (isNaN(roll)) return;
-            const normalizedCode = normalizeCourseCode(rawCode);
-            
-            if (!allotments[roll]) {
-                allotments[roll] = new Set();
-            }
-            allotments[roll].add(normalizedCode);
-        }
-    });
+    const allotments = parseCourseAllotmentsFromHtml(response.data);
 
     const studentRolls = Object.keys(allotments);
     logger.info(`Found ${studentRolls.length} students with allotments. Executing bulk DB write...`);
@@ -77,7 +56,7 @@ export async function runSync() {
                 },
                 update: {
                     $set: {
-                        courses: Array.from(allotments[roll]),
+                        courses: allotments[roll],
                     },
                 },
                 upsert: true,

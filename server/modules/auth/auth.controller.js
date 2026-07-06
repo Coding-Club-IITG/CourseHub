@@ -2,7 +2,6 @@ import axios from "axios";
 import qs from "querystring";
 import AppError from "../../utils/appError.js";
 import catchAsync from "../../utils/catchAsync.js";
-import cheerio from "cheerio";
 
 import appConfig from "../../config/default.js";
 
@@ -16,7 +15,7 @@ import User from "../user/user.model.js";
 
 import academic from "../../config/academic.js";
 import courselist from "../course/course.list.js";
-import { getCourseCodeCaseInsensitiveRegex, normalizeCourseCode } from "../../utils/course.js";
+import { getCourseCodeCaseInsensitiveRegex, normalizeCourseCode, parseCourseAllotmentsFromHtml } from "../../utils/course.js";
 
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import UserUpdate from "../user/userUpdate.model.js";
@@ -39,27 +38,7 @@ export const guestLoginHanlder = async (req, res, next) => {
     res.json({ token });
 };
 
-// Helper function to parse courses from HTML response
-function parseCoursesFromHtml(htmlData, rollNumber) {
-    const $ = cheerio.load(htmlData);
-    const courseCodes = [];
-    
-    $("tr").each((i, elem) => {
-        const details = $(elem).find("td");
-        const studentRollNo = details.eq(2).text();
-        const rawCode = details.eq(3).text();
-        
-        if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-            const normalizedCode = normalizeCourseCode(rawCode);
-            courseCodes.push({
-                original: rawCode,
-                normalized: normalizedCode,
-            });
-        }
-    });
-    
-    return courseCodes;
-}
+
 
 // Helper function to get course names from database and courselist
 async function resolveCourseNames(courseCodes, dbCourses) {
@@ -131,7 +110,7 @@ export const fetchCourses = async (rollNumber) => {
         throw new AppError(500, "Something went wrong");
     }
     
-    const courseCodes = parseCoursesFromHtml(response.data, rollNumber);
+    const courseCodes = parseCourseAllotmentsFromHtml(response.data, rollNumber);
     
     if (courseCodes.length === 0) {
         throw new AppError(404, "No courses found for this roll number");
@@ -255,7 +234,7 @@ export const fetchCoursesForBr = async (rollNumber) => {
         });
 
         for (const resObj of responses) {
-            const codes = parseCoursesFromHtml(resObj.data, rollstring);
+            const codes = parseCourseAllotmentsFromHtml(resObj.data, rollstring);
             if (codes.length > 0) {
                 const semesterCourses = await resolveCourseNames(codes, dbCourses);
                 previousCourses.push({
