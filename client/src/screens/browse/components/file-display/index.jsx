@@ -32,13 +32,16 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
     let contributor = file.name;
     let untruncatedDispName = name;
     try {
-        if (name.indexOf("~") !== -1) {
-            untruncatedDispName = name.slice(0, name.indexOf("~"));
+        const lastTildeIndex = name.lastIndexOf("~");
+        if (lastTildeIndex !== -1) {
+            untruncatedDispName = name.slice(0, lastTildeIndex);
             _dispName = formatFileName(untruncatedDispName);
-            contributor = name.slice(name.indexOf("~") + 1);
-            contributor = contributor.slice(0, contributor.indexOf("."));
+            let contributorPart = name.slice(lastTildeIndex + 1);
+            const dotIdx = contributorPart.indexOf(".");
+            contributor = dotIdx !== -1 ? contributorPart.slice(0, dotIdx) : contributorPart;
         } else {
-            untruncatedDispName = name.slice(0, name.indexOf(fileType));
+            const dotIdx = name.lastIndexOf(".");
+            untruncatedDispName = dotIdx !== -1 ? name.slice(0, dotIdx) : name;
             _dispName = formatFileName(untruncatedDispName);
             contributor = "Anonymous";
         }
@@ -76,9 +79,23 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
         typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
 
     const handleRename = async (newName) => {
-        if (!newName || newName.trim() === untruncatedDispName) return;
+        const trimmed = newName?.trim();
+        if (!trimmed || trimmed === untruncatedDispName) return;
+
+        // Validation for illegal OneDrive characters: \ / : * ? " < > |
+        const illegalChars = /[\\/:*?"<>|]/;
+        if (illegalChars.test(trimmed)) {
+            toast.error("Filename cannot contain any of the following characters: \\ / : * ? \" < > |");
+            return;
+        }
+
+        if (trimmed.length > 200) {
+            toast.error("Filename is too long (maximum 200 characters).");
+            return;
+        }
+
         try {
-            const responseData = await renameFile(file._id, newName.trim());
+            const responseData = await renameFile(file._id, trimmed);
             toast.success("File renamed successfully!");
             dispatch(
                 ChangeFolder({
@@ -90,7 +107,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             );
         } catch (err) {
             console.error("Error renaming file:", err);
-            toast.error("Failed to rename file");
+            toast.error(err.response?.data?.message || "Failed to rename file");
         }
     };
 

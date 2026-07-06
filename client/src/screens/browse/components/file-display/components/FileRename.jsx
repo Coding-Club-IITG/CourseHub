@@ -13,10 +13,16 @@ export function FileRename({ initialName = "", onCancel, onSave }) {
     }, []);
 
     const handleKeyDown = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === "Enter") {
             e.preventDefault();
+            const trimmed = name.trim();
+            if (!trimmed) {
+                isFinishedRef.current = true;
+                onCancel();
+                return;
+            }
             isFinishedRef.current = true;
-            onSave(name.trim() || initialName);
+            onSave(trimmed);
         } else if (e.key === "Escape") {
             isFinishedRef.current = true;
             onCancel();
@@ -26,20 +32,27 @@ export function FileRename({ initialName = "", onCancel, onSave }) {
     const handleBlur = () => {
         if (!isFinishedRef.current) {
             isFinishedRef.current = true;
-            onSave(name.trim() || initialName);
+            const trimmed = name.trim();
+            if (!trimmed) {
+                onCancel();
+            } else {
+                onSave(trimmed);
+            }
         }
     };
 
     return (
-        <textarea
+        <input
             ref={inputRef}
+            type="text"
             value={name}
             onClick={(e) => e.stopPropagation()}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             className="input-rename"
-        ></textarea>
+            maxLength={200}
+        />
     );
 }
 

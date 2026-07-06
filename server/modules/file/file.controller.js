@@ -99,8 +99,22 @@ export const renameFile = async (req, res) => {
         if (!id || !isValidObjectId(id)) {
             return res.status(400).json({ message: "Invalid file ID" });
         }
-        if (!newName || typeof newName !== "string" || !newName.trim()) {
-            return res.status(400).json({ message: "New name is required" });
+        
+        const trimmedNewName = newName?.trim();
+        if (!trimmedNewName) {
+            return res.status(400).json({ message: "New name is required and cannot be empty" });
+        }
+
+        if (trimmedNewName.length > 200) {
+            return res.status(400).json({ message: "New name is too long (maximum 200 characters)" });
+        }
+
+        // Validate illegal OneDrive characters: \ / : * ? " < > |
+        const illegalChars = /[\\/:*?"<>|]/;
+        if (illegalChars.test(trimmedNewName)) {
+            return res.status(400).json({ 
+                message: "New name contains forbidden characters (\\, /, :, *, ?, \", <, >, |)" 
+            });
         }
 
         const file = await FileModel.findById(id);
@@ -109,17 +123,16 @@ export const renameFile = async (req, res) => {
         }
 
         const originalName = file.name;
+        const lastTildeIndex = originalName.lastIndexOf("~");
         const dotIndex = originalName.lastIndexOf(".");
         const ext = dotIndex !== -1 ? originalName.slice(dotIndex) : "";
-        const nameWithoutExt = dotIndex !== -1 ? originalName.slice(0, dotIndex) : originalName;
 
         let contributor = "";
-        const tildeIndex = nameWithoutExt.indexOf("~");
-        if (tildeIndex !== -1) {
-            contributor = nameWithoutExt.slice(tildeIndex);
+        if (lastTildeIndex !== -1) {
+            contributor = originalName.slice(lastTildeIndex, dotIndex !== -1 ? dotIndex : undefined);
         }
 
-        const finalNewName = `${newName.trim()}${contributor}${ext}`;
+        const finalNewName = `${trimmedNewName}${contributor}${ext}`;
 
         // Rename on OneDrive using the file's fileId
         await RenameOneDriveFile(file.fileId, finalNewName);
