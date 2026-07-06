@@ -7,6 +7,7 @@ import UserUpdate from "../user/userUpdate.model.js";
 import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { runSync } from "../../scripts/syncCoursesCache.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -459,4 +460,13 @@ export async function bulkLinkCourses(req, res, next) {
                 next(new AppError(500, "Failed to process bulk linking CSV"));
             }
         });
+}
+
+export async function syncCoursesCacheController(req, res, next) {
+    try {
+        await runSync();
+        res.json({ success: true, message: "Course cache synchronized successfully." });
+    } catch (err) {
+        next(new AppError(500, `Cache sync failed: ${err.message}`));
+    }
 }
