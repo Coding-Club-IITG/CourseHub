@@ -8,7 +8,8 @@
         "start": "node index.js",
         "dev": "nodemon index.js",
         "destroyDB": "node scripts/deleteAllCourses.js && node scripts/deleteAllFolders.js && node scripts/deleteAllFiles.js && node scripts/deleteAllSearchResults.js",
-        "seed:app": "node scripts/seed_app.js"
+        "seed:app": "node scripts/seed_app.js",
+        "sync-cache": "node scripts/syncCoursesCache.js"
     },
     "keywords": [],
     "author": "",
@@ -34,6 +35,7 @@
         "jsonwebtoken": "^9.0.3",
         "mongoose": "^6.7.0",
         "multer": "^1.4.5-lts.1",
+        "node-cron": "^4.6.0",
         "nodemailer": "^6.9.1",
         "pino": "^8.7.0",
         "pino-pretty": "^9.1.1"
