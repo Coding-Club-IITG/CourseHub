@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 export function FileRename({ initialName = "", onCancel, onSave }) {
     const [name, setName] = useState(initialName);
     const inputRef = useRef();
+    const isFinishedRef = useRef(false);
 
     useEffect(() => {
         if (inputRef.current) {
@@ -14,9 +15,18 @@ export function FileRename({ initialName = "", onCancel, onSave }) {
     const handleKeyDown = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
+            isFinishedRef.current = true;
             onSave(name.trim() || initialName);
         } else if (e.key === "Escape") {
+            isFinishedRef.current = true;
             onCancel();
+        }
+    };
+
+    const handleBlur = () => {
+        if (!isFinishedRef.current) {
+            isFinishedRef.current = true;
+            onSave(name.trim() || initialName);
         }
     };
 
@@ -27,7 +37,7 @@ export function FileRename({ initialName = "", onCancel, onSave }) {
             onClick={(e) => e.stopPropagation()}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
-            onBlur={() => onSave(name.trim() || initialName)}
+            onBlur={handleBlur}
             className="input-rename"
         ></textarea>
     );

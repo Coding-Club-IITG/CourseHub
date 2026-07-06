@@ -30,17 +30,21 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
     let name = file.name;
     let _dispName = formatFileName(name);
     let contributor = file.name;
+    let untruncatedDispName = name;
     try {
         if (name.indexOf("~") !== -1) {
-            _dispName = formatFileName(name.slice(0, name.indexOf("~")));
+            untruncatedDispName = name.slice(0, name.indexOf("~"));
+            _dispName = formatFileName(untruncatedDispName);
             contributor = name.slice(name.indexOf("~") + 1);
             contributor = contributor.slice(0, contributor.indexOf("."));
         } else {
-            _dispName = formatFileName(name.slice(0, name.indexOf(fileType)));
+            untruncatedDispName = name.slice(0, name.indexOf(fileType));
+            _dispName = formatFileName(untruncatedDispName);
             contributor = "Anonymous";
         }
     } catch (error) {
-        name = formatFileName(file.name);
+        _dispName = formatFileName(file.name);
+        untruncatedDispName = file.name;
         contributor = "Anonymous";
     }
     const isLoggedIn = useSelector((state) => state.user?.loggedIn);
@@ -72,7 +76,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
         typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
 
     const handleRename = async (newName) => {
-        if (!newName || newName.trim() === _dispName) return;
+        if (!newName || newName.trim() === untruncatedDispName) return;
         try {
             const responseData = await renameFile(file._id, newName.trim());
             toast.success("File renamed successfully!");
@@ -208,7 +212,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             <div className="content">
                 {isEditing ? (
                     <FileRename
-                        initialName={_dispName}
+                        initialName={untruncatedDispName}
                         onCancel={() => setIsEditing(false)}
                         onSave={(newName) => {
                             handleRename(newName);
