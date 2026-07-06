@@ -13,7 +13,6 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 
 import config from "../config/default.js";
 import academic from "../config/academic.js";
-import CourseModel from "../modules/course/course.model.js";
 import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import logger from "../utils/logger.js";
 import { normalizeCourseCode } from "../utils/course.js";
@@ -44,14 +43,7 @@ export async function runSync() {
     logger.info("Academic portal data received. Parsing HTML...");
     const $ = cheerio.load(response.data);
 
-    // 2. Pre-fetch all DB courses to build an in-memory name resolver (avoids thousands of queries)
-    const dbCourses = await CourseModel.find({});
-    const courseMap = {};
-    dbCourses.forEach((c) => {
-        courseMap[normalizeCourseCode(c.code)] = c.name;
-    });
-
-    // 3. Extract allotments
+    // 2. Extract allotments
     const allotments = {}; // rollNumber -> Set of course codes
     
     $("tr").each((i, elem) => {
