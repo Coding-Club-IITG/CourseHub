@@ -1,5 +1,5 @@
 import { FileModel, FolderModel } from "../course/course.model.js";
-import { DeleteFile } from "../../services/UploadFile.js";
+import { DeleteFile, RenameOneDriveFile } from "../../services/UploadFile.js";
 import logger from "../../utils/logger.js";
 import { isValidObjectId } from "mongoose";
 
@@ -88,5 +88,49 @@ export const getFileLink = async (req, res) => {
     } catch (error) {
         logger.error(error, "Error fetching file link");
         return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const renameFile = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { newName } = req.body;
+
+        if (!id || !isValidObjectId(id)) {
+            return res.status(400).json({ message: "Invalid file ID" });
+        }
+        if (!newName || typeof newName !== "string" || !newName.trim()) {
+            return res.status(400).json({ message: "New name is required" });
+        }
+
+        const file = await FileModel.findById(id);
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+
+        const originalName = file.name;
+        const dotIndex = originalName.lastIndexOf(".");
+        const ext = dotIndex !== -1 ? originalName.slice(dotIndex) : "";
+        const nameWithoutExt = dotIndex !== -1 ? originalName.slice(0, dotIndex) : originalName;
+
+        let contributor = "";
+        const tildeIndex = nameWithoutExt.indexOf("~");
+        if (tildeIndex !== -1) {
+            contributor = nameWithoutExt.slice(tildeIndex);
+        }
+
+        const finalNewName = `${newName.trim()}${contributor}${ext}`;
+
+        // Rename on OneDrive using the file's fileId
+        await RenameOneDriveFile(file.fileId, finalNewName);
+
+        // Update name in MongoDB
+        file.name = finalNewName;
+        await file.save();
+
+        res.status(200).json({ message: "File renamed successfully", file });
+    } catch (err) {
+        logger.error(err, `Error renaming file ${req.params.id}`);
+        res.status(500).json({ message: "Server error", error: err.message });
     }
 };

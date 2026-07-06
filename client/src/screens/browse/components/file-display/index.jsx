@@ -8,12 +8,13 @@ import { getThumbnail } from "../../../../api/File";
 import clientRoot from "../../../../api/server";
 import capitalise from "../../../../utils/capitalise.js";
 import Share from "../../../share";
-import { verifyFile, unverifyFile } from "../../../../api/File";
+import { verifyFile, unverifyFile, renameFile } from "../../../../api/File";
 import {
     RemoveFileFromFolder,
     UpdateFileVerificationStatus,
 } from "../../../../actions/filebrowser_actions.js";
 import ConfirmDialog from "./components/ConfirmDialog.jsx";
+import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
 import { fetchFolder } from "../../../../api/Folder.js";
 
@@ -63,11 +64,31 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
     if (!file.isVerified && !currentUser?.isBR) {
         return null;
     }
+    const currentFolder = useSelector((state) => state.fileBrowser?.currentFolder);
+    const [isEditing, setIsEditing] = useState(false);
     const dispatch = useDispatch();
-
     const preview_url = file.webUrl;
     const thumbnailUrl =
         typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
+
+    const handleRename = async (newName) => {
+        if (!newName || newName.trim() === _dispName) return;
+        try {
+            const responseData = await renameFile(file._id, newName.trim());
+            toast.success("File renamed successfully!");
+            dispatch(
+                ChangeFolder({
+                    ...currentFolder,
+                    children: (currentFolder?.children || []).map((child) =>
+                        child._id === file._id ? { ...child, name: responseData.file.name } : child
+                    ),
+                })
+            );
+        } catch (err) {
+            console.error("Error renaming file:", err);
+            toast.error("Failed to rename file");
+        }
+    };
 
     const handleDownload = async () => {
         if (!isLoggedIn) {
@@ -185,9 +206,30 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
                 </div>
             </div>
             <div className="content">
-                <p className="title" title={file.name}>
-                    {file?.name ? _dispName : "Quiz 1 Answer Key"}
-                </p>
+                {isEditing ? (
+                    <FileRename
+                        initialName={_dispName}
+                        onCancel={() => setIsEditing(false)}
+                        onSave={(newName) => {
+                            handleRename(newName);
+                            setIsEditing(false);
+                        }}
+                    />
+                ) : (
+                    <p className="title" title={file.name}>
+                        {file?.name ? _dispName : "Quiz 1 Answer Key"}
+                        {!isMobileView && user?.isBR && !isReadOnlyCourse && (
+                            <span
+                                className="rename-tick"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsEditing(true);
+                                }}
+                                title="Rename"
+                            ></span>
+                        )}
+                    </p>
+                )}
                 <div className="file-metadata">
                     <p className="info">
                         {fileType.toUpperCase()} {fileSize}

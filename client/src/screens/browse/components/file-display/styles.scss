@@ -82,6 +82,42 @@
         text-align: center;
         .title {
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: default;
+
+            .rename-tick {
+                display: inline-block;
+                background: url(./assets/edit.svg), none;
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                height: 16px;
+                width: 16px;
+                margin-left: 6px;
+                cursor: pointer;
+                opacity: 0;
+                transition: opacity 0.2s ease-in-out;
+            }
+
+            &:hover {
+                .rename-tick {
+                    opacity: 1;
+                }
+            }
+        }
+        .input-rename {
+            font-size: 0.95rem;
+            width: 90%;
+            height: 40px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            outline: none;
+            resize: none;
+            text-align: center;
+            font-family: inherit;
         }
         .info,
         .contributor {
