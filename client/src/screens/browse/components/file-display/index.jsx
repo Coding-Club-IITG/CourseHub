@@ -19,7 +19,6 @@ import { getFileDownloadLink } from "../../../../api/File";
 import { fetchFolder } from "../../../../api/Folder.js";
 
 const FileDisplay = ({ file, path, code, isMobileView = false }) => {
-    console.log(file._id);
 
     const user = useSelector((state) => state.user?.user);
     const fileSize = formatFileSize(file.size);
@@ -103,6 +102,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             `${API_BASE_URL}/api/contribution/view/${file._id}`,
             "_blank"
         );
+
     };
 
 

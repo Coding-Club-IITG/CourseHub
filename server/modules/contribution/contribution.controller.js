@@ -45,7 +45,6 @@ async function HandleFileToDB(contributionId, fileId) {
 
 async function GetAllContributions(req, res, next) {
     const allContributions = await Contribution.find({});
-    console.log(allContributions);
     res.json(allContributions);
 }
 
@@ -53,7 +52,6 @@ async function HandleFileUpload(req, res, next) {
     logger.info("Handling File Upload");
     const contributionId = req.headers["contribution-id"];
     const files = req.files;
-    console.log(files.length)
     if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files were uploaded" });
     }
@@ -163,47 +161,26 @@ async function GetBrContribution(req, res, next) {
 async function viewFile(req, res, next) {
     try {
         const { id } = req.params;
-
-        console.time("file is fetched")
-
         const file = await FileModel.findById(id);
-
-        console.timeEnd("file is fetched")
-
         if (!file) {
-            console.log("file not found")
             return res.status(404).json({ message: "File not found" });
         }
-
-        console.time("access token fetched")
-
         const accessToken = await getAccessToken();
         if (!accessToken) {
             return res.status(500).json({ message: "Access token not found" });
         }
 
-        console.timeEnd("access token fetched")
-
-        console.time("graph request")
         const response = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`, {
             headers: {
-                Authorization: ` Bearer ${accessToken}`
+                Authorization: `Bearer ${accessToken}`
             },
             responseType: "stream"
         })
         if (!response) {
             return res.status(500).json({ message: "File not found" });
         }
-        console.timeEnd("graph request")
+        res.setHeader("Content-Type", response.headers["content-type"])
 
-        console.time("res sent to client")
-        res.setHeader("Content-Type", "application/pdf")
-        console.timeEnd("res sent to client")
-        
-        console.time("stream finish")
-        response.data.on("end", () => {
-            console.timeEnd("stream finish");
-        });
         response.data.pipe(res)
 
     } catch (error) {

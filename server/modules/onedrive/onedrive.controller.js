@@ -37,8 +37,6 @@ export async function generateDeviceCode(req, res) {
 
     if (!response.data) throw new AppError(500, "Something went wrong");
 
-    console.log(response.data.user_code);
-
     fs.writeFileSync("./onedrive-device-code.token", response.data.device_code, "utf-8");
     if (fs.existsSync("./onedrive-access-token.token")) {
         fs.unlinkSync("./onedrive-access-token.token");
@@ -204,14 +202,12 @@ async function visitAllFiles() {
         const searchDocument = await SearchResults.findOne({
             code: getCourseCodeCaseInsensitiveRegex(courseCode),
         });
-        console.log(searchDocument);
         if (!searchDocument) {
             await SearchResults.create({
                 name: courseName,
                 code: courseCode,
                 isAvailable: true,
             });
-            console.log("Created", folder.name);
         } else {
             await SearchResults.updateOne(
                 { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
@@ -219,7 +215,6 @@ async function visitAllFiles() {
                     isAvailable: true,
                 }
             );
-            console.log("Updated", folder.name);
         }
     }));
     return "ok";
@@ -254,7 +249,6 @@ export async function visitCourseById(id) {
             code: courseCode,
             isAvailable: true,
         });
-        console.log("Created", required_course.name);
     } else {
         await SearchResults.updateOne(
             { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
@@ -262,7 +256,6 @@ export async function visitCourseById(id) {
                 isAvailable: true,
             }
         );
-        console.log("Updated", required_course.name);
     }
 
     return "ok";
@@ -330,34 +323,42 @@ async function visitFile(file, currCourse) {
 // }
 let cachedAccessToken = null;
 let tokenExpiry = 0;
-
+let refreshPromise = null;
 export async function getAccessToken() {
 
     if (
         cachedAccessToken &&
         Date.now() < tokenExpiry
     ) {
-        console.log("Using cached token");
         return cachedAccessToken;
     }
-
-    console.log("Fetching fresh token");
-
-    let data;
-
-    if (fs.existsSync("./onedrive-refresh-token.token")) {
-        data = await refreshAccessToken();
-    } else {
-        data = await generateAccessToken();
+    if (refreshPromise) {
+        return refreshPromise;
     }
 
-    cachedAccessToken = data.access_token;
+    refreshPromise = (async () => {
+        let data;
 
-    tokenExpiry =
-        Date.now() +
-        (data.expires_in - 60) * 1000;
+        if (fs.existsSync("./onedrive-refresh-token.token")) {
+            data = await refreshAccessToken();
+        } else {
+            data = await generateAccessToken();
+        }
 
-    return cachedAccessToken;
+        cachedAccessToken = data.access_token;
+
+        tokenExpiry =
+            Date.now() +
+            (data.expires_in - 60) * 1000;
+
+        return cachedAccessToken;
+    })();
+    try {
+        return await refreshPromise;
+    } finally {
+        refreshPromise = null;
+    }
+
 }
 
 async function refreshAccessToken() {

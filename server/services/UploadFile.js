@@ -76,8 +76,6 @@ async function createUploadSession(folderId, fileName) {
 
 async function UploadFile(contributionId, filePath, fileName) {
     const folderId = parent_item_id;
-    console.log("Folder ID:", folderId);
-    console.log("ONEDRIVE_FOLDER_ID", process.env.ONEDRIVE_FOLDER_ID);
     const session = await createUploadSession(folderId, fileName);
     if (!session?.url) {
         logger.error("Error uploading!");
