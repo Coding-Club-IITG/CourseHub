@@ -215,5 +215,26 @@ async function isFolderEmpty(folderId, access_token) {
     else return false;
 }
 
-export { DeleteFile };
+async function RenameOneDriveFile(fileId, newName) {
+    const access_token = await getAccessToken();
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}`;
+    const config = {
+        headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+        },
+    };
+    const _data = {
+        name: newName,
+    };
+    try {
+        const { data } = await axios.patch(url, _data, config);
+        return data;
+    } catch (err) {
+        logGraphError(logger, err, `Failed to rename OneDrive file: ${fileId} to ${newName}`);
+        throw err;
+    }
+}
+
+export { DeleteFile, RenameOneDriveFile };
 export default UploadFile;
