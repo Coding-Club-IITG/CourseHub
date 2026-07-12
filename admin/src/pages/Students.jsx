@@ -4,8 +4,9 @@ import {
     searchStudents,
     refreshStudentCourses,
     deleteStudent,
-    semesterReset,
+    semesterReset,    
 } from "@/apis/student";
+import { deleteBR } from "@/apis/br";
 import AddBRs from "../components/AddBRs";
 import { FaRedo, FaSearch, FaSync, FaTrash, FaChevronDown, FaChevronUp, FaPlus, FaUserGraduate, FaUsers } from "react-icons/fa";
 
@@ -115,7 +116,11 @@ export default function Students() {
     const handleRowDelete = async (id) => {
         setRowLoadingId(id);
         try {
+            const student = students.find(stud => stud._id===id);
             await deleteStudent(id);
+            if(student && student.isBR) {
+                await deleteBR(student.email);
+            }
             loadStudents();
         } catch (err) {
             setError(err.message || "Failed to delete student.");
@@ -124,6 +129,25 @@ export default function Students() {
             setRowConfirm(null);
         }
     };
+
+    const handleRemoveBR = async(id) =>{
+        setRowLoadingId(id);
+        try{
+            const student = students.find(stud => stud._id ===id);
+            if(student){
+                await deleteBR(student.email);
+            }
+            loadStudents();
+        }
+        catch(err){
+            setError(err.message || "Failed to remove BR privileges")
+        }
+        finally{
+            setRowLoadingId(null);
+            setRowConfirm(null);
+        }
+    };
+
 
     const handleSemesterReset = async () => {
         setResetLoading(true);
@@ -298,18 +322,34 @@ export default function Students() {
                                                                 <FaSync className="h-3.5 w-3.5" />
                                                             )}
                                                         </button>
-                                                        <button
+                                                        <button  
                                                             onClick={() => setRowConfirm({ type: "delete", id: student._id, label: student.name })}
                                                             disabled={isRowLoading}
                                                             title="Delete student"
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                                        >
+                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                                                        
                                                             {isRowLoading && rowConfirm?.type === "delete" ? (
                                                                 <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-red-500 border-t-transparent" />
                                                             ) : (
                                                                 <FaTrash className="h-3.5 w-3.5" />
                                                             )}
                                                         </button>
+                                                        
+                                                        {showBROnly && student.isBR && (
+                                                            <button
+                                                                onClick ={()=> setRowConfirm({type:"removeBR",id:student._id , label:student.name})}
+                                                                disabled={isRowLoading}
+                                                                title = "Remove BR privileges"
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                >
+                                                                {isRowLoading && rowConfirm?.type ==="removeBR" 
+                                                                ? (<div  className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-red-600 border-t-transparent" />)
+                                                                :(
+                                                                     "Remove BR" 
+                                                                )}
+                                                            </button>
+                                                        )}
+                                                        
                                                     </div>
                                                 </td>
                                                 <td className="py-3.5 px-4">
@@ -374,10 +414,16 @@ export default function Students() {
                     message={
                         rowConfirm.type === "delete"
                             ? `Delete ${rowConfirm.label}? This will permanently remove their student record and cannot be undone.`
+                            : rowConfirm.type === "removeBR"
+                            ? `Remove BR privileges from ${rowConfirm.label}? They will remain as a student but lose Branch Representative access. `
                             : `Reset courses for ${rowConfirm.label}? Their courses will be re-fetched the next time they log in.`
                     }
                     loading={rowLoadingId === rowConfirm.id}
-                    onConfirm={() => rowConfirm.type === "delete" ? handleRowDelete(rowConfirm.id) : handleRowRefresh(rowConfirm.id)}
+                    onConfirm={() => rowConfirm.type === "delete" 
+                        ? handleRowDelete(rowConfirm.id) 
+                        : rowConfirm.type === "removeBR"
+                        ? handleRemoveBR(rowConfirm.id)
+                        : handleRowRefresh(rowConfirm.id)}
                     onCancel={() => setRowConfirm(null)}
                 />
             )}

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
-import BranchRepresentatives from "./pages/BranchRepresentatives";
 import Students from "./pages/Students";
 import Courses from "./pages/Courses";
 import CourseLinking from "./pages/CourseLinking";
@@ -20,7 +19,7 @@ function App() {
                                 path="/admin/"
                                 element={
                                     <PrivateRoute>
-                                        <BranchRepresentatives />
+                                        <Students />
                                     </PrivateRoute>
                                 }
                             />
