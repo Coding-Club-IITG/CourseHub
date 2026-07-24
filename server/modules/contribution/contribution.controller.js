@@ -4,9 +4,11 @@ import AppError from "../../utils/appError.js";
 import validatePayload from "../../utils/validate.js";
 import UploadFile from "../../services/UploadFile.js";
 import fs from "fs";
-import { FolderModel } from "../course/course.model.js";
+import { FolderModel, FileModel } from "../course/course.model.js";
 import logger from "../../utils/logger.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { getAccessToken, clearAccessTokenCache } from "../onedrive/onedrive.controller.js";
+import axios from "axios";
 
 async function ContributionCreation(contributionId, data) {
     const existingContribution = await Contribution.findOne({ contributionId });
@@ -50,7 +52,6 @@ async function HandleFileUpload(req, res, next) {
     logger.info("Handling File Upload");
     const contributionId = req.headers["contribution-id"];
     const files = req.files;
-
     if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files were uploaded" });
     }
@@ -157,6 +158,54 @@ async function GetBrContribution(req, res, next) {
     }
 }
 
+async function viewFile(req, res, next) {
+    try {
+        const { id } = req.params;
+        const file = await FileModel.findById(id);
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+        if (file.isVerified === false && req.user.isBR === false) {
+            return res.status(403).json({ message: "File is not verified" });
+        }
+        const getResponse = async () => {
+            const accessToken = await getAccessToken();
+            if (!accessToken) {
+                return res.status(500).json({ message: "Access token not found" });
+            }
+            const response = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                responseType: "stream"
+            });
+
+            res.setHeader("Content-Type", response.headers["content-type"])
+            res.setHeader(
+                "Content-Length",
+                response.headers["content-length"]
+            );
+
+            const downloadStream = response.data;
+            res.on("close", () => {
+                downloadStream.destroy();
+            });
+            downloadStream.pipe(res);
+        };
+        try {
+            await getResponse();
+        } catch (err) {
+            if (err.response?.status === 401) {
+                clearAccessTokenCache();
+                return await getResponse();
+            }
+            throw err;
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     GetAllContributions,
     CreateNewContribution,
@@ -164,5 +213,6 @@ export default {
     GetMyContributions,
     DeleteContribution,
     GetContributionsUpdatedSince,
-    GetBrContribution
+    GetBrContribution,
+    viewFile
 };
