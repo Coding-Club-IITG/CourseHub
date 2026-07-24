@@ -142,7 +142,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             return;
         }
 
-        const isPdf = file.name.includes("pdf") || file.name.includes("PDF");
+        const isPdf = file.name.toLowerCase().endsWith(".pdf");
         if (isPdf) {
             window.open(
                 `${API_BASE_URL}/api/contribution/view/${file._id}`,

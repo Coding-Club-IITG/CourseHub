@@ -186,7 +186,11 @@ async function viewFile(req, res, next) {
                 response.headers["content-length"]
             );
 
-            response.data.pipe(res)
+            const downloadStream = response.data;
+            res.on("close", () => {
+                downloadStream.destroy();
+            });
+            downloadStream.pipe(res);
         };
         try {
             await getResponse();
