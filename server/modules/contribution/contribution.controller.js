@@ -7,7 +7,7 @@ import fs from "fs";
 import { FolderModel, FileModel } from "../course/course.model.js";
 import logger from "../../utils/logger.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
-import { getAccessToken } from "../onedrive/onedrive.controller.js";
+import { getAccessToken, clearAccessTokenCache } from "../onedrive/onedrive.controller.js";
 import axios from "axios";
 
 async function ContributionCreation(contributionId, data) {
@@ -165,24 +165,38 @@ async function viewFile(req, res, next) {
         if (!file) {
             return res.status(404).json({ message: "File not found" });
         }
-        const accessToken = await getAccessToken();
-        if (!accessToken) {
-            return res.status(500).json({ message: "Access token not found" });
+        if (file.isVerified === false && req.user.isBR === false) {
+            return res.status(403).json({ message: "File is not verified" });
         }
+        const getResponse = async () => {
+            const accessToken = await getAccessToken();
+            if (!accessToken) {
+                return res.status(500).json({ message: "Access token not found" });
+            }
+            const response = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                responseType: "stream"
+            });
 
-        const response = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            },
-            responseType: "stream"
-        })
-        if (!response) {
-            return res.status(500).json({ message: "File not found" });
+            res.setHeader("Content-Type", response.headers["content-type"])
+            res.setHeader(
+                "Content-Length",
+                response.headers["content-length"]
+            );
+
+            response.data.pipe(res)
+        };
+        try {
+            await getResponse();
+        } catch (err) {
+            if (err.response?.status === 401) {
+                clearAccessTokenCache();
+                return await getResponse();
+            }
+            throw err;
         }
-        res.setHeader("Content-Type", response.headers["content-type"])
-
-        response.data.pipe(res)
-
     } catch (error) {
         next(error);
     }

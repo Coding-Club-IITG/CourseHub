@@ -141,10 +141,16 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             toast.error("Please login to preview file.");
             return;
         }
-        window.open(
-            `${API_BASE_URL}/api/contribution/view/${file._id}`,
-            "_blank"
-        );
+
+        const isPdf = file.name.includes("pdf") || file.name.includes("PDF");
+        if (isPdf) {
+            window.open(
+                `${API_BASE_URL}/api/contribution/view/${file._id}`,
+                "_blank"
+            );
+        } else {
+            window.open(preview_url, "_blank");
+        }
 
     };
 

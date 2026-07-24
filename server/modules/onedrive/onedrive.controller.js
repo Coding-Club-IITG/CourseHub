@@ -336,7 +336,7 @@ export async function getAccessToken() {
         return cachedAccessToken;
     }
     if (refreshPromise) {
-        return refreshPromise;
+        return await refreshPromise;
     }
 
     refreshPromise = (async () => {
@@ -362,6 +362,12 @@ export async function getAccessToken() {
         refreshPromise = null;
     }
 
+}
+
+export async function clearAccessTokenCache() {
+    cachedAccessToken = null;
+    tokenExpiry = 0;
+    refreshPromise = null;
 }
 
 async function refreshAccessToken() {
