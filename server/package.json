@@ -8,13 +8,15 @@
         "start": "node index.js",
         "dev": "nodemon index.js",
         "destroyDB": "node scripts/deleteAllCourses.js && node scripts/deleteAllFolders.js && node scripts/deleteAllFiles.js && node scripts/deleteAllSearchResults.js",
-        "seed:app": "node scripts/seed_app.js"
+        "seed:app": "node scripts/seed_app.js",
+        "sync-cache": "node scripts/syncCoursesCache.js"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
         "@azure/identity": "^3.0.0",
+        "@imagekit/nodejs": "^7.5.0",
         "@microsoft/microsoft-graph-client": "^3.0.2",
         "aes-js": "^3.1.2",
         "axios": "^1.1.3",
@@ -30,9 +32,10 @@
         "formidable": "^2.1.1",
         "isomorphic-fetch": "^3.0.0",
         "joi": "^17.7.1",
-        "jsonwebtoken": "^8.5.1",
+        "jsonwebtoken": "^9.0.3",
         "mongoose": "^6.7.0",
         "multer": "^1.4.5-lts.1",
+        "node-cron": "^4.6.0",
         "nodemailer": "^6.9.1",
         "pino": "^8.7.0",
         "pino-pretty": "^9.1.1"

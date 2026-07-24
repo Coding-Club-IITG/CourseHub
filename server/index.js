@@ -25,6 +25,9 @@ import brRoutes from "./modules/br/br.routes.js";
 import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
+import studentRoutes from "./modules/student/student.routes.js";
+import { initScheduler } from "./config/cron.js";
+initScheduler();
 
 const app = express();
 
@@ -61,6 +64,7 @@ app.use("/api/br", brRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/folder", folderRoutes);
 app.use("/api/year", yearRoutes);
+app.use("/api/student", studentRoutes);
 
 app.use(
     "/homepage",
@@ -102,7 +106,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Set static folder
 app.use(express.static("static"));
 
 app.get("*", (req, res) => {

@@ -1,10 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaBook, FaUsers, FaLayerGroup, FaLink } from "react-icons/fa";
+import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate } from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
 
 const navItems = [
     { label: "Branch Representatives", to: "/admin/", icon: FaUsers },
+    { label: "Students", to: "/admin/students", icon: FaUserGraduate },
     { label: "Courses", to: "/admin/courses", icon: FaBook },
     { label: "Course Linking", to: "/admin/course-linking", icon: FaLink },
 ];

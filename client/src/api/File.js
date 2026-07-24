@@ -57,3 +57,8 @@ export const getFileDownloadLink = async (fileId) => {
     const data = await response.json();
     return data.downloadLink;
 };
+
+export const renameFile = async (fileId, newName) => {
+    const { data } = await API.put(`/files/rename/${fileId}`, { newName });
+    return data;
+};
