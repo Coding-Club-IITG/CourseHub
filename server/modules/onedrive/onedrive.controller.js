@@ -315,15 +315,7 @@ async function visitFile(file, currCourse) {
     return NewFile._id;
 }
 
-// export async function getAccessToken() {
-//     let data;
-//     if (fs.existsSync("./onedrive-refresh-token.token")) {
-//         data = await refreshAccessToken();
-//     } else {
-//         data = await generateAccessToken();
-//     }
-//     return data.access_token;
-// }
+
 let cachedAccessToken = null;
 let tokenExpiry = 0;
 let refreshPromise = null;
@@ -364,7 +356,7 @@ export async function getAccessToken() {
 
 }
 
-export async function clearAccessTokenCache() {
+export function clearAccessTokenCache() {
     cachedAccessToken = null;
     tokenExpiry = 0;
     refreshPromise = null;
