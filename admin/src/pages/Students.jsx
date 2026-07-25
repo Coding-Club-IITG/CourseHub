@@ -116,11 +116,7 @@ export default function Students() {
     const handleRowDelete = async (id) => {
         setRowLoadingId(id);
         try {
-            const student = students.find(stud => stud._id===id);
             await deleteStudent(id);
-            if(student && student.isBR) {
-                await deleteBR(student.email);
-            }
             loadStudents();
         } catch (err) {
             setError(err.message || "Failed to delete student.");

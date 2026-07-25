@@ -1,7 +1,7 @@
 import User from "../user/user.model.js";
 import UserUpdate from "../user/userUpdate.model.js";
 import logger from "../../utils/logger.js";
-
+import BR from "../br/br.model.js"
 // GET /api/student/all?isBR=true
 // Returns every student sorted by rollNumber descending.
 // Pass isBR=true to only return Branch Representatives.
@@ -81,7 +81,10 @@ const deleteStudent = async (req, res) => {
         const { id } = req.params;
         const student = await User.findByIdAndDelete(id);
         if (!student) return res.status(404).json({ error: "Student not found" });
-
+        await Promise.all([
+            BR.deleteOne({email : student.email?.toLowerCase()}),
+            UserUpdate.deleteOne({rollNumber:student.rollNumber})
+        ])
         res.status(200).json({ message: "Student deleted successfully" });
     } catch (error) {
         logger.error(error);
