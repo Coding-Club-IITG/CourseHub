@@ -7,6 +7,8 @@ import { deleteFolder, renameFolder } from "../../../../api/Folder";
 import { toast } from "react-toastify";
 import { ConfirmDialog } from "./confirmDialog";
 import { FolderRename } from "./folderRename.jsx";
+import { getSubtreeFileCount } from "../../../../utils/folderUtils";
+
 const BrowseFolder = ({
     name,
     subject,
@@ -20,6 +22,7 @@ const BrowseFolder = ({
     const [showConfirm, setShowConfirm] = useState(false);
     const user = useSelector((state) => state.user.user);
     const courseCode = subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
+    const fileCount = getSubtreeFileCount(folderData);
     const isReadOnlyCourse =
         user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
         !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
@@ -91,18 +94,23 @@ const BrowseFolder = ({
                     <div className="top">
                         <p className="path">{""}</p>
                         {!isEditing ? (
-                            <span className="name">
-                                {name ? name : "Name"}
-                                {!isMobileView && isBR && !isReadOnlyCourse && (
-                                    <div
-                                        className="rename-tick"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsEditing(true);
-                                        }}
-                                    ></div>
-                                )}
-                            </span>
+                            <div className="name-container">
+                                <span className="name">
+                                    {name ? name : "Name"}
+                                    {!isMobileView && isBR && !isReadOnlyCourse && (
+                                        <div
+                                            className="rename-tick"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsEditing(true);
+                                            }}
+                                        ></div>
+                                    )}
+                                </span>
+                                <span className="file-count" title={`${fileCount} files in subtree`}>
+                                    {fileCount} {fileCount === 1 ? "FILE" : "FILES"}
+                                </span>
+                            </div>
                         ) : (
                             <FolderRename
                                 initialName={name}

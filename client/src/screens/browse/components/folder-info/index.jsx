@@ -11,6 +11,7 @@ import server from "../../../../api/server";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
+import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
 const FolderInfo = ({
     isBR,
@@ -24,6 +25,7 @@ const FolderInfo = ({
 }) => {
     const dispatch = useDispatch();
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
+    const totalSubtreeFiles = getSubtreeFileCount(currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
     const [childType, setChildType] = useState("File");
@@ -218,6 +220,11 @@ const FolderInfo = ({
                     <p className="path">{path}</p>
                     <div className="curr-folder">
                         <p className="folder-name">{name}</p>
+                        {currentFolder && (
+                            <span className="folder-header-count-badge" title={`${totalSubtreeFiles} total files in subtree`}>
+                                {totalSubtreeFiles} {totalSubtreeFiles === 1 ? "file" : "files"}
+                            </span>
+                        )}
                         <div className="folder-actions"></div>
                     </div>
                 </div>

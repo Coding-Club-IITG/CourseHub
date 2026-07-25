@@ -29,6 +29,18 @@
                 font-size: 1.5rem;
             }
 
+            .folder-header-count-badge {
+                font-family: "Bold";
+                font-size: 1.1rem;
+                color: rgba(0, 0, 0, 0.45);
+                margin-left: 10px;
+                background: transparent;
+                border: none;
+                padding: 0;
+                white-space: nowrap;
+                text-transform: uppercase;
+            }
+
             .folder-actions {
                 display: flex;
                 align-items: center;
