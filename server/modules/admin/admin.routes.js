@@ -6,7 +6,7 @@ import isAdmin from "../../middleware/isAdmin.js";
 import multer from "multer";
 import { adminLogin, adminLogout } from "./auth.controller.js";
 import { uploadCourses, renameCourse, deleteCourse, linkLegacyCourse, bulkLinkCourses, syncCoursesCacheController } from "./adminDashboard.controller.js";
-import {getCourseDashboardData, handleContribution} from "./adminDashboard.controller.js"
+import {getCourseDashboardData, handleContribution, deleteNode} from "./adminDashboard.controller.js"
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });

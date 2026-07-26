@@ -8,7 +8,6 @@ import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { runSync } from "../../scripts/syncCoursesCache.js";
-import { error } from "console";
 import mongoose from "mongoose";
 import {deleteFile} from "../file/file.controller.js";
 
