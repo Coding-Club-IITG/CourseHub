@@ -70,7 +70,7 @@ const Collapsible = ({ course, color, state = false }) => {
 
         const yearFolder = courseData.children?.[yearIndex] || null;
         const yearChildren = Array.isArray(yearFolder?.children) ? yearFolder.children : [];
-
+        
         dispatch(ChangeCurrentYearData(yearIndex, yearChildren));
         dispatch(ClearFolderHistory());
         dispatch(ChangeFolder(yearFolder));
