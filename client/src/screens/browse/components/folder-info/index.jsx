@@ -222,7 +222,7 @@ const FolderInfo = ({
                         <p className="folder-name">{name}</p>
                         {currentFolder && (
                             <span className="folder-header-count-badge" title={`${totalSubtreeFiles} total files in subtree`}>
-                                {totalSubtreeFiles} {totalSubtreeFiles === 1 ? "file" : "files"}
+                                {totalSubtreeFiles === 0 ? "EMPTY" : `${totalSubtreeFiles} ${totalSubtreeFiles === 1 ? "FILE" : "FILES"}`}
                             </span>
                         )}
                         <div className="folder-actions"></div>

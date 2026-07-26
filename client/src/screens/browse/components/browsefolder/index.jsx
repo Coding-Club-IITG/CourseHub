@@ -108,7 +108,7 @@ const BrowseFolder = ({
                                     )}
                                 </span>
                                 <span className="file-count" title={`${fileCount} files in subtree`}>
-                                    {fileCount} {fileCount === 1 ? "FILE" : "FILES"}
+                                    {fileCount === 0 ? "EMPTY" : `${fileCount} ${fileCount === 1 ? "FILE" : "FILES"}`}
                                 </span>
                             </div>
                         ) : (
