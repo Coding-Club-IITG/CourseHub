@@ -27,6 +27,7 @@ import { AddNewCourseLocal, LoginUser, LogoutUser } from "../../actions/user_act
 import { getUser } from "../../api/User";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
+import { fetchFolder } from "../../api/Folder";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Share from "../share";
@@ -235,9 +236,18 @@ const BrowseScreen = () => {
             : currCourse
             ? "No data available for this course"
             : "Select a course...";
-    const handleBackClick = () => {
+    const handleBackClick = async () => {
         if (folderHistory.length > 0) {
+            const previousFolder = folderHistory[folderHistory.length - 1];
             dispatch(PopFolderHistory());
+            if (previousFolder && previousFolder._id) {
+                try {
+                    const freshFolder = await fetchFolder(previousFolder._id, currCourseCode);
+                    dispatch(ChangeFolder(freshFolder));
+                } catch (err) {
+                    // Fallback to popped history snapshot
+                }
+            }
         }
     };
     const canGoBack = folderHistory.length > 0;
