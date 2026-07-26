@@ -1,6 +1,7 @@
 import { FolderModel } from "../course/course.model.js";
 import { deleteFile } from "../file/file.controller.js";
 import { normalizeCourseCode } from "../../utils/course.js";
+import { recalculateParentFolderCounts, computePopulatedFolderSubtreeCount } from "../../utils/folder.js";
 
 const COURSE_CHILDREN_POPULATE_DEPTH = 5;
 
@@ -27,12 +28,14 @@ async function createFolder(req, res) {
         courses: [normalizeCourseCode(course)],
         childType,
         children: [],
+        totalFileCount: 0,
     });
 
     if (parentFolder) {
         const parent = await FolderModel.findById(parentFolder);
         parent.children.push(newFolder._id);
         await parent.save();
+        await recalculateParentFolderCounts(parentFolder);
     }
 
     return res.json(newFolder);
@@ -60,6 +63,10 @@ async function deleteFolder(req, res) {
                 });
             }
             await recursiveDelete(folder);
+        }
+
+        if (parentFolderId) {
+            await recalculateParentFolderCounts(parentFolderId);
         }
 
         return res.json({ success: true, folderId });
@@ -137,6 +144,8 @@ async function getFolderContent(req, res) {
             });
         }
         
+        computePopulatedFolderSubtreeCount(folderObj, courseCode);
+
         return res.json(folderObj);
     } catch (err) {
         return res.status(500).json({ error: err.message });

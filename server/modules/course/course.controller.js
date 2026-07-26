@@ -5,6 +5,7 @@ import SearchResults from "../search/search.model.js";
 import courselist from "./course.list.js";
 import { bootstrapCourseFolders } from "./course.service.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { computePopulatedFolderSubtreeCount } from "../../utils/folder.js";
 
 const COURSE_CHILDREN_POPULATE_DEPTH = 5;
 
@@ -73,8 +74,13 @@ export const getCourse = async (req, res, next) => {
         else return 1;
     }
 
-    if (courseObj?.children && courseObj.children.length > 1) {
-        courseObj.children.sort(sortYear);
+    if (courseObj?.children && courseObj.children.length > 0) {
+        for (const childFolder of courseObj.children) {
+            computePopulatedFolderSubtreeCount(childFolder, normalizedCode);
+        }
+        if (courseObj.children.length > 1) {
+            courseObj.children.sort(sortYear);
+        }
     }
 
     return res.json({ found: true, ...courseObj });

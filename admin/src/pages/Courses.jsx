@@ -589,14 +589,12 @@ function Courses() {
                                                     )}
                                                 </TableCell>
                                                 <TableCell className="py-4 pl-6">
-                                                    <div className="flex items-center">
+                                                    <div className="flex items-center space-x-2">
                                                         <Badge
                                                             variant="secondary"
-                                                            className="text-xs px-2 py-1 bg-gray-100 text-gray-700 border border-gray-200"
+                                                            className="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-medium"
                                                         >
-                                                            {course.children
-                                                                ? course.children.length
-                                                                : 0}
+                                                            {course.children ? course.children.length : 0} {course.children?.length === 1 ? "folder" : "folders"}
                                                         </Badge>
                                                     </div>
                                                 </TableCell>
