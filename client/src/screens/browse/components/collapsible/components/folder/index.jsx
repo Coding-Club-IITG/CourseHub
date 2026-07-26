@@ -54,7 +54,7 @@ const Folder = ({ folder, state }) => {
                             onClick={() => onClick(folder)}
                         >
                             {folder.name}
-                            <span className="tree-file-count">({fileCount === 0 ? "Empty" : fileCount})</span>
+                            <span className="tree-file-count">({fileCount})</span>
                         </span>
                         <span
                             className={`${
