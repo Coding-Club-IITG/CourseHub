@@ -15,6 +15,7 @@ import {
 
 import { ConfirmDialog } from "./confirmDialog";
 import { ConfirmDelDialog } from "./confirmDelDialog";
+import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
 const YearInfo = ({
     isBR,
@@ -176,6 +177,9 @@ const YearInfo = ({
                 <div className="year-content">
                     {course &&
                         course.map((year, idx) => {
+                            const fileCount = getSubtreeFileCount(year);
+                            const isEmpty = fileCount === 0;
+
                             return (
                                 <div key={year?._id}>
                                     <span
@@ -188,7 +192,17 @@ const YearInfo = ({
                                             dispatch(RefreshCurrentFolder());
                                         }}
                                     >
-                                        {year.name}
+                                        <div className="year-title-wrapper">
+                                            <span>{year.name}</span>
+                                            {isEmpty && (
+                                                <span
+                                                    className="empty-indicator"
+                                                    title="This year contains no files"
+                                                >
+                                                    EMPTY
+                                                </span>
+                                            )}
+                                        </div>
                                         {isBR && !isReadOnlyCourse ? (
                                             <div
                                                 className="delete"

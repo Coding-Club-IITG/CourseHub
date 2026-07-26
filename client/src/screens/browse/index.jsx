@@ -28,6 +28,7 @@ import { getUser } from "../../api/User";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
 import { fetchFolder } from "../../api/Folder";
+import { getSubtreeFileCount } from "../../utils/folderUtils";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Share from "../share";
@@ -359,10 +360,14 @@ const BrowseScreen = () => {
                                             handleYearChange({ target: { value } })
                                         }
                                         disabled={!currCourse || !allYears.length}
-                                        options={allYears.map((year, idx) => ({
-                                            value: idx.toString(),
-                                            label: year?.name || `Year ${idx + 1}`,
-                                        }))}
+                                        options={allYears.map((year, idx) => {
+                                            const count = getSubtreeFileCount(year);
+                                            const isYearEmpty = count === 0;
+                                            return {
+                                                value: idx.toString(),
+                                                label: `${year?.name || `Year ${idx + 1}`}${isYearEmpty ? " (Empty)" : ""}`,
+                                            };
+                                        })}
                                     />
                                 </div>
                             </div>
