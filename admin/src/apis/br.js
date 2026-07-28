@@ -16,6 +16,22 @@ export const fetchBRs = async () => {
     }
 };
 
+// Fetch all courses that don't have a branch representative
+export const fetchCoursesWithoutBR = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}api/br/coursesWithoutBR`, {
+            credentials: "include",
+            headers: {
+                Authorization: "Bearer admin-coursehub-cc23-golang",
+            },
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching courses without BR:", error);
+        throw error;
+    }
+};
+
 // Create a single BR
 export const createBR = async (email) => {
     try {

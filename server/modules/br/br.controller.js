@@ -2,6 +2,8 @@ import BR from "./br.model.js";
 import User from "../user/user.model.js";
 import { fetchCoursesForBr } from "../auth/auth.controller.js";
 import logger from "../../utils/logger.js";
+import CourseModel from "../course/course.model.js";
+import { normalizeCourseCode } from "../../utils/course.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
@@ -142,5 +144,29 @@ const getBRs = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+const getCoursesWithoutBR = async (req, res) => {
+    try {
+        const brRecords = await BR.find({});
+        const brEmails = brRecords.map((br) => br.email.toLowerCase());
 
-export { updateBRs, createBR, getAll, deleteBR, getBRs };
+        const brUsers = await User.find({ email: { $in: brEmails } });
+
+        const coveredCodes = new Set(
+            brUsers.flatMap((user) =>
+                (user.courses || []).map((c) => normalizeCourseCode(c.code))
+            )
+        );
+
+        const allCourses = await CourseModel.find({});
+
+        const coursesWithoutBR = allCourses.filter(
+            (course) => !coveredCodes.has(normalizeCourseCode(course.code))
+        );
+
+        res.status(200).json({ coursesWithoutBR });
+    } catch (error) {
+        logger.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+export { updateBRs, createBR, getAll, deleteBR, getBRs, getCoursesWithoutBR };

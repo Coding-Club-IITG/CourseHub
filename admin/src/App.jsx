@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import BranchRepresentatives from "./pages/BranchRepresentatives";
+import CoursesWithoutBR from "./pages/CoursesWithoutBR";
 import Students from "./pages/Students";
 import Courses from "./pages/Courses";
 import CourseLinking from "./pages/CourseLinking";
@@ -45,6 +46,14 @@ function App() {
                                 element={
                                     <PrivateRoute>
                                         <CourseLinking />
+                                    </PrivateRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/courses-without-br"
+                                element={
+                                    <PrivateRoute>
+                                        <CoursesWithoutBR />
                                     </PrivateRoute>
                                 }
                             />
