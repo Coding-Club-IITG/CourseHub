@@ -5,6 +5,8 @@ import Courses from "./pages/Courses";
 import CourseLinking from "./pages/CourseLinking";
 import PrivateRoute from "./router_utils/PrivateRoutes";
 import Login from "./pages/Login";
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
     return (
@@ -60,6 +62,7 @@ function App() {
                         </Routes>
                     </main>
                 </div>
+                <ToastContainer position="bottom-right" autoClose={5000}/>
             </div>
         </Router>
     );

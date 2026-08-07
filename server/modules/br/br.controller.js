@@ -124,13 +124,7 @@ const getBRs = async (req, res) => {
         const brs = brRecords.map((br) => {
             const user = userMap[br.email.toLowerCase()];
             if (user) {
-                return {
-                    email: user.email,
-                    name: user.name || "N/A",
-                    degree: user.degree || "N/A",
-                    department: user.department || "N/A",
-                    semester: user.semester || "N/A",
-                };
+                return user;
             }
             return {
                 email: br.email,
@@ -138,6 +132,10 @@ const getBRs = async (req, res) => {
                 degree: "N/A",
                 department: "N/A",
                 semester: "N/A",
+                _id: br._id,
+                rollNumber: "PENDING",
+                isBR: true,
+                courses: [],
             };
         });
 

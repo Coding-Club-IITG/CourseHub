@@ -87,7 +87,7 @@ export const uploadBRs = async (file) => {
     }
 };
 // Delete BR
-export const deleteBR = async(email) =>{
+export const deleteBR = async (email) => {
     try {
         const response = await 
         fetch(`${API_BASE_URL}api/br/delete`,{
@@ -108,4 +108,4 @@ export const deleteBR = async(email) =>{
             console.error("Error deleting single BR:" , error);
             throw error;
         }
-    };
+};
