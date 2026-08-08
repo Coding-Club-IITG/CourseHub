@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import CoursesWithoutBRTable from "../components/coursesWithoutBRTable";
+import CoursesWithoutBRTable from "../components/CoursesWithoutBRTable";
 import { fetchCoursesWithoutBR } from "@/apis/br";
 
 export default function CoursesWithoutBR() {

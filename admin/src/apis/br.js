@@ -5,9 +5,6 @@ export const fetchBRs = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}api/br/allBRs`, {
             credentials: "include",
-            headers: {
-                Authorization: "Bearer admin-coursehub-cc23-golang",
-            },
         });
         return await response.json();
     } catch (error) {
@@ -21,9 +18,6 @@ export const fetchCoursesWithoutBR = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}api/br/coursesWithoutBR`, {
             credentials: "include",
-            headers: {
-                Authorization: "Bearer admin-coursehub-cc23-golang",
-            },
         });
         return await response.json();
     } catch (error) {
@@ -40,7 +34,6 @@ export const createBR = async (email) => {
             credentials: "include",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
             body: JSON.stringify({ email }),
         });
@@ -85,7 +78,6 @@ export const uploadBRs = async (file) => {
             credentials: "include",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
             body: JSON.stringify({ emails }),
         });
