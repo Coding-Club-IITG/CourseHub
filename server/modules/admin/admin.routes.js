@@ -5,7 +5,8 @@ import AppError from "../../utils/appError.js";
 import isAdmin from "../../middleware/isAdmin.js";
 import multer from "multer";
 import { adminLogin, adminLogout } from "./auth.controller.js";
-import { uploadCourses, renameCourse, deleteCourse, linkLegacyCourse, bulkLinkCourses } from "./adminDashboard.controller.js";
+import { uploadCourses, renameCourse, deleteCourse, linkLegacyCourse, bulkLinkCourses, syncCoursesCacheController } from "./adminDashboard.controller.js";
+import {getCourseDashboardData, handleContribution, deleteNode} from "./adminDashboard.controller.js"
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -25,6 +26,9 @@ router.post(
     catchAsync(adminController.createAdmin)
 );
 
+router.get("/course/:code/dashboard", isAdmin, catchAsync(getCourseDashboardData));
+router.post("/contribution/action", isAdmin, catchAsync(handleContribution));
+router.delete("/node/:type/:id", isAdmin,catchAsync(deleteNode));
 router.get("/", isAdmin, catchAsync(adminController.getAdmin));
 router.get("/onedrivecourses", isAdmin, catchAsync(adminController.getOnedriveCourses));
 router.get("/dbcourses", isAdmin, catchAsync(adminController.getDBCourses));
@@ -37,7 +41,7 @@ router.get("/contribution/id/:folderName", isAdmin, catchAsync(adminController.g
 router.post("/contribution/markapproved", isAdmin, catchAsync(adminController.markApproved));
 router.post(
     "/contribution/bootstrapnewcourse",
-    isAdmin,
+    isAdmin,    
     catchAsync(adminController.createNewCourseFolders)
 );
 
@@ -46,5 +50,6 @@ router.post("/courses/bulk-link", isAdmin, upload.single("file"), bulkLinkCourse
 router.patch("/course/:code", isAdmin, renameCourse);
 router.post("/course/:code/link", isAdmin, linkLegacyCourse);
 router.delete("/course/:code/delete", isAdmin, catchAsync(deleteCourse));
+router.post("/sync-courses-cache", isAdmin, catchAsync(syncCoursesCacheController));
 
 export default router;

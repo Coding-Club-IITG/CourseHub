@@ -26,6 +26,8 @@ import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
+import { initScheduler } from "./config/cron.js";
+initScheduler();
 
 const app = express();
 
@@ -90,6 +92,7 @@ app.use((err, req, res, next) => {
         logger.error(
             {
                 message: err.message,
+                microsoftResponse: err.response?.data,
                 route: req.originalUrl,
                 method: req.method,
             },

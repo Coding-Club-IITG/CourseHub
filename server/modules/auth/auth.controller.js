@@ -2,7 +2,6 @@ import axios from "axios";
 import qs from "querystring";
 import AppError from "../../utils/appError.js";
 import catchAsync from "../../utils/catchAsync.js";
-import cheerio from "cheerio";
 
 import appConfig from "../../config/default.js";
 
@@ -16,12 +15,13 @@ import User from "../user/user.model.js";
 
 import academic from "../../config/academic.js";
 import courselist from "../course/course.list.js";
-import { getCourseCodeCaseInsensitiveRegex, normalizeCourseCode } from "../../utils/course.js";
+import { getCourseCodeCaseInsensitiveRegex, normalizeCourseCode, parseCourseAllotmentsFromHtml } from "../../utils/course.js";
 
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import UserUpdate from "../user/userUpdate.model.js";
-
 import BR from "../br/br.model.js";
+import CourseAllotment from "../course/courseAllotment.model.js";
+import logger from "../../utils/logger.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
@@ -38,27 +38,7 @@ export const guestLoginHanlder = async (req, res, next) => {
     res.json({ token });
 };
 
-// Helper function to parse courses from HTML response
-function parseCoursesFromHtml(htmlData, rollNumber) {
-    const $ = cheerio.load(htmlData);
-    const courseCodes = [];
-    
-    $("tr").each((i, elem) => {
-        const details = $(elem).find("td");
-        const studentRollNo = details.eq(2).text();
-        const rawCode = details.eq(3).text();
-        
-        if (rawCode && studentRollNo == rollNumber && !rawCode.includes("SA")) {
-            const normalizedCode = normalizeCourseCode(rawCode);
-            courseCodes.push({
-                original: rawCode,
-                normalized: normalizedCode,
-            });
-        }
-    });
-    
-    return courseCodes;
-}
+
 
 // Helper function to get course names from database and courselist
 async function resolveCourseNames(courseCodes, dbCourses) {
@@ -87,6 +67,28 @@ async function resolveCourseNames(courseCodes, dbCourses) {
 }
 
 export const fetchCourses = async (rollNumber) => {
+    const roll = parseInt(rollNumber);
+    
+    // 1. Try to find the cached allotments
+    const cached = await CourseAllotment.findOne({
+        rollNumber: roll,
+        session: academic.session,
+        year: academic.currentYear,
+    });
+
+    if (cached) {
+        const CourseModel = (await import("../course/course.model.js")).default;
+        const allCodes = cached.courses.map(getCourseCodeCaseInsensitiveRegex);
+        const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
+        
+        const courseCodes = cached.courses.map(code => ({ original: code, normalized: code }));
+        const courses = await resolveCourseNames(courseCodes, dbCourses);
+
+        await User.updateOne({ rollNumber }, { $set: { courses } });
+        return courses;
+    }
+
+    // 2. Cache Miss: Fall back to scraping the portal
     const config = {
         method: "post",
         url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
@@ -108,7 +110,7 @@ export const fetchCourses = async (rollNumber) => {
         throw new AppError(500, "Something went wrong");
     }
     
-    const courseCodes = parseCoursesFromHtml(response.data, rollNumber);
+    const courseCodes = parseCourseAllotmentsFromHtml(response.data, rollNumber);
     
     if (courseCodes.length === 0) {
         throw new AppError(404, "No courses found for this roll number");
@@ -125,10 +127,18 @@ export const fetchCourses = async (rollNumber) => {
     
     const courses = await resolveCourseNames(courseCodes, dbCourses);
     
-    const user = await User.findOne({ rollNumber });
-    if (user) {
-        user.courses = courses;
-        await user.save();
+    await User.updateOne({ rollNumber }, { $set: { courses } });
+
+    // Cache the result for next time
+    try {
+        const rawCodes = courseCodes.map(c => normalizeCourseCode(c.normalized)).filter(Boolean);
+        await CourseAllotment.updateOne(
+            { rollNumber: roll, session: academic.session, year: academic.currentYear },
+            { $set: { courses: rawCodes } },
+            { upsert: true }
+        );
+    } catch (err) {
+        logger.error(`Failed to cache course allotments for ${rollNumber}: ${err.message}`);
     }
     
     return courses;
@@ -147,88 +157,110 @@ function calculateCourseSemesterNumber(rollNumber, courseYear, courseSession) {
 }
 
 export const fetchCoursesForBr = async (rollNumber) => {
+    const roll = parseInt(rollNumber);
     const rollstring = rollNumber.toString();
     const currentYear = parseInt(academic.currentYear);
     const startYear = 2000 + parseInt(rollstring.slice(0, 2));
 
+    const previousCourses = [];
     const configs = [];
+    
+    // Find all semesters cached for this student to minimize network calls
+    const cachedSemesters = await CourseAllotment.find({ rollNumber: roll });
+    const CourseModel = (await import("../course/course.model.js")).default;
+    const dbCourses = await CourseModel.find({});
 
     for (let yr = startYear; yr <= currentYear; yr++) {
         if (yr > startYear && (yr !== currentYear || academic.session !== "Jan-May")) {
-            configs.push({
-                sess: "Jan-May",
-                yr: yr,
-                req: {
-                    method: "post",
-                    url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    data: qs.stringify({ cid: "All", sess: "Jan-May", yr: yr })
-                }
-            });
+            const cacheHit = cachedSemesters.find(c => c.session === "Jan-May" && c.year === yr);
+            if (cacheHit) {
+                const courseCodes = cacheHit.courses.map(code => ({ original: code, normalized: code }));
+                const semesterCourses = await resolveCourseNames(courseCodes, dbCourses);
+                previousCourses.push({
+                    semester: calculateCourseSemesterNumber(rollNumber, yr, "Jan-May"),
+                    year: yr,
+                    courses: semesterCourses
+                });
+            } else {
+                configs.push({
+                    sess: "Jan-May",
+                    yr: yr,
+                    req: {
+                        method: "post",
+                        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        data: qs.stringify({ cid: "All", sess: "Jan-May", yr: yr })
+                    }
+                });
+            }
         }
 
         if ((yr < currentYear || (yr === currentYear && academic.session === "July-Nov")) && 
             (yr !== currentYear || academic.session !== "July-Nov")) {
-            configs.push({
-                sess: "July-Nov",
-                yr: yr,
-                req: {
-                    method: "post",
-                    url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    data: qs.stringify({ cid: "All", sess: "July-Nov", yr: yr })
-                }
-            });
+            const cacheHit = cachedSemesters.find(c => c.session === "July-Nov" && c.year === yr);
+            if (cacheHit) {
+                const courseCodes = cacheHit.courses.map(code => ({ original: code, normalized: code }));
+                const semesterCourses = await resolveCourseNames(courseCodes, dbCourses);
+                previousCourses.push({
+                    semester: calculateCourseSemesterNumber(rollNumber, yr, "July-Nov"),
+                    year: yr,
+                    courses: semesterCourses
+                });
+            } else {
+                configs.push({
+                    sess: "July-Nov",
+                    yr: yr,
+                    req: {
+                        method: "post",
+                        url: "https://academic.iitg.ac.in/sso/gen/student1.jsp",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        data: qs.stringify({ cid: "All", sess: "July-Nov", yr: yr })
+                    }
+                });
+            }
         }
     }
 
-    const responses = await Promise.all(
-        configs.map(async (c) => {
-            const res = await axios.post(c.req.url, c.req.data, { headers: c.req.headers });
-            return { data: res.data, sess: c.sess, yr: c.yr };
-        })
-    );
+    if (configs.length > 0) {
+        const responses = await Promise.all(
+            configs.map(async (c) => {
+                const res = await axios.post(c.req.url, c.req.data, { headers: c.req.headers });
+                return { data: res.data, sess: c.sess, yr: c.yr };
+            })
+        );
 
-    responses.forEach((res) => {
-        if (!res.data) throw new AppError(500, "Something went wrong fetching courses");
-    });
+        responses.forEach((res) => {
+            if (!res.data) throw new AppError(500, "Something went wrong fetching courses");
+        });
 
-    const courseCodes = [];
-    responses.forEach((resObj) => {
-        const codes = parseCoursesFromHtml(resObj.data, rollstring);
-        courseCodes.push({ codes, sess: resObj.sess, yr: resObj.yr });
-    });
+        for (const resObj of responses) {
+            const codes = parseCourseAllotmentsFromHtml(resObj.data, rollstring);
+            if (codes.length > 0) {
+                const semesterCourses = await resolveCourseNames(codes, dbCourses);
+                previousCourses.push({
+                    semester: calculateCourseSemesterNumber(rollNumber, resObj.yr, resObj.sess),
+                    year: resObj.yr,
+                    courses: semesterCourses
+                });
 
-    const CourseModel = (await import("../course/course.model.js")).default;
-    const allCourseCodesFlat = courseCodes.flatMap((c) => c.codes);
-    const allCodes = [
-        ...allCourseCodesFlat.map((c) => normalizeCourseCode(c.normalized)),
-        ...allCourseCodesFlat.map((c) => normalizeCourseCode(c.original)),
-    ]
-        .filter(Boolean)
-        .map(getCourseCodeCaseInsensitiveRegex);
-    const dbCourses = await CourseModel.find({ code: { $in: allCodes } });
-
-    const previousCourses = [];
-
-    for (const { codes, sess, yr } of courseCodes) {
-        if (codes.length > 0) {
-            const semesterCourses = await resolveCourseNames(codes, dbCourses);
-            previousCourses.push({
-                semester: calculateCourseSemesterNumber(rollNumber, yr, sess),
-                year: yr,
-                courses: semesterCourses
-            });
+                // Cache newly fetched historical allotments
+                try {
+                    const rawCodes = codes.map(c => normalizeCourseCode(c.normalized)).filter(Boolean);
+                    await CourseAllotment.updateOne(
+                        { rollNumber: roll, session: resObj.sess, year: resObj.yr },
+                        { $set: { courses: rawCodes } },
+                        { upsert: true }
+                    );
+                } catch (err) {
+                    logger.error(`Failed to cache BR courses for ${rollNumber}: ${err.message}`);
+                }
+            }
         }
     }
 
     previousCourses.sort((a, b) => a.semester - b.semester);
 
-    const user = await User.findOne({ rollNumber });
-    if (user) {
-        user.previousCourses = previousCourses;
-        await user.save();
-    }
+    await User.updateOne({ rollNumber }, { $set: { previousCourses } });
 
     return previousCourses;
 };

@@ -14,5 +14,5 @@ router.post("/upload", upload.array("file"), catchAsync(ContributionController.H
 // router.get("/:id", catchAsync(ContributionController.CreateNewContribution));
 router.post("/updated", catchAsync(ContributionController.GetContributionsUpdatedSince));
 router.post("/br",isAuthenticated, ContributionController.GetBrContribution)
-
+router.get('/view/:id', isAuthenticated, catchAsync(ContributionController.viewFile))
 export default router;

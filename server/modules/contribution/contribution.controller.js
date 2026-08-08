@@ -4,9 +4,13 @@ import AppError from "../../utils/appError.js";
 import validatePayload from "../../utils/validate.js";
 import UploadFile from "../../services/UploadFile.js";
 import fs from "fs";
-import { FolderModel } from "../course/course.model.js";
+import path from "path";
+import { FolderModel, FileModel } from "../course/course.model.js";
 import logger from "../../utils/logger.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { recalculateParentFolderCounts } from "../../utils/folder.js";
+import { getAccessToken, clearAccessTokenCache } from "../onedrive/onedrive.controller.js";
+import axios from "axios";
 
 async function ContributionCreation(contributionId, data) {
     const existingContribution = await Contribution.findOne({ contributionId });
@@ -30,12 +34,15 @@ async function HandleFileToDB(contributionId, fileId) {
         return newContribution;
     }
 
-    const parentFolder = await FolderModel.findOne({ _id: existingContribution.parentFolder });
+    const parentFolder = existingContribution.parentFolder
+        ? await FolderModel.findOne({ _id: existingContribution.parentFolder })
+        : null;
 
     existingContribution.files.push(fileId);
     if (parentFolder) {
         parentFolder.children.push(fileId);
         await parentFolder.save();
+        await recalculateParentFolderCounts(parentFolder._id);
     }
     await existingContribution.save();
     return existingContribution;
@@ -49,8 +56,8 @@ async function GetAllContributions(req, res, next) {
 async function HandleFileUpload(req, res, next) {
     logger.info("Handling File Upload");
     const contributionId = req.headers["contribution-id"];
+    const username = req.headers.username || "user";
     const files = req.files;
-
     if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files were uploaded" });
     }
@@ -58,32 +65,50 @@ async function HandleFileUpload(req, res, next) {
     const uploadedFiles = [];
 
     for (const file of files) {
-        let initialPath = file.path;
-        let newFilename = file.filename;
-        let originalFilename = file.originalname;
+        try {
+            let initialPath = file.path;
+            let originalFilename = file.originalname;
 
-        let wordArr = originalFilename.split(".");
-        let fileExtension = wordArr[wordArr.length - 1];
-        let finalFileName = "";
+            let wordArr = originalFilename.split(".");
+            let fileExtension = wordArr.length > 1 ? wordArr.pop() : "";
+            let baseName = wordArr.join(".");
+            let finalFileName = `${baseName}~${username}${fileExtension ? "." + fileExtension : ""}`;
 
-        for (let i = 0; i < wordArr.length - 1; i++) {
-            finalFileName += wordArr[i];
+            const dirName = path.dirname(initialPath);
+            const renamedPath = path.join(dirName, finalFileName);
+
+            await fs.promises.rename(initialPath, renamedPath);
+
+            // UploadFile expects directory path ending with slash/backslash
+            const finalDirPath = dirName.endsWith(path.sep) ? dirName : `${dirName}${path.sep}`;
+            let fileId = null;
+
+            try {
+                fileId = await UploadFile(contributionId, finalDirPath, finalFileName);
+            } catch (uploadError) {
+                logger.error({ uploadError, contributionId, finalFileName }, "UploadFile failed");
+            }
+
+            if (fileId) {
+                await HandleFileToDB(contributionId, fileId);
+                uploadedFiles.push(fileId.toString());
+            }
+
+            // Cleanup local temp file
+            if (fs.existsSync(renamedPath)) {
+                await fs.promises.unlink(renamedPath).catch(() => {});
+            }
+        } catch (err) {
+            logger.error({ err }, "Error processing individual file in HandleFileUpload");
         }
-        finalFileName += "~" + req.headers.username;
-        finalFileName += "." + fileExtension;
-
-        const finalPath = initialPath.slice(0, initialPath.indexOf(newFilename));
-
-        await fs.promises.rename(finalPath + newFilename, finalPath + finalFileName);
-        const fileId = await UploadFile(contributionId, finalPath, finalFileName);
-        if (fileId) {
-            await HandleFileToDB(contributionId, fileId);
-            uploadedFiles.push({ fileId, originalName: originalFilename });
-        }
-        await fs.promises.unlink(finalPath + finalFileName);
     }
 
-    return res.json({ files: uploadedFiles, count: uploadedFiles.length });
+    if (uploadedFiles.length === 0) {
+        return res.status(500).json({ error: "File upload failed" });
+    }
+
+    // Return the primary file ID string or response for FilePond
+    return res.status(200).send(uploadedFiles[0]);
 }
 
 async function CreateNewContribution(req, res, next) {
@@ -157,6 +182,54 @@ async function GetBrContribution(req, res, next) {
     }
 }
 
+async function viewFile(req, res, next) {
+    try {
+        const { id } = req.params;
+        const file = await FileModel.findById(id);
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+        if (file.isVerified === false && req.user.isBR === false) {
+            return res.status(403).json({ message: "File is not verified" });
+        }
+        const getResponse = async () => {
+            const accessToken = await getAccessToken();
+            if (!accessToken) {
+                return res.status(500).json({ message: "Access token not found" });
+            }
+            const response = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                },
+                responseType: "stream"
+            });
+
+            res.setHeader("Content-Type", response.headers["content-type"])
+            res.setHeader(
+                "Content-Length",
+                response.headers["content-length"]
+            );
+
+            const downloadStream = response.data;
+            res.on("close", () => {
+                downloadStream.destroy();
+            });
+            downloadStream.pipe(res);
+        };
+        try {
+            await getResponse();
+        } catch (err) {
+            if (err.response?.status === 401) {
+                clearAccessTokenCache();
+                return await getResponse();
+            }
+            throw err;
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     GetAllContributions,
     CreateNewContribution,
@@ -164,5 +237,6 @@ export default {
     GetMyContributions,
     DeleteContribution,
     GetContributionsUpdatedSince,
-    GetBrContribution
+    GetBrContribution,
+    viewFile
 };

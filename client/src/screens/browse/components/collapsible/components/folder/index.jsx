@@ -7,11 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { ChangeFolder } from "../../../../../../actions/filebrowser_actions";
 import { useEffect } from "react";
+import { getSubtreeFileCount } from "../../../../../../utils/folderUtils";
 
 const Folder = ({ folder, state }) => {
     const dispatch = useDispatch();
     const _state = useSelector((state) => state.fileBrowser);
     const [open, setOpen] = useState(state ? state : false);
+    const fileCount = getSubtreeFileCount(folder);
 
     const closeFolder = (e) => {
         e.stopPropagation();
@@ -52,6 +54,7 @@ const Folder = ({ folder, state }) => {
                             onClick={() => onClick(folder)}
                         >
                             {folder.name}
+                            <span className="tree-file-count">({fileCount})</span>
                         </span>
                         <span
                             className={`${

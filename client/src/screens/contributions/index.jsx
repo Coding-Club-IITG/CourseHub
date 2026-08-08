@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import server from "../../api/server";
-import { ChangeFolder } from "../../actions/filebrowser_actions";
+import { ChangeFolder, RefreshCurrentFolder } from "../../actions/filebrowser_actions";
 import { fetchFolder } from "../../api/Folder";
 
 const Contributions = () => {
@@ -69,6 +69,7 @@ const Contributions = () => {
         try {
             const updatedFolder = await fetchFolder(currentFolder._id, currentCourseCode);
             dispatch(ChangeFolder(updatedFolder));
+            dispatch(RefreshCurrentFolder());
         } catch (error) {
             return null;
         }

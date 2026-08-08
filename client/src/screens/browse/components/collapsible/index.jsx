@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { capitalise } from "../../../../utils/capitalise";
 import { findCachedCourse, hasUsableCourseTree } from "../../../../utils/courseCache";
 import { readAllCoursesCache } from "../../../../utils/frontendCache";
+import { refreshCourseFromServer } from "../../../../utils/refreshCourse";
 
 const Collapsible = ({ course, color, state = false }) => {
     const normalizedCode = useMemo(
@@ -69,7 +70,7 @@ const Collapsible = ({ course, color, state = false }) => {
 
         const yearFolder = courseData.children?.[yearIndex] || null;
         const yearChildren = Array.isArray(yearFolder?.children) ? yearFolder.children : [];
-
+        
         dispatch(ChangeCurrentYearData(yearIndex, yearChildren));
         dispatch(ClearFolderHistory());
         dispatch(ChangeFolder(yearFolder));
@@ -83,6 +84,10 @@ const Collapsible = ({ course, color, state = false }) => {
             setError(false);
             setNotFound(false);
             setActiveCourse(cachedCourse);
+            refreshCourseFromServer(dispatch, normalizedCode, {
+                yearIndex: null,
+                folderId: null,
+            });
             return;
         }
 

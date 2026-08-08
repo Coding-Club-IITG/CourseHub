@@ -8,38 +8,48 @@ import { getThumbnail } from "../../../../api/File";
 import clientRoot from "../../../../api/server";
 import capitalise from "../../../../utils/capitalise.js";
 import Share from "../../../share";
-import { verifyFile, unverifyFile } from "../../../../api/File";
+import API_BASE_URL from "../../../../api/server";
+import { verifyFile, unverifyFile, renameFile } from "../../../../api/File";
 import {
     RemoveFileFromFolder,
     UpdateFileVerificationStatus,
 } from "../../../../actions/filebrowser_actions.js";
 import ConfirmDialog from "./components/ConfirmDialog.jsx";
+import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
 import { fetchFolder } from "../../../../api/Folder.js";
 
 const FileDisplay = ({ file, path, code, isMobileView = false }) => {
+
     const user = useSelector((state) => state.user?.user);
     const fileSize = formatFileSize(file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogType, setDialogType] = useState("verify");
-    const [onConfirmAction, setOnConfirmAction] = useState(() => () => {});
+    const [onConfirmAction, setOnConfirmAction] = useState(() => () => { });
     const [isProcessing, setIsProcessing] = useState(false);
 
     let name = file.name;
     let _dispName = formatFileName(name);
     let contributor = file.name;
+    let untruncatedDispName = name;
     try {
-        if (name.indexOf("~") !== -1) {
-            _dispName = formatFileName(name.slice(0, name.indexOf("~")));
-            contributor = name.slice(name.indexOf("~") + 1);
-            contributor = contributor.slice(0, contributor.indexOf("."));
+        const lastTildeIndex = name.lastIndexOf("~");
+        if (lastTildeIndex !== -1) {
+            untruncatedDispName = name.slice(0, lastTildeIndex);
+            _dispName = formatFileName(untruncatedDispName);
+            let contributorPart = name.slice(lastTildeIndex + 1);
+            const dotIdx = contributorPart.indexOf(".");
+            contributor = dotIdx !== -1 ? contributorPart.slice(0, dotIdx) : contributorPart;
         } else {
-            _dispName = formatFileName(name.slice(0, name.indexOf(fileType)));
+            const dotIdx = name.lastIndexOf(".");
+            untruncatedDispName = dotIdx !== -1 ? name.slice(0, dotIdx) : name;
+            _dispName = formatFileName(untruncatedDispName);
             contributor = "Anonymous";
         }
     } catch (error) {
-        name = formatFileName(file.name);
+        _dispName = formatFileName(file.name);
+        untruncatedDispName = file.name;
         contributor = "Anonymous";
     }
     const isLoggedIn = useSelector((state) => state.user?.loggedIn);
@@ -60,14 +70,49 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             )
         );
 
+    const currentFolder = useSelector((state) => state.fileBrowser?.currentFolder);
+    const [isEditing, setIsEditing] = useState(false);
+    const dispatch = useDispatch();
+
     if (!file.isVerified && !currentUser?.isBR) {
         return null;
     }
-    const dispatch = useDispatch();
-
     const preview_url = file.webUrl;
     const thumbnailUrl =
         typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
+
+    const handleRename = async (newName) => {
+        const trimmed = newName?.trim();
+        if (!trimmed || trimmed === untruncatedDispName) return;
+
+        // Validation for illegal OneDrive characters: \ / : * ? " < > |
+        const illegalChars = /[\\/:*?"<>|]/;
+        if (illegalChars.test(trimmed)) {
+            toast.error("Filename cannot contain any of the following characters: \\ / : * ? \" < > |");
+            return;
+        }
+
+        if (trimmed.length > 200) {
+            toast.error("Filename is too long (maximum 200 characters).");
+            return;
+        }
+
+        try {
+            const responseData = await renameFile(file._id, trimmed);
+            toast.success("File renamed successfully!");
+            dispatch(
+                ChangeFolder({
+                    ...currentFolder,
+                    children: (currentFolder?.children || []).map((child) =>
+                        child._id === file._id ? { ...child, name: responseData.file.name } : child
+                    ),
+                })
+            );
+        } catch (err) {
+            console.error("Error renaming file:", err);
+            toast.error(err.response?.data?.message || "Failed to rename file");
+        }
+    };
 
     const handleDownload = async () => {
         if (!isLoggedIn) {
@@ -96,7 +141,17 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
             toast.error("Please login to preview file.");
             return;
         }
-        window.open(preview_url, "_blank");
+
+        const isPdf = file.name.toLowerCase().endsWith(".pdf");
+        if (isPdf) {
+            window.open(
+                `${API_BASE_URL}/api/contribution/view/${file._id}`,
+                "_blank"
+            );
+        } else {
+            window.open(preview_url, "_blank");
+        }
+
     };
 
 
@@ -144,9 +199,8 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
 
     return (
         <div
-            className={`file-display ${
-                user?.isBR ? (file.isVerified ? "verified" : "unverified") : ""
-            }`}
+            className={`file-display ${user?.isBR ? (file.isVerified ? "verified" : "unverified") : ""
+                }`}
         >
             <img
                 src={thumbnailUrl}
@@ -185,9 +239,30 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
                 </div>
             </div>
             <div className="content">
-                <p className="title" title={file.name}>
-                    {file?.name ? _dispName : "Quiz 1 Answer Key"}
-                </p>
+                {isEditing ? (
+                    <FileRename
+                        initialName={untruncatedDispName}
+                        onCancel={() => setIsEditing(false)}
+                        onSave={(newName) => {
+                            handleRename(newName);
+                            setIsEditing(false);
+                        }}
+                    />
+                ) : (
+                    <p className="title" title={file.name}>
+                        {file?.name ? _dispName : "Quiz 1 Answer Key"}
+                        {!isMobileView && user?.isBR && !isReadOnlyCourse && (
+                            <span
+                                className="rename-tick"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsEditing(true);
+                                }}
+                                title="Rename"
+                            ></span>
+                        )}
+                    </p>
+                )}
                 <div className="file-metadata">
                     <p className="info">
                         {fileType.toUpperCase()} {fileSize}
