@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import NavBarBrowseScreen from "./components/navbar";
 import Contributions from "../contributions";
 import { useEffect, useState } from "react";
+import { refreshCourseFromServer } from "../../utils/refreshCourse";
 import React from "react";
 import {
     ChangeCurrentCourse,
@@ -150,6 +151,10 @@ const BrowseScreen = () => {
                         );
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
                         dispatch(ChangeFolder(defaultYear));
+                        refreshCourseFromServer(dispatch, code, {
+                        yearIndex: defaultYearIndex,
+                        folderId: folderId || defaultYear._id,
+                        });
                     } else {
                     }
                 } else {
