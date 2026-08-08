@@ -94,7 +94,7 @@ export default function Students() {
                 if(showBROnly){
                     const q = searchQuery.trim().toLowerCase();
                     const filtered = allBRs.filter(
-                        (br) => br.email?.toLowerCase().includes(q) || br.name?.toLowerCase().includes(q)
+                        (br) => br.email?.toLowerCase().includes(q) || br.name?.toLowerCase().includes(q) || br.rollNumber?.toString().toLowerCase().includes(q)
                     );
                     setStudents(filtered);
                 }
