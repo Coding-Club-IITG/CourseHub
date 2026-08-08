@@ -1,4 +1,4 @@
-import {getCourse} from "../api/course";
+import {getCourse} from "../api/Course";
 import
 {
     UpdateCourses,
@@ -11,7 +11,8 @@ import searchFolderById from "./searchFolderById";
 
 export const refreshCourseFromServer = async (dispatch, code, { yearIndex = null, folderId = null}) => 
 {
-    if(!code) return;
+    if(!code) 
+        return;
 
     let response;
 

@@ -16,7 +16,11 @@ function App() {
                     <Sidebar />
                     <main className="flex-1 min-h-screen">
                         <Routes>
-                            <Route path = "/admin/courses/:code" element = {<CourseDashboard/>}/>
+                            <Route path = "/admin/courses/:code" element = {
+                                <PrivateRoute>
+                                    <CourseDashboard/>
+                                </PrivateRoute>
+                            }/>
                             <Route path="/admin/login" element={<Login />} />
                             <Route
                                 path="/admin/"

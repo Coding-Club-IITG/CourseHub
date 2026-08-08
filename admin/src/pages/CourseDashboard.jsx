@@ -98,7 +98,7 @@ export default function CourseDashboard() {
 
     const handleContributionAction = async(contributionId, action) =>
     {
-        const isApprove = action == "approve";
+        const isApprove = action === "approve";
         if(!window.confirm(`Are you sure you want to ${action} this contribution`))
         {
             return;

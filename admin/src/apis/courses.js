@@ -1,4 +1,3 @@
-import { Delete } from "lucide-react";
 import { API_BASE_URL } from "./server.js";
 
 // Fetch all courses
@@ -233,10 +232,12 @@ export const deleteNode = async(type,id) =>
                 "Content-Type": "application/json",
                 Authorization: "Bearer admin-coursehub-cc23-golang",
             },   
+            credentials : "include",
         });
         if(!response.ok)
         {
-            throw new Error("Failed to delete Item");
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || "Failed to delete Item");
         }
     }
     catch(error)

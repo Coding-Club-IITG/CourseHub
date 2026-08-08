@@ -10,6 +10,7 @@ import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../ut
 import { runSync } from "../../scripts/syncCoursesCache.js";
 import mongoose from "mongoose";
 import {deleteFile} from "../file/file.controller.js";
+import {DeleteFile} from "../../services/UploadFile.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -88,61 +89,126 @@ export async function getCourseDashboardData(req,res,next)
     res.json({course,studentCount,contributions});
 }
 
-async function deleteFolderTree(folderId)
+
+const delete_concurrency = 5;
+
+async function runWithConcurrency(items,limit,worker)
 {
-    const folder = await FolderModel.findById(folderId);
-
-    if(!folder)
+    for(let i = 0; i < items.length; i += limit)
     {
-        return;
+        await Promise.allSettled(items.slice(i, i + limit).map(worker));
     }
-    
-    if(folder.childType === "Folder")
-    {
-        for(const childId of folder.children)
-        {
-            await deleteFolderTree(childId);
-        }
-    }
-    else if(folder.childType === "File")
-    {
-        for(const fileId of folder.children)
-        {
-            const file = await FileModel.findById(fileId);
-            if(file)
-            {
-                await deleteFile(file);
-            }
-        }
-    }
-
-    await FolderModel.findByIdAndDelete(folderId);
 }
+
+async function collectFolderTree(rootFolderId)
+{
+    const folderIds = [];
+    const fileIds = [];
+    const seen = new Set();
+    let level = [rootFolderId];
+
+    while(level.length > 0)
+    {
+        const unseen = level.filter((id)=> id && !seen.has(id.toString()));
+        unseen.forEach((id) => seen.add(id.toString()));
+        
+        if(unseen.length === 0) 
+            break;
+
+        const folders = await FolderModel.find({ _id: { $in: unseen } })
+            .select("_id children childType")
+            .lean();
+
+        const nextLevel = [];
+
+        for (const folder of folders) 
+        {
+            folderIds.push(folder._id);
+            const children = Array.isArray(folder.children) ? folder.children : [];
+            
+            if (folder.childType === "Folder") 
+                nextLevel.push(...children);
+            
+            else if (folder.childType === "File") 
+                fileIds.push(...children);
+        }
+        level = nextLevel;
+    }
+    return {folderIds, fileIds};
+}
+
+async function deleteFolderTree(folderId) 
+{
+
+    const { folderIds, fileIds } = await collectFolderTree(folderId);
+    if (folderIds.length === 0) return;
+
+    if (fileIds.length > 0) 
+    {
+        const files = await FileModel.find({ _id: { $in: fileIds } }).select("_id fileId").lean();
+
+        await runWithConcurrency(files.filter((f) => f.fileId),delete_concurrency,(f) => DeleteFile(f.fileId));
+
+        await FileModel.deleteMany({ _id: { $in: fileIds } });
+        await Contribution.updateMany({ files: { $in: fileIds } },{ $pull: { files: { $in: fileIds } } });
+        await Contribution.deleteMany({ files: { $size: 0 } });
+    }
+
+    await FolderModel.deleteMany({ _id: { $in: folderIds } });
+
+    const deletedIds = [...folderIds, ...fileIds];
+    await CourseModel.updateMany({ children: { $in: deletedIds } },{ $pull: { children: { $in: deletedIds } } });
+    await FolderModel.updateMany({ children: { $in: deletedIds } },{ $pull: { children: { $in: deletedIds } } });
+}
+
 
 export const deleteNode = async (req, res, next) => 
 {
-    const { type, id } = req.params;
-   
-    const objectId = new mongoose.Types.ObjectId(id);
+    const {type,id} = req.params;
 
-    await CourseModel.updateMany({ children: objectId }, { $pull: { children: objectId } });
-    await FolderModel.updateMany({ children: objectId }, { $pull: { children: objectId } });
-
-    if (type === "file") 
+    if(type !== "file" && type !== "folder")
     {
-        const file = await FileModel.findById(id);
-        if (!file) return next(new AppError(404, "File not found"));
-
-        await Contribution.updateMany({}, { $pull: { files: id } });
-        await Contribution.deleteMany({ files: { $size: 0 } });
-        await deleteFile(file);                         
-    } 
-    else 
-    {
-        await deleteFolderTree(id);                     
+        return next(new AppError(400, "Invalid node type"));
     }
 
-    return res.json({ success: true, message: `${type} deleted successfully.` });
+    if(!mongoose.Types.ObjectId.isValid(id))
+    {
+        return next (new AppError(400, "Invalid node ID"));
+    }
+
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    if(type === "file")
+    {
+        const file = await FileModel.findById(objectId);
+        if(!file)
+        {
+            return next(new AppError(404, "File not found"));
+        }
+
+        await CourseModel.updateMany({children : objectId}, {$pull: {children: objectId}});
+        await FolderModel.updateMany({children : objectId}, {$pull: {children: objectId}});
+
+        await Contribution.updateMany({files: objectId}, {$pull: {files: objectId}});
+        await Contribution.deleteMany({files: {$size: 0}});
+        await deleteFile(file);
+    }
+    else
+    {
+        const folder = await FolderModel.findById(objectId);
+        if(!folder)
+        {
+            return next(new AppError(404, "Folder not found"));
+        }
+
+        await CourseModel.updateMany({children : objectId}, {$pull: {children: objectId}});
+        await FolderModel.updateMany({children : objectId}, {$pull: {children: objectId}});
+        
+        await deleteFolderTree(objectId); 
+
+    }
+
+    return res.json({success:true, message: `${type} deleted successfully`});
 };
 
 
@@ -150,9 +216,24 @@ export async function handleContribution(req,res,next)
 {
     const {contributionId, action} = req.body;
 
+    if(!contributionId)
+    {
+        return next (new AppError(400, "Contribution ID required"));
+    }
+
+    if(action !== "approve" && action !== "reject")
+    {
+        return next (new AppError(400, "Invalid action. Must be 'approve' or 'reject'"));
+    }
+
     const contribution = await Contribution.findOne({contributionId:contributionId}).populate("files");
-    
-    if(action == "approve")
+
+    if(!contribution)
+    {
+        return next (new AppError(404, "Contribution not found"));
+    }
+
+    if(action === "approve")
     {
         contribution.approved = true;
         await contribution.save();
@@ -164,7 +245,7 @@ export async function handleContribution(req,res,next)
         return res.json({ success: true, message: "Contribution approved and files published." });
     }
 
-    else if(action == "reject")
+    else
     {
         const parentFolder = await FolderModel.findById(contribution.parentFolder);
         
