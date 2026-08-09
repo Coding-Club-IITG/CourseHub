@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import server from "../../api/server";
-import { ChangeFolder } from "../../actions/filebrowser_actions";
+import { ChangeFolder, RefreshCurrentFolder } from "../../actions/filebrowser_actions";
 import { fetchFolder } from "../../api/Folder";
 
 const Contributions = () => {
@@ -37,6 +37,12 @@ const Contributions = () => {
 
     async function handleSubmit() {
         if (isUploading) return;
+
+        const files = pond.current ? pond.current.getFiles() : [];
+        if (!submitEnabled || !files.length) {
+            toast.error("Please upload a valid file");
+            return;
+        }
 
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
@@ -69,6 +75,7 @@ const Contributions = () => {
         try {
             const updatedFolder = await fetchFolder(currentFolder._id, currentCourseCode);
             dispatch(ChangeFolder(updatedFolder));
+            dispatch(RefreshCurrentFolder());
         } catch (error) {
             return null;
         }

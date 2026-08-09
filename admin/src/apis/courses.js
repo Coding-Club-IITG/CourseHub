@@ -179,3 +179,70 @@ export const deleteCourse = async (code) => {
         throw error;
     }
 };
+
+export const fetchCourseDashboardData = async(code)=>
+{
+    try 
+    {
+        const safeCode = code.toLowerCase().trim();
+        const response = await fetch(`${API_BASE_URL}api/admin/course/${safeCode}/dashboard`, {
+            headers: {Authorization: "Bearer admin-coursehub-cc23-golang"},
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to get dashboard data");
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching dashboard:", error);
+        throw error;
+    }
+}
+
+export const handleContribution = async (contributionId, action) => {
+    try 
+    {
+        const response = await fetch(`${API_BASE_URL}api/admin/contribution/action`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer admin-coursehub-cc23-golang",
+            },
+            body: JSON.stringify({ contributionId, action}),
+            credentials: "include",
+        });
+        if (!response.ok)
+        { 
+            throw new Error(`Failed to ${action} contribution`);
+        }
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteNode = async(type,id) =>
+{
+    try
+    {
+        const response = await fetch(`${API_BASE_URL}api/admin/node/${type}/${id}`, {
+            method : "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer admin-coursehub-cc23-golang",
+            },   
+            credentials : "include",
+        });
+        if(!response.ok)
+        {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || "Failed to delete Item");
+        }
+    }
+    catch(error)
+    {
+        throw error;
+    }
+}
+

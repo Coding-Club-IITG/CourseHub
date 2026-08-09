@@ -82,9 +82,37 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+
+                .year-title-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .empty-indicator {
+                    font-size: 0.58rem;
+                    font-family: "Bold";
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    padding: 1px 5px;
+                    border-radius: 3px;
+                    color: rgba(255, 255, 255, 0.4);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.05);
+                    line-height: 1.2;
+                    user-select: none;
+                }
+
                 &.selected {
                     color: #000;
                     background-color: #fff;
+
+                    .empty-indicator {
+                        color: rgba(0, 0, 0, 0.4);
+                        border: 1px solid rgba(0, 0, 0, 0.2);
+                        background: rgba(0, 0, 0, 0.05);
+                    }
+
                     .delete {
                         background: url(./components/browsefolder/Delete.svg), none;
 

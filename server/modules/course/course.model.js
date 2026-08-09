@@ -5,6 +5,7 @@ const FolderSchema = Schema({
     name: { type: String, required: true },
     childType: { type: String, enum: ["File", "Folder"], required: true },
     children: [{ type: Schema.Types.ObjectId, refPath: "childType" }],
+    totalFileCount: { type: Number, default: 0 },
 });
 
 export const FolderModel = model("Folder", FolderSchema);

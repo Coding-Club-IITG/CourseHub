@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import NavBarBrowseScreen from "./components/navbar";
 import Contributions from "../contributions";
 import { useEffect, useState } from "react";
+import { refreshCourseFromServer } from "../../utils/refreshCourse";
 import React from "react";
 import {
     ChangeCurrentCourse,
@@ -27,6 +28,8 @@ import { AddNewCourseLocal, LoginUser, LogoutUser } from "../../actions/user_act
 import { getUser } from "../../api/User";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
+import { fetchFolder } from "../../api/Folder";
+import { getSubtreeFileCount } from "../../utils/folderUtils";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Share from "../share";
@@ -148,6 +151,10 @@ const BrowseScreen = () => {
                         );
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
                         dispatch(ChangeFolder(defaultYear));
+                        refreshCourseFromServer(dispatch, code, {
+                        yearIndex: defaultYearIndex,
+                        folderId: folderId || defaultYear._id,
+                        });
                     } else {
                     }
                 } else {
@@ -235,9 +242,18 @@ const BrowseScreen = () => {
             : currCourse
             ? "No data available for this course"
             : "Select a course...";
-    const handleBackClick = () => {
+    const handleBackClick = async () => {
         if (folderHistory.length > 0) {
+            const previousFolder = folderHistory[folderHistory.length - 1];
             dispatch(PopFolderHistory());
+            if (previousFolder && previousFolder._id) {
+                try {
+                    const freshFolder = await fetchFolder(previousFolder._id, currCourseCode);
+                    dispatch(ChangeFolder(freshFolder));
+                } catch (err) {
+                    // Fallback to popped history snapshot
+                }
+            }
         }
     };
     const canGoBack = folderHistory.length > 0;
@@ -349,10 +365,14 @@ const BrowseScreen = () => {
                                             handleYearChange({ target: { value } })
                                         }
                                         disabled={!currCourse || !allYears.length}
-                                        options={allYears.map((year, idx) => ({
-                                            value: idx.toString(),
-                                            label: year?.name || `Year ${idx + 1}`,
-                                        }))}
+                                        options={allYears.map((year, idx) => {
+                                            const count = getSubtreeFileCount(year);
+                                            const isYearEmpty = count === 0;
+                                            return {
+                                                value: idx.toString(),
+                                                label: `${year?.name || `Year ${idx + 1}`}${isYearEmpty ? " (Empty)" : ""}`,
+                                            };
+                                        })}
                                     />
                                 </div>
                             </div>

@@ -1,13 +1,12 @@
 import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
 import logger from "../utils/logger.js";
 import { extractGraphErrorDetails, formatGraphErrorMessage } from "../utils/graphError.js";
+
 const encodeGraphShareUrl = (shareUrl) => {
     let base64;
     if (typeof Buffer !== "undefined") {
-        // Node.js environment
         base64 = Buffer.from(shareUrl, "utf8").toString("base64");
     } else {
-        // Browser environment
         base64 = btoa(shareUrl);
     }
 

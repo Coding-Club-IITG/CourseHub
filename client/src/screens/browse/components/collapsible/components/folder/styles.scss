@@ -28,7 +28,14 @@
                 font-family: 'Bold';
                 cursor: pointer;
                 &.nobold{
-                    font-family: 'Regular';
+                font-family: 'Regular';
+                }
+                .tree-file-count {
+                font-size: 0.8rem;
+                font-family: 'Regular', sans-serif;
+                color: #6b7280;
+                    margin-left: 5px;
+                    font-weight: normal;
                 }
             }
                 .triangle{

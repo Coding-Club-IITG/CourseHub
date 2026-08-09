@@ -2,6 +2,7 @@ import { FileModel, FolderModel } from "../course/course.model.js";
 import { DeleteFile, RenameOneDriveFile } from "../../services/UploadFile.js";
 import logger from "../../utils/logger.js";
 import { isValidObjectId } from "mongoose";
+import { recalculateParentFolderCounts } from "../../utils/folder.js";
 
 export const verifyFile = async (req, res) => {
     try {
@@ -34,6 +35,7 @@ export const unverifyFile = async (req, res) => {
         }
         
         await FolderModel.findByIdAndUpdate(folderId, { $pull: { children: id } });
+        await recalculateParentFolderCounts(folderId);
         const file = await FileModel.findByIdAndDelete(id);
         if (!file) return res.status(404).json({ message: "File not found" });
 
