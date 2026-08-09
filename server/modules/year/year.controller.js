@@ -2,16 +2,14 @@ import { FolderModel } from "../course/course.model.js";
 import CourseModel from "../course/course.model.js";
 import { deleteFile } from "../file/file.controller.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { createYearFolderWithDefaultStructure } from "../course/course.service.js";
 
 async function addYear(req, res) {
-    const { name, course} = req.body;
+    const { name, course } = req.body;
     const normalizedCourseCode = normalizeCourseCode(course);
-    const newYear = await FolderModel.create({
-        name,
-        courses: [normalizedCourseCode || course],
-        children: [],
-        childType:"Folder"
-    });
+    const courseCode = normalizedCourseCode || course;
+
+    const newYear = await createYearFolderWithDefaultStructure(name, courseCode);
 
     if (normalizedCourseCode) {
         const parent = await CourseModel.findOne({

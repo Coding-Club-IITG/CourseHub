@@ -6,7 +6,7 @@ import User from "../user/user.model.js";
 import UserUpdate from "../user/userUpdate.model.js";
 import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
-import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex, getCourseTitle } from "../../utils/course.js";
 import { runSync } from "../../scripts/syncCoursesCache.js";
 import mongoose from "mongoose";
 import {deleteFile} from "../file/file.controller.js";
@@ -517,6 +517,104 @@ export async function deleteCourse(req, res, next) {
 /**
  * Internal helper to link a legacy course to a target course
  */
+const activeLinkLocks = new Map();
+
+async function performLinkWithLock(targetCodeRaw, sourceCodeRaw) {
+    const targetCode = normalizeCourseCode(targetCodeRaw);
+    const lockKey = targetCode || "global";
+
+    while (activeLinkLocks.has(lockKey)) {
+        await activeLinkLocks.get(lockKey);
+    }
+
+    let resolver;
+    const lockPromise = new Promise((resolve) => { resolver = resolve; });
+    activeLinkLocks.set(lockKey, lockPromise);
+
+    try {
+        const result = await performLink(targetCodeRaw, sourceCodeRaw);
+        return result;
+    } finally {
+        activeLinkLocks.delete(lockKey);
+        resolver();
+    }
+}
+
+async function getAllFolderIdsUnderTree(startFolderId) {
+    const folderIds = [];
+    const queue = [startFolderId];
+    const visited = new Set();
+
+    while (queue.length > 0) {
+        const currentId = queue.shift();
+        const idStr = currentId.toString();
+        if (visited.has(idStr)) continue;
+        visited.add(idStr);
+        folderIds.push(idStr);
+
+        const folder = await FolderModel.findById(currentId).select("childType children");
+        if (folder && folder.childType === "Folder" && Array.isArray(folder.children)) {
+            for (const childId of folder.children) {
+                if (childId) queue.push(childId);
+            }
+        }
+    }
+    return folderIds;
+}
+
+async function addCourseToFolderTree(startFolderId, codeToAdd) {
+    const folderIds = await getAllFolderIdsUnderTree(startFolderId);
+    if (folderIds.length > 0) {
+        await FolderModel.updateMany(
+            { _id: { $in: folderIds } },
+            { $addToSet: { courses: codeToAdd } }
+        );
+    }
+}
+
+async function removeCourseFromFolderTree(startFolderId, codeToRemove) {
+    const folderIds = await getAllFolderIdsUnderTree(startFolderId);
+    if (folderIds.length === 0) return;
+
+    const folders = await FolderModel.find({ _id: { $in: folderIds } });
+    const foldersToDelete = [];
+    const foldersToUpdate = [];
+
+    for (const folder of folders) {
+        const remainingCourses = (folder.courses || []).filter((c) => c !== codeToRemove);
+        if (remainingCourses.length === 0) {
+            foldersToDelete.push(folder._id);
+        } else {
+            foldersToUpdate.push(folder._id);
+        }
+    }
+
+    if (foldersToDelete.length > 0) {
+        const fileFolders = await FolderModel.find({
+            _id: { $in: foldersToDelete },
+            childType: "File",
+        }).select("children");
+
+        for (const f of fileFolders) {
+            for (const fileId of f.children) {
+                try {
+                    await deleteFile(fileId);
+                } catch (e) {
+                    // ignore individual file deletion errors
+                }
+            }
+        }
+        await FolderModel.deleteMany({ _id: { $in: foldersToDelete } });
+    }
+
+    if (foldersToUpdate.length > 0) {
+        await FolderModel.updateMany(
+            { _id: { $in: foldersToUpdate } },
+            { $pull: { courses: codeToRemove } }
+        );
+    }
+}
+
 async function performLink(targetCodeRaw, sourceCodeRaw) {
     const targetCode = normalizeCourseCode(targetCodeRaw);
     const sourceCode = normalizeCourseCode(sourceCodeRaw);
@@ -525,107 +623,137 @@ async function performLink(targetCodeRaw, sourceCodeRaw) {
         throw new Error(`Invalid course codes: ${targetCodeRaw}, ${sourceCodeRaw}`);
     }
 
-    const targetCourse = await CourseModel.findOne({
+    if (targetCode === sourceCode) {
+        throw new Error(`Target course and legacy course cannot be the same (${targetCode})`);
+    }
+
+    let targetCourse = await CourseModel.findOne({
         code: getCourseCodeCaseInsensitiveRegex(targetCode),
-    }).populate({
-        path: "children",
-        populate: { path: "children", populate: { path: "children" } },
     });
 
     const sourceCourse = await CourseModel.findOne({
         code: getCourseCodeCaseInsensitiveRegex(sourceCode),
-    }).populate({
-        path: "children",
-        populate: { path: "children", populate: { path: "children" } },
     });
 
-    if (!targetCourse || !sourceCourse) {
-        throw new Error(`One or both courses not found: ${targetCode}, ${sourceCode}`);
+    if (!sourceCourse) {
+        throw new Error(`Legacy course "${sourceCode}" not found in database`);
+    }
+
+    if (!targetCourse) {
+        const targetTitle = getCourseTitle(targetCode);
+        targetCourse = await CourseModel.create({
+            code: targetCode,
+            name: targetTitle,
+            children: [],
+        });
     }
 
     const isFolderEmpty = async (folderId) => {
-        const folder = await FolderModel.findById(folderId).populate("children");
+        const folder = await FolderModel.findById(folderId).select("childType children");
         if (!folder) return true;
 
         if (folder.childType === "File") {
-            return folder.children.length === 0;
+            return !folder.children || folder.children.length === 0;
         }
 
-        // If it's a folder, check all children
-        for (const child of folder.children) {
-            const empty = await isFolderEmpty(child._id);
+        for (const childId of folder.children || []) {
+            const empty = await isFolderEmpty(childId);
             if (!empty) return false;
         }
         return true;
     };
 
-    const addCourseToFolderRecursive = async (folderId, codeToAdd) => {
-        const folder = await FolderModel.findById(folderId);
-        if (!folder) return;
+    const targetChildrenIds = (targetCourse.children || []).map((id) => (id._id || id).toString());
+    const sourceChildrenIds = (sourceCourse.children || []).map((id) => (id._id || id).toString());
 
-        if (!folder.courses.includes(codeToAdd)) {
-            folder.courses.push(codeToAdd);
-            await folder.save();
+    const targetYearDocs = await FolderModel.find({ _id: { $in: targetChildrenIds } });
+    const sourceYearDocs = await FolderModel.find({ _id: { $in: sourceChildrenIds } });
+
+    // Step 1: Detect and clean up any pre-existing duplicate year folders in targetCourse
+    const targetYearsByName = {};
+    for (const doc of targetYearDocs) {
+        if (!doc || !doc.name) continue;
+        const normName = doc.name.trim().toLowerCase();
+        if (!targetYearsByName[normName]) {
+            targetYearsByName[normName] = [];
         }
+        targetYearsByName[normName].push(doc);
+    }
 
-        if (folder.childType === "Folder") {
-            for (const childId of folder.children) {
-                await addCourseToFolderRecursive(childId, codeToAdd);
+    let updatedTargetChildIds = [...targetChildrenIds];
+
+    for (const [normName, docs] of Object.entries(targetYearsByName)) {
+        if (docs.length > 1) {
+            // Find a non-empty folder, or pick the first one
+            let chosen = docs[0];
+            for (const d of docs) {
+                const empty = await isFolderEmpty(d._id);
+                if (!empty) {
+                    chosen = d;
+                    break;
+                }
             }
-        }
-    };
-
-    const removeCourseFromFolderRecursive = async (folderId, codeToRemove) => {
-        const folder = await FolderModel.findById(folderId);
-        if (!folder) return;
-
-        if (folder.courses.length <= 1) {
-            await FolderModel.findByIdAndDelete(folderId);
-        } else {
-            await FolderModel.updateOne({ _id: folderId }, { $pull: { courses: codeToRemove } });
-        }
-
-        if (folder.childType === "Folder") {
-            for (const childId of folder.children) {
-                await removeCourseFromFolderRecursive(childId, codeToRemove);
+            // Delete and un-link all other duplicate empty folders
+            for (const d of docs) {
+                if (d._id.toString() !== chosen._id.toString()) {
+                    await removeCourseFromFolderTree(d._id, targetCode);
+                    updatedTargetChildIds = updatedTargetChildIds.filter(
+                        (id) => id !== d._id.toString()
+                    );
+                }
             }
-        }
-    };
-
-    const targetYears = targetCourse.children;
-    const sourceYears = sourceCourse.children;
-
-    for (const sourceYearFolder of sourceYears) {
-        const matchingTargetYear = targetYears.find((y) => y.name === sourceYearFolder.name);
-
-        if (matchingTargetYear) {
-            // Year exists in both. Check if target year is empty.
-            const targetIsEmpty = await isFolderEmpty(matchingTargetYear._id);
-
-            if (targetIsEmpty) {
-                // Replace target year with source year in target course
-                targetCourse.children = targetCourse.children.filter(
-                    (id) => id.toString() !== matchingTargetYear._id.toString()
-                );
-                targetCourse.children.push(sourceYearFolder._id);
-
-                // Clean up the empty target year folder structure
-                await removeCourseFromFolderRecursive(matchingTargetYear._id, targetCode);
-
-                // Add targetCode to the source folder and all its descendants
-                await addCourseToFolderRecursive(sourceYearFolder._id, targetCode);
-            } else {
-                // Target year has content. Prioritize new course. Do nothing.
-                console.log(`Skipping year ${sourceYearFolder.name} as target has content.`);
-            }
-        } else {
-            // Year only exists in source. Add it to target.
-            targetCourse.children.push(sourceYearFolder._id);
-            await addCourseToFolderRecursive(sourceYearFolder._id, targetCode);
         }
     }
 
+    // Step 2: Merge source year folders into target
+    for (const sourceYearDoc of sourceYearDocs) {
+        if (!sourceYearDoc || !sourceYearDoc.name) continue;
+
+        const normName = sourceYearDoc.name.trim().toLowerCase();
+
+        const matchingTargetDoc = (targetYearsByName[normName] || []).find((d) =>
+            updatedTargetChildIds.includes(d._id.toString())
+        );
+
+        if (matchingTargetDoc) {
+            if (matchingTargetDoc._id.toString() === sourceYearDoc._id.toString()) {
+                // Already pointing to the exact same year folder! Ensure tag is present.
+                await addCourseToFolderTree(sourceYearDoc._id, targetCode);
+                continue;
+            }
+
+            const targetIsEmpty = await isFolderEmpty(matchingTargetDoc._id);
+
+            if (targetIsEmpty) {
+                // Target year folder is empty. Replace it with source year folder.
+                updatedTargetChildIds = updatedTargetChildIds.filter(
+                    (id) => id !== matchingTargetDoc._id.toString()
+                );
+                if (!updatedTargetChildIds.includes(sourceYearDoc._id.toString())) {
+                    updatedTargetChildIds.push(sourceYearDoc._id.toString());
+                }
+
+                // Remove empty target folder tree
+                await removeCourseFromFolderTree(matchingTargetDoc._id, targetCode);
+
+                // Add target code to source folder tree
+                await addCourseToFolderTree(sourceYearDoc._id, targetCode);
+            } else {
+                console.log(`Target year ${sourceYearDoc.name} has content, prioritizing target.`);
+            }
+        } else {
+            // Year folder only exists in source. Add to target.
+            if (!updatedTargetChildIds.includes(sourceYearDoc._id.toString())) {
+                updatedTargetChildIds.push(sourceYearDoc._id.toString());
+            }
+            await addCourseToFolderTree(sourceYearDoc._id, targetCode);
+        }
+    }
+
+    const finalChildIds = Array.from(new Set(updatedTargetChildIds));
+    targetCourse.children = finalChildIds;
     await targetCourse.save();
+
     return targetCourse;
 }
 
@@ -638,7 +766,7 @@ export async function linkLegacyCourse(req, res, next) {
     }
 
     try {
-        const course = await performLink(code, legacyCode);
+        const course = await performLinkWithLock(code, legacyCode);
         res.json({ message: "Legacy course linked successfully", course });
     } catch (error) {
         return next(new AppError(500, error.message));
@@ -649,19 +777,74 @@ export async function bulkLinkCourses(req, res, next) {
     if (!req.file) return next(new AppError(400, "No file uploaded"));
     
     const results = [];
-    fs.createReadStream(req.file.path)
-        .pipe(csv(["oldCode", "newCode"]))
+    const filePath = req.file.path;
+
+    const cleanupFile = () => {
+        if (fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+            } catch (e) {
+                // ignore unlink errors
+            }
+        }
+    };
+
+    const isHeaderValue = (val) => {
+        if (!val) return true;
+        const norm = normalizeCourseCode(val);
+        const headerTerms = [
+            "OLDCODE", "LEGACYCODE", "OLD", "LEGACY", "SOURCECODE", "SOURCE",
+            "OLDCOURSECODE", "OLDCOURSE", "LEGACYCOURSECODE", "LEGACYCOURSE",
+            "NEWCODE", "TARGETCODE", "NEW", "TARGET", "TARGETCOURSECODE",
+            "NEWCOURSECODE", "NEWCOURSE", "TARGETCOURSE", "CODE", "COURSE"
+        ];
+        return headerTerms.includes(norm);
+    };
+
+    fs.createReadStream(filePath)
+        .pipe(csv({ headers: false }))
         .on("data", (data) => results.push(data))
+        .on("error", (err) => {
+            cleanupFile();
+            return next(new AppError(400, "Failed to parse CSV file: " + err.message));
+        })
         .on("end", async () => {
             const summary = { success: 0, failed: 0, errors: [] };
             try {
-                // Process sequentially to avoid DB lock issues/race conditions on shared folders
                 for (const row of results) {
-                    const { oldCode, newCode } = row;
+                    const keys = Object.keys(row);
+                    if (keys.length === 0) continue;
+
+                    let rawOld = "";
+                    let rawNew = "";
+
+                    if (row.oldCode || row.legacyCode || row.old || row.sourceCode) {
+                        rawOld = row.oldCode || row.legacyCode || row.old || row.sourceCode;
+                        rawNew = row.newCode || row.targetCode || row.new || row.target;
+                    } else if (keys.length >= 2) {
+                        rawOld = row[keys[0]];
+                        rawNew = row[keys[1]];
+                    } else if (keys.length === 1 && typeof row[keys[0]] === "string") {
+                        const parts = row[keys[0]].split(",").map(s => s.trim());
+                        if (parts.length >= 2) {
+                            rawOld = parts[0];
+                            rawNew = parts[1];
+                        }
+                    }
+
+                    if (!rawOld || !rawNew) continue;
+
+                    if (isHeaderValue(rawOld) && isHeaderValue(rawNew)) {
+                        continue;
+                    }
+
+                    const oldCode = normalizeCourseCode(rawOld);
+                    const newCode = normalizeCourseCode(rawNew);
+
                     if (!oldCode || !newCode) continue;
-                    
+
                     try {
-                        await performLink(newCode, oldCode);
+                        await performLinkWithLock(newCode, oldCode);
                         summary.success++;
                     } catch (err) {
                         summary.failed++;
@@ -669,11 +852,11 @@ export async function bulkLinkCourses(req, res, next) {
                     }
                 }
                 
-                fs.unlinkSync(req.file.path);
+                cleanupFile();
                 res.json({ message: "Bulk linking completed", summary });
             } catch (err) {
-                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-                next(new AppError(500, "Failed to process bulk linking CSV"));
+                cleanupFile();
+                next(new AppError(500, `Failed to process bulk linking CSV: ${err.message}`));
             }
         });
 }

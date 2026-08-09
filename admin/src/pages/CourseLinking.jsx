@@ -55,16 +55,21 @@ const CourseLinking = () => {
                 credentials: "include",
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Bulk linking failed");
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error(`Server error (${response.status}): ${text.slice(0, 100)}`);
             }
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Bulk linking failed");
+            }
+
             setResults(data.summary);
             setFile(null); // Reset file input after success
             
-            // Clear errors on perfect success
             if (data.summary.success > 0 && data.summary.failed === 0) {
                 setError(null);
             }
