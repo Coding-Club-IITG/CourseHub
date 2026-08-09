@@ -238,8 +238,13 @@ const BrowseScreen = () => {
                         navigate(`/browse/${code}`, { replace: true });
                     });
             }
+        } else {
+            const defaultYear = currCourse[currYear !== null && currYear !== undefined ? currYear : currCourse.length - 1];
+            if (defaultYear && folderData?._id !== defaultYear._id) {
+                dispatch(ChangeFolder(defaultYear));
+            }
         }
-    }, [folderId, code, currCourse]);
+    }, [folderId, code, currCourse, currYear, folderData]);
 
     useEffect(() => {
         const refreshFolderData = async () => {
@@ -265,10 +270,10 @@ const BrowseScreen = () => {
         folderData?.childType === "File"
             ? "Select a file..."
             : folderData?.childType === "Folder"
-            ? "Select a folder..."
-            : currCourse
-            ? "No data available for this course"
-            : "Select a course...";
+                ? "Select a folder..."
+                : currCourse
+                    ? "No data available for this course"
+                    : "Select a course...";
 
     const handleBackClick = async () => {
         if (folderHistory.length > 0) {
@@ -276,12 +281,18 @@ const BrowseScreen = () => {
             dispatch(PopFolderHistory());
             if (previousFolder && previousFolder._id) {
                 dispatch(ChangeFolder(previousFolder));
-                navigate(`/browse/${currCourseCode}/${previousFolder._id}`);
+                const isRootYear = currCourse.some(y => y._id === previousFolder._id);
+                if (isRootYear) {
+                    navigate(`/browse/${currCourseCode}`);
+                } else {
+                    navigate(`/browse/${currCourseCode}/${previousFolder._id}`);
+                }
+
             } else {
                 navigate(`/browse/${currCourseCode}`);
             }
         } else {
-            navigate(-1);
+            navigate(`/browse/${currCourseCode}`);
         }
     };
 
@@ -299,7 +310,7 @@ const BrowseScreen = () => {
             try {
                 dispatch(ChangeCurrentYearData(null, []));
                 dispatch(ChangeFolder(null));
-                dispatch(ClearFolderHistory()); // Clear folder history when changing courses
+                dispatch(ClearFolderHistory());
                 let courseData = allCourseData?.find(
                     (course) =>
                         hasUsableCourseTree(course) &&
