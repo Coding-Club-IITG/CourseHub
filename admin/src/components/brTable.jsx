@@ -1,6 +1,6 @@
 import React from "react";
 
-const BrTable = ({ brs }) => {
+const BrTable = ({ brs , onDelete }) => {
     return (
         <div className="p-6 bg-white rounded-lg shadow-md">
             <div className="flex items-center mb-6">
@@ -25,6 +25,9 @@ const BrTable = ({ brs }) => {
                             <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">
                                 Semester
                             </th>
+                            <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -41,6 +44,13 @@ const BrTable = ({ brs }) => {
                                 <td className="py-4 px-4 text-sm text-gray-600">
                                     {person.semester}
                                 </td>
+                                <td className="py-4 px-4 text-sm text-gray-600">
+                                    <button onClick={() => onDelete(person.email)}
+                                        className="text-red-500 hover:text-red-900 font-medium transition" >
+                                        Remove
+                                    </button>
+                                </td>
+
                             </tr>
                         ))}
                     </tbody>

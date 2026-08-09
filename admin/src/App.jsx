@@ -1,11 +1,12 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
-import BranchRepresentatives from "./pages/BranchRepresentatives";
 import Students from "./pages/Students";
 import Courses from "./pages/Courses";
 import CourseLinking from "./pages/CourseLinking";
 import PrivateRoute from "./router_utils/PrivateRoutes";
 import Login from "./pages/Login";
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 import CourseDashboard from "./pages/CourseDashboard";
 
 function App() {
@@ -26,7 +27,7 @@ function App() {
                                 path="/admin/"
                                 element={
                                     <PrivateRoute>
-                                        <BranchRepresentatives />
+                                        <Students />
                                     </PrivateRoute>
                                 }
                             />
@@ -67,6 +68,7 @@ function App() {
                         </Routes>
                     </main>
                 </div>
+                <ToastContainer position="bottom-right" autoClose={5000}/>
             </div>
         </Router>
     );
