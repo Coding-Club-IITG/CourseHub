@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import NavBarBrowseScreen from "./components/navbar";
 import Contributions from "../contributions";
 import { useEffect, useState } from "react";
+import { refreshCourseFromServer } from "../../utils/refreshCourse";
 import React from "react";
 import {
     ChangeCurrentCourse,

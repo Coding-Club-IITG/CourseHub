@@ -86,3 +86,26 @@ export const uploadBRs = async (file) => {
         throw error;
     }
 };
+// Delete BR
+export const deleteBR = async (email) => {
+    try {
+        const response = await 
+        fetch(`${API_BASE_URL}api/br/delete`,{
+            method: "DELETE",
+            credentials: "include",
+            headers:{
+                "Content-Type":"application/json",
+                Authorization:"Bearer admin-coursehub-cc23-golang"},
+            body: JSON.stringify({email:email}),
+        });
+        const result = await response.json();
+        if(!response.ok){
+            throw new Error(result.error || result.message || "Failed to delete BR");
+        }    
+        return result ;
+        }
+        catch (error){
+            console.error("Error deleting single BR:" , error);
+            throw error;
+        }
+};
