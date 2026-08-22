@@ -9,8 +9,11 @@ import { ChangeFolder } from "../../../../../../actions/filebrowser_actions";
 import { useEffect } from "react";
 import { getSubtreeFileCount } from "../../../../../../utils/folderUtils";
 
+import { useNavigate } from "react-router-dom";
+
 const Folder = ({ folder, state }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const _state = useSelector((state) => state.fileBrowser);
     const [open, setOpen] = useState(state ? state : false);
     const fileCount = getSubtreeFileCount(folder);
@@ -23,6 +26,9 @@ const Folder = ({ folder, state }) => {
     const onClick = (folderData) => {
         dispatch(ChangeFolder(folderData));
         setOpen(true);
+        if (_state.currentCourseCode && folderData?._id) {
+            navigate(`/browse/${_state.currentCourseCode}/${folderData._id}`);
+        }
     };
 
     useEffect(() => {
