@@ -9,6 +9,8 @@ import { ConfirmDialog } from "./confirmDialog";
 import { FolderRename } from "./folderRename.jsx";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
+import { useNavigate } from "react-router-dom";
+
 const BrowseFolder = ({
     name,
     subject,
@@ -17,6 +19,7 @@ const BrowseFolder = ({
     isMobileView = false,
 }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const isBR = useSelector((state) => state.user.user.isBR);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -58,6 +61,9 @@ const BrowseFolder = ({
             dispatch(PushFolderHistory(currentFolder));
         }
         dispatch(ChangeFolder(folderData));
+        if (courseCode && folderData?._id) {
+            navigate(`/browse/${courseCode}/${folderData._id}`);
+        }
     };
 
     const handleDelete = async (e) => {

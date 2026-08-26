@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { capitalise } from "../../../../utils/capitalise";
 import { findCachedCourse, hasUsableCourseTree } from "../../../../utils/courseCache";
 import { readAllCoursesCache } from "../../../../utils/frontendCache";
+import { refreshCourseFromServer } from "../../../../utils/refreshCourse";
 
 const Collapsible = ({ course, color, state = false }) => {
     const normalizedCode = useMemo(
@@ -35,6 +36,7 @@ const Collapsible = ({ course, color, state = false }) => {
     const allCourseData = useSelector((state) => state.fileBrowser.allCourseData);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const { code, folderId } = useParams();
 
     const isCurrentCourse =
@@ -69,7 +71,7 @@ const Collapsible = ({ course, color, state = false }) => {
 
         const yearFolder = courseData.children?.[yearIndex] || null;
         const yearChildren = Array.isArray(yearFolder?.children) ? yearFolder.children : [];
-
+        
         dispatch(ChangeCurrentYearData(yearIndex, yearChildren));
         dispatch(ClearFolderHistory());
         dispatch(ChangeFolder(yearFolder));
@@ -83,6 +85,10 @@ const Collapsible = ({ course, color, state = false }) => {
             setError(false);
             setNotFound(false);
             setActiveCourse(cachedCourse);
+            refreshCourseFromServer(dispatch, normalizedCode, {
+                yearIndex: null,
+                folderId: null,
+            });
             return;
         }
 
@@ -137,12 +143,12 @@ const Collapsible = ({ course, color, state = false }) => {
     useEffect(() => {
         if (!isCurrentCourse || !code || !folderId) return;
         if (code?.toLowerCase() !== normalizedCode) return;
-
         const searchedFolder = searchFolderById(currentCourse, folderId);
-        if (searchedFolder) {
+
+        if (searchedFolder && searchedFolder._id !== currentFolder?._id) {
             dispatch(ChangeFolder(searchedFolder));
         }
-    }, [isCurrentCourse, code, folderId, normalizedCode, currentCourse, dispatch]);
+    }, [isCurrentCourse, code, folderId, normalizedCode, currentCourse, currentFolder, dispatch]);
 
     const showTree =
         !loading &&

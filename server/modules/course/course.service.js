@@ -1,15 +1,61 @@
 import { FolderModel } from "./course.model.js";
 import CourseModel from "./course.model.js";
 
+export const createYearFolderWithDefaultStructure = async (yearName, courseCode) => {
+    // 1. Create Exam Sub-folders
+    const examSubFolders = ["Quiz-1", "MidSem", "Quiz-2", "EndSem"];
+    const examSubFolderDocs = await Promise.all(
+        examSubFolders.map((name) =>
+            FolderModel.create({
+                name,
+                courses: [courseCode],
+                childType: "File",
+                children: [],
+            })
+        )
+    );
+
+    // 2. Create Exams Folder with sub-folders
+    const examsFolder = await FolderModel.create({
+        name: "Exams",
+        courses: [courseCode],
+        childType: "Folder",
+        children: examSubFolderDocs.map((doc) => doc._id),
+    });
+
+    // 3. Create other top-level folders for the year
+    const otherFolders = ["Lectures", "Assignments", "Resources"];
+    const otherFolderDocs = await Promise.all(
+        otherFolders.map((name) =>
+            FolderModel.create({
+                name,
+                courses: [courseCode],
+                childType: "File",
+                children: [],
+            })
+        )
+    );
+
+    // 4. Create Year Folder
+    const yearFolder = await FolderModel.create({
+        name: yearName,
+        courses: [courseCode],
+        childType: "Folder",
+        children: [examsFolder._id, ...otherFolderDocs.map((doc) => doc._id)],
+    });
+
+    return yearFolder;
+};
+
 export const bootstrapCourseFolders = async (courseCode) => {
     const currentYear = new Date().getFullYear();
     const targetYears = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
-    // 1. Fetch existing course with children names to avoid duplicates (case-insensitive)
+    // Fetch existing course with children names to avoid duplicates (case-insensitive)
     const course = await CourseModel.findOne({ code: new RegExp('^' + courseCode + '$', 'i') }).populate("children", "name");
     if (!course) return [];
 
-    const actualCourseCode = course.code; // Use the exact code string from the database
+    const actualCourseCode = course.code;
     const existingYearNames = course.children.map((child) => child.name);
     const missingYears = targetYears.filter((year) => !existingYearNames.includes(year));
 
@@ -18,52 +64,11 @@ export const bootstrapCourseFolders = async (courseCode) => {
     const newYearFolderIds = [];
 
     for (const year of missingYears) {
-        // 2. Create Exam Sub-folders
-        const examSubFolders = ["Quiz-1", "MidSem", "Quiz-2", "EndSem"];
-        const examSubFolderDocs = await Promise.all(
-            examSubFolders.map((name) =>
-                FolderModel.create({
-                    name,
-                    courses: [actualCourseCode],
-                    childType: "File",
-                    children: [],
-                })
-            )
-        );
-
-        // 3. Create Exams Folder with sub-folders
-        const examsFolder = await FolderModel.create({
-            name: "Exams",
-            courses: [actualCourseCode],
-            childType: "Folder",
-            children: examSubFolderDocs.map((doc) => doc._id),
-        });
-
-        // 4. Create other top-level folders for the year
-        const otherFolders = ["Lectures", "Assignments", "Resources"];
-        const otherFolderDocs = await Promise.all(
-            otherFolders.map((name) =>
-                FolderModel.create({
-                    name,
-                    courses: [actualCourseCode],
-                    childType: "File",
-                    children: [],
-                })
-            )
-        );
-
-        // 5. Create Year Folder
-        const yearFolder = await FolderModel.create({
-            name: year,
-            courses: [actualCourseCode],
-            childType: "Folder",
-            children: [examsFolder._id, ...otherFolderDocs.map((doc) => doc._id)],
-        });
-
+        const yearFolder = await createYearFolderWithDefaultStructure(year, actualCourseCode);
         newYearFolderIds.push(yearFolder._id);
     }
 
-    // 6. Update Course with ONLY the newly created year folders
+    // Update Course with ONLY the newly created year folders
     await CourseModel.findOneAndUpdate(
         { _id: course._id },
         { $push: { children: { $each: newYearFolderIds } } }

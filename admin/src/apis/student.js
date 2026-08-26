@@ -4,13 +4,16 @@ import { API_BASE_URL } from "./server.js";
 // Pass brOnly=true to fetch only Branch Representatives.
 export const fetchStudents = async (brOnly = false) => {
     try {
-        const url = `${API_BASE_URL}api/student/all${brOnly ? "?isBR=true" : ""}`;
-        const response = await fetch(url, { credentials: "include" });
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching students:", error);
-        throw error;
-    }
+        const url = brOnly
+            ? `${API_BASE_URL}api/br/allBRs`
+            : `${API_BASE_URL}api/student/all`;
+        const response = await fetch(url, {credentials:"include"});
+        const data = await response.json();
+        return { students : data.students || data.brs || []}; }
+    catch (error) {
+        console.error("Error fetching students :" , error );
+        throw error ;
+    }            
 };
 
 // Search students by name or roll number.

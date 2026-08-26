@@ -4,7 +4,6 @@ import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTri
 import { adminLogout } from "@/apis/auth";
 
 const navItems = [
-    { label: "Branch Representatives", to: "/admin/", icon: FaUsers },
     { label: "Students", to: "/admin/students", icon: FaUserGraduate },
     { label: "Courses", to: "/admin/courses", icon: FaBook },
     { label: "Course Linking", to: "/admin/course-linking", icon: FaLink },

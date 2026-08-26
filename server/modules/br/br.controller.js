@@ -28,7 +28,7 @@ const updateBRs = async (req, res) => {
             if (user) {
                 if (!user.isBR) {
                     user.isBR = true;
-                    await fetchCoursesForBr(user.rollNumber);
+                    fetchCoursesForBr(user.rollNumber).catch((err)=>logger.error(err));
                     await user.save();
                 }
                 await BR.updateOne(
@@ -67,7 +67,7 @@ const createBR = async (req, res) => {
                 user.isBR = true;
                 await user.save();
             }
-            await fetchCoursesForBr(user.rollNumber);
+            fetchCoursesForBr(user.rollNumber).catch((err)=>logger.error(err));
         }
 
         const br = await BR.create({ email: normalizedEmail });
@@ -94,6 +94,11 @@ const deleteBR = async (req, res) => {
 
         const br = await BR.findOneAndDelete({ email: normalizedEmail });
         if (!br) return res.status(404).json({ error: "BR not found" });
+        await User.updateOne(
+            { email: normalizedEmail },
+            { $set: { isBR: false } },
+            { collation: { locale: "en", strength: 2 } }
+        );
 
         res.status(200).json({ message: "BR deleted successfully" });
     } catch (error) {
@@ -122,12 +127,16 @@ const getBRs = async (req, res) => {
             const user = userMap[br.email.toLowerCase()];
             if (user) {
                 return {
+                    _id: user._id,
                     email: user.email,
                     name: user.name || "N/A",
                     degree: user.degree || "N/A",
                     department: user.department || "N/A",
                     semester: user.semester || "N/A",
-                };
+                    rollNumber: user.rollNumber,
+                    isBR: true,
+                    courses: user.courses || [],
+                }
             }
             return {
                 email: br.email,
@@ -135,6 +144,10 @@ const getBRs = async (req, res) => {
                 degree: "N/A",
                 department: "N/A",
                 semester: "N/A",
+                _id: br._id,
+                rollNumber: "PENDING",
+                isBR: true,
+                courses: [],
             };
         });
 

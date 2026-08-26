@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import NavBarBrowseScreen from "./components/navbar";
 import Contributions from "../contributions";
 import { useEffect, useState } from "react";
+import { refreshCourseFromServer } from "../../utils/refreshCourse";
 import React from "react";
 import {
     ChangeCurrentCourse,
@@ -66,7 +67,7 @@ const BrowseScreen = () => {
     };
 
     if (folderData?.childType == "File" && folderData?.children?.length > 1)
-        folderData?.children.sort(sortFile);
+        folderData?.children.sort(sortFile);  //sorting current folder files by name
 
     const contributionHandler = (event) => {
         const collection = document.getElementsByClassName("contri");
@@ -114,6 +115,18 @@ const BrowseScreen = () => {
         }
     }, []);
 
+    const findFolderById = (folders, id) => {
+        if (!folders || !Array.isArray(folders)) return null;
+        for (const folder of folders) {
+            if (folder._id === id) return folder;
+            if (folder.children?.length) {
+                const result = findFolderById(folder.children, id);
+                if (result) return result;
+            }
+        }
+        return null;
+    };
+
     useEffect(() => {
         if (loading || !code) {
             return;
@@ -144,15 +157,15 @@ const BrowseScreen = () => {
                 ) {
                     const defaultYearIndex = fetchedData.children.length - 1;
                     const defaultYear = fetchedData.children[defaultYearIndex];
+                    let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
+
                     if (defaultYear && defaultYear.children) {
                         dispatch(
                             ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
                         );
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                        dispatch(ChangeFolder(defaultYear));
-                    } else {
+                        dispatch(ChangeFolder(activeFolder || defaultYear));
                     }
-                } else {
                 }
             } else {
                 let fetchingToast = toast.loading("Loading course data...");
@@ -181,12 +194,14 @@ const BrowseScreen = () => {
                     ) {
                         const defaultYearIndex = fetchedData.children.length - 1;
                         const defaultYear = fetchedData.children[defaultYearIndex];
+                        let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
+
                         if (defaultYear && defaultYear.children) {
                             dispatch(
                                 ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
                             );
                             dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                            dispatch(ChangeFolder(defaultYear));
+                            dispatch(ChangeFolder(activeFolder || defaultYear));
                         }
                     }
                 } else {
@@ -197,6 +212,40 @@ const BrowseScreen = () => {
         };
         run();
     }, [loading, code]);
+
+    useEffect(() => {
+        if (!code || !currCourse || !Array.isArray(currCourse) || currCourse.length === 0) {
+            return;
+        }
+
+        if (folderId) {
+            if (folderData?._id === folderId) return;
+
+            const matched = findFolderById(currCourse, folderId);
+            if (matched) {
+                dispatch(ChangeFolder(matched));
+            } else {
+                fetchFolder(folderId, code)
+                    .then((freshFolder) => {
+                        if (freshFolder && freshFolder._id) {
+                            dispatch(ChangeFolder(freshFolder));
+                        } else {
+                            toast.error("Folder not found!");
+                            navigate(`/browse/${code}`, { replace: true });
+                        }
+                    })
+                    .catch(() => {
+                        toast.error("Folder not found!");
+                        navigate(`/browse/${code}`, { replace: true });
+                    });
+            }
+        } else {
+            const defaultYear = currCourse[currYear !== null && currYear !== undefined ? currYear : currCourse.length - 1];
+            if (defaultYear && folderData?._id !== defaultYear._id) {
+                dispatch(ChangeFolder(defaultYear));
+            }
+        }
+    }, [folderId, code, currCourse, currYear, folderData]);
 
     useEffect(() => {
         const refreshFolderData = async () => {
@@ -218,40 +267,37 @@ const BrowseScreen = () => {
         refreshFolderData();
     }, [refreshKey]);
 
-    const findFolderById = (folders, id) => {
-        for (const folder of folders) {
-            if (folder._id === id) return folder;
-            if (folder.children?.length) {
-                const result = findFolderById(folder.children, id);
-                if (result) return result;
-            }
-        }
-        return null;
-    };
-
     const HeaderText =
         folderData?.childType === "File"
             ? "Select a file..."
             : folderData?.childType === "Folder"
-            ? "Select a folder..."
-            : currCourse
-            ? "No data available for this course"
-            : "Select a course...";
+                ? "Select a folder..."
+                : currCourse
+                    ? "No data available for this course"
+                    : "Select a course...";
+
     const handleBackClick = async () => {
         if (folderHistory.length > 0) {
             const previousFolder = folderHistory[folderHistory.length - 1];
             dispatch(PopFolderHistory());
             if (previousFolder && previousFolder._id) {
-                try {
-                    const freshFolder = await fetchFolder(previousFolder._id, currCourseCode);
-                    dispatch(ChangeFolder(freshFolder));
-                } catch (err) {
-                    // Fallback to popped history snapshot
+                dispatch(ChangeFolder(previousFolder));
+                const isRootYear = currCourse.some(y => y._id === previousFolder._id);
+                if (isRootYear) {
+                    navigate(`/browse/${currCourseCode}`);
+                } else {
+                    navigate(`/browse/${currCourseCode}/${previousFolder._id}`);
                 }
+
+            } else {
+                navigate(`/browse/${currCourseCode}`);
             }
+        } else {
+            navigate(`/browse/${currCourseCode}`);
         }
     };
-    const canGoBack = folderHistory.length > 0;
+
+    const canGoBack = folderHistory.length > 0 || !!(folderId && folderData?._id);
     const allCourses = [
         ...(user.user?.courses || []),
         ...(user.localCourses || []),
@@ -265,7 +311,7 @@ const BrowseScreen = () => {
             try {
                 dispatch(ChangeCurrentYearData(null, []));
                 dispatch(ChangeFolder(null));
-                dispatch(ClearFolderHistory()); // Clear folder history when changing courses
+                dispatch(ClearFolderHistory());
                 let courseData = allCourseData?.find(
                     (course) =>
                         hasUsableCourseTree(course) &&
@@ -321,6 +367,11 @@ const BrowseScreen = () => {
                 dispatch(ChangeCurrentYearData(selectedYearIndex, selectedYear.children));
                 dispatch(ChangeFolder(selectedYear));
                 dispatch(RefreshCurrentFolder());
+                if (selectedYear._id) {
+                    navigate(`/browse/${currCourseCode}/${selectedYear._id}`);
+                } else {
+                    navigate(`/browse/${currCourseCode}`);
+                }
             }
         }
     };

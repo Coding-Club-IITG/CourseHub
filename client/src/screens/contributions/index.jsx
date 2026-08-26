@@ -38,6 +38,12 @@ const Contributions = () => {
     async function handleSubmit() {
         if (isUploading) return;
 
+        const files = pond.current ? pond.current.getFiles() : [];
+        if (!submitEnabled || !files.length) {
+            toast.error("Please upload a valid file");
+            return;
+        }
+
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
 
