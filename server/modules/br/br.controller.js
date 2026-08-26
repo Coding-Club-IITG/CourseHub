@@ -3,9 +3,17 @@ import User from "../user/user.model.js";
 import { fetchCoursesForBr } from "../auth/auth.controller.js";
 import logger from "../../utils/logger.js";
 import CourseModel from "../course/course.model.js";
-import { normalizeCourseCode } from "../../utils/course.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
+
+// Mirrors normalizeCourseCode (utils/course.js) as an aggregation expression: uppercase + strip spaces.
+const normalizedCodeExpr = (field) => ({
+    $replaceAll: {
+        input: { $toUpper: { $ifNull: [field, ""] } },
+        find: " ",
+        replacement: "",
+    },
+});
 
 const findUserByEmailInsensitive = async (email) => {
     if (!email) return null;
@@ -159,22 +167,38 @@ const getBRs = async (req, res) => {
 };
 const getCoursesWithoutBR = async (req, res) => {
     try {
-        const brRecords = await BR.find({});
-        const brEmails = brRecords.map((br) => br.email.toLowerCase());
+        // Normalized course codes covered by any registered BR, computed in the DB via a $lookup join.
+        const coveredCodesResult = await BR.aggregate([
+            { $addFields: { emailLower: { $toLower: "$email" } } },
+            {
+                $lookup: {
+                    from: User.collection.name,
+                    let: { emailLower: "$emailLower" },
+                    pipeline: [
+                        { $match: { $expr: { $eq: [{ $toLower: "$email" }, "$$emailLower"] } } },
+                        { $project: { courses: 1, _id: 0 } },
+                    ],
+                    as: "brUser",
+                },
+            },
+            { $unwind: "$brUser" },
+            { $unwind: { path: "$brUser.courses", preserveNullAndEmptyArrays: false } },
+            {
+                $group: {
+                    _id: null,
+                    codes: { $addToSet: normalizedCodeExpr("$brUser.courses.code") },
+                },
+            },
+        ]);
 
-        const brUsers = await User.find({ email: { $in: brEmails } });
+        const coveredCodes = coveredCodesResult[0]?.codes || [];
 
-        const coveredCodes = new Set(
-            brUsers.flatMap((user) =>
-                (user.courses || []).map((c) => normalizeCourseCode(c.code))
-            )
-        );
-
-        const allCourses = await CourseModel.find({});
-
-        const coursesWithoutBR = allCourses.filter(
-            (course) => !coveredCodes.has(normalizeCourseCode(course.code))
-        );
+        // Courses whose normalized code isn't in the covered set, filtered at the DB level.
+        const coursesWithoutBR = await CourseModel.aggregate([
+            { $addFields: { normalizedCode: normalizedCodeExpr("$code") } },
+            { $match: { normalizedCode: { $nin: coveredCodes } } },
+            { $project: { normalizedCode: 0 } },
+        ]);
 
         res.status(200).json({ coursesWithoutBR });
     } catch (error) {
