@@ -1,8 +1,6 @@
 import express from "express";
 import catchAsync from "../../utils/catchAsync.js";
 import {
-    generateDeviceCode,
-    getAccessCode,
     makeAllCourses,
     makeCourseById,
     getCourseIds,
@@ -14,8 +12,6 @@ import {
 
 const router = express.Router();
 
-router.get("/generatedevicecode", catchAsync(generateDeviceCode));
-router.get("/getaccesscode", catchAsync(getAccessCode));
 router.get("/makeAllCourses", catchAsync(makeAllCourses));
 router.get("/makeCourseById/:id", catchAsync(makeCourseById));
 router.get("/getCourseIds", catchAsync(getCourseIds));

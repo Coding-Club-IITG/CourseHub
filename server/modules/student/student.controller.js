@@ -12,7 +12,7 @@ const getAllStudents = async (req, res) => {
         const students = await User.find(filter).sort({ rollNumber: -1 });
         res.status(200).json({ students });
     } catch (error) {
-        logger.error(error);
+        logger.error("Student query failed", { error, attributes: { dependency: "mongodb", operation: "query-students", outcome: "failure", retryable: false } });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -47,7 +47,7 @@ const searchStudents = async (req, res) => {
         const students = await User.find({ ...brFilter, $or: orConditions }).sort({ rollNumber: -1 });
         res.status(200).json({ students });
     } catch (error) {
-        logger.error(error);
+        logger.error("Student search failed", { error, attributes: { dependency: "mongodb", operation: "search-students", outcome: "failure", retryable: false } });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -69,7 +69,7 @@ const refreshStudentCourses = async (req, res) => {
             message: "Student update record reset successfully. Courses will be re-fetched on next login.",
         });
     } catch (error) {
-        logger.error(error);
+        logger.error("Student refresh failed", { error, attributes: { dependency: "mongodb", operation: "refresh-student", outcome: "failure", retryable: false } });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -84,7 +84,7 @@ const deleteStudent = async (req, res) => {
         await UserUpdate.deleteOne({rollNumber:student.rollNumber});
         res.status(200).json({ message: "Student deleted successfully" });
     } catch (error) {
-        logger.error(error);
+        logger.error("Student deletion failed", { error, attributes: { dependency: "mongodb", operation: "delete-student", outcome: "failure", retryable: false } });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -105,7 +105,7 @@ const semesterReset = async (req, res) => {
             modifiedCount: result.modifiedCount,
         });
     } catch (error) {
-        logger.error(error);
+        logger.error("Semester reset failed", { error, attributes: { dependency: "mongodb", operation: "semester-reset", outcome: "failure", retryable: false } });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

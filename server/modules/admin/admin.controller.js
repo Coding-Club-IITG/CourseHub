@@ -14,6 +14,7 @@ import {
 import fs from "fs";
 import csv from "csv-parser";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import logger from "../../utils/logger.js";
 
 const buildCourseFilePrefixMatcher = (code) => ({
     $regex: `^${normalizeCourseCode(code)}\\s-\\s`,
@@ -171,7 +172,7 @@ async function getCourseFolder(req, res, next) {
             },
         })
         .select("-__v");
-    console.log(existingCourse);
+    logger.debug("Existing course inspected", { attributes: { dependency: "mongodb", operation: "inspect-course", outcome: "success" } });
     if (!existingCourse) return next(new AppError(404, "Course not found"));
     return res.json(existingCourse);
 }

@@ -3,7 +3,7 @@ import Joi from "joi";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import config from "../../config/default.js";
-import { logger } from "@azure/identity";
+import logger from "../../utils/logger.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
@@ -101,7 +101,7 @@ export const validateUser = function (obj) {
 export const updateUserData = async (userId, userData) => {
     User.findOne({ _id: userId }, async (err, doc) => {
         if (err) {
-            logger.info("ERROR IN UPDATING USER");
+            logger.error("User update failed", { attributes: { dependency: "mongodb", operation: "update-user", outcome: "failure", retryable: false } });
         }
         if (userData.newUserData.newUserName) {
             doc.name = userData.newUserData.newUserName;

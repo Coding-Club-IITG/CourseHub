@@ -86,7 +86,7 @@ async function HandleFileUpload(req, res, next) {
             try {
                 fileId = await UploadFile(contributionId, finalDirPath, finalFileName);
             } catch (uploadError) {
-                logger.error({ uploadError, contributionId, finalFileName }, "UploadFile failed");
+                logger.error("Contribution upload failed", { error: uploadError, attributes: { dependency: "microsoft-graph", operation: "upload-contribution", outcome: "failure", retryable: true } });
             }
 
             if (fileId) {
@@ -99,7 +99,7 @@ async function HandleFileUpload(req, res, next) {
                 await fs.promises.unlink(renamedPath).catch(() => {});
             }
         } catch (err) {
-            logger.error({ err }, "Error processing individual file in HandleFileUpload");
+            logger.error("Contribution file processing failed", { error: err, attributes: { operation: "process-contribution", outcome: "failure", retryable: false } });
         }
     }
 

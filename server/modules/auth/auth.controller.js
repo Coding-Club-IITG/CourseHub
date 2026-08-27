@@ -138,7 +138,7 @@ export const fetchCourses = async (rollNumber) => {
             { upsert: true }
         );
     } catch (err) {
-        logger.error(`Failed to cache course allotments for ${rollNumber}: ${err.message}`);
+        logger.error("Course allotment cache failed", { error: err, attributes: { dependency: "mongodb", operation: "cache-course-allotments", outcome: "failure", retryable: true } });
     }
     
     return courses;
@@ -252,7 +252,7 @@ export const fetchCoursesForBr = async (rollNumber) => {
                         { upsert: true }
                     );
                 } catch (err) {
-                    logger.error(`Failed to cache BR courses for ${rollNumber}: ${err.message}`);
+                    logger.error("BR course cache failed", { error: err, attributes: { dependency: "mongodb", operation: "cache-br-courses", outcome: "failure", retryable: true } });
                 }
             }
         }

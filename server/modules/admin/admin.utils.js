@@ -1,6 +1,7 @@
 import fs from "fs";
 import { getAccessToken, getRequest, postRequest, visitCourseById } from "../onedrive/onedrive.controller.js";
 import axios from "axios";
+import logger from "../../utils/logger.js";
 
 export async function moveAllFolderFiles(fromFolderId, toFolderId) {
     const accessToken = await getAccessToken();
@@ -17,7 +18,6 @@ export async function moveAllFolderFiles(fromFolderId, toFolderId) {
     const response = await axios.get(config.url, {
         headers: config.headers,
     });
-    // console.log(response.data.value);
     response.data.value.map(async (file) => {
         await moveFile(file.id, toFolderId, file.name);
     });
@@ -75,14 +75,13 @@ function formatCourseAdmin(course) {
     root.forEach((folder) => {
         parseFolder(folder);
     });
-    // console.log(root);
     fs.writeFileSync("resp.json", JSON.stringify(root));
 }
 
 function parseFolder(folder) {
-    console.log(folder);
+    logger.debug("Admin folder inspected", { attributes: { dependency: "microsoft-graph", operation: "inspect-folder", outcome: "success" } });
     if (folder.childType === "File") {
-        console.log("file containing folder", folder.name);
+        logger.debug("Nested admin folder inspected", { attributes: { dependency: "microsoft-graph", operation: "inspect-folder", outcome: "success" } });
         delete folder.children;
     } else if (folder.childType === "Folder") {
         parseFolder(folder.children);
@@ -102,7 +101,6 @@ async function createFolder(folderName, parentFolderId) {
         "@microsoft.graph.conflictBehavior": "rename",
     };
     const resp = await axios.post(url, data, { headers });
-    // console.log(resp);
     return resp?.data;
 }
 

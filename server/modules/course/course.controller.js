@@ -50,7 +50,7 @@ const createCourse = async (code) => {
 
 export const getCourse = async (req, res, next) => {
     const { code } = req.params;
-    logger.info(`GET /course/${code}`);
+    logger.info("Course requested");
 
     const normalizedCode = normalizeCourseCode(code);
     if (!normalizedCode) throw new AppError(400, "Missing Course Id");
