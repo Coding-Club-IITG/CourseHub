@@ -1,4 +1,4 @@
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 
 export const normalizeCourseCode = (code) => {
     if (!code) return "";
@@ -115,4 +115,3 @@ export const parseCourseAllotmentsFromHtml = (htmlData, rollNumber = null) => {
         return result;
     }
 };
-
