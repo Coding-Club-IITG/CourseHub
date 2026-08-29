@@ -1,4 +1,5 @@
 import AppError from "../../utils/appError.js";
+import User from "../user/user.model.js";
 import CourseModel, { FolderModel, FileModel } from "./course.model.js";
 import logger from "../../utils/logger.js";
 import SearchResults from "../search/search.model.js";
@@ -82,6 +83,24 @@ export const getCourse = async (req, res, next) => {
             courseObj.children.sort(sortYear);
         }
     }
+
+    if (!req.user) {
+        let token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+        if (token) {
+            const user = await User.findByJWT(token);
+            if (user) req.user = user;
+        }
+    }
+
+    logger.metric?.("course_opened", {
+        value: 1, 
+        dimensions: { 
+            courseCode: courseObj.code,
+            userEmail: req.user ? req.user.email : "guest",
+            department: req.user ? req.user.department : "unknown",
+            semester: req.user ? req.user.semester : 0
+        }
+    });
 
     return res.json({ found: true, ...courseObj });
 };

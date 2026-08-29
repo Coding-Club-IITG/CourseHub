@@ -408,6 +408,16 @@ export const redirectHandler = async (req, res, next) => {
 
     const token = existingUser.generateJWT();
 
+    logger.metric?.("user_login", {
+        value: 1, 
+        dimensions: { 
+            userEmail: existingUser.email, 
+            isBR: existingUser.isBR || false,
+            department: existingUser.department,
+            semester: existingUser.semester
+        }
+    });
+
     res.cookie("token", token, {
         maxAge: 2073600000,
         sameSite: "lax",
