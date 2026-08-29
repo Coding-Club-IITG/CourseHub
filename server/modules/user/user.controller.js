@@ -1,4 +1,5 @@
 import AppError from "../../utils/appError.js";
+import logger from "../../utils/logger.js";
 import User, { RemoveCourse } from "./user.model.js";
 import { addToFavourites, removeFromFavourites, AddNewCourse , AddReadOnlyCourse,  RemoveReadOnly } from "./user.model.js";
 import { updateUserData } from "./user.model.js";
@@ -8,8 +9,29 @@ import { normalizeCourseCode } from "../../utils/course.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
+let currentDay = new Date().toISOString().split('T')[0];
+let activeUsersToday = new Set();
+
 export const getUser = async (req, res, next) => {
     const user = req.user;
+
+    const today = new Date().toISOString().split('T')[0];
+    if (today !== currentDay) {
+        activeUsersToday.clear();
+        currentDay = today;
+    }
+    
+    if (user && user.email && !activeUsersToday.has(user.email)) {
+        activeUsersToday.add(user.email);
+        logger.metric?.("daily_active_user", {
+            value: 1,
+            dimensions: {
+                userEmail: user.email,
+                department: user.department,
+                semester: user.semester
+            }
+        });
+    }
 
     const userUpdated = await UserUpdate.findOne({ rollNumber: user.rollNumber });
     if (!userUpdated) {
