@@ -18,7 +18,7 @@
     "license": "ISC",
     "dependencies": {
         "@azure/identity": "^3.0.0",
-        "@coding-club-iitg/ops-logger": "^0.2.0",
+        "@coding-club-iitg/ops-logger": "^0.3.1",
         "@imagekit/nodejs": "^7.5.0",
         "@microsoft/microsoft-graph-client": "^3.0.2",
         "aes-js": "^3.1.2",
