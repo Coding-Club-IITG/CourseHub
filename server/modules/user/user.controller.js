@@ -12,25 +12,44 @@ const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 let currentDay = new Date().toISOString().split('T')[0];
 let activeUsersToday = new Set();
 
+let currentHour = new Date().toISOString().substring(0, 13);
+let activeUsersThisHour = new Set();
+
 export const getUser = async (req, res, next) => {
     const user = req.user;
 
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const thisHour = now.toISOString().substring(0, 13);
+
+    // 1. Daily Cache
     if (today !== currentDay) {
         activeUsersToday.clear();
         currentDay = today;
     }
     
-    if (user && user.email && !activeUsersToday.has(user.email)) {
-        activeUsersToday.add(user.email);
-        logger.metric?.("daily_active_user", {
-            value: 1,
-            dimensions: {
-                userEmail: user.email,
-                department: user.department,
-                semester: user.semester
-            }
-        });
+    // 2. Hourly Cache
+    if (thisHour !== currentHour) {
+        activeUsersThisHour.clear();
+        currentHour = thisHour;
+    }
+    
+    if (user && user.email) {
+        const dimensions = {
+            userEmail: user.email,
+            department: user.department,
+            semester: user.semester
+        };
+
+        if (!activeUsersToday.has(user.email)) {
+            activeUsersToday.add(user.email);
+            logger.metric?.("daily_active_user", { value: 1, dimensions });
+        }
+
+        if (!activeUsersThisHour.has(user.email)) {
+            activeUsersThisHour.add(user.email);
+            logger.metric?.("hourly_active_user", { value: 1, dimensions });
+        }
     }
 
     const userUpdated = await UserUpdate.findOne({ rollNumber: user.rollNumber });
