@@ -1,4 +1,5 @@
 import Contribution from "./contribution.model.js";
+import User from "../user/user.model.js";
 import Joi from "joi";
 import AppError from "../../utils/appError.js";
 import validatePayload from "../../utils/validate.js";
@@ -129,6 +130,19 @@ async function CreateNewContribution(req, res, next) {
     }
 
     const newContribution = await ContributionCreation(data.contributionId, data);
+    
+    const uploader = await User.findById(data.uploadedBy);
+
+    logger.metric?.("contribution_created", {
+        value: 1,
+        dimensions: {
+            courseCode: data.courseCode,
+            userId: data.uploadedBy,
+            department: uploader ? uploader.department : "unknown",
+            semester: uploader ? uploader.semester : 0
+        }
+    });
+
     return res.json({
         created: true,
         data: newContribution,
