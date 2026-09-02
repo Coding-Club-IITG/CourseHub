@@ -27,16 +27,16 @@ jobs:
       - name: Build Client
         working-directory: ./client
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Build Admin
         working-directory: ./admin
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Verify Server Dependencies
         working-directory: ./server
         run: |
-          npm ci
+          npm install
