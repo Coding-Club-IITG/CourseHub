@@ -32,10 +32,11 @@ const IconLinkedIn = (props) => (
   </svg>
 );
 
-const IconMail = (props) => (
+const IconGlobe = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <rect width="20" height="16" x="2" y="4" rx="2" />
-    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
   </svg>
 );
 
@@ -69,9 +70,9 @@ const Footer = () => {
                         <IconInstagram width={20} height={20} />
                         <span>Instagram</span>
                     </a>
-                    <a href="mailto:codingclub@iitg.ac.in" className="link-item">
-                        <IconMail width={20} height={20} />
-                        <span>Email</span>
+                    <a href="https://codingclub.in" target="_blank" rel="noopener noreferrer" className="link-item">
+                        <IconGlobe width={20} height={20} />
+                        <span>Website</span>
                     </a>
                 </div>
             </div>
