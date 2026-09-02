@@ -1,101 +1,144 @@
 .footer-container {
-
     display: flex;
-    justify-content: space-between;
-    align-items: start;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     background-color: #000000;
     color: #fff;
-    padding: 45px;
+    padding: 30px 20px;
+    text-align: center;
 
     .footer-text {
-        font-size: 1.2rem;
-        margin-bottom: 15px;
-        text-align: left;
+        font-size: 0.95rem;
+        color: #a0a0a0;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    
+    .footer-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
     }
 
     .lockup {
         display: flex;
         align-items: center;
         gap: 15px;
-        margin-right: 24px;
-        font-family: "Bold", sans-serif;
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-    .link-logo-container{
-        display: flex;
-        align-items: center;
-        .link-group{
+        
+        .lockup-icon {
+            color: #ffffff;
+        }
+
+        .lockup-text {
             display: flex;
-            gap: 15px;
-            .link-img{
-                width: 24px;
-                height: 24px;
-                display: block;
-                color: white;
-                transition: opacity 0.2s;
-                
-                &:hover {
-                    opacity: 0.8;
+            flex-direction: column;
+            align-items: flex-start;
+            
+            .club-name {
+                font-family: "Bold", sans-serif;
+                font-size: 1.5rem;
+                font-weight: bold;
+                line-height: 1.1;
+            }
+            
+            .insti-name {
+                font-size: 0.85rem;
+                font-weight: normal;
+                letter-spacing: 1.5px;
+                color: #cccccc;
+                margin-top: 4px;
+            }
+        }
+    }
+
+    .social-links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #888888;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            
+            &:hover {
+                color: #ffffff;
+                transform: translateY(-2px);
+            }
+        }
+        
+        &.left-links {
+            .link-item {
+                justify-content: flex-end;
+            }
+        }
+        
+        &.right-links {
+            .link-item {
+                justify-content: flex-start;
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .footer-content {
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .social-links {
+            flex-direction: row;
+            gap: 20px;
+            
+            &.left-links .link-item {
+                flex-direction: row;
+            }
+            &.right-links .link-item {
+                flex-direction: row-reverse;
+            }
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        padding: 20px 15px;
+        
+        .footer-text {
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        
+        .lockup {
+            gap: 10px;
+            
+            .lockup-icon {
+                width: 32px;
+                height: 42px;
+            }
+
+            .lockup-text {
+                .club-name {
+                    font-size: 1.25rem;
+                }
+                .insti-name {
+                    font-size: 0.75rem;
                 }
             }
         }
-    }
-    .right{
-        .span-name{
-            font-size: 0.84rem;
-        }
-        text-align: right;
-        .right-heading, .website-and-backend,.footer-app,.footer-lead{
-            display: block;
-        }
-        .right-heading, .bold-text{
-            font-family: "Bold";
-        }
-    }
-    
-    @media screen and (max-width: 980px) {
-        .right{
-            display: none;
-        }
-    }
-    
-    @media screen and (max-width: 768px) {
-        padding: 30px 20px;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
         
-        .footer-text {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1rem;
-        }
-        
-        .link-logo-container {
-            flex-direction: column;
-            align-items: center;
-            
-            .lockup {
-                margin-right: 0;
-                margin-bottom: 20px;
+        .social-links {
+            gap: 15px;
+            .link-item span {
+                display: none; // hide text on small screens to save space
             }
-            
-            .link-group {
-                gap: 15px;
+            &.right-links .link-item {
+                flex-direction: row;
             }
-        }
-    }
-    
-    @media screen and (max-width: 480px) {
-        padding: 25px 15px;
-        
-        .footer-text {
-            font-size: 0.9rem;
-        }
-        
-        .link-logo-container .link-group {
-            gap: 12px;
         }
     }
 }

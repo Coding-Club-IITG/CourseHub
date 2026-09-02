@@ -32,27 +32,47 @@ const IconLinkedIn = (props) => (
   </svg>
 );
 
+const IconMail = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
+
 const Footer = () => {
     return (
         <footer className="footer-container">
-            <div className="left">
-                <p className="footer-text">Designed, Developed and Maintained by Coding Club IITG</p>
-                <div className="link-logo-container">
-                    <div className="lockup">
-                        <IconCCLogo width={35} height={45} aria-hidden="true" style={{ color: "white" }} />
-                        <span>Coding Club</span>
+            <p className="footer-text">Designed, Developed and Maintained by</p>
+            
+            <div className="footer-content">
+                <div className="social-links left-links">
+                    <a href="https://github.com/Coding-Club-IITG" target="_blank" rel="noopener noreferrer" className="link-item">
+                        <span>GitHub</span>
+                        <IconGithub width={20} height={20} />
+                    </a>
+                    <a href="https://linkedin.com/company/coding-club-iitg" target="_blank" rel="noopener noreferrer" className="link-item">
+                        <span>LinkedIn</span>
+                        <IconLinkedIn width={20} height={20} />
+                    </a>
+                </div>
+                
+                <div className="lockup">
+                    <IconCCLogo width={40} height={52} aria-hidden="true" className="lockup-icon" />
+                    <div className="lockup-text">
+                        <span className="club-name">Coding Club</span>
+                        <span className="insti-name">IIT Guwahati</span>
                     </div>
-                    <div className="link-group">
-                        <a href="https://github.com/Coding-Club-IITG" target="_blank" rel="noopener noreferrer" className="link-img">
-                            <IconGithub width={24} height={24} />
-                        </a>
-                        <a href="https://linkedin.com/company/coding-club-iitg" target="_blank" rel="noopener noreferrer" className="link-img">
-                            <IconLinkedIn width={24} height={24} />
-                        </a>
-                        <a href="https://instagram.com/codingclubiitg" target="_blank" rel="noopener noreferrer" className="link-img">
-                            <IconInstagram width={24} height={24} />
-                        </a>
-                    </div>
+                </div>
+                
+                <div className="social-links right-links">
+                    <a href="https://instagram.com/codingclubiitg" target="_blank" rel="noopener noreferrer" className="link-item">
+                        <IconInstagram width={20} height={20} />
+                        <span>Instagram</span>
+                    </a>
+                    <a href="mailto:codingclub@iitg.ac.in" className="link-item">
+                        <IconMail width={20} height={20} />
+                        <span>Email</span>
+                    </a>
                 </div>
             </div>
         </footer>
