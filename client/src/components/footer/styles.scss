@@ -13,49 +13,30 @@
         text-align: left;
     }
 
-    .footer-img {
-        width: 190px;
-        height: 60px;
-        background: url(./assets/footer-img.svg), none;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
+    .lockup {
+        display: flex;
+        align-items: center;
+        gap: 15px;
         margin-right: 24px;
+        font-family: "Bold", sans-serif;
+        font-size: 1.5rem;
+        font-weight: bold;
     }
     .link-logo-container{
         display: flex;
         align-items: center;
         .link-group{
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            gap: 15px;
             .link-img{
                 width: 24px;
                 height: 24px;
                 display: block;
-                margin: 2px;
-                &.website{
-                    background: url(./assets/Website.svg);
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
-                }
-                &.linkedin{
-                    background: url(./assets/LinkedIn.svg);
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
-                }
-                &.twitter{
-                    background: url(./assets/Twitter.svg);
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
-                }
-                &.instagram{
-                    background: url(./assets/Instagram.svg);
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
+                color: white;
+                transition: opacity 0.2s;
+                
+                &:hover {
+                    opacity: 0.8;
                 }
             }
         }
@@ -95,13 +76,12 @@
             flex-direction: column;
             align-items: center;
             
-            .footer-img {
+            .lockup {
                 margin-right: 0;
                 margin-bottom: 20px;
             }
             
             .link-group {
-                grid-template-columns: repeat(4, 1fr);
                 gap: 15px;
             }
         }
@@ -112,11 +92,6 @@
         
         .footer-text {
             font-size: 0.9rem;
-        }
-        
-        .footer-img {
-            width: 160px;
-            height: 50px;
         }
         
         .link-logo-container .link-group {
