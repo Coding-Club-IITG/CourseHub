@@ -8,7 +8,6 @@
         "start": "node index.js",
         "dev": "nodemon index.js",
         "preflight": "node scripts/preflight.js",
-        "test": "node --test test/*.test.js",
         "destroyDB": "node scripts/deleteAllCourses.js && node scripts/deleteAllFolders.js && node scripts/deleteAllFiles.js && node scripts/deleteAllSearchResults.js",
         "seed:app": "node scripts/seed_app.js",
         "sync-cache": "node scripts/syncCoursesCache.js"
