@@ -9,6 +9,7 @@ import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
 import Footer from "../../components/footer";
 import FavouriteCard from "./components/favouritecard";
+import ExamScheduleWidget from "./components/examschedule";
 
 import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
 import { useDispatch, useSelector } from "react-redux";
@@ -239,30 +240,10 @@ const Dashboard = () => {
                     )}
                     <Space amount={50} />
                 </Container>
-                <ContributionBanner contributionHandler={contributionHandler} />
                 <Space amount={50} />
-                <Container>
-                    <SubHeading text={"MY FAVOURITES"} type={"bold"} algn={"center"} />
-                    <div className="fav-container">
-                        {user?.favourites?.length > 0 ? (
-                            user.favourites.map((favourite) => (
-                                <FavouriteCard
-                                    name={favourite.name}
-                                    path={favourite.path}
-                                    key={favourite.id}
-                                    code={favourite.code}
-                                    id={favourite.id}
-                                    _id={favourite._id}
-                                />
-                            ))
-                        ) : (
-                            <>
-                                <div className="favorites-coming-soon">Coming Soon!</div>
-                                <div className="no-fav-graphic"></div>
-                            </>
-                        )}
-                    </div>
-                </Container>
+                <ExamScheduleWidget />
+                <Space amount={50} />
+                <ContributionBanner contributionHandler={contributionHandler} />
             </div>
             <div>
                 <Footer />

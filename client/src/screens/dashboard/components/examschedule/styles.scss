@@ -1,0 +1,248 @@
+.exam-schedule-container {
+    width: 100%;
+    padding: 10px 0px;
+
+    .schedule-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+
+        .schedule-toggle-group {
+            display: inline-flex;
+            background-color: #000;
+            padding: 3px;
+            gap: 2px;
+
+            .toggle-tab {
+                padding: 6px 20px;
+                font-family: "Bold";
+                font-size: 0.9rem;
+                color: #fff;
+                cursor: pointer;
+                text-align: center;
+                transition: 150ms ease;
+                user-select: none;
+
+                &.active {
+                    background-color: #FECF6F;
+                    color: #000;
+                }
+
+                &:not(.active):hover {
+                    background-color: #222;
+                }
+            }
+        }
+    }
+
+    .examcard-list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 0px;
+        gap: 0;
+    }
+
+    .exam-item-card {
+        width: 210px;
+        height: 165px;
+        padding: 12px;
+        margin: 10px;
+        position: relative;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: 150ms ease;
+
+        &:hover {
+            transform: scale(1.04);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .course-code {
+                background-color: #000;
+                color: #fff;
+                padding: 3px 6px;
+                font-family: "Bold";
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+            .slot-pill {
+                background-color: rgba(0, 0, 0, 0.08);
+                color: #000;
+                border: 1px solid #000;
+                padding: 2px 6px;
+                font-family: "Bold";
+                font-size: 0.75rem;
+            }
+        }
+
+        .card-middle {
+            margin: 6px 0;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+
+            .course-name {
+                font-family: "Bold";
+                font-size: 1.05rem;
+                color: #000;
+                line-height: 1.25;
+            }
+        }
+
+        .card-bottom {
+            background-color: rgba(255, 255, 255, 0.65);
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+
+            .exam-detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 0.78rem;
+
+                .label {
+                    font-family: "Bold";
+                    color: #444;
+                    font-size: 0.7rem;
+                    letter-spacing: 0.5px;
+                }
+
+                .value {
+                    font-family: "Bold";
+                    color: #000;
+                }
+            }
+        }
+    }
+
+    .schedule-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 20px 0;
+
+        .empty-message {
+            width: 100%;
+            text-align: center;
+            font-weight: 530;
+            font-size: 1.3rem;
+            font-family: "Bold";
+            color: #222;
+            margin-bottom: 16px;
+        }
+
+        .no-exam-graphic {
+            width: 100%;
+            height: 280px;
+            background: url(../../graphic-cropped.svg);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            margin-bottom: 24px;
+            opacity: 0.85;
+        }
+    }
+
+    .schedule-state-box {
+        width: 100%;
+        text-align: center;
+        padding: 40px 0;
+
+        .state-text {
+            font-family: "Bold";
+            font-size: 1.1rem;
+            color: #555;
+
+            &.error {
+                color: #d9534f;
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .examcard-list {
+            justify-content: center;
+            padding: 0 5px;
+        }
+
+        .exam-item-card {
+            width: calc(50% - 10px);
+            min-width: 140px;
+            height: 155px;
+            margin: 5px;
+            padding: 10px;
+
+            .card-middle .course-name {
+                font-size: 0.95rem;
+            }
+
+            .card-bottom {
+                padding: 4px 6px;
+                .exam-detail-row {
+                    font-size: 0.72rem;
+                }
+            }
+        }
+
+        .schedule-empty-state .empty-message {
+            font-size: 1.1rem;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .exam-item-card {
+            width: calc(50% - 8px);
+            min-width: 120px;
+            height: 145px;
+            margin: 4px;
+            padding: 8px;
+
+            .card-top {
+                .course-code {
+                    font-size: 0.68rem;
+                    padding: 2px 4px;
+                }
+                .slot-pill {
+                    font-size: 0.65rem;
+                    padding: 1px 4px;
+                }
+            }
+
+            .card-middle .course-name {
+                font-size: 0.85rem;
+                line-height: 1.15;
+            }
+
+            .card-bottom .exam-detail-row {
+                font-size: 0.68rem;
+                .label {
+                    font-size: 0.62rem;
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 360px) {
+        .exam-item-card {
+            width: calc(50% - 6px);
+            min-width: 100px;
+            height: 135px;
+            margin: 3px;
+        }
+    }
+}
