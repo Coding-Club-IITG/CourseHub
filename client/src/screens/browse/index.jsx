@@ -159,12 +159,23 @@ const BrowseScreen = () => {
                     const defaultYear = fetchedData.children[defaultYearIndex];
                     let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
 
-                    if (defaultYear && defaultYear.children) {
+                    let activeYearIndex = defaultYearIndex;
+                    if (folderId && activeFolder) {
+                        const matchedIdx = fetchedData.children.findIndex(
+                            (y) => y._id === activeFolder._id || findFolderById(y.children, activeFolder._id)
+                        );
+                        if (matchedIdx !== -1) {
+                            activeYearIndex = matchedIdx;
+                        }
+                    }
+
+                    const activeYear = fetchedData.children[activeYearIndex];
+                    if (activeYear && activeYear.children) {
                         dispatch(
-                            ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
+                            ChangeCurrentYearData(activeYearIndex, activeYear.children || [])
                         );
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                        dispatch(ChangeFolder(activeFolder || defaultYear));
+                        dispatch(ChangeFolder(activeFolder || activeYear));
                     }
                 }
             } else {
@@ -196,12 +207,23 @@ const BrowseScreen = () => {
                         const defaultYear = fetchedData.children[defaultYearIndex];
                         let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
 
-                        if (defaultYear && defaultYear.children) {
+                        let activeYearIndex = defaultYearIndex;
+                        if (folderId && activeFolder) {
+                            const matchedIdx = fetchedData.children.findIndex(
+                                (y) => y._id === activeFolder._id || findFolderById(y.children, activeFolder._id)
+                            );
+                            if (matchedIdx !== -1) {
+                                activeYearIndex = matchedIdx;
+                            }
+                        }
+
+                        const activeYear = fetchedData.children[activeYearIndex];
+                        if (activeYear && activeYear.children) {
                             dispatch(
-                                ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
+                                ChangeCurrentYearData(activeYearIndex, activeYear.children || [])
                             );
                             dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                            dispatch(ChangeFolder(activeFolder || defaultYear));
+                            dispatch(ChangeFolder(activeFolder || activeYear));
                         }
                     }
                 } else {
@@ -223,11 +245,33 @@ const BrowseScreen = () => {
 
             const matched = findFolderById(currCourse, folderId);
             if (matched) {
+                const matchedYearIndex = currCourse.findIndex(
+                    (y) => y._id === matched._id || findFolderById(y.children, matched._id)
+                );
+                if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
+                    dispatch(
+                        ChangeCurrentYearData(
+                            matchedYearIndex,
+                            currCourse[matchedYearIndex]?.children || []
+                        )
+                    );
+                }
                 dispatch(ChangeFolder(matched));
             } else {
                 fetchFolder(folderId, code)
                     .then((freshFolder) => {
                         if (freshFolder && freshFolder._id) {
+                            const matchedYearIndex = currCourse.findIndex(
+                                (y) => y._id === freshFolder._id || findFolderById(y.children, freshFolder._id)
+                            );
+                            if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
+                                dispatch(
+                                    ChangeCurrentYearData(
+                                        matchedYearIndex,
+                                        currCourse[matchedYearIndex]?.children || []
+                                    )
+                                );
+                            }
                             dispatch(ChangeFolder(freshFolder));
                         } else {
                             toast.error("Folder not found!");
