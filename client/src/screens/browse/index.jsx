@@ -466,7 +466,7 @@ const BrowseScreen = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="files">
+                            <div className="files" key={`mobile-files-${currYear}-${folderData?._id || "root"}`}>
                                 {canGoBack && (
                                     <button
                                         className="mobile-back-btn-circular"
@@ -574,7 +574,7 @@ const BrowseScreen = () => {
                                     courseCode={currCourseCode || (folderData?.courses ? folderData.courses[0] : folderData.course)}
                                 />
                             )}
-                            <div className="files">
+                            <div className="files" key={`files-${currYear}-${folderData?._id || "root"}`}>
                                 {!folderData ? (
                                     <div className="empty-message">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
