@@ -23,7 +23,6 @@
             display: flex;
             justify-content: flex-start;
             align-items: center;
-            animation: folderNameSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 
             .folder-name {
                 font-family: "Bold";
@@ -261,15 +260,4 @@
 
 #bottommarginneeded {
     margin-bottom: 2rem;
-}
-
-@keyframes folderNameSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateX(-8px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
 }

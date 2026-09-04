@@ -10,20 +10,15 @@
     flex-shrink: 0;
 
     justify-content: space-around;
-    border-radius: 4px;
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.25s ease;
-    cursor: default;
+    transition: 150ms ease;
 
     &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 0 rgba(0, 0, 0, 0.95);
+        transform: scale(1.04);
     }
 
     .ndays {
         p {
             font-size: 3.5rem;
-            transition: transform 0.2s ease;
         }
     }
     .name {

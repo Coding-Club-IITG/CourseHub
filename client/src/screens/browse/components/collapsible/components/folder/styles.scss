@@ -18,15 +18,35 @@
         .text-content{
             width: 100%;
             background-color: #fff;
+            padding: 0.3em;
+            border-radius: 4px;
+            transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                        padding-left 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        transform 0.15s ease;
+
             &.current{
                 background-color: #FECF6F;
             }
 
-            padding: 0.3em;
+            &:hover:not(.current) {
+                background-color: rgba(254, 207, 111, 0.2);
+                padding-left: 0.6em;
+            }
+
+            &:active {
+                transform: scale(0.98);
+            }
+
             .text{
                 font-size: 1rem;
                 font-family: 'Bold';
                 cursor: pointer;
+                transition: color 0.15s ease;
+
+                &:hover {
+                    color: #000;
+                }
+
                 &.nobold{
                 font-family: 'Regular';
                 }

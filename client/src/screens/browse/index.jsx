@@ -466,7 +466,7 @@ const BrowseScreen = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="files" key={folderData?._id || `year-${currYear}` || "empty-mobile"}>
+                            <div className="files">
                                 {canGoBack && (
                                     <button
                                         className="mobile-back-btn-circular"
@@ -550,7 +550,7 @@ const BrowseScreen = () => {
                             user.user?.previousCourses?.length > 0 &&
                             user.user?.previousCourses?.map((semesterGroup, semIdx) => (
                                 <div key={semIdx}>
-                                    <h5 className="heading" style={{ fontSize: "0.85em", marginTop: "10px", color: "gray" }}>
+                                    <h5 className="semester-subheading" style={{ fontSize: "0.85em", marginTop: "12px", marginBottom: "4px", padding: "0 20px", color: "#666", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                                         Semester {semesterGroup.semester} ({semesterGroup.year})
                                     </h5>
                                     {semesterGroup.courses.map((course, idx) => (
@@ -565,9 +565,8 @@ const BrowseScreen = () => {
                         <div className="middle">
                             {folderData && (
                                 <FolderInfo
-                                    key={folderData?._id || `info-${currYear}`}
                                     isBR={user.user.isBR}
-                                    path={folderData?.path ? folderData.path : HeaderText}
+                                    path={folderData?.path ? folderData.path : ""}
                                     name={folderData?.name ? folderData.name : HeaderText}
                                     canDownload={folderData?.childType === "File"}
                                     contributionHandler={contributionHandler}
@@ -575,7 +574,7 @@ const BrowseScreen = () => {
                                     courseCode={currCourseCode || (folderData?.courses ? folderData.courses[0] : folderData.course)}
                                 />
                             )}
-                            <div className="files" key={folderData?._id || `year-${currYear}` || "empty"}>
+                            <div className="files">
                                 {!folderData ? (
                                     <div className="empty-message">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
