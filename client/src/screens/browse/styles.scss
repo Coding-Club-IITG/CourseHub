@@ -16,11 +16,14 @@
     }
 }
 .controller {
+    display: flex;
+    height: 92vh; // Keep original desktop height
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     &::-webkit-scrollbar {
         display: none;
     }
-    display: flex;
-    height: 92vh; // Keep original desktop height
     @media (max-width: 1024px) {
         height: 98vh; // Compensate for 2vh navbar
     }
@@ -37,6 +40,11 @@
         max-width: 300px;
         border-right: 1px solid rgba(0, 0, 0, 0.33);
         overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
         .heading {
             padding: 10px 20px;
             font-family: "Bold";
@@ -58,6 +66,8 @@
         flex: 6;
         border-right: 1px solid rgba(0, 0, 0, 0.33);
         overflow: scroll;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
 
         .files {
             padding: 20px 20px;
@@ -78,6 +88,13 @@
         max-width: 200px;
         background-color: #000;
         color: #fff;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
         .year-content {
             display: flex;
             flex-direction: column-reverse;
@@ -97,13 +114,15 @@
                 box-shadow: 0 0 0 transparent;
                 transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
                             color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                            box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                            transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                            box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
                 &:hover:not(.selected) {
                     background-color: rgba(254, 207, 111, 0.12);
                     color: #fecf6f;
-                    transform: translateX(4px);
+
+                    .year-title-wrapper {
+                        transform: translateX(4px);
+                    }
                 }
 
                 &:active {
@@ -114,6 +133,7 @@
                     display: flex;
                     align-items: center;
                     gap: 8px;
+                    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
                 .empty-indicator {
