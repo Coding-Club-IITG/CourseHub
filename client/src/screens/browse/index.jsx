@@ -410,7 +410,6 @@ const BrowseScreen = () => {
                 dispatch(ClearFolderHistory()); // Clear folder history when changing years
                 dispatch(ChangeCurrentYearData(selectedYearIndex, selectedYear.children));
                 dispatch(ChangeFolder(selectedYear));
-                dispatch(RefreshCurrentFolder());
                 if (selectedYear._id) {
                     navigate(`/browse/${currCourseCode}/${selectedYear._id}`);
                 } else {

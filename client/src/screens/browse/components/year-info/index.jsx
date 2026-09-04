@@ -202,7 +202,6 @@ const YearInfo = ({
                                                 ChangeCurrentYearData(idx, course[idx]?.children || [])
                                             );
                                             dispatch(ChangeFolder(course[idx]));
-                                            dispatch(RefreshCurrentFolder());
                                             if (courseCode && course[idx]?._id) {
                                                 navigate(`/browse/${courseCode}/${course[idx]._id}`);
                                             } else if (courseCode) {
