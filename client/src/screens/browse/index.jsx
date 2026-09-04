@@ -477,10 +477,10 @@ const BrowseScreen = () => {
                                     </button>
                                 )}
                                 {!folderData ? (
-                                    <div className="empty-message">{HeaderText}</div>
+                                    <div className="empty-message" key="no-folder">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p className="empty-message">No files available.</p>
+                                        <p className="empty-message" key={folderData?._id || "empty-files"}>No files available.</p>
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -489,7 +489,7 @@ const BrowseScreen = () => {
                                         />
                                     )
                                 ) : folderData?.children?.length === 0 ? (
-                                    <div className="empty-folder">
+                                    <div className="empty-folder" key={folderData?._id || "empty-folders"}>
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
@@ -576,10 +576,10 @@ const BrowseScreen = () => {
                             )}
                             <div className="files">
                                 {!folderData ? (
-                                    <div className="empty-message">{HeaderText}</div>
+                                    <div className="empty-message" key="no-folder">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p className="empty-message">No files available.</p>
+                                        <p className="empty-message" key={folderData?._id || "empty-files"}>No files available.</p>
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -587,7 +587,7 @@ const BrowseScreen = () => {
                                         />
                                     )
                                 ) : folderData?.children?.length === 0 ? (
-                                    <div className="empty-folder">
+                                    <div className="empty-folder" key={folderData?._id || "empty-folders"}>
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (

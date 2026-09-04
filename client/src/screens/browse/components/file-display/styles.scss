@@ -9,6 +9,8 @@
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.2s ease,
                 border-color 0.2s ease;
+    animation: fileItemSlideIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
     &.verified {
         border: 2px solid #4caf50;
     }
@@ -149,7 +151,7 @@
     }
     &:hover {
         border: 1px solid #000;
-        transform: translateY(-4px);
+        transform: translateY(-4px) !important;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
         .img-preview {
             .top,
@@ -157,6 +159,11 @@
                 opacity: 1;
             }
         }
+    }
+
+    &:active {
+        transform: translateY(0px) scale(0.97) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
 
     @media screen and (max-width: 768px) {
@@ -231,5 +238,16 @@
                 font-size: 0.6rem;
             }
         }
+    }
+}
+
+@keyframes fileItemSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
     }
 }

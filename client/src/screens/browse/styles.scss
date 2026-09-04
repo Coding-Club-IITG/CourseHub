@@ -54,8 +54,11 @@
             display: flex;
             flex-wrap: wrap;
         }
-        .empty-message {
+        .empty-message,
+        .empty-folder {
             font-size: 1.2rem;
+            animation: folderItemSlideIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
         }
         &::-webkit-scrollbar {
             display: none;
@@ -353,12 +356,15 @@
         align-content: flex-start; // Align rows to top
     }
 
-    .empty-message {
+    .empty-message,
+    .empty-folder {
         font-size: 1.1rem;
         text-align: center;
         padding: 20px;
         color: #666;
         width: 100%; // Full width for empty message
+        animation: folderItemSlideIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
     }
 }
 .mobile-back-btn-circular {
@@ -533,6 +539,16 @@
     }
 }
 
+@keyframes folderItemSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 
 .confirm-dialog-overlay {
     position: fixed;
