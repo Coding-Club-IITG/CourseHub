@@ -1,10 +1,37 @@
 .nav-link {
-    font-family: 'bold';
+    font-family: 'Bold';
     font-size: 1.1rem;
     margin-left: 2rem;
     cursor: pointer;
+    position: relative;
+    display: inline-block;
+    color: #000;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                color 0.2s ease;
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: #000;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
     &:hover {
-        scale: 1.1;
+        transform: translateY(-2px);
+
+        &::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+    }
+
+    &:active {
+        transform: translateY(0px) scale(0.96);
     }
 }

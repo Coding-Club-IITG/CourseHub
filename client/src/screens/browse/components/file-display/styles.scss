@@ -3,8 +3,12 @@
     height: 220px;
     background-color: white;
     border: 1px solid rgba(0, 0, 0, 0.32);
+    border-radius: 4px;
     margin-right: 14px;
     margin-bottom: 15px;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
     &.verified {
         border: 2px solid #4caf50;
     }
@@ -60,6 +64,14 @@
                 background-repeat: no-repeat;
                 background-position: center;
                 background-size: contain;
+                transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+                &:hover {
+                    transform: scale(1.2);
+                }
+                &:active {
+                    transform: scale(0.9);
+                }
             }
         }
         .view {
@@ -137,10 +149,12 @@
     }
     &:hover {
         border: 1px solid #000;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
         .img-preview {
             .top,
             .view {
-                opacity: 100;
+                opacity: 1;
             }
         }
     }
