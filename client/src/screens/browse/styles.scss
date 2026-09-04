@@ -57,7 +57,7 @@
         .empty-message,
         .empty-folder {
             font-size: 1.2rem;
-            animation: folderItemSlideIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: folderItemSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
             will-change: opacity, transform;
         }
         &::-webkit-scrollbar {
@@ -365,7 +365,7 @@
         padding: 20px;
         color: #666;
         width: 100%; // Full width for empty message
-        animation: folderItemSlideIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: folderItemSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
         will-change: opacity, transform;
     }
 }
@@ -544,7 +544,7 @@
 @keyframes folderItemSlideIn {
     0% {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: translateX(-14px);
     }
     100% {
         opacity: 1;

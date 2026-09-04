@@ -492,7 +492,7 @@ const BrowseScreen = () => {
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
-                                    folderData?.children.map((folder) => (
+                                    folderData?.children.map((folder, idx) => (
                                         <BrowseFolder
                                             type="folder"
                                             key={folder._id}
@@ -502,6 +502,7 @@ const BrowseScreen = () => {
                                             folderData={folder}
                                             parentFolder={folderData}
                                             isMobileView={isMobile}
+                                            index={idx}
                                         />
                                     ))
                                 )}
@@ -590,7 +591,7 @@ const BrowseScreen = () => {
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
-                                    folderData?.children.map((folder) => (
+                                    folderData?.children.map((folder, idx) => (
                                         <BrowseFolder
                                             type="folder"
                                             key={folder._id}
@@ -599,6 +600,7 @@ const BrowseScreen = () => {
                                             subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
                                             folderData={folder}
                                             parentFolder={folderData}
+                                            index={idx}
                                         />
                                     ))
                                 )}
