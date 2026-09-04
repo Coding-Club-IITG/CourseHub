@@ -23,6 +23,7 @@
             display: flex;
             justify-content: flex-start;
             align-items: center;
+            animation: folderNameSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 
             .folder-name {
                 font-family: "Bold";
@@ -87,13 +88,16 @@
             background-color: #000;
             border: none;
             cursor: pointer;
-            transition: all 120ms ease;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        box-shadow 0.2s ease,
+                        background-color 0.2s ease;
             min-width: 80px;
 
             .icon {
                 width: 20px;
                 height: 20px;
                 margin-bottom: 4px;
+                transition: transform 0.2s ease;
 
                 &.download-icon {
                     background: url(./assets/download.svg);
@@ -116,24 +120,38 @@
             }
 
             &:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+                .icon {
+                    transform: scale(1.1);
+                }
+            }
+
+            &:active {
+                transform: translateY(0px) scale(0.96);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
             }
 
             &:disabled {
                 opacity: 0.6;
                 cursor: not-allowed;
+                transform: none !important;
+                box-shadow: none !important;
 
                 &:hover {
-                    transform: none;
-                    box-shadow: none;
+                    transform: none !important;
+                    box-shadow: none !important;
+                    .icon {
+                        transform: none;
+                    }
                 }
             }
             &.download {
                 background-color: #000; // Black for download
 
                 &:hover {
-                    background-color: #333;
+                    background-color: #222;
                 }
             }
 
@@ -141,7 +159,7 @@
                 background-color: #000;
 
                 &:hover {
-                    background-color: #333;
+                    background-color: #222;
                 }
             }
 
@@ -210,16 +228,48 @@
 
 .addfolderbutton {
     flex: 1;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease,
+                background-color 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+        transform: translateY(0px) scale(0.97);
+    }
+
+    &.false {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
 }
 
 .cancelbutton {
     background-color: #535353 !important;
+    color: #fff;
 }
 
 .submitbutton {
     background-color: #fecf6f !important;
+    color: #000;
 }
 
 #bottommarginneeded {
     margin-bottom: 2rem;
+}
+
+@keyframes folderNameSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }

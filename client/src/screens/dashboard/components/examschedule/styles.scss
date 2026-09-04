@@ -64,18 +64,15 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    box-shadow 0.2s ease;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         animation: examCardFadeSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 
         &:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.95);
+            transform: scale(1.04);
         }
 
         &:active {
-            transform: translateY(-1px) scale(0.98);
-            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.95);
+            transform: scale(0.98);
         }
 
         .card-top {

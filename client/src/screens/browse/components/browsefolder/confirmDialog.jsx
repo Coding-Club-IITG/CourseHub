@@ -73,8 +73,13 @@ const ConfirmDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) => {
     if (!isOpen) return null;
 
     return (
-        <div style={styles.overlay}>
-            <div style={styles.dialog}>
+        <div
+            className="confirm-dialog-overlay"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onCancel();
+            }}
+        >
+            <div style={styles.dialog} className="confirm-modal-box">
                 <img src={cross} alt="Delete" style={styles.iconImage} />
                 <h3 style={styles.heading}>Are you sure?</h3>
                 <p style={styles.message}>

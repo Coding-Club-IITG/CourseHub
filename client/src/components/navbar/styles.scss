@@ -142,6 +142,10 @@ nav {
                 text-decoration: none;
                 white-space: nowrap; // Prevent text wrapping
 
+                &::after {
+                    display: none;
+                }
+
                 &:hover {
                     background-color: #fecf6f;
                     color: #2c3e50;
