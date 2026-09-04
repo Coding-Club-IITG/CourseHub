@@ -53,8 +53,6 @@
             padding: 20px 20px;
             display: flex;
             flex-wrap: wrap;
-            animation: filesFadeSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-            will-change: opacity, transform;
         }
         .empty-message {
             font-size: 1.2rem;
@@ -353,8 +351,6 @@
         gap: 8px; // Reduced gap for larger folders (matches calc(50% - 4px) calculation)
         justify-content: flex-start; // Align to start for consistent spacing
         align-content: flex-start; // Align rows to top
-        animation: filesFadeSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-        will-change: opacity, transform;
     }
 
     .empty-message {
@@ -537,16 +533,6 @@
     }
 }
 
-@keyframes filesFadeSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
 .confirm-dialog-overlay {
     position: fixed;
