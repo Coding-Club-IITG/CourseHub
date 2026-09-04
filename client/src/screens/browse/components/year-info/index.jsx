@@ -16,6 +16,7 @@ import {
 import { ConfirmDialog } from "./confirmDialog";
 import { ConfirmDelDialog } from "./confirmDelDialog";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
+import { useNavigate } from "react-router-dom";
 
 const YearInfo = ({
     isBR,
@@ -24,6 +25,7 @@ const YearInfo = ({
     currYear,
 }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [showConfirm, setShowConfirm] = useState(false);
     const [showConfirmDel, setShowConfirmDel] = useState(false);
     const [newYearName, setNewYearName] = useState("");
@@ -109,6 +111,10 @@ const YearInfo = ({
             dispatch(ClearFolderHistory());
             dispatch(RefreshCurrentFolder());
 
+            if (courseCode && nextYearFolder?._id) {
+                navigate(`/browse/${courseCode}/${nextYearFolder._id}`);
+            }
+
             toast.success(`Year "${yearName}" added`);
         } catch (error) {
             toast.error("Failed to add year.");
@@ -157,6 +163,12 @@ const YearInfo = ({
             dispatch(ClearFolderHistory());
             dispatch(RefreshCurrentFolder());
 
+            if (courseCode && nextYearFolder?._id) {
+                navigate(`/browse/${courseCode}/${nextYearFolder._id}`);
+            } else if (courseCode) {
+                navigate(`/browse/${courseCode}`);
+            }
+
             toast.success("Year deleted successfully!");
             setShowConfirmDel(false);
         } catch (err) {
@@ -185,11 +197,16 @@ const YearInfo = ({
                                     <span
                                         className={`year ${currYear === idx ? "selected" : ""}`}
                                         onClick={() => {
+                                            dispatch(ClearFolderHistory());
                                             dispatch(
-                                                ChangeCurrentYearData(idx, course[idx].children)
+                                                ChangeCurrentYearData(idx, course[idx]?.children || [])
                                             );
                                             dispatch(ChangeFolder(course[idx]));
-                                            dispatch(RefreshCurrentFolder());
+                                            if (courseCode && course[idx]?._id) {
+                                                navigate(`/browse/${courseCode}/${course[idx]._id}`);
+                                            } else if (courseCode) {
+                                                navigate(`/browse/${courseCode}`);
+                                            }
                                         }}
                                     >
                                         <div className="year-title-wrapper">

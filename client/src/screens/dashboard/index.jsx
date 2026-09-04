@@ -21,9 +21,9 @@ import { useEffect, useState } from "react";
 import { getColors } from "../../utils/colors";
 import { LoadCourses } from "../../actions/filebrowser_actions";
 import Contributions from "../contributions";
-import { AddNewCourseLocal, ClearLocalCourses } from "../../actions/user_actions";
+import { AddNewCourseLocal, ClearLocalCourses, LoginUser, UpdateReadOnlyCourses } from "../../actions/user_actions";
 import AddCourseModal from "./components/addcoursemodal";
-import { AddNewCourseAPI, GetExamDates } from "../../api/User";
+import { AddNewCourseAPI, GetExamDates, getUser } from "../../api/User";
 import { toast } from "react-toastify";
 import { clearLegacySessionLocalCoursesCache, readAllCoursesCache } from "../../utils/frontendCache";
 
@@ -46,27 +46,54 @@ const Dashboard = () => {
     const contributionHandler = (event) => {
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
-        contributionSection.classList.add("show");
+        if (contributionSection) contributionSection.classList.add("show");
     };
     const addCourseModalShowHandler = (event) => {
         const collection = document.getElementsByClassName("add_modal");
         const contributionSection = collection[0];
-        contributionSection.classList.add("show");
+        if (contributionSection) contributionSection.classList.add("show");
     };
     const handleAddCourse = async ({ code, name }) => {
         try {
-            const found = user.user?.courses?.find(
-                (course) => course.code.toLowerCase() === code.toLowerCase()
-            );
+            const found =
+                user.user?.courses?.find(
+                    (course) => course.code.toLowerCase() === code.toLowerCase()
+                ) ||
+                user.user?.readOnly?.find(
+                    (course) => course.code.toLowerCase() === code.toLowerCase()
+                );
 
             if (found) {
                 toast.info("Course already exists.");
                 return;
             }
-            await AddNewCourseAPI(code, name);
-            location.reload();
+            const res = await AddNewCourseAPI(code, name);
+            if (res?.data?.readOnly) {
+                dispatch(UpdateReadOnlyCourses(res.data.readOnly));
+            } else {
+                const fresh = await getUser();
+                if (fresh?.data?.readOnly) {
+                    dispatch(UpdateReadOnlyCourses(fresh.data.readOnly));
+                }
+            }
+            toast.success(`Course ${code.toUpperCase()} added to Others!`);
+
+            const collection = document.getElementsByClassName("add_modal");
+            const modal = collection[0];
+            if (modal) modal.classList.remove("show");
         } catch (error) {
+            toast.error("Failed to add course.");
         }
+    };
+
+    const handleCourseRemoved = (removedCode) => {
+        if (!removedCode) return;
+        const normalizedRemoved = removedCode.replace(/\s+/g, "").toLowerCase();
+        const updatedReadOnly = (user.user?.readOnly || []).filter(
+            (c) => c.code?.replace(/\s+/g, "").toLowerCase() !== normalizedRemoved
+        );
+        dispatch(UpdateReadOnlyCourses(updatedReadOnly));
+        toast.success(`Course ${removedCode.toUpperCase()} removed`);
     };
 
     useEffect(() => {
@@ -160,14 +187,15 @@ const Dashboard = () => {
                     <SubHeading text={"OTHERS"} color={"light"} type={"bold"} />
                     <Space amount={20} />
                     <div className="coursecard-container">
-                        {user.user.readOnly.map((course, index) => (
+                        {(user.user?.readOnly || []).map((course, index) => (
                             <CourseCard
-                                key={course.name}
+                                key={course.code || course.name}
                                 code={course?.code?.toUpperCase()}
                                 name={course.name}
                                 color={getColors(index)}
                                 setClicked={() => handleClick(course.code)}
                                 isReadOnly={true}
+                                onCourseRemoved={handleCourseRemoved}
                             />
                         ))}
                         
@@ -202,12 +230,12 @@ const Dashboard = () => {
                             </div>
 
                             {showPrevious && (
-                                <>
+                                <div className="previous-courses-wrapper">
                                     {user.user.previousCourses.map((semesterGroup, semIndex) => (
                                         <div key={semIndex} style={{ marginLeft: "20px" }}>
                                             <Space amount={20} />
                                             <div style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }} onClick={() => toggleSemester(semIndex)}>
-                                                <span style={{ transition: "transform 0.2s", transform: openSemesters[semIndex] ? "rotate(0deg)" : "rotate(-90deg)", color: "white", fontSize: "0.85em" }}>
+                                                <span style={{ transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: openSemesters[semIndex] ? "rotate(0deg)" : "rotate(-90deg)", color: "white", fontSize: "0.85em" }}>
                                                     ▼
                                                 </span>
                                                 <SubHeading 
@@ -217,7 +245,7 @@ const Dashboard = () => {
                                                 />
                                             </div>
                                             {openSemesters[semIndex] && (
-                                                <>
+                                                <div className="previous-courses-wrapper">
                                                     <Space amount={20} />
                                                     <div className="coursecard-container">
                                                         {semesterGroup.courses.map((course, index) => (
@@ -230,11 +258,11 @@ const Dashboard = () => {
                                                             />
                                                         ))}
                                                     </div>
-                                                </>
+                                                </div>
                                             )}
                                         </div>
                                     ))}
-                                </>
+                                </div>
                             )}
                         </>
                     )}

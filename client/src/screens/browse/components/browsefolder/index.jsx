@@ -17,6 +17,7 @@ const BrowseFolder = ({
     folderData,
     parentFolder,
     isMobileView = false,
+    index = 0,
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -95,7 +96,11 @@ const BrowseFolder = ({
 
     return (
         <>
-            <div className="browse-folder" onClick={() => onClick(folderData)}>
+            <div
+                className="browse-folder"
+                onClick={() => onClick(folderData)}
+                style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
+            >
                 <div className="content">
                     <div className="top">
                         <p className="path">{""}</p>

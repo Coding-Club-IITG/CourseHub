@@ -22,7 +22,10 @@
                 color: #fff;
                 cursor: pointer;
                 text-align: center;
-                transition: 150ms ease;
+                border-radius: 2px;
+                transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                            color 0.2s ease,
+                            transform 0.15s ease;
                 user-select: none;
 
                 &.active {
@@ -31,7 +34,11 @@
                 }
 
                 &:not(.active):hover {
-                    background-color: #222;
+                    background-color: #2a2a2a;
+                }
+
+                &:active {
+                    transform: scale(0.96);
                 }
             }
         }

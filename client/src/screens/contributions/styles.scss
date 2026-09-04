@@ -160,6 +160,18 @@
     margin-top: 1rem;
     font-family: 'bold';
     cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease,
+                background-color 0.2s ease;
+
+    &:hover:not(.false) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active:not(.false) {
+        transform: translateY(0px) scale(0.97);
+    }
 
     &.true {
         background-color: #FECF6F;

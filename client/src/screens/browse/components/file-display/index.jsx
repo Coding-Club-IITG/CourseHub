@@ -19,7 +19,7 @@ import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
 import { fetchFolder } from "../../../../api/Folder.js";
 
-const FileDisplay = ({ file, path, code, isMobileView = false }) => {
+const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
     const user = useSelector((state) => state.user?.user);
     const fileSize = formatFileSize(file.size);
@@ -201,6 +201,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false }) => {
         <div
             className={`file-display ${user?.isBR ? (file.isVerified ? "verified" : "unverified") : ""
                 }`}
+            style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
         >
             <img
                 src={thumbnailUrl}

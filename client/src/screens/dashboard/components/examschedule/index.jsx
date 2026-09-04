@@ -112,12 +112,15 @@ const ExamScheduleWidget = () => {
 
                 {/* State 4: Populated chronological schedule */}
                 {!isLoading && !hasError && scheduledExams.length > 0 && (
-                    <div className="examcard-list">
+                    <div className="examcard-list" key={activeTab}>
                         {scheduledExams.map((exam, index) => (
                             <div
                                 key={`${exam.code}-${exam.examType}`}
                                 className="exam-item-card"
-                                style={{ backgroundColor: getColors(index) }}
+                                style={{
+                                    backgroundColor: getColors(index),
+                                    animationDelay: `${index * 45}ms`,
+                                }}
                             >
                                 <div className="card-top">
                                     <span className="course-code">{exam.code}</span>

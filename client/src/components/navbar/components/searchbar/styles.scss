@@ -46,14 +46,27 @@
         position: absolute;
         width: 518px;
         height: auto;
-        min-height: 100px;
+        min-height: 80px;
         max-height: 400px;
         background-color: #fff;
-        z-index: 2;
+        z-index: 20;
         margin-left: 21px;
         color: #222;
         padding: 10px 20px;
         overflow-y: hidden;
+        border-radius: 4px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        animation: searchSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+        p {
+            transition: transform 0.15s ease, background-color 0.15s ease;
+            border-radius: 3px;
+
+            &:hover {
+                transform: translateX(4px);
+            }
+        }
+
         .code {
             margin-right: 1rem;
             font-family: "Bold";
@@ -63,6 +76,17 @@
             font-family: "Bold";
         }
     }
+
+@keyframes searchSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
     @media screen and (max-width: 1240px) {
         width: 500px;
         .search-results {

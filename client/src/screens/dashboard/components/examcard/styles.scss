@@ -10,6 +10,12 @@
     flex-shrink: 0;
 
     justify-content: space-around;
+    transition: 150ms ease;
+
+    &:hover {
+        transform: scale(1.04);
+    }
+
     .ndays {
         p {
             font-size: 3.5rem;
