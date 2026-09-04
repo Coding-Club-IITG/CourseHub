@@ -15,8 +15,16 @@ const UserReducer = (
             return {
                 ...state,
                 loggedIn: true,
-                user: action.payload.user,
-                favourites: action.payload.user.favourites,
+                user: { ...state.user, ...action.payload.user },
+                favourites: action.payload.user?.favourites ?? state.favourites ?? [],
+            };
+        case "UPDATE_READONLY_COURSES":
+            return {
+                ...state,
+                user: {
+                    ...state.user,
+                    readOnly: action.payload.readOnly,
+                },
             };
         case "LOG_OUT":
             return { ...state, loggedIn: false };

@@ -51,3 +51,12 @@ export const ClearLocalCourses = () => {
         type: "CLEAR_LOCAL_COURSES",
     };
 };
+
+export const UpdateReadOnlyCourses = (readOnly) => {
+    return {
+        type: "UPDATE_READONLY_COURSES",
+        payload: {
+            readOnly,
+        },
+    };
+};

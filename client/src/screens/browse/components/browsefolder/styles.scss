@@ -5,17 +5,16 @@
     z-index: 2;
     cursor: pointer;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
-    animation: folderItemSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-    will-change: opacity, transform;
+    animation: folderItemSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
     background: url(./folder.svg), none;
     background-position: center;
     background-repeat: no-repeat;
     &:hover {
-        transform: translateY(-4px) !important;
+        transform: translateY(-4px);
         filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
     }
     &:active {
-        transform: translateY(0px) scale(0.97) !important;
+        transform: translateY(0px) scale(0.97);
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
     }
     @media (max-width: 768px) {
@@ -246,16 +245,5 @@
                 }
             }
         }
-    }
-}
-
-@keyframes folderItemSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateX(-14px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
     }
 }

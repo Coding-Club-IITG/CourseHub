@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { getColors } from "../../utils/colors";
 import { LoadCourses } from "../../actions/filebrowser_actions";
 import Contributions from "../contributions";
-import { AddNewCourseLocal, ClearLocalCourses, LoginUser } from "../../actions/user_actions";
+import { AddNewCourseLocal, ClearLocalCourses, LoginUser, UpdateReadOnlyCourses } from "../../actions/user_actions";
 import AddCourseModal from "./components/addcoursemodal";
 import { AddNewCourseAPI, GetExamDates, getUser } from "../../api/User";
 import { toast } from "react-toastify";
@@ -69,11 +69,11 @@ const Dashboard = () => {
             }
             const res = await AddNewCourseAPI(code, name);
             if (res?.data?.readOnly) {
-                dispatch(LoginUser({ ...user.user, readOnly: res.data.readOnly }));
+                dispatch(UpdateReadOnlyCourses(res.data.readOnly));
             } else {
                 const fresh = await getUser();
-                if (fresh?.data) {
-                    dispatch(LoginUser(fresh.data));
+                if (fresh?.data?.readOnly) {
+                    dispatch(UpdateReadOnlyCourses(fresh.data.readOnly));
                 }
             }
             toast.success(`Course ${code.toUpperCase()} added to Others!`);
@@ -87,10 +87,12 @@ const Dashboard = () => {
     };
 
     const handleCourseRemoved = (removedCode) => {
+        if (!removedCode) return;
+        const normalizedRemoved = removedCode.replace(/\s+/g, "").toLowerCase();
         const updatedReadOnly = (user.user?.readOnly || []).filter(
-            (c) => c.code?.replaceAll(" ", "").toLowerCase() !== removedCode?.replaceAll(" ", "").toLowerCase()
+            (c) => c.code?.replace(/\s+/g, "").toLowerCase() !== normalizedRemoved
         );
-        dispatch(LoginUser({ ...user.user, readOnly: updatedReadOnly }));
+        dispatch(UpdateReadOnlyCourses(updatedReadOnly));
         toast.success(`Course ${removedCode.toUpperCase()} removed`);
     };
 
@@ -185,7 +187,7 @@ const Dashboard = () => {
                     <SubHeading text={"OTHERS"} color={"light"} type={"bold"} />
                     <Space amount={20} />
                     <div className="coursecard-container">
-                        {user.user.readOnly.map((course, index) => (
+                        {(user.user?.readOnly || []).map((course, index) => (
                             <CourseCard
                                 key={course.code || course.name}
                                 code={course?.code?.toUpperCase()}

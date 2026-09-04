@@ -24,7 +24,6 @@
             justify-content: flex-start;
             align-items: center;
             animation: folderNameSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-            will-change: opacity, transform;
 
             .folder-name {
                 font-family: "Bold";
