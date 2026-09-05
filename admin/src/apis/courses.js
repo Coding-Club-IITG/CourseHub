@@ -246,3 +246,21 @@ export const deleteNode = async(type,id) =>
     }
 }
 
+
+export const getFileDownloadUrl = async (fileId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}api/file/download/${fileId}`, {
+            headers: {
+                Authorization: "Bearer admin-coursehub-cc23-golang",
+            },
+            credentials: "include",
+        });
+        if (!response.ok) {
+            throw new Error("Failed to get download link");
+        }
+        return await response.json(); // { url: "..." }
+    } catch (error) {
+        console.error("Error getting download link:", error);
+        throw error;
+    }
+};

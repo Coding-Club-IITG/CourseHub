@@ -19,7 +19,7 @@ ContributionSchema.pre("save", async function (next) {
         if (this.uploadedBy) {
             const user = await User.findById(this.uploadedBy);
             if (user && user.isBR) {
-                this.approved = true;
+                //this.approved = true;
             }
         }
         next();
