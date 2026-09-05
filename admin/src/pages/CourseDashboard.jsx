@@ -1,6 +1,6 @@
 import { useParams} from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
+import { fetchCourseDashboardData, deleteNode, handleContribution, getFileDownloadUrl } from "@/apis/courses";
 import {
     FiFolder,
     FiFile,
@@ -69,6 +69,7 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
         </div>
     );
 }
+
 
 export default function CourseDashboard() {
     const { code } = useParams();
@@ -154,6 +155,23 @@ export default function CourseDashboard() {
 
     const pendingContributions = data?.contributions?.filter(c => !c.approved) || [];
 
+    const handleDownload = async(fileId) =>
+    {
+        try
+        {
+            const data = await getFileDownloadUrl(fileId);
+            if(data?.url)
+            {
+                window.location.href = data.url;
+            }
+        }
+        catch(error)
+        {
+            console.log(error);
+            alert("Failed to get download ");
+        }
+    };
+
     return (
         <div className="min-h-full bg-slate-100 text-slate-900">
             <header className="flex items-center gap-4 border-b border-slate-200 bg-white px-7 py-4">
@@ -232,10 +250,37 @@ export default function CourseDashboard() {
                                         <FiFile />
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <div className="text-sm font-semibold">
-                                            {contribution.files?.map(f => f.name).join(", ") || contribution.contributionId}
+                                        <div className = "text-sm font-semibold">
+                                            {contribution.files && contribution.files.length > 0 ? (
+                                                <div className = "flex flex-col gap 1">
+                                                    {contribution.files.map((file) => (
+                                                        <div key={file._id} className="flex items-center gap-2">
+                                                            <span className="truncate">{file.name}</span>
+                                                            {file.webUrl && (
+                                                                <a
+                                                                    href={file.webUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-xs text-blue-600 hover:underline"
+                                                                >
+                                                                    View
+                                                                </a>
+                                                            )}
+                                                            {file.downloadUrl && (
+                                                                <button
+                                                                    onClick={() => handleDownload(file.fileId)}
+                                                                    className="text-xs text-blue-600 hover:underline"
+                                                                >
+                                                                    Download
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                contribution.contributionId
+                                            )}
                                         </div>
-                                        <div className="text-xs text-slate-600">Awaiting review</div>
                                     </div>
                                     <div className="flex flex-shrink-0 gap-2">
                                         <button
