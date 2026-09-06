@@ -66,6 +66,7 @@ app.use("/api/files", fileRoutes);
 app.use("/api/folder", folderRoutes);
 app.use("/api/year", yearRoutes);
 app.use("/api/student", studentRoutes);
+app.use(seoRoutes);
 
 app.use(
     "/homepage",
@@ -109,7 +110,6 @@ app.use((err, req, res, next) => {
 });
 
 app.use(express.static("static"));
-app.use(seoRoutes);
 
 app.get("*", (req, res) => {
     res.sendFile(path.resolve(__dirname, "static", "index.html"));

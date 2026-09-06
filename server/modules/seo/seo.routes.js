@@ -24,13 +24,13 @@ router.get("/sitemap.xml", async (req, res) => {
             </url>`;
 
         for (const course of courses) {
-            const lastmod = course.updatedAt
-                ? course.updatedAt.toISOString().split("T")[0]
+            const lastmod = course.updatedAt && !isNaN(new Date(course.updatedAt))
+                ? new Date(course.updatedAt).toISOString().split("T")[0]
                 : new Date().toISOString().split("T")[0];
 
             xml += `
                 <url>
-                    <loc>${BASE_URL}/browse/${course.code}</loc>
+                    <loc>${BASE_URL}/browse/${encodeURIComponent(course.code.replace(/\s+/g,""))}</loc>
                     <lastmod>${lastmod}</lastmod>
                     <changefreq>weekly</changefreq>
                     <priority>0.8</priority>
@@ -39,6 +39,7 @@ router.get("/sitemap.xml", async (req, res) => {
 
         xml += "\n</urlset>";
 
+        res.set("Cache-Control", "public, max-age=86400, s-maxage=86400")
         res.set("Content-Type", "application/xml");
         res.send(xml);
     } catch (error) {
@@ -52,6 +53,7 @@ router.get("/sitemap.xml", async (req, res) => {
 router.get("/robots.txt", (req, res) => {
     const robotsTxt = `User-agent: *
 Allow: /
+Allow: /browse
 Allow: /browse/
 
 Disallow: /dashboard
