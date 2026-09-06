@@ -1,10 +1,7 @@
 import nodemailer from "nodemailer";
 import logger from "../utils/logger.js";
 
-let emailClient = {
-    email: "coursehubiitg@outlook.com",
-    password: "Xidc4545#",
-};
+const emailClient = { email: process.env.MAIL_USER, password: process.env.MAIL_PASSWORD };
 
 function sendEmail(to, subject, msg) {
     const transporter = nodemailer.createTransport({
@@ -22,10 +19,10 @@ function sendEmail(to, subject, msg) {
     };
     transporter.sendMail(options, function (err, info) {
         if (err) {
-            logger.error(err);
+            logger.error("Email delivery failed", { error: err, attributes: { dependency: "outlook", operation: "send-email", outcome: "failure", retryable: true } });
             return;
         }
-        logger.info("Sent", info.response);
+        logger.info("Email delivered", { attributes: { dependency: "outlook", operation: "send-email", outcome: "success" } });
     });
 }
 

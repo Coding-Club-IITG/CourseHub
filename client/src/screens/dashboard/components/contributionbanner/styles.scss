@@ -50,6 +50,7 @@ $medium: 1250px;
                 background-repeat: no-repeat;
                 background-position: center;
                 width: 100%;
+                animation: wingBobUp 3s ease-in-out infinite alternate;
             }
 
             .downwings {
@@ -58,6 +59,7 @@ $medium: 1250px;
                 background-repeat: no-repeat;
                 background-position: center;
                 width: 100%;
+                animation: wingBobDown 3s ease-in-out infinite alternate;
             }
         }
     }
@@ -91,3 +93,21 @@ $medium: 1250px;
 }
 
 #contribute-info {}
+
+@keyframes wingBobUp {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes wingBobDown {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(5px);
+    }
+}

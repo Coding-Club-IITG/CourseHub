@@ -20,7 +20,7 @@ export const verifyFile = async (req, res) => {
 
         res.status(200).json({ message: "File verified successfully", file });
     } catch (err) {
-        logger.error(err);
+        logger.error("File verification failed", { error: err, attributes: { dependency: "mongodb", operation: "verify-file", outcome: "failure", retryable: false } });
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -43,7 +43,7 @@ export const unverifyFile = async (req, res) => {
 
         res.status(200).json({ message: "File deleted (unverified) successfully" });
     } catch (err) {
-        logger.error(err);
+        logger.error("File removal failed", { error: err, attributes: { dependency: "microsoft-graph", operation: "remove-file", outcome: "failure", retryable: true } });
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -66,7 +66,7 @@ export const getAllFiles = async (req, res) => {
 
         res.status(200).json(files);
     } catch (err) {
-        logger.error({ err, userId: req.user?._id }, "Error fetching files");
+        logger.error("File query failed", { error: err, attributes: { dependency: "mongodb", operation: "query-files", outcome: "failure", retryable: false } });
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -88,7 +88,7 @@ export const getFileLink = async (req, res) => {
         return res.status(200).json({ file });
         
     } catch (error) {
-        logger.error(error, "Error fetching file link");
+        logger.error("File link query failed", { error, attributes: { dependency: "mongodb", operation: "query-file-link", outcome: "failure", retryable: false } });
         return res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -145,7 +145,7 @@ export const renameFile = async (req, res) => {
 
         res.status(200).json({ message: "File renamed successfully", file });
     } catch (err) {
-        logger.error(err, `Error renaming file ${req.params.id}`);
+        logger.error("File rename failed", { error: err, attributes: { dependency: "microsoft-graph", operation: "rename-file", outcome: "failure", retryable: true } });
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };

@@ -7,6 +7,7 @@
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
+        "preflight": "node scripts/preflight.js",
         "destroyDB": "node scripts/deleteAllCourses.js && node scripts/deleteAllFolders.js && node scripts/deleteAllFiles.js && node scripts/deleteAllSearchResults.js",
         "seed:app": "node scripts/seed_app.js",
         "sync-cache": "node scripts/syncCoursesCache.js"
@@ -16,6 +17,7 @@
     "license": "ISC",
     "dependencies": {
         "@azure/identity": "^3.0.0",
+        "@coding-club-iitg/ops-logger": "^0.3.1",
         "@imagekit/nodejs": "^7.5.0",
         "@microsoft/microsoft-graph-client": "^3.0.2",
         "aes-js": "^3.1.2",
@@ -36,14 +38,13 @@
         "mongoose": "^6.7.0",
         "multer": "^1.4.5-lts.1",
         "node-cron": "^4.6.0",
-        "nodemailer": "^6.9.1",
-        "pino": "^8.7.0",
-        "pino-pretty": "^9.1.1"
+        "nodemailer": "^6.9.1"
     },
     "devDependencies": {
+        "@coding-club-iitg/ops-contract": "^0.2.0",
         "nodemon": "^2.0.20"
     },
     "engines": {
-        "node": "16.x"
+        "node": ">=22"
     }
 }

@@ -66,11 +66,9 @@ export function isGraphError(error) {
 
 export function logGraphError(logger, error, context = "Microsoft Graph request failed") {
     const details = error?.graphDetails || extractGraphErrorDetails(error);
-    logger.error(
-        {
-            graph: details,
-        },
-        context
-    );
+    logger.error("Microsoft Graph request failed", {
+        error,
+        attributes: { dependency: "microsoft-graph", operation: "request", outcome: "failure", retryable: true },
+    });
     return details;
 }

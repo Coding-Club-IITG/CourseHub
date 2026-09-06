@@ -15,52 +15,6 @@ const coursehub_id = process.env.ONEDRIVE_FOLDER_ID;
 const getCourseCodeFromFolderName = (name) => normalizeCourseCode(name?.split("-")[0]);
 const getCourseNameFromFolderName = (name) => name?.split("-")[1]?.trim() || "";
 
-export async function generateDeviceCode(req, res) {
-    const data = qs.stringify({
-        tenant: settings.tenantId,
-        client_id: settings.clientId,
-        scope: "user.read offline_access files.readwrite",
-    });
-
-    const config = {
-        method: "post",
-        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/devicecode`,
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data,
-    };
-
-    const response = await axios.post(config.url, config.data, {
-        headers: config.headers,
-    });
-
-    if (!response.data) throw new AppError(500, "Something went wrong");
-
-    fs.writeFileSync("./onedrive-device-code.token", response.data.device_code, "utf-8");
-    if (fs.existsSync("./onedrive-access-token.token")) {
-        fs.unlinkSync("./onedrive-access-token.token");
-        fs.unlinkSync("./onedrive-refresh-token.token");
-    }
-
-    return res.status(200).json({
-        status: "success",
-        data: {
-            message: response.data,
-        },
-    });
-}
-
-export async function getAccessCode(req, res) {
-    const token = await getAccessToken();
-    return res.status(200).json({
-        status: "success",
-        data: {
-            access_token: token,
-        },
-    });
-}
-
 export async function makeAllCourses(req, res) {
     await visitAllFiles();
     return res.sendStatus(200);
@@ -334,11 +288,10 @@ export async function getAccessToken() {
     refreshPromise = (async () => {
         let data;
 
-        if (fs.existsSync("./onedrive-refresh-token.token")) {
-            data = await refreshAccessToken();
-        } else {
-            data = await generateAccessToken();
+        if (!fs.existsSync("./onedrive-refresh-token.token")) {
+            throw new AppError(503, "OneDrive authorization is not provisioned");
         }
+        data = await refreshAccessToken();
 
         cachedAccessToken = data.access_token;
 
@@ -386,35 +339,9 @@ async function refreshAccessToken() {
     if (!response.data) throw new AppError(500, "Something went wrong");
 
     fs.writeFileSync("./onedrive-access-token.token", response.data.access_token, "utf-8");
-    fs.writeFileSync("./onedrive-refresh-token.token", response.data.refresh_token, "utf-8");
-
-    return response.data;
-}
-
-async function generateAccessToken() {
-    const data = qs.stringify({
-        tenant: settings.tenantId,
-        client_id: settings.clientId,
-        device_code: `${fs.readFileSync("./onedrive-device-code.token", "utf-8")}`,
-        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
-    });
-
-    const config = {
-        method: "post",
-        url: `https://login.microsoftonline.com/${settings.tenantId}/oauth2/v2.0/token`,
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data,
-    };
-    const response = await axios.post(config.url, config.data, {
-        headers: config.headers,
-    });
-
-    if (!response.data) throw new AppError(500, "Something went wrong");
-
-    fs.writeFileSync("./onedrive-access-token.token", response.data.access_token, "utf-8");
-    fs.writeFileSync("./onedrive-refresh-token.token", response.data.refresh_token, "utf-8");
+    if (response.data.refresh_token) {
+        fs.writeFileSync("./onedrive-refresh-token.token", response.data.refresh_token, "utf-8");
+    }
 
     return response.data;
 }

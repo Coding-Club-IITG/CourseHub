@@ -11,6 +11,7 @@ import { runSync } from "../../scripts/syncCoursesCache.js";
 import mongoose from "mongoose";
 import {deleteFile} from "../file/file.controller.js";
 import {DeleteFile} from "../../services/UploadFile.js";
+import logger from "../../utils/logger.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -472,7 +473,7 @@ export async function deleteCourse(req, res, next) {
                             }
                         }
                     } catch (fileError) {
-                        console.error(`Error deleting file ${file._id}:`, fileError);
+                        logger.error("Admin file deletion failed", { error: fileError, attributes: { dependency: "microsoft-graph", operation: "delete-file", outcome: "failure", retryable: true } });
                         // Continue with other files even if one fails
                     }
                 }
@@ -739,7 +740,7 @@ async function performLink(targetCodeRaw, sourceCodeRaw) {
                 // Add target code to source folder tree
                 await addCourseToFolderTree(sourceYearDoc._id, targetCode);
             } else {
-                console.log(`Target year ${sourceYearDoc.name} has content, prioritizing target.`);
+                logger.info("Existing target year retained", { attributes: { operation: "merge-year", outcome: "retained" } });
             }
         } else {
             // Year folder only exists in source. Add to target.

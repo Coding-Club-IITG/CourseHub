@@ -6,7 +6,7 @@ import { IsCourseAvailable } from "../../../../api/Search";
 import { DeleteCourseAPI } from "../../../../api/User";
 import { toast } from "react-toastify";
 import { ConfirmDialog } from "./ConfirmDialog";
-const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
+const CourseCard = ({ code, color, name, type, setClicked, isReadOnly, onCourseRemoved }) => {
     const [isAvailable, setIsAvailable] = useState(true);
     const [showConfirm, setShowConfirm] = useState(false);
     const [isRemoving, setIsRemoving] = useState(false);
@@ -26,8 +26,14 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly }) => {
         if (isRemoving) return;
         try {
             setIsRemoving(true);
-            const resp = await DeleteCourseAPI(code);
-            location.reload();
+            await DeleteCourseAPI(code);
+            setIsRemoving(false);
+            setShowConfirm(false);
+            if (onCourseRemoved) {
+                onCourseRemoved(code);
+            } else {
+                location.reload();
+            }
         } catch (error) {
             toast.error("Something went wrong!");
             setIsRemoving(false);

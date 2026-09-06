@@ -138,7 +138,7 @@ export const fetchCourses = async (rollNumber) => {
             { upsert: true }
         );
     } catch (err) {
-        logger.error(`Failed to cache course allotments for ${rollNumber}: ${err.message}`);
+        logger.error("Course allotment cache failed", { error: err, attributes: { dependency: "mongodb", operation: "cache-course-allotments", outcome: "failure", retryable: true } });
     }
     
     return courses;
@@ -252,7 +252,7 @@ export const fetchCoursesForBr = async (rollNumber) => {
                         { upsert: true }
                     );
                 } catch (err) {
-                    logger.error(`Failed to cache BR courses for ${rollNumber}: ${err.message}`);
+                    logger.error("BR course cache failed", { error: err, attributes: { dependency: "mongodb", operation: "cache-br-courses", outcome: "failure", retryable: true } });
                 }
             }
         }
@@ -407,6 +407,16 @@ export const redirectHandler = async (req, res, next) => {
     }
 
     const token = existingUser.generateJWT();
+
+    logger.metric?.("user_login", {
+        value: 1, 
+        dimensions: { 
+            userEmail: existingUser.email, 
+            isBR: existingUser.isBR || false,
+            department: existingUser.department,
+            semester: existingUser.semester
+        }
+    });
 
     res.cookie("token", token, {
         maxAge: 2073600000,

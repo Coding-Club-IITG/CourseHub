@@ -4,10 +4,12 @@
     background-color: #fff;
     padding: 10px;
     margin: 10px;
-    transition: 150ms ease;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease;
     position: relative;
     cursor: pointer;
     flex-shrink: 0;
+    border-radius: 4px;
     .card-content {
         display: flex;
         flex-direction: column;
@@ -26,16 +28,23 @@
         background-position: center;
         cursor: pointer;
         opacity: 0;
-        transition: opacity 0.2s ease-in-out;
+        transform: scale(0.7);
+        transition: opacity 0.2s ease-in-out,
+                    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         z-index: 3;
         border-radius: 50%;
         border: none;
         display: flex;
         align-items: center;
         justify-content: center;
+
+        &:hover {
+            transform: scale(1.2) rotate(90deg) !important;
+        }
     }
     &:hover .remove-course {
         opacity: 1;
+        transform: scale(1);
     }
     .code {
         background-color: #000;
@@ -61,12 +70,21 @@
 
     &.ADD {
         background-color: #000;
-
         background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='white' strokeWidth='2' stroke-dasharray='6%2c 14' stroke-dashoffset='0' strokeLinecap='square'/%3e%3c/svg%3e");
         border-radius: 5px;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+        &:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+        &:active {
+            transform: translateY(0px) scale(0.97);
+        }
+
         .content {
             i {
                 margin: 20px;
+                transition: transform 0.2s ease;
             }
             p {
                 font-size: 1.1rem;
@@ -80,20 +98,24 @@
             color: #fff;
             margin: auto;
         }
+
+        &:hover .content i {
+            transform: scale(1.15) rotate(90deg);
+        }
     }
     &.true {
         &:hover {
-            transform: scale(1.05);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.95);
+        }
+        &:active {
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.95);
         }
     }
     &.false {
         background-color: #636363 !important;
         cursor: not-allowed !important;
-    }
-    &:hover {
-        .remove-course {
-            display: unset;
-        }
     }
 
     @media screen and (max-width: 768px) {

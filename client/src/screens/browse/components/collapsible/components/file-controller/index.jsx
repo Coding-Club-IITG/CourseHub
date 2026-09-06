@@ -11,8 +11,8 @@ const FileController = ({ files, code, isMobileView = false }) => {
         return file.isVerified;
     });
 
-    return visibleFiles.map((file) => (
-        <FileDisplay file={file} key={file._id} code={code} isMobileView={isMobileView} />
+    return visibleFiles.map((file, idx) => (
+        <FileDisplay file={file} key={file._id} code={code} isMobileView={isMobileView} index={idx} />
     ));
 };
 

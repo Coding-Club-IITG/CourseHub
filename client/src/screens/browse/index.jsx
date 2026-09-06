@@ -18,7 +18,6 @@ import {
     ChangeFolder,
     LoadCourses,
     UpdateCourses,
-    RefreshCurrentFolder,
     PushFolderHistory,
     PopFolderHistory,
     ClearFolderHistory,
@@ -29,7 +28,7 @@ import { getUser } from "../../api/User";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
 import { fetchFolder } from "../../api/Folder";
-import { getSubtreeFileCount } from "../../utils/folderUtils";
+import { getSubtreeFileCount, findFolderById, findYearIndexForFolder } from "../../utils/folderUtils";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Share from "../share";
@@ -115,17 +114,6 @@ const BrowseScreen = () => {
         }
     }, []);
 
-    const findFolderById = (folders, id) => {
-        if (!folders || !Array.isArray(folders)) return null;
-        for (const folder of folders) {
-            if (folder._id === id) return folder;
-            if (folder.children?.length) {
-                const result = findFolderById(folder.children, id);
-                if (result) return result;
-            }
-        }
-        return null;
-    };
 
     useEffect(() => {
         if (loading || !code) {
@@ -159,12 +147,24 @@ const BrowseScreen = () => {
                     const defaultYear = fetchedData.children[defaultYearIndex];
                     let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
 
-                    if (defaultYear && defaultYear.children) {
+                    let activeYearIndex = defaultYearIndex;
+                    if (folderId && activeFolder) {
+                        const matchedIdx = findYearIndexForFolder(
+                            fetchedData.children,
+                            activeFolder._id
+                        );
+                        if (matchedIdx !== -1) {
+                            activeYearIndex = matchedIdx;
+                        }
+                    }
+
+                    const activeYear = fetchedData.children[activeYearIndex];
+                    if (activeYear && activeYear.children) {
                         dispatch(
-                            ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
+                            ChangeCurrentYearData(activeYearIndex, activeYear.children || [])
                         );
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                        dispatch(ChangeFolder(activeFolder || defaultYear));
+                        dispatch(ChangeFolder(activeFolder || activeYear));
                     }
                 }
             } else {
@@ -196,12 +196,24 @@ const BrowseScreen = () => {
                         const defaultYear = fetchedData.children[defaultYearIndex];
                         let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
 
-                        if (defaultYear && defaultYear.children) {
+                        let activeYearIndex = defaultYearIndex;
+                        if (folderId && activeFolder) {
+                            const matchedIdx = findYearIndexForFolder(
+                                fetchedData.children,
+                                activeFolder._id
+                            );
+                            if (matchedIdx !== -1) {
+                                activeYearIndex = matchedIdx;
+                            }
+                        }
+
+                        const activeYear = fetchedData.children[activeYearIndex];
+                        if (activeYear && activeYear.children) {
                             dispatch(
-                                ChangeCurrentYearData(defaultYearIndex, defaultYear.children || [])
+                                ChangeCurrentYearData(activeYearIndex, activeYear.children || [])
                             );
                             dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                            dispatch(ChangeFolder(activeFolder || defaultYear));
+                            dispatch(ChangeFolder(activeFolder || activeYear));
                         }
                     }
                 } else {
@@ -223,11 +235,29 @@ const BrowseScreen = () => {
 
             const matched = findFolderById(currCourse, folderId);
             if (matched) {
+                const matchedYearIndex = findYearIndexForFolder(currCourse, matched._id);
+                if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
+                    dispatch(
+                        ChangeCurrentYearData(
+                            matchedYearIndex,
+                            currCourse[matchedYearIndex]?.children || []
+                        )
+                    );
+                }
                 dispatch(ChangeFolder(matched));
             } else {
                 fetchFolder(folderId, code)
                     .then((freshFolder) => {
                         if (freshFolder && freshFolder._id) {
+                            const matchedYearIndex = findYearIndexForFolder(currCourse, freshFolder._id);
+                            if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
+                                dispatch(
+                                    ChangeCurrentYearData(
+                                        matchedYearIndex,
+                                        currCourse[matchedYearIndex]?.children || []
+                                    )
+                                );
+                            }
                             dispatch(ChangeFolder(freshFolder));
                         } else {
                             toast.error("Folder not found!");
@@ -366,7 +396,6 @@ const BrowseScreen = () => {
                 dispatch(ClearFolderHistory()); // Clear folder history when changing years
                 dispatch(ChangeCurrentYearData(selectedYearIndex, selectedYear.children));
                 dispatch(ChangeFolder(selectedYear));
-                dispatch(RefreshCurrentFolder());
                 if (selectedYear._id) {
                     navigate(`/browse/${currCourseCode}/${selectedYear._id}`);
                 } else {
@@ -436,7 +465,7 @@ const BrowseScreen = () => {
                                     <div className="empty-message">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p className="empty-message">No files available.</p>
+                                        <p className="empty-message" key={folderData?._id || "empty-files"}>No files available.</p>
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -445,11 +474,11 @@ const BrowseScreen = () => {
                                         />
                                     )
                                 ) : folderData?.children?.length === 0 ? (
-                                    <div className="empty-folder">
+                                    <div className="empty-folder" key={folderData?._id || "empty-folders"}>
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
-                                    folderData?.children.map((folder) => (
+                                    folderData?.children.map((folder, idx) => (
                                         <BrowseFolder
                                             type="folder"
                                             key={folder._id}
@@ -459,6 +488,7 @@ const BrowseScreen = () => {
                                             folderData={folder}
                                             parentFolder={folderData}
                                             isMobileView={isMobile}
+                                            index={idx}
                                         />
                                     ))
                                 )}
@@ -506,7 +536,7 @@ const BrowseScreen = () => {
                             user.user?.previousCourses?.length > 0 &&
                             user.user?.previousCourses?.map((semesterGroup, semIdx) => (
                                 <div key={semIdx}>
-                                    <h5 className="heading" style={{ fontSize: "0.85em", marginTop: "10px", color: "gray" }}>
+                                    <h5 className="semester-subheading">
                                         Semester {semesterGroup.semester} ({semesterGroup.year})
                                     </h5>
                                     {semesterGroup.courses.map((course, idx) => (
@@ -522,7 +552,7 @@ const BrowseScreen = () => {
                             {folderData && (
                                 <FolderInfo
                                     isBR={user.user.isBR}
-                                    path={folderData?.path ? folderData.path : HeaderText}
+                                    path={folderData?.path ? folderData.path : ""}
                                     name={folderData?.name ? folderData.name : HeaderText}
                                     canDownload={folderData?.childType === "File"}
                                     contributionHandler={contributionHandler}
@@ -532,10 +562,10 @@ const BrowseScreen = () => {
                             )}
                             <div className="files">
                                 {!folderData ? (
-                                    <div className="empty-message">{HeaderText}</div>
+                                    <div className="empty-message" key="no-folder">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p className="empty-message">No files available.</p>
+                                        <p className="empty-message" key={folderData?._id || "empty-files"}>No files available.</p>
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -543,11 +573,11 @@ const BrowseScreen = () => {
                                         />
                                     )
                                 ) : folderData?.children?.length === 0 ? (
-                                    <div className="empty-folder">
+                                    <div className="empty-folder" key={folderData?._id || "empty-folders"}>
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
-                                    folderData?.children.map((folder) => (
+                                    folderData?.children.map((folder, idx) => (
                                         <BrowseFolder
                                             type="folder"
                                             key={folder._id}
@@ -556,6 +586,7 @@ const BrowseScreen = () => {
                                             subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
                                             folderData={folder}
                                             parentFolder={folderData}
+                                            index={idx}
                                         />
                                     ))
                                 )}
