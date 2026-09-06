@@ -1,6 +1,6 @@
 import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
 import logger from "../utils/logger.js";
-import { extractGraphErrorDetails, formatGraphErrorMessage } from "../utils/graphError.js";
+import { extractGraphErrorDetails } from "../utils/graphError.js";
 
 const encodeGraphShareUrl = (shareUrl) => {
     let base64;
@@ -53,7 +53,7 @@ export const downloadFiles = async (req, res) => {
                 },
             });
 
-            logger.error({ graph: details }, "Graph share lookup failed");
+            logger.error("Graph share lookup failed", { error: new Error("Graph share lookup failed"), attributes: { dependency: "microsoft-graph", operation: "lookup-share", outcome: "failure", retryable: true } });
             return res.status(502).json({
                 error: "Failed to fetch file details from Microsoft Graph",
                 status: details.status,
@@ -70,7 +70,7 @@ export const downloadFiles = async (req, res) => {
                 config: { method: "get", url: resolvedEndpoint },
                 response: { status: 502, data },
             });
-            logger.error({ graph: details }, "Graph returned an error payload");
+            logger.error("Graph share lookup failed", { error: new Error("Graph returned an error response"), attributes: { dependency: "microsoft-graph", operation: "lookup-share", outcome: "failure", retryable: true } });
 
             return res.status(502).json({
                 error: "Microsoft Graph responded with an error",
@@ -82,15 +82,7 @@ export const downloadFiles = async (req, res) => {
 
         const downloadLink = data["@microsoft.graph.downloadUrl"];
         if (!downloadLink) {
-            logger.error(
-                {
-                    graph: {
-                        endpoint: resolvedEndpoint,
-                        message: "Missing @microsoft.graph.downloadUrl in Graph response",
-                    },
-                },
-                "Graph response missing download URL"
-            );
+            logger.error("Graph response missing download URL", { attributes: { dependency: "microsoft-graph", operation: "lookup-share", outcome: "failure", retryable: false } });
 
             return res.status(500).json({ error: "No download link found in Graph response." });
         }
@@ -98,7 +90,7 @@ export const downloadFiles = async (req, res) => {
         return res.status(200).json({ downloadLink });
     } catch (err) {
         const details = extractGraphErrorDetails(err);
-        logger.error({ graph: details }, formatGraphErrorMessage(details, "Unexpected Graph download error"));
+        logger.error("Graph download failed", { error: err, attributes: { dependency: "microsoft-graph", operation: "download-file", outcome: "failure", retryable: true } });
         return res.status(500).json({ error: "Internal server error", detail: details.message });
     }
 };

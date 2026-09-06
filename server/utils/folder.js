@@ -1,5 +1,6 @@
 import { FolderModel } from "../modules/course/course.model.js";
 import { normalizeCourseCode } from "./course.js";
+import logger from "./logger.js";
 
 /**
  * Recursively calculates and updates totalFileCount for a folder document in DB.
@@ -28,7 +29,7 @@ export async function calculateFolderSubtreeCount(folderId) {
         await FolderModel.updateOne({ _id: folderId }, { $set: { totalFileCount: count } });
         return count;
     } catch (err) {
-        console.error(`Error calculating subtree count for folder ${folderId}:`, err);
+        logger.error("Folder subtree calculation failed", { error: err, attributes: { dependency: "mongodb", operation: "calculate-folder-subtree", outcome: "failure", retryable: false } });
         return 0;
     }
 }
@@ -48,7 +49,7 @@ export async function recalculateParentFolderCounts(parentFolderId) {
             await recalculateParentFolderCounts(parent._id);
         }
     } catch (err) {
-        console.error(`Error recalculating parent folder counts for ${parentFolderId}:`, err);
+        logger.error("Parent folder recalculation failed", { error: err, attributes: { dependency: "mongodb", operation: "recalculate-folder-counts", outcome: "failure", retryable: false } });
     }
 }
 

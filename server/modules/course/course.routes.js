@@ -7,6 +7,7 @@ import {
 } from "./course.controller.js";
 import CourseModel from "./course.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import logger from "../../utils/logger.js";
 const router = express.Router();
 
 import catchAsync from "../../utils/catchAsync.js";
@@ -40,7 +41,7 @@ router.post("/create/:code", async (req, res) => {
 
         return res.status(201).json({ message: "Course created successfully", course: newCourse });
     } catch (error) {
-        console.error(error);
+        logger.error("Course creation failed", { error, attributes: { dependency: "mongodb", operation: "create-course", outcome: "failure", retryable: false } });
         res.status(500).json({ message: "Server Error" });
     }
 });

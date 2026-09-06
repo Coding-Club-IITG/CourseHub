@@ -2,18 +2,6 @@ import React from "react";
 import cross from "../browsefolder/cross.svg";
 
 const styles = {
-    overlay: {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.4)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-    },
     dialog: {
         backgroundColor: "#fff",
         padding: "25px 30px",
@@ -74,8 +62,13 @@ const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) =>
     if (!isOpen) return null;
 
     return (
-        <div style={styles.overlay}>
-            <div style={styles.dialog}>
+        <div
+            className="confirm-dialog-overlay"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onCancel();
+            }}
+        >
+            <div style={styles.dialog} className="confirm-modal-box">
                 <img src={cross} alt="Delete" style={styles.iconImage} />
                 <h3 style={styles.heading}>Are you sure?</h3>
                 <p style={styles.message}>

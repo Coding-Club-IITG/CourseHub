@@ -1,0 +1,55 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cloudflared
+        run: |
+          curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          cat >> ~/.ssh/config <<EOF
+          Host ssh.codingclub.in
+              ProxyCommand cloudflared access ssh --hostname %h
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Deploy
+        run: |
+          ssh cc@ssh.codingclub.in << 'EOF'
+            cd ~/Projects/CourseHub
+            git pull
+            
+            # Install and build frontend
+            cd client
+            npm install
+            npm run build
+            rm -rf /var/www/coursehub/client/*
+            cp -r dist/* /var/www/coursehub/client/
+            cd ..
+            
+            # Install and build admin
+            cd admin
+            npm install
+            npm run build
+            rm -rf /var/www/coursehub/admin/*
+            cp -r dist/* /var/www/coursehub/admin/
+            cd ..
+            
+            # Install backend and reload PM2
+            cd server
+            npm install
+            pm2 reload coursehub-backend
+          EOF

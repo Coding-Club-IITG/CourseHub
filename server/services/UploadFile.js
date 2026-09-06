@@ -78,7 +78,7 @@ async function UploadFile(contributionId, filePath, fileName) {
     const folderId = parent_item_id;
     const session = await createUploadSession(folderId, fileName);
     if (!session?.url) {
-        logger.error("Error uploading!");
+        logger.error("File upload failed", { attributes: { dependency: "microsoft-graph", operation: "upload-file", outcome: "failure", retryable: true } });
         return null;
     }
     const { url, access_token } = session;
@@ -142,9 +142,9 @@ async function UploadFile(contributionId, filePath, fileName) {
                             },
                         }
                     );
-                    logger.info(`ImageKit thumbnail stored for ${data.id}`);
+                    logger.info("ImageKit thumbnail stored", { attributes: { dependency: "imagekit", operation: "store-thumbnail", outcome: "success" } });
                 } catch (thumbErr) {
-                    logger.warn(`ImageKit thumbnail upload failed for ${data.id}: ${thumbErr.message}`);
+                    logger.warn("ImageKit thumbnail upload failed", { error: thumbErr, attributes: { dependency: "imagekit", operation: "store-thumbnail", outcome: "failure", retryable: true } });
                 }
             })();
         }
@@ -164,7 +164,7 @@ async function DeleteFile(fileId) {
         const imagekitId = fileDoc?.thumbnail?.fileId || fileDoc?.imagekitFileId;
         if (imagekitId) {
             deleteThumbnail(imagekitId).catch((ikErr) => {
-                logger.warn(`ImageKit thumbnail deletion failed for ${fileId}: ${ikErr.message}`);
+                logger.warn("ImageKit thumbnail deletion failed", { error: ikErr, attributes: { dependency: "imagekit", operation: "delete-thumbnail", outcome: "failure", retryable: true } });
             });
         }
     }).catch(() => {});

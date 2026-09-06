@@ -6,4 +6,5 @@ access-token.token
 refresh_token.token
 onedrive-access-token.token
 onedrive-refresh-token.token
+onedrive-device-code.token
 .DS_Store

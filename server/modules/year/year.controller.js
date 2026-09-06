@@ -3,6 +3,7 @@ import CourseModel from "../course/course.model.js";
 import { deleteFile } from "../file/file.controller.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { createYearFolderWithDefaultStructure } from "../course/course.service.js";
+import logger from "../../utils/logger.js";
 
 async function addYear(req, res) {
     const { name, course } = req.body;
@@ -51,7 +52,7 @@ async function deleteYear(req, res) {
 
         return res.json({ success: true, folderId });
     } catch (err) {
-        console.error("Error deleting year:", err);
+        logger.error("Year deletion failed", { error: err, attributes: { dependency: "mongodb", operation: "delete-year", outcome: "failure", retryable: false } });
         return res.status(500).json({ success: false, error: err.message });
     }
 }
@@ -85,7 +86,7 @@ async function recursiveDelete(folder){
     }
     else if(folder.childType === "File"){
         for(const file of folder.children){
-            console.log(file);
+            logger.debug("Year file inspected", { attributes: { dependency: "mongodb", operation: "inspect-year-file", outcome: "success" } });
             await deleteFile(file);
         }
         await FolderModel.findByIdAndDelete(folder._id);

@@ -1,20 +1,20 @@
 import "dotenv/config";
+import http from "node:http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import mongoose from "mongoose";
 import cors from "cors";
 import express from "express";
-import AppError from "./utils/appError.js";
-import logger from "./utils/logger.js";
-import { extractGraphErrorDetails, isGraphError } from "./utils/graphError.js";
-import config from "./config/default.js";
-import authRoutes from "./modules/auth/auth.routes.js";
-import userRoutes from "./modules/user/user.routes.js";
 import cookieParser from "cookie-parser";
+import ua from "express-useragent";
+import config from "./config/default.js";
+import { flushLogging, lifecycleLogger, logger, opsHttpMiddleware } from "./utils/logger.js";
+import { initScheduler } from "./config/cron.js";
+import connectDatabase from "./services/connectDB.js";
 import catchAsync from "./utils/catchAsync.js";
 import User from "./modules/user/user.model.js";
-import ua from "express-useragent";
-import http from "http";
-import fs from "fs";
-import connectDatabase from "./services/connectDB.js";
-connectDatabase();
+import authRoutes from "./modules/auth/auth.routes.js";
+import userRoutes from "./modules/user/user.routes.js";
 import onedriveRoutes from "./modules/onedrive/onedrive.routes.js";
 import courseRoutes from "./modules/course/course.routes.js";
 import searchRoutes from "./modules/search/search.routes.js";
@@ -26,13 +26,15 @@ import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
-import { initScheduler } from "./config/cron.js";
 import seoRoutes from "./modules/seo/seo.routes.js";
-initScheduler();
 
 const app = express();
+const server = http.createServer(app);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let scheduler;
+let shutdownPromise;
 
-const PORT = config.port;
+app.use(opsHttpMiddleware);
 app.use(
     cors({
         origin: [
@@ -41,15 +43,9 @@ app.use(
             "https://coursehub.codingclub.in",
         ],
         credentials: true,
-    })
+    }),
 );
-
 app.use(express.static("static"));
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(ua.express());
@@ -70,51 +66,90 @@ app.use(seoRoutes);
 
 app.use(
     "/homepage",
-    catchAsync(async (req, res, next) => {
-        let jwtToken = req.cookies.token;
-        const user = await User.findByJWT(jwtToken);
+    catchAsync(async (req, res) => {
+        const user = await User.findByJWT(req.cookies.token);
         if (!user) return res.redirect(config.clientURL);
-        res.json(user);
-    })
+        return res.json(user);
+    }),
 );
 
-// Error handler
-app.use((err, req, res, next) => {
-    if (isGraphError(err)) {
-        const details = err.graphDetails || extractGraphErrorDetails(err);
-        logger.error(
-            {
-                graph: details,
-                route: req.originalUrl,
-                method: req.method,
-            },
-            "Microsoft Graph request failed"
-        );
-    } else {
-        logger.error(
-            {
-                message: err.message,
-                microsoftResponse: err.response?.data,
-                route: req.originalUrl,
-                method: req.method,
-            },
-            "Unhandled request error"
-        );
-    }
-
-    const { status = 500, message = "Something went wrong!" } = err;
-    return res.status(status).json({
-        error: true,
-        message: message,
+app.use((error, req, res, next) => {
+    logger.error("Unhandled request error", {
+        error,
+        attributes: {
+            component: "express-error-handler",
+            operation: "request",
+            outcome: "failure",
+            retryable: false,
+        },
     });
+    const { status = 500, message = "Something went wrong!" } = error;
+    return res.status(status).json({ error: true, message });
 });
 
-app.use(express.static("static"));
+app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
-app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "static", "index.html"));
-});
+async function closeServer() {
+    if (!server.listening) return;
+    await new Promise((resolve) => server.close(resolve));
+}
 
-app.listen(PORT, () => {
-    logger.info(`Server on PORT ${PORT}`);
-});
+export function shutdown({ signal, error, exitCode }) {
+    if (shutdownPromise) return shutdownPromise;
+    shutdownPromise = (async () => {
+        const details = {
+            attributes: {
+                component: "server",
+                operation: "shutdown",
+                outcome: error ? "failure" : "success",
+                ...(signal ? { signal } : {}),
+                exitCode,
+            },
+        };
+        if (error)
+            lifecycleLogger.fatal("Server terminating after fatal process error", {
+                ...details,
+                error,
+            });
+        else lifecycleLogger.info("Server shutdown started", details);
+        scheduler?.stop();
+        await closeServer();
+        await mongoose.disconnect();
+        await flushLogging();
+    })();
+    return shutdownPromise;
+}
+
+async function terminate(options) {
+    try {
+        await shutdown(options);
+    } finally {
+        process.exit(options.exitCode);
+    }
+}
+
+process.once("SIGINT", () => void terminate({ signal: "SIGINT", exitCode: 0 }));
+process.once("SIGTERM", () => void terminate({ signal: "SIGTERM", exitCode: 0 }));
+process.once("uncaughtException", (error) => void terminate({ error, exitCode: 1 }));
+process.once("unhandledRejection", (error) => void terminate({ error, exitCode: 1 }));
+
+
+
+export async function start() {
+    await connectDatabase();
+    scheduler = initScheduler();
+    await new Promise((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(config.port, resolve);
+    });
+    lifecycleLogger.info("Server ready", {
+        attributes: { component: "server", operation: "listen", outcome: "success" },
+    });
+    return server;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    start().catch((error) => void terminate({ error, exitCode: 1 }));
+}
+
+export { app, server };
