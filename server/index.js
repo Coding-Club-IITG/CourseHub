@@ -27,6 +27,7 @@ import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
 import { initScheduler } from "./config/cron.js";
+import seoRoutes from "./modules/seo/seo.routes.js";
 initScheduler();
 
 const app = express();
@@ -108,6 +109,7 @@ app.use((err, req, res, next) => {
 });
 
 app.use(express.static("static"));
+app.use(seoRoutes);
 
 app.get("*", (req, res) => {
     res.sendFile(path.resolve(__dirname, "static", "index.html"));
