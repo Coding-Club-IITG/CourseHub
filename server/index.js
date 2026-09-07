@@ -27,6 +27,7 @@ import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
 import seoRoutes from "./modules/seo/seo.routes.js";
+import seoMiddleware from "./middleware/seo.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -73,6 +74,10 @@ app.use(
     }),
 );
 
+app.use("/browse", seoMiddleware);
+
+app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
+
 app.use((error, req, res, next) => {
     logger.error("Unhandled request error", {
         error,
@@ -86,8 +91,6 @@ app.use((error, req, res, next) => {
     const { status = 500, message = "Something went wrong!" } = error;
     return res.status(status).json({ error: true, message });
 });
-
-app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
 async function closeServer() {
     if (!server.listening) return;
