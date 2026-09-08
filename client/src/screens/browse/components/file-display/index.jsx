@@ -4,7 +4,6 @@ import { formatFileName, formatFileSize, formatFileType } from "../../../../util
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { ChangeFolder } from "../../../../actions/filebrowser_actions.js";
-import { getThumbnail } from "../../../../api/File";
 import clientRoot from "../../../../api/server";
 import capitalise from "../../../../utils/capitalise.js";
 import Share from "../../../share";
@@ -17,11 +16,9 @@ import {
 import ConfirmDialog from "./components/ConfirmDialog.jsx";
 import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
-import { fetchFolder } from "../../../../api/Folder.js";
 
 const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
-    const user = useSelector((state) => state.user?.user);
     const fileSize = formatFileSize(file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
@@ -55,31 +52,15 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
     const isLoggedIn = useSelector((state) => state.user?.loggedIn);
     const currCourseCode = useSelector((state) => state.fileBrowser?.currentCourseCode);
     const currFolderId = useSelector((state) => state.fileBrowser?.currentFolder?._id);
-    const currentUser = useSelector((state) => state.user.user);
-    const isReadOnlyCourse =
-        currentUser?.readOnly?.some(
-            (c) => c.code.toLowerCase() === currCourseCode?.toLowerCase()
-        ) &&
-        !currentUser?.courses?.some(
-            (c) => c.code.toLowerCase() === currCourseCode?.toLowerCase()
-        ) &&
-        !(
-            currentUser?.isBR &&
-            currentUser?.previousCourses?.some((sem) =>
-                sem.courses.some((c) => c.code.toLowerCase() === currCourseCode?.toLowerCase())
-            )
-        );
+    const canManage = file.capabilities?.canManage === true;
 
     const currentFolder = useSelector((state) => state.fileBrowser?.currentFolder);
     const [isEditing, setIsEditing] = useState(false);
     const dispatch = useDispatch();
 
-    if (!file.isVerified && !currentUser?.isBR) {
-        return null;
-    }
-    const preview_url = file.webUrl;
+
     const thumbnailUrl =
-        typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
+        file.thumbnail?.url ? new URL(file.thumbnail.url, API_BASE_URL).href : undefined;
 
     const handleRename = async (newName) => {
         const trimmed = newName?.trim();
@@ -98,7 +79,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
         }
 
         try {
-            const responseData = await renameFile(file._id, trimmed);
+            const responseData = await renameFile(file._id, trimmed, currCourseCode);
             toast.success("File renamed successfully!");
             dispatch(
                 ChangeFolder({
@@ -120,7 +101,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
             return;
         }
 
-        const downloadLink = await getFileDownloadLink(file.webUrl);
+        const downloadLink = await getFileDownloadLink(file._id, currCourseCode);
 
         if (!downloadLink) {
             toast.error("Failed to generate download link.");
@@ -142,16 +123,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
             return;
         }
 
-        const isPdf = file.name.toLowerCase().endsWith(".pdf");
-        if (isPdf) {
-            window.open(
-                `${API_BASE_URL}/api/contribution/view/${file._id}`,
-                "_blank"
-            );
-        } else {
-            window.open(preview_url, "_blank");
-        }
-
+        window.open(`${API_BASE_URL}/api/files/preview/${file._id}`, "_blank", "noopener");
     };
 
 
@@ -162,7 +134,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
             try {
                 setIsProcessing(true);
-                await verifyFile(file._id);
+                await verifyFile(file._id, currCourseCode);
                 toast.success("File verified!");
                 dispatch(UpdateFileVerificationStatus(file._id, true));
             } catch (err) {
@@ -183,7 +155,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
             try {
                 setIsProcessing(true);
-                await unverifyFile(file._id, file.fileId, currFolderId);
+                await unverifyFile(file._id, currCourseCode);
                 toast.success("File deleted!");
                 dispatch(RemoveFileFromFolder(file._id));
             } catch (err) {
@@ -199,22 +171,10 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
     return (
         <div
-            className={`file-display ${user?.isBR ? (file.isVerified ? "verified" : "unverified") : ""
+            className={`file-display ${!file.isVerified || canManage ? (file.isVerified ? "verified" : "unverified") : ""
                 }`}
             style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
         >
-            <img
-                src={thumbnailUrl}
-                style={{ display: "none" }}
-                onError={() => {
-                    async function thumbnailrefresh() {
-                        await getThumbnail(file.fileId);
-                        const updatedFolder = await fetchFolder(currFolderId, currCourseCode);
-                        dispatch(ChangeFolder(updatedFolder));
-                    }
-                    thumbnailrefresh();
-                }}
-            />
             <div
                 className="img-preview"
                 style={{
@@ -222,7 +182,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
                 }}
             >
                 <div className="top">
-                    {!isMobileView && user?.isBR && !isReadOnlyCourse && (
+                    {!isMobileView && canManage && (
                         <>
                             {!file.isVerified ? (
                                 <span className="verify" onClick={handleVerify} title="Verify"></span>
@@ -242,6 +202,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
             <div className="content">
                 {isEditing ? (
                     <FileRename
+                        affectedCourses={file.affectedCourses}
                         initialName={untruncatedDispName}
                         onCancel={() => setIsEditing(false)}
                         onSave={(newName) => {
@@ -252,7 +213,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
                 ) : (
                     <p className="title" title={file.name}>
                         {file?.name ? _dispName : "Quiz 1 Answer Key"}
-                        {!isMobileView && user?.isBR && !isReadOnlyCourse && (
+                        {!isMobileView && canManage && (
                             <span
                                 className="rename-tick"
                                 onClick={(e) => {
@@ -268,12 +229,14 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
                     <p className="info">
                         {fileType.toUpperCase()} {fileSize}
                     </p>
+                    {!file.isVerified && <p className="info">Pending approval</p>}
                     <p className="contributor">{capitalise(contributor)}</p>
                 </div>
             </div>
             <Share link={`${clientRoot}/browse/${currCourseCode.toLowerCase()}/${currFolderId}`} />
             {!isMobileView && (
                 <ConfirmDialog
+                    affectedCourses={file.affectedCourses}
                     isOpen={showDialog}
                     type={dialogType}
                     onConfirm={onConfirmAction}

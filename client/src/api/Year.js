@@ -21,9 +21,9 @@ export const addYear = async ({ name, course }) => {
     return data;
 };
 
-export const deleteYear = async ({ folder, courseCode }) => {
+export const deleteYear = async ({ folderId, courseCode }) => {
     const { data } = await API.delete("/year/delete", {
-        data: { folder, courseCode },
+        data: { folderId, courseCode },
     });
     return data;
 };

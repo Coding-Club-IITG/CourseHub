@@ -1,15 +1,43 @@
 import AppError from "../../utils/appError.js";
 import logger from "../../utils/logger.js";
-import User, { RemoveCourse } from "./user.model.js";
-import { addToFavourites, removeFromFavourites, AddNewCourse , AddReadOnlyCourse,  RemoveReadOnly } from "./user.model.js";
+import User from "./user.model.js";
+import {
+    addToFavourites,
+    removeFromFavourites,
+    AddReadOnlyCourse,
+    RemoveReadOnly,
+} from "./user.model.js";
 import { updateUserData } from "./user.model.js";
 import UserUpdate from "./userUpdate.model.js";
-import BR from "../br/br.model.js";
+import { actorFor, requireFile } from "../../services/authorization.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
-const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
+async function visibleFavourites(req, user) {
+    const favourites = [];
+    for (const favourite of user.favourites || []) {
+        try {
+            const { file } = await requireFile(req, favourite.id, favourite.code);
+            favourites.push({ ...(favourite.toObject?.() || favourite), name: file.name });
+        } catch (error) {
+            if (error.status !== 404) throw error;
+        }
+    }
+    return favourites;
+}
+async function userResult(req, user) {
+    const actor = await actorFor(req);
+    return {
+        ...user.toObject(),
+        isBR: actor.isBR,
+        capabilities: {
+            canManageCourses: actor.managed,
+            canContributeCourses: [...new Set([...actor.current, ...actor.managed])],
+        },
+        favourites: await visibleFavourites(req, user),
+    };
+}
 
-let currentDay = new Date().toISOString().split('T')[0];
+let currentDay = new Date().toISOString().split("T")[0];
 let activeUsersToday = new Set();
 
 let currentHour = new Date().toISOString().substring(0, 13);
@@ -19,7 +47,7 @@ export const getUser = async (req, res, next) => {
     const user = req.user;
 
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    const today = now.toISOString().split("T")[0];
     const thisHour = now.toISOString().substring(0, 13);
 
     // 1. Daily Cache
@@ -27,18 +55,18 @@ export const getUser = async (req, res, next) => {
         activeUsersToday.clear();
         currentDay = today;
     }
-    
+
     // 2. Hourly Cache
     if (thisHour !== currentHour) {
         activeUsersThisHour.clear();
         currentHour = thisHour;
     }
-    
+
     if (user && user.email) {
         const dimensions = {
             userEmail: user.email,
             department: user.department,
-            semester: user.semester
+            semester: user.semester,
         };
 
         if (!activeUsersToday.has(user.email)) {
@@ -64,32 +92,8 @@ export const getUser = async (req, res, next) => {
         return res.status(401).json({ error: "User update required, please log in again" });
     }
 
-    const normalizedEmail = normalizeEmail(user.email);
-    const brDoc = normalizedEmail
-        ? await BR.findOne({ email: normalizedEmail }).collation({
-              locale: "en",
-              strength: 2,
-          })
-        : null;
-
-    if (brDoc && !user.isBR) {
-        user.isBR = true;
-        await user.save();
-
-        res.cookie("token", "loggedout", {
-            maxAge: 0,
-            sameSite: "lax",
-            secure: false,
-            expires: new Date(Date.now()),
-            httpOnly: true,
-        });
-
-        return res
-            .status(401)
-            .json({ error: "BR access updated. Please log in again.", forceLogout: true });
-    }
-
-    const isBranchRep = !!user.isBR || !!brDoc;
+    const actor = await actorFor(req);
+    const isBranchRep = actor.isBR;
 
     const previousCourses = Array.isArray(user.previousCourses) ? user.previousCourses : [];
     const needsCourseSync = isBranchRep && previousCourses.length === 0;
@@ -103,9 +107,13 @@ export const getUser = async (req, res, next) => {
         degree: user.degree,
         courses: user.courses,
         department: user.department,
-        favourites: user.favourites,
+        favourites: await visibleFavourites(req, user),
         deviceToken: user.deviceToken,
         isBR: isBranchRep,
+        capabilities: {
+            canManageCourses: actor.managed,
+            canContributeCourses: [...new Set([...actor.current, ...actor.managed])],
+        },
         readOnly: user.readOnly,
         needsCourseSync,
     };
@@ -124,24 +132,16 @@ export const updateUserController = async (req, res) => {
 export const addToFavouriteController = async (req, res, next) => {
     const data = req.body;
     if (!data.id || !data.name || !data.path || !data.code) return res.sendStatus(400);
-    //validate
+    await requireFile(req, data.id, data.code);
     const updatedUser = await addToFavourites(
         req.user._id,
         data.name,
         data.id,
         data.path,
-        normalizeCourseCode(data.code)
+        normalizeCourseCode(data.code),
     );
-    return res.status(200).json(updatedUser);
+    return res.status(200).json(await userResult(req, updatedUser));
 };
-export const addNewCourse = async (req, res, next) => {
-    const data = req.body;
-    if (!data.code || !data.name) return res.sendStatus(400);
-
-    const updatedUser = await AddNewCourse(req.user._id, normalizeCourseCode(data.code), data.name);
-    return res.status(200).json(updatedUser);
-};
-
 export const addReadOnly = async (req, res, next) => {
     const data = req.body;
     if (!data.code || !data.name) return res.sendStatus(400);
@@ -149,17 +149,9 @@ export const addReadOnly = async (req, res, next) => {
     const updatedUser = await AddReadOnlyCourse(
         req.user._id,
         normalizeCourseCode(data.code),
-        data.name
+        data.name,
     );
-    return res.status(200).json(updatedUser);
-};
-
-export const deleteCourse = async (req, res, next) => {
-    const { code } = req.params;
-    if (!code) return res.sendStatus(400);
-    const updatedUser = await RemoveCourse(req.user._id, normalizeCourseCode(code));
-
-    return res.status(200).json(updatedUser);
+    return res.status(200).json(await userResult(req, updatedUser));
 };
 
 export const deleteReadOnly = async (req, res, next) => {
@@ -167,7 +159,7 @@ export const deleteReadOnly = async (req, res, next) => {
     if (!code) return res.sendStatus(400);
     const updatedUser = await RemoveReadOnly(req.user._id, normalizeCourseCode(code));
 
-    return res.status(200).json(updatedUser);
+    return res.status(200).json(await userResult(req, updatedUser));
 };
 
 export const removeFromFavouritesController = async (req, res, next) => {
@@ -175,7 +167,7 @@ export const removeFromFavouritesController = async (req, res, next) => {
     if (!id) return res.sendStatus(400);
     //validate
     const updatedUser = await removeFromFavourites(req.user._id, id);
-    return res.status(200).json(updatedUser);
+    return res.status(200).json(await userResult(req, updatedUser));
 };
 export const updateDeviceToken = async (req, res, next) => {
     const user = req.user;
@@ -186,14 +178,12 @@ export const updateDeviceToken = async (req, res, next) => {
 };
 
 export const getFavouritesController = async (req, res, next) => {
-
     const user = req.user;
     const foundUser = await User.findById(user._id);
 
     if (!foundUser) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ favourites: foundUser.favourites });
-
+    return res.status(200).json({ favourites: await visibleFavourites(req, foundUser) });
 };

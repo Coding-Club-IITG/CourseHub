@@ -41,7 +41,10 @@ export function requireSession(...roles) {
                     continue;
                 req[candidate.key] = actor;
                 authenticated = true;
-                if (roles.includes(candidate.role)) return next();
+                if (roles.includes(candidate.role)) {
+                    res.setHeader("Cache-Control", "private, no-store");
+                    return next();
+                }
             }
             return next(
                 new AppError(

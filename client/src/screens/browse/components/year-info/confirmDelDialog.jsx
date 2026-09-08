@@ -58,7 +58,7 @@ const styles = {
 };
 
 
-const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) => {
+const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel, isLoading = false, affectedCourses = [], courseCode }) => {
     if (!isOpen) return null;
 
     return (
@@ -72,8 +72,7 @@ const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) =>
                 <img src={cross} alt="Delete" style={styles.iconImage} />
                 <h3 style={styles.heading}>Are you sure?</h3>
                 <p style={styles.message}>
-                    All the folders and files inside this year will be permanently deleted.
-                    Do you want to permanently delete this year? This action cannot be undone.
+                    {affectedCourses.length > 1 ? `Remove this year from ${courseCode}? It remains available to the other linked courses: ${affectedCourses.filter(code => code !== courseCode).join(", ")}.` : "All folders and files inside this year will be permanently deleted. This action cannot be undone."}
                 </p>
                 <div style={styles.buttonGroup}>
                     <button style={styles.cancelBtn} onClick={onCancel} disabled={isLoading}>
@@ -84,7 +83,7 @@ const ConfirmDelDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) =>
                         onClick={onConfirm}
                         disabled={isLoading}
                     >
-                        {isLoading ? "Deleting..." : "Delete"}
+                        {isLoading ? "Removing..." : affectedCourses.length > 1 ? "Remove" : "Delete"}
                     </button>
                 </div>
             </div>

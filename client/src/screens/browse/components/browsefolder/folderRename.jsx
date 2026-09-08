@@ -1,6 +1,6 @@
 import {useState, useEffect, useRef} from "react";
 
-export function FolderRename({initialName="", onCancel, onSave}) {
+export function FolderRename({initialName="", onCancel, onSave, affectedCourses = []}) {
     const [name, setName] = useState(initialName);
     const inputRef = useRef();
 
@@ -20,6 +20,8 @@ export function FolderRename({initialName="", onCancel, onSave}) {
     }
 
     return (
+        <>
+        {affectedCourses.length > 1 && <p>Renaming changes this folder in {affectedCourses.join(", ")}.</p>}
         <textarea
             ref={inputRef}
             value={name}
@@ -30,5 +32,6 @@ export function FolderRename({initialName="", onCancel, onSave}) {
             type="text"
             className="input-rename"
         ></textarea>
+        </>
     )
 }

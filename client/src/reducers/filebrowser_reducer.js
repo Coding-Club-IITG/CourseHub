@@ -96,6 +96,10 @@ const FileBrowserReducer = (
     action
 ) => {
     switch (action.type) {
+        case "LOG_IN":
+        case "LOG_OUT":
+            return { currentCourse: null, currentCourseCode: null, currentFolder: null,
+                currentYear: null, currentYearFolderStructure: [], allCourseData: [], folderHistory: [] };
         case "LOAD_COURSES":
             return { ...state, allCourseData: action.payload.allCourseData };
         case "CHANGE_CURRENT_COURSE":
@@ -113,13 +117,7 @@ const FileBrowserReducer = (
                 return state;
             }
 
-            const existingCourse = arr.find((course) => course.code?.toLowerCase() === incomingCode);
-            const existingHasTree =
-                Array.isArray(existingCourse?.children) && existingCourse.children.length > 0;
-            const incomingHasTree =
-                Array.isArray(incomingCourse?.children) && incomingCourse.children.length > 0;
-
-            const nextCourse = existingHasTree && !incomingHasTree ? existingCourse : incomingCourse;
+            const nextCourse = incomingCourse;
 
             arr = arr.filter((course) => course.code?.toLowerCase() !== incomingCode);
             arr.push(nextCourse);

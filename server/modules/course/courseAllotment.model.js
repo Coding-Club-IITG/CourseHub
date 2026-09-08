@@ -20,7 +20,7 @@ const CourseAllotmentSchema = new mongoose.Schema(
             required: true,
         },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 CourseAllotmentSchema.index({ rollNumber: 1, session: 1, year: 1 }, { unique: true });

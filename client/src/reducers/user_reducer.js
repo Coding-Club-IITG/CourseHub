@@ -27,7 +27,7 @@ const UserReducer = (
                 },
             };
         case "LOG_OUT":
-            return { ...state, loggedIn: false };
+            return { ...state, loggedIn: false, user: {}, favourites: [], localCourses: [] };
         case "UPDATE_FAVOURITES":
             return { ...state, favourites: action.payload.favourites };
         case "ADD_COURSE_LOCAL": {
@@ -41,8 +41,9 @@ const UserReducer = (
             if (state.user?.readOnly?.some(matchesIncoming)) return state;
             if (state.localCourses?.some(matchesIncoming)) return state;
 
-            upsertLocalCourseCache(action.payload.course);
-            return { ...state, localCourses: [...state.localCourses, action.payload.course] };
+            const shortcut = { code: action.payload.course.code, name: action.payload.course.name, color: action.payload.course.color };
+            upsertLocalCourseCache(shortcut);
+            return { ...state, localCourses: [...state.localCourses, shortcut] };
         }
         case "LOAD_LOCAL_COURSES": {
             const existingCodes = new Set(

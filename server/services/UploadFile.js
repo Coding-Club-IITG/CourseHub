@@ -1,64 +1,18 @@
 import fs from "fs";
+import { randomUUID } from "node:crypto";
+import path from "node:path";
 import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
 import axios from "axios";
 import { FileModel } from "../modules/course/course.model.js";
-import Contribution from "../modules/contribution/contribution.model.js";
 import logger from "../utils/logger.js";
 import { logGraphError } from "../utils/graphError.js";
-import { uploadThumbnail, deleteThumbnail } from "./imagekit.js";
+import { uploadThumbnail } from "./imagekit.js";
 
 const parent_item_id = process.env.ONEDRIVE_FOLDER_ID;
 
-async function GetFolderId(contributionId) {
-    const access_token = await getAccessToken();
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${parent_item_id}/children`;
-    const config = {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    };
-
-    try {
-        const { data } = await axios.get(url, config);
-        const foundFolder = data?.value?.find((folder) => folder.name === contributionId);
-        if (foundFolder) return foundFolder?.id;
-        return false;
-    } catch (error) {
-        return false;
-    }
-}
-
-async function CreateFolder(contributionId) {
-    const access_token = await getAccessToken();
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${parent_item_id}/children`;
-    const config = {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    };
-
-    const _data = {
-        name: contributionId,
-        folder: {},
-        "@microsoft.graph.conflictBehavior": "fail",
-    };
-
-    try {
-        const { data } = await axios.post(url, _data, config);
-        return data.id;
-    } catch (error) {
-        if (error?.response?.status === 409) {
-            const folderId = await GetFolderId(contributionId);
-            return folderId;
-        } else {
-            return false;
-        }
-    }
-}
-
 async function createUploadSession(folderId, fileName) {
     const access_token = await getAccessToken();
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folderId}:/${fileName}:/createUploadSession`;
+    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folderId}:/${encodeURIComponent(fileName)}:/createUploadSession`;
     const config = {
         headers: {
             Authorization: `Bearer ${access_token}`,
@@ -74,9 +28,9 @@ async function createUploadSession(folderId, fileName) {
     }
 }
 
-async function UploadFile(contributionId, filePath, fileName) {
+async function UploadFile(filePath, fileName, approved) {
     const folderId = parent_item_id;
-    const session = await createUploadSession(folderId, fileName);
+    const session = await createUploadSession(folderId, randomUUID() + path.extname(fileName));
     if (!session?.url) {
         logger.error("File upload failed", {
             attributes: {
@@ -89,8 +43,7 @@ async function UploadFile(contributionId, filePath, fileName) {
         return null;
     }
     const { url, access_token } = session;
-    const existingContribution = await Contribution.findOne({ contributionId });
-    const file = fs.readFileSync(`${filePath}${fileName}`);
+    const file = fs.readFileSync(filePath);
     const config = {
         headers: {
             "Content-Range": `bytes 0-${file.length - 1}/${file.length}`,
@@ -122,7 +75,7 @@ async function UploadFile(contributionId, filePath, fileName) {
         const webUrl = urldata?.data?.link?.webUrl;
 
         const fileData = new FileModel({
-            isVerified: !!existingContribution?.approved,
+            isVerified: approved === true,
             fileId: data.id,
             size: data.size,
             thumbnail: tempThumbnailUrl ? { url: tempThumbnailUrl } : undefined,
@@ -184,73 +137,15 @@ async function UploadFile(contributionId, filePath, fileName) {
 }
 
 async function DeleteFile(fileId) {
+    if (!fileId || fileId === parent_item_id) throw new Error("Storage root cannot be deleted");
     const access_token = await getAccessToken();
-
-    // Delete ImageKit thumbnail in the background - don't block the response
-    FileModel.findOne({ fileId })
-        .lean()
-        .then((fileDoc) => {
-            const imagekitId = fileDoc?.thumbnail?.fileId || fileDoc?.imagekitFileId;
-            if (imagekitId) {
-                deleteThumbnail(imagekitId).catch((ikErr) => {
-                    logger.warn("ImageKit thumbnail deletion failed", {
-                        error: ikErr,
-                        attributes: {
-                            dependency: "imagekit",
-                            operation: "delete-thumbnail",
-                            outcome: "failure",
-                            retryable: true,
-                        },
-                    });
-                });
-            }
+    await axios
+        .delete(`https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(fileId)}`, {
+            headers: { Authorization: `Bearer ${access_token}` },
         })
-        .catch(() => {});
-
-    try {
-        //obtain parent folder onedrive id
-        const { data } = await axios.get(
-            `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${access_token}`,
-                },
-            },
-        );
-        const folderId = data?.parentReference?.id;
-
-        //delete entire folder if it is the only file or delete only the file
-        const empty = await isFolderEmpty(folderId, access_token);
-        if (empty) {
-            await axios.delete(`https://graph.microsoft.com/v1.0/me/drive/items/${folderId}`, {
-                headers: {
-                    Authorization: `Bearer ${access_token}`,
-                },
-            });
-        } else {
-            await axios.delete(`https://graph.microsoft.com/v1.0/me/drive/items/${fileId}`, {
-                headers: {
-                    Authorization: `Bearer ${access_token}`,
-                },
-            });
-        }
-    } catch (err) {
-        logGraphError(logger, err, "Failed to delete file from Microsoft Graph");
-    }
-}
-
-async function isFolderEmpty(folderId, access_token) {
-    const { data } = await axios.get(
-        `https://graph.microsoft.com/v1.0/me/drive/items/${folderId}/children`,
-        {
-            headers: {
-                Authorization: `Bearer ${access_token}`,
-            },
-        },
-    );
-
-    if (data.value.length === 1) return true;
-    else return false;
+        .catch((error) => {
+            if (error.response?.status !== 404) throw error;
+        });
 }
 
 async function RenameOneDriveFile(fileId, newName) {
@@ -263,7 +158,7 @@ async function RenameOneDriveFile(fileId, newName) {
         },
     };
     const _data = {
-        name: newName,
+        name: randomUUID() + path.extname(newName),
     };
     try {
         const { data } = await axios.patch(url, _data, config);

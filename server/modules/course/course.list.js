@@ -1186,7 +1186,7 @@ const courselist = {
     "SP 503": "Polymer Synthesis and Characterization",
     "SP 511": "Polymer Processing and Rheology Laboratory",
     "SP 512": "Polymer Synthesis and Characterization Laboratory",
-    "SP 698": "Project -II"
+    "SP 698": "Project -II",
 };
 
 export default courselist;

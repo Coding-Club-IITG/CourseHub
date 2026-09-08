@@ -7,6 +7,7 @@ export const student = {
     department: "Computer Science and Engineering",
     semester: 5,
     isBR: false,
+    capabilities: { canManageCourses: [], canContributeCourses: ["CS101"] },
     courses: [{ code: "CS101", name: "Introduction to Computer Science" }],
     previousCourses: [],
     readOnly: [],
@@ -24,6 +25,7 @@ export const libraryFile = {
     thumbnail: { url: "https://ik.imagekit.io/coursehub-test/notes.webp" },
 };
 export const folder = {
+    capabilities: { canManage: false, canContribute: true },
     _id: "507f1f77bcf86cd799439031",
     name: "Lecture Notes",
     courses: ["CS101"],

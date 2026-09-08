@@ -102,8 +102,7 @@ export const deleteBR = async (email) => {
             method: "DELETE",
             credentials: "include",
             headers:{
-                "Content-Type":"application/json",
-                Authorization:"Bearer admin-coursehub-cc23-golang"},
+                "Content-Type":"application/json"},
             body: JSON.stringify({email:email}),
         });
         const result = await response.json();

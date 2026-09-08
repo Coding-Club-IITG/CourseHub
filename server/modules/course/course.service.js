@@ -11,8 +11,8 @@ export const createYearFolderWithDefaultStructure = async (yearName, courseCode)
                 courses: [courseCode],
                 childType: "File",
                 children: [],
-            })
-        )
+            }),
+        ),
     );
 
     // 2. Create Exams Folder with sub-folders
@@ -32,8 +32,8 @@ export const createYearFolderWithDefaultStructure = async (yearName, courseCode)
                 courses: [courseCode],
                 childType: "File",
                 children: [],
-            })
-        )
+            }),
+        ),
     );
 
     // 4. Create Year Folder
@@ -52,7 +52,9 @@ export const bootstrapCourseFolders = async (courseCode) => {
     const targetYears = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
     // Fetch existing course with children names to avoid duplicates (case-insensitive)
-    const course = await CourseModel.findOne({ code: new RegExp('^' + courseCode + '$', 'i') }).populate("children", "name");
+    const course = await CourseModel.findOne({
+        code: new RegExp("^" + courseCode + "$", "i"),
+    }).populate("children", "name");
     if (!course) return [];
 
     const actualCourseCode = course.code;
@@ -71,7 +73,7 @@ export const bootstrapCourseFolders = async (courseCode) => {
     // Update Course with ONLY the newly created year folders
     await CourseModel.findOneAndUpdate(
         { _id: course._id },
-        { $push: { children: { $each: newYearFolderIds } } }
+        { $push: { children: { $each: newYearFolderIds } } },
     );
 
     return newYearFolderIds;

@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import tick from "./assets/tick.svg";
 import cross from "./assets/cross.svg";
 
@@ -104,7 +105,7 @@ const styles = {
     },
 };
 
-const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false }) => {
+const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false, affectedCourses = [] }) => {
     if (!isOpen) return null;
 
     const isDelete = type === "delete";
@@ -125,7 +126,7 @@ const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false })
         return isDelete ? "Delete" : "Verify";
     };
 
-    return (
+    return createPortal(
         <div style={styles.overlay}>
             <div style={styles.dialog}>
                 <img
@@ -135,6 +136,7 @@ const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false })
                 />
                 <h3 style={styles.heading}>Are you sure?</h3>
                 <p style={styles.message}>{message}</p>
+                {affectedCourses.length > 1 && <p style={styles.message}>This shared file is used by {affectedCourses.join(", ")}. {isDelete ? "Deleting it removes it from every listed course." : "Verification publishes it in every listed course."}</p>}
                 <div style={styles.buttonGroup}>
                     <button style={getButtonStyle()} onClick={onConfirm} disabled={isLoading}>
                         {getButtonText()}
@@ -148,7 +150,8 @@ const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false })
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

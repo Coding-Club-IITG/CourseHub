@@ -30,7 +30,7 @@ export function extractGraphErrorDetails(error) {
         payload?.message ||
             response?.data?.error_description ||
             error?.message ||
-            "Microsoft Graph request failed"
+            "Microsoft Graph request failed",
     );
     const requestId =
         innerError?.["request-id"] ||
@@ -68,7 +68,12 @@ export function logGraphError(logger, error, context = "Microsoft Graph request 
     const details = error?.graphDetails || extractGraphErrorDetails(error);
     logger.error("Microsoft Graph request failed", {
         error,
-        attributes: { dependency: "microsoft-graph", operation: "request", outcome: "failure", retryable: true },
+        attributes: {
+            dependency: "microsoft-graph",
+            operation: "request",
+            outcome: "failure",
+            retryable: true,
+        },
     });
     return details;
 }

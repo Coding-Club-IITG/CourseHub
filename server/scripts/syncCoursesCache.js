@@ -15,30 +15,63 @@ const __filename = fileURLToPath(import.meta.url);
 dotenv.config({ path: path.join(path.dirname(__filename), "../.env") });
 
 export async function runSync({ correlationId = getCorrelationId() || randomUUID() } = {}) {
-    lifecycleLogger.info("Course cache job started", { correlationId, attributes: { jobName: "course-cache", operation: "course-cache-sync", outcome: "started" } });
+    lifecycleLogger.info("Course cache job started", {
+        correlationId,
+        attributes: { jobName: "course-cache", operation: "course-cache-sync", outcome: "started" },
+    });
     try {
         const response = await axios.post(
             "https://academic.iitg.ac.in/sso/gen/student1.jsp",
             qs.stringify({ cid: "All", sess: academic.session, yr: academic.currentYear }),
-            { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 60000 }
+            { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 60000 },
         );
         if (!response.data) throw new Error("Academic portal returned no data");
         const allotments = parseCourseAllotmentsFromHtml(response.data);
         const bulkOps = Object.keys(allotments).map((roll) => ({
             updateOne: {
-                filter: { rollNumber: Number.parseInt(roll), session: academic.session, year: academic.currentYear },
+                filter: {
+                    rollNumber: Number.parseInt(roll),
+                    session: academic.session,
+                    year: academic.currentYear,
+                },
                 update: { $set: { courses: allotments[roll] } },
                 upsert: true,
             },
         }));
         if (bulkOps.length) {
             await CourseAllotment.bulkWrite(bulkOps);
-            lifecycleLogger.info("Course cache job completed", { correlationId, attributes: { dependency: "mongodb", jobName: "course-cache", operation: "course-cache-sync", outcome: "success" } });
+            lifecycleLogger.info("Course cache job completed", {
+                correlationId,
+                attributes: {
+                    dependency: "mongodb",
+                    jobName: "course-cache",
+                    operation: "course-cache-sync",
+                    outcome: "success",
+                },
+            });
         } else {
-            lifecycleLogger.warn("Course cache job produced no updates", { correlationId, attributes: { dependency: "academic-portal", jobName: "course-cache", operation: "course-cache-sync", outcome: "empty" } });
+            lifecycleLogger.warn("Course cache job produced no updates", {
+                correlationId,
+                attributes: {
+                    dependency: "academic-portal",
+                    jobName: "course-cache",
+                    operation: "course-cache-sync",
+                    outcome: "empty",
+                },
+            });
         }
     } catch (error) {
-        lifecycleLogger.error("Course cache job failed", { error, correlationId, attributes: { dependency: "academic-portal", jobName: "course-cache", operation: "course-cache-sync", outcome: "failure", retryable: true } });
+        lifecycleLogger.error("Course cache job failed", {
+            error,
+            correlationId,
+            attributes: {
+                dependency: "academic-portal",
+                jobName: "course-cache",
+                operation: "course-cache-sync",
+                outcome: "failure",
+                retryable: true,
+            },
+        });
         throw error;
     }
 }

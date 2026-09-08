@@ -5,7 +5,8 @@ import { calculateFolderSubtreeCount } from "../utils/folder.js";
 
 dotenv.config();
 
-const envUri = process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://localhost:27017/coursehub";
+const envUri =
+    process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://localhost:27017/coursehub";
 // Prepare fallback URIs if host.docker.internal cannot be resolved outside container
 const candidateUris = [
     envUri,

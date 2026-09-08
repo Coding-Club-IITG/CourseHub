@@ -1,11 +1,13 @@
 import axios from "axios";
 import serverRoot from "./server";
+import { clearAllCoursesCache } from "../utils/frontendCache";
 
 let redirectUri = "https://www.coursehubiitg.in/api/auth/login/redirect";
 
 axios.defaults.withCredentials = true;
 
 export const getUser = async (signal) => {
+    clearAllCoursesCache();
     const resp = await axios.get(`${serverRoot}/api/user`, {
         withCredentials: true,
         signal,

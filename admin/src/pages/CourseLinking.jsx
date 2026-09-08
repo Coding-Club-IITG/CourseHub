@@ -48,9 +48,6 @@ const CourseLinking = () => {
         try {
             const response = await fetch(`${API_BASE_URL}api/admin/courses/bulk-link`, {
                 method: "POST",
-                headers: {
-                    Authorization: "Bearer admin-coursehub-cc23-golang",
-                },
                 body: formData,
                 credentials: "include",
             });
@@ -93,7 +90,6 @@ const CourseLinking = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: "Bearer admin-coursehub-cc23-golang",
                 },
                 body: JSON.stringify({ legacyCode: manualOldCode.toUpperCase().trim() }),
                 credentials: "include",

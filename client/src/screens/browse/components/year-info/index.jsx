@@ -1,3 +1,4 @@
+import { canManageCourse } from "../../../../utils/capabilities";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { useSelector } from "react-redux";
@@ -19,7 +20,6 @@ import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 import { useNavigate } from "react-router-dom";
 
 const YearInfo = ({
-    isBR,
     courseCode,
     course, // years list
     currYear,
@@ -32,15 +32,7 @@ const YearInfo = ({
     const [isAddingYear, setIsAddingYear] = useState(false);
     const [isDeletingYear, setIsDeletingYear] = useState(false);
     const user = useSelector((state) => state.user.user);
-    const isReadOnlyCourse =
-        user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !(
-            user?.isBR &&
-            user?.previousCourses?.some((sem) =>
-                sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
-            )
-        );
+    const canManage = canManageCourse(user, courseCode);
 
     const handleAddYear = () => {
         setNewYearName("");
@@ -132,7 +124,7 @@ const YearInfo = ({
         try {
             setIsDeletingYear(true);
             await deleteYear({
-                folder: course[currYear],
+                folderId: course[currYear]._id,
                 courseCode: courseCode,
             });
 
@@ -220,7 +212,7 @@ const YearInfo = ({
                                                 </span>
                                             )}
                                         </div>
-                                        {isBR && !isReadOnlyCourse ? (
+                                        {canManage ? (
                                             <div
                                                 className="delete"
                                                 onClick={handleDeleteYear}
@@ -228,8 +220,10 @@ const YearInfo = ({
                                             ></div>
                                         ) : null}
                                     </span>
-                                    {isBR && !isReadOnlyCourse ? (
+                                    {canManage ? (
                                         <ConfirmDelDialog
+                    affectedCourses={course?.[currYear]?.affectedCourses}
+                    courseCode={courseCode}
                                             isOpen={showConfirmDel}
                                             type="delete"
                                             onConfirm={handleConfirmDeleteYear}
@@ -241,7 +235,7 @@ const YearInfo = ({
                             );
                         })}
                 </div>
-                {isBR && !isReadOnlyCourse ? (
+                {canManage ? (
                     <div className="year-content year add-year">
                         {course && (
                             <div>

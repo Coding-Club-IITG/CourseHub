@@ -10,6 +10,9 @@ import fs from "node:fs";
 import path from "node:path";
 import axios from "axios";
 import User from "../../modules/user/user.model.js";
+import { Readable } from "node:stream";
+import CourseAllotment from "../../modules/course/courseAllotment.model.js";
+import { academicPeriod } from "../../services/authorization.js";
 import UserUpdate from "../../modules/user/userUpdate.model.js";
 import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
 import Contribution from "../../modules/contribution/contribution.model.js";
@@ -101,7 +104,12 @@ test("provisioned password hashes work with the existing administrator login", a
     const headers = { cookie: response.headers.get("set-cookie").split(";")[0] };
     const session = await fetch(origin + "/api/admin/", { headers });
     assert.equal(session.status, 200);
-    assert.deepEqual(await session.json(), { user: { userId: "login-fixture" } });
+    assert.deepEqual(await session.json(), {
+        user: {
+            userId: "login-fixture",
+            capabilities: { canManageAllCourses: true, canModerate: true },
+        },
+    });
     const courses = await fetch(origin + "/api/admin/dbcourses", { headers });
     assert.equal(courses.status, 200);
     assert.deepEqual(await courses.json(), []);
@@ -213,6 +221,11 @@ test("the database suite leaves a nonempty test target intact", async () => {
 
 test("authenticated browsing and multipart upload persist content with mocked Graph storage", async (t) => {
     const person = await User.create(student);
+    await CourseAllotment.create({
+        rollNumber: person.rollNumber,
+        ...academicPeriod(),
+        courses: ["CS101"],
+    });
     await UserUpdate.create({ rollNumber: person.rollNumber });
     await FolderModel.create({ ...folder, children: [] });
     await FolderModel.create({ ...year, children: [folder._id] });
@@ -233,21 +246,19 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
     const unsigned = await fetch(origin + "/api/course/CS101");
     assert.equal(unsigned.status, 401);
 
-    const contributionId = randomUUID();
     const created = await fetch(origin + "/api/contribution", {
         method: "POST",
         headers: { ...headers, "content-type": "application/json" },
         body: JSON.stringify({
-            contributionId,
-            uploadedBy: person.id,
             courseCode: "CS101",
             parentFolder: folder._id,
-            approved: false,
             description: "Test upload",
         }),
     });
     assert.equal(created.status, 200);
-    assert.equal((await created.json()).created, true);
+    const createdData = await created.json();
+    assert.equal(createdData.created, true);
+    const contributionId = createdData.data.contributionId;
 
     clearAccessTokenCache();
     t.after(clearAccessTokenCache);
@@ -279,6 +290,7 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
         assert.fail(`Unexpected mock Graph POST: ${url}`);
     });
     const contents = Buffer.from("%PDF-1.4\nSynthetic upload test\n%%EOF\n");
+    let uploadedCount = 0;
     t.mock.method(axios, "put", async (url, bytes, config) => {
         calls.push(url);
         assert.equal(url, "https://upload.example.test/session");
@@ -287,14 +299,20 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
             config.headers["Content-Range"],
             `bytes 0-${contents.length - 1}/${contents.length}`,
         );
-        return { data: { id: "test-uploaded-drive-file", size: contents.length } };
+        return {
+            data: {
+                id: uploadedCount++ ? "second-uploaded-drive-file" : "test-uploaded-drive-file",
+                size: contents.length,
+            },
+        };
     });
     t.mock.method(axios, "get", async (url) => {
         calls.push(url);
         if (url.endsWith("/thumbnails")) return { data: { value: [] } };
-        if (url.endsWith("/test-uploaded-drive-file"))
+        if (url.endsWith("/test-uploaded-drive-file/content"))
             return {
-                data: { "@microsoft.graph.downloadUrl": "https://download.example.test/file" },
+                data: Readable.from([contents]),
+                headers: { "content-type": "application/pdf" },
             };
         assert.fail(`Unexpected mock Graph GET: ${url}`);
     });
@@ -334,12 +352,32 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
     assert.equal(temporaryPaths.length, 1);
     assert.ok(temporaryPaths.every((file) => !fs.existsSync(file)));
     assert.equal(fs.existsSync(renamedPath), false);
-    const download = await fetch(origin + "/api/file/download/test-uploaded-drive-file", {
+    const download = await fetch(origin + `/api/files/content/${id}`, {
         headers,
     });
     assert.equal(download.status, 200);
-    assert.deepEqual(await download.json(), { url: "https://download.example.test/file" });
-    assert.equal(calls.filter((url) => url === "https://upload.example.test/session").length, 1);
+    assert.deepEqual(Buffer.from(await download.arrayBuffer()), contents);
+    assert.equal(saved.name, filename.replace(".pdf", "~Library Test Student.pdf"));
+    const secondForm = new FormData();
+    secondForm.append("file", new Blob([contents], { type: "application/pdf" }), filename);
+    const secondUpload = await fetch(origin + "/api/contribution/upload", {
+        method: "POST",
+        headers: { ...headers, "contribution-id": contributionId },
+        body: secondForm,
+    });
+    assert.equal(secondUpload.status, 200);
+    const second = await FileModel.findById(await secondUpload.text());
+    assert.equal(second.name, saved.name);
+    assert.notEqual(second.fileId, saved.fileId);
+    const sessions = calls.filter((url) => url.endsWith("/createUploadSession"));
+    assert.equal(sessions.length, 2);
+    assert.equal(
+        new Set(sessions).size,
+        2,
+        "Equal display names must target different storage paths",
+    );
+    assert.ok(temporaryPaths.every((file) => !fs.existsSync(file)));
+    assert.equal(calls.filter((url) => url === "https://upload.example.test/session").length, 2);
 });
 
 test("an administrator session can explicitly create a course", async () => {
@@ -367,3 +405,7 @@ test("an administrator session can explicitly create a course", async () => {
     assert.equal(response.status, 200);
     assert.deepEqual((await response.json()).children, []);
 });
+
+import { exerciseCoursePermissions } from "../support/course-permissions.js";
+test("course permission and moderation boundaries", async (t) =>
+    exerciseCoursePermissions(t, origin));

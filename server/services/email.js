@@ -19,10 +19,20 @@ function sendEmail(to, subject, msg) {
     };
     transporter.sendMail(options, function (err, info) {
         if (err) {
-            logger.error("Email delivery failed", { error: err, attributes: { dependency: "outlook", operation: "send-email", outcome: "failure", retryable: true } });
+            logger.error("Email delivery failed", {
+                error: err,
+                attributes: {
+                    dependency: "outlook",
+                    operation: "send-email",
+                    outcome: "failure",
+                    retryable: true,
+                },
+            });
             return;
         }
-        logger.info("Email delivered", { attributes: { dependency: "outlook", operation: "send-email", outcome: "success" } });
+        logger.info("Email delivered", {
+            attributes: { dependency: "outlook", operation: "send-email", outcome: "success" },
+        });
     });
 }
 

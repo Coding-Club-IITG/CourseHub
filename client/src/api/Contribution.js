@@ -11,7 +11,7 @@ export const GetMyContributions = async () => {
     return resp;
 };
 
-export const GetBrContribution = async (courses) => {
-    const resp = await axios.post(`${root}/api/contribution/br`, { courses });
+export const GetBrContribution = async () => {
+    const resp = await axios.post(`${root}/api/contribution/br`, {});
     return resp;
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-export function FileRename({ initialName = "", onCancel, onSave }) {
+export function FileRename({ initialName = "", onCancel, onSave, affectedCourses = [] }) {
     const [name, setName] = useState(initialName);
     const inputRef = useRef();
     const isFinishedRef = useRef(false);
@@ -42,6 +42,8 @@ export function FileRename({ initialName = "", onCancel, onSave }) {
     };
 
     return (
+        <>
+        {affectedCourses.length > 1 && <p>Renaming changes this file in {affectedCourses.join(", ")}.</p>}
         <input
             ref={inputRef}
             type="text"
@@ -53,6 +55,7 @@ export function FileRename({ initialName = "", onCancel, onSave }) {
             className="input-rename"
             maxLength={200}
         />
+        </>
     );
 }
 

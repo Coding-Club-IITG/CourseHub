@@ -2,9 +2,8 @@ import Wrapper from "./components/wrapper";
 import SectionC from "./components/sectionC";
 import { FilePond } from "react-filepond";
 import "filepond/dist/filepond.min.css";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import "./styles.scss";
-import { v4 as uuidv4 } from "uuid";
 import { CreateNewContribution } from "../../api/Contribution";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -14,16 +13,11 @@ import { ChangeFolder, RefreshCurrentFolder } from "../../actions/filebrowser_ac
 import { fetchFolder } from "../../api/Folder";
 
 const Contributions = () => {
-    const uploadedBy = useSelector((state) => state.user.user._id);
-    const userName = useSelector((state) => state.user.user.name);
-    const isBR = useSelector((state) => state.user.user.isBR);
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const currentCourseCode = useSelector((state) => state.fileBrowser.currentCourseCode);
-    const [contributionId, setContributionId] = useState("");
+    const contributionId = useRef("");
+    const isBR = currentFolder?.capabilities?.canManage === true;
     const dispatch = useDispatch();
-    useEffect(() => {
-        setContributionId(uuidv4());
-    }, []);
 
     const [submitEnabled, setSubmitEnabled] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -50,19 +44,17 @@ const Contributions = () => {
         try {
             setIsUploading(true);
             setSubmitEnabled(false);
-            await CreateNewContribution({
+            const response = await CreateNewContribution({
                 parentFolder: currentFolder._id,
                 courseCode: currentCourseCode || (currentFolder.courses ? currentFolder.courses[0] : currentFolder.course),
                 description: "default",
-                approved: false,
-                contributionId,
-                uploadedBy,
             });
+            contributionId.current = response.data.data.contributionId;
             await pond.current.processFiles();
             pond.current.removeFiles();
             contributionSection.classList.remove("show");
             toast.success("Files uploaded successfully!");
-            setContributionId(uuidv4());
+            contributionId.current = "";
             setSubmitEnabled(true);
         } catch (error) {
             setSubmitEnabled(true);
@@ -100,10 +92,7 @@ const Contributions = () => {
                             url: `${server}/api/contribution/upload`,
                             process: {
                                 withCredentials: true,
-                                headers: {
-                                    "contribution-id": contributionId,
-                                    username: userName,
-                                },
+                                headers: () => ({ "contribution-id": contributionId.current }),
                             },
                         }}
                         instantUpload={false}

@@ -46,7 +46,7 @@ export async function verifyOTP(email, otp) {
         sendEmail(
             email,
             "[COURSEHUB] Login attempt",
-            "Login attempt using your credentials but wrong OTP"
+            "Login attempt using your credentials but wrong OTP",
         );
         await OTP.deleteMany({ email: email });
         return false;

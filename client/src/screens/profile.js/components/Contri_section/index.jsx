@@ -25,12 +25,7 @@ const Contrisection = () => {
     useEffect(() => {
         const callBack = async () => {
 
-            const courses = [
-                ...user.user.courses,
-                ...(user.user.previousCourses?.flatMap(sem => sem.courses) || [])
-            ];
-
-            const resp = await GetBrContribution(courses);
+            const resp = await GetBrContribution();
             setBrContributions((prev) => [...resp.data.unverifiedContributions]);
             setIsLoading(false);
         };
@@ -76,6 +71,7 @@ const Contrisection = () => {
                 (
                     <Contribution_card
                         courseCode={key.courseCode}
+                        managementCourseCode={key.managementCourseCode}
                         uploadDate={key.updatedAt}
                         file={file}
                         key={file._id}

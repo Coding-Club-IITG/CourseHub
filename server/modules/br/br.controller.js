@@ -36,26 +36,44 @@ const updateBRs = async (req, res) => {
             if (user) {
                 if (!user.isBR) {
                     user.isBR = true;
-                    fetchCoursesForBr(user.rollNumber).catch((error) => logger.error("BR course refresh failed", { error, attributes: { dependency: "academic-portal", operation: "refresh-br-courses", outcome: "failure", retryable: true } }));
+                    fetchCoursesForBr(user.rollNumber).catch((error) =>
+                        logger.error("BR course refresh failed", {
+                            error,
+                            attributes: {
+                                dependency: "academic-portal",
+                                operation: "refresh-br-courses",
+                                outcome: "failure",
+                                retryable: true,
+                            },
+                        }),
+                    );
                     await user.save();
                 }
                 await BR.updateOne(
                     { email: normalizedEmail },
                     { $set: { email: normalizedEmail } },
-                    { upsert: true }
+                    { upsert: true },
                 );
             } else {
                 await BR.updateOne(
                     { email: normalizedEmail },
                     { $set: { email: normalizedEmail } },
-                    { upsert: true }
+                    { upsert: true },
                 );
             }
         }
 
         res.status(201).json({ message: "BRs updated successfully" });
     } catch (error) {
-        logger.error("BR update failed", { error, attributes: { dependency: "mongodb", operation: "update-br", outcome: "failure", retryable: false } });
+        logger.error("BR update failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "update-br",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -75,13 +93,31 @@ const createBR = async (req, res) => {
                 user.isBR = true;
                 await user.save();
             }
-            fetchCoursesForBr(user.rollNumber).catch((error) => logger.error("BR course refresh failed", { error, attributes: { dependency: "academic-portal", operation: "refresh-br-courses", outcome: "failure", retryable: true } }));
+            fetchCoursesForBr(user.rollNumber).catch((error) =>
+                logger.error("BR course refresh failed", {
+                    error,
+                    attributes: {
+                        dependency: "academic-portal",
+                        operation: "refresh-br-courses",
+                        outcome: "failure",
+                        retryable: true,
+                    },
+                }),
+            );
         }
 
         const br = await BR.create({ email: normalizedEmail });
         res.status(201).json({ message: "BR added", br });
     } catch (error) {
-        logger.error("BR creation failed", { error, attributes: { dependency: "mongodb", operation: "create-br", outcome: "failure", retryable: false } });
+        logger.error("BR creation failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "create-br",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -105,12 +141,20 @@ const deleteBR = async (req, res) => {
         await User.updateOne(
             { email: normalizedEmail },
             { $set: { isBR: false } },
-            { collation: { locale: "en", strength: 2 } }
+            { collation: { locale: "en", strength: 2 } },
         );
 
         res.status(200).json({ message: "BR deleted successfully" });
     } catch (error) {
-        logger.error("BR deletion failed", { error, attributes: { dependency: "mongodb", operation: "delete-br", outcome: "failure", retryable: false } });
+        logger.error("BR deletion failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "delete-br",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -123,7 +167,7 @@ const getBRs = async (req, res) => {
 
         // Fetch user details for those who have registered
         const users = await User.find({ email: { $in: brEmails } });
-        
+
         // Map users by email for quick lookup
         const userMap = {};
         for (const user of users) {
@@ -144,7 +188,7 @@ const getBRs = async (req, res) => {
                     rollNumber: user.rollNumber,
                     isBR: true,
                     courses: user.courses || [],
-                }
+                };
             }
             return {
                 email: br.email,
@@ -161,7 +205,15 @@ const getBRs = async (req, res) => {
 
         res.status(200).json({ brs });
     } catch (error) {
-        logger.error("BR query failed", { error, attributes: { dependency: "mongodb", operation: "query-br", outcome: "failure", retryable: false } });
+        logger.error("BR query failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "query-br",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -202,7 +254,15 @@ const getCoursesWithoutBR = async (req, res) => {
 
         res.status(200).json({ coursesWithoutBR });
     } catch (error) {
-        logger.error("Unassigned course query failed", { error, attributes: { dependency: "mongodb", operation: "query-unassigned-courses", outcome: "failure", retryable: false } });
+        logger.error("Unassigned course query failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "query-unassigned-courses",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

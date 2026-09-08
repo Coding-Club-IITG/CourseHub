@@ -1,7 +1,11 @@
-export const isBR = (req, res, next) => {
-    if (req.admin || req.user?.isBR === true) {
+import { actorFor } from "../services/authorization.js";
+import AppError from "../utils/appError.js";
+export const isBR = async (req, res, next) => {
+    try {
+        const actor = await actorFor(req);
+        if (!actor.admin && !actor.isBR) throw new AppError(403, "Not authorized as BR");
         next();
-    } else {
-        res.status(403).json({ message: "Not authorized as BR" });
+    } catch (error) {
+        next(error);
     }
 };

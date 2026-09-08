@@ -21,9 +21,9 @@ export const createFolder = async ({ name, course, parentFolder, childType }) =>
     return data;
 };
 
-export const deleteFolder = async ({ folder, parentFolderId, courseCode }) => {
+export const deleteFolder = async ({ folderId, courseCode }) => {
     const { data } = await API.delete(`/folder/delete`, {
-        data: { folder, parentFolderId, courseCode },
+        data: { folderId, courseCode },
     });
     return data;
 };
@@ -40,9 +40,9 @@ export const fetchFolder = async (folderId, courseCode) => {
     return data;
 };
 
-export const renameFolder = async (folderId, newName) => {
+export const renameFolder = async (folderId, newName, courseCode) => {
     const response = await API.post("/folder/rename", {
-        data: { folderId, newName },
+        folderId, newName, courseCode,
     });
     if (response.status !== 200) {
         throw new Error("Failed to rename folder");

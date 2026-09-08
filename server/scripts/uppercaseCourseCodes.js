@@ -145,7 +145,7 @@ const normalizeFolderCourses = async () => {
     for (const folder of folders) {
         if (!folder.courses || !folder.courses.length) continue;
         let needsUpdate = false;
-        const normalizedCourses = folder.courses.map(code => {
+        const normalizedCourses = folder.courses.map((code) => {
             const normalizedCourseCode = normalizeCourseCode(code);
             if (normalizedCourseCode && normalizedCourseCode !== code) {
                 needsUpdate = true;
@@ -177,7 +177,7 @@ const normalizeFileCourseReferences = async () => {
 
         await filesCollection.updateOne(
             { _id: file._id },
-            { $set: { course: normalizedCourseReference } }
+            { $set: { course: normalizedCourseReference } },
         );
         updatedCount += 1;
     }
@@ -258,7 +258,7 @@ const normalizeUserCourseCodes = async () => {
                 const codeChanged =
                     !lengthChanged &&
                     originalCourses.some(
-                        (entry, index) => entry?.code !== normalizedCourses[index]?.code
+                        (entry, index) => entry?.code !== normalizedCourses[index]?.code,
                     );
 
                 if (lengthChanged || codeChanged) {
@@ -288,7 +288,7 @@ export async function migrateToUppercase() {
 
         const courseSummary = await mergeCourseDocuments();
         console.log(
-            `Normalized CourseModel: updated=${courseSummary.updatedCount}, deletedDuplicates=${courseSummary.deletedCount}`
+            `Normalized CourseModel: updated=${courseSummary.updatedCount}, deletedDuplicates=${courseSummary.deletedCount}`,
         );
 
         const updatedFolders = await normalizeFolderCourses();
@@ -299,7 +299,7 @@ export async function migrateToUppercase() {
 
         const searchSummary = await mergeSearchResultsDocuments();
         console.log(
-            `Normalized SearchResults: updated=${searchSummary.updatedCount}, deletedDuplicates=${searchSummary.deletedCount}`
+            `Normalized SearchResults: updated=${searchSummary.updatedCount}, deletedDuplicates=${searchSummary.deletedCount}`,
         );
 
         const updatedContributions = await normalizeContributionCourseCodes();
@@ -307,7 +307,7 @@ export async function migrateToUppercase() {
 
         const updatedUsers = await normalizeUserCourseCodes();
         console.log(
-            `Normalized user course arrays (courses/readOnly/previousCourses/favourites): updated=${updatedUsers}`
+            `Normalized user course arrays (courses/readOnly/previousCourses/favourites): updated=${updatedUsers}`,
         );
 
         console.log("Migration to uppercase normalization completed successfully");
@@ -316,10 +316,7 @@ export async function migrateToUppercase() {
     }
 }
 
-if (
-    process.argv[1] &&
-    import.meta.url === pathToFileURL(process.argv[1]).href
-) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
     migrateToUppercase()
         .then(() => process.exit(0))
         .catch((error) => {

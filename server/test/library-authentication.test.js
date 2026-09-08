@@ -10,11 +10,13 @@ import { guardExternalServices } from "./support/provider-guards.js";
 import { app } from "../index.js";
 import User from "../modules/user/user.model.js";
 import Admin from "../modules/admin/admin.model.js";
-import Course, { FileModel } from "../modules/course/course.model.js";
+import Course, { FileModel, FolderModel } from "../modules/course/course.model.js";
 import CourseAllotment from "../modules/course/courseAllotment.model.js";
+import BR from "../modules/br/br.model.js";
+import { academicPeriod } from "../services/authorization.js";
 import Contribution from "../modules/contribution/contribution.model.js";
 import { upload } from "../modules/contribution/contribution.routes.js";
-import { student, administrator, course, libraryFile } from "./fixtures/library.js";
+import { student, administrator, course, year, folder, libraryFile } from "./fixtures/library.js";
 
 beforeEach(guardExternalServices);
 
@@ -34,6 +36,9 @@ const studentToken = (options = {}) =>
     jwt.sign({ user: student._id }, process.env.JWT_SECRET, options);
 const adminToken = () => jwt.sign(administrator._id, process.env.ADMIN_JWT_SECRET);
 const query = (value) => ({
+    collation() {
+        return this;
+    },
     select() {
         return this;
     },
@@ -48,6 +53,15 @@ const query = (value) => ({
     },
 });
 function signedIn(t, actor = student) {
+    t.mock.method(BR, "findOne", () => query(null));
+    t.mock.method(CourseAllotment, "find", () =>
+        query([{ ...academicPeriod(), courses: ["CS101"] }]),
+    );
+    t.mock.method(FolderModel, "find", () => query([year, folder]));
+    t.mock.method(FileModel, "find", () => query([libraryFile]));
+    t.mock.method(FileModel, "findById", async () => libraryFile);
+    t.mock.method(Contribution, "find", () => query([]));
+    t.mock.method(Course, "find", () => query([course]));
     t.mock.method(User, "findOne", async ({ _id }) => (_id === actor._id ? actor : null));
     t.mock.method(Admin, "findById", async (id) =>
         id === administrator._id ? administrator : null,
@@ -110,7 +124,6 @@ for (const [prefix, module] of [
     ["admin", "admin"],
     ["br", "br"],
     ["files", "file"],
-    ["file", "onedrive"],
     ["folder", "folder"],
     ["year", "year"],
     ["student", "student"],
@@ -266,16 +279,13 @@ test("malformed signed identities do not reach a database query", async (t) => {
     assert.deepEqual(attempts, []);
 });
 
-test("signed-in search, thumbnail and contribution listing still work", async (t) => {
+test("signed-in search and contribution listing still work", async (t) => {
     signedIn(t);
     t.mock.method(Course, "find", () => query([course]));
     t.mock.method(FileModel, "findOne", () => query(libraryFile));
     t.mock.method(Contribution, "find", () => query([]));
     const headers = { cookie: `token=${studentToken()}`, "content-type": "application/json" };
-    for (const [path, body] of [
-        ["/api/search", { words: ["CS101"] }],
-        ["/api/file/thumbnail", { fileId: libraryFile.fileId }],
-    ]) {
+    for (const [path, body] of [["/api/search", { words: ["CS101"] }]]) {
         const response = await fetch(origin + path, {
             method: "POST",
             headers,
@@ -323,4 +333,19 @@ test("course refresh derives its target from the authenticated student", async (
         assert.equal(response.status, 403);
     }
     assert.equal(lookups.length, before);
+});
+
+test("academic permissions use the current India calendar at the semester boundary", () => {
+    assert.deepEqual(academicPeriod(new Date("2026-07-23T18:29:59Z")), {
+        year: 2026,
+        session: "Jan-May",
+    });
+    assert.deepEqual(academicPeriod(new Date("2026-07-23T18:30:00Z")), {
+        year: 2026,
+        session: "July-Nov",
+    });
+    assert.deepEqual(academicPeriod(new Date("2026-12-31T18:30:00Z")), {
+        year: 2027,
+        session: "Jan-May",
+    });
 });

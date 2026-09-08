@@ -33,7 +33,7 @@ const CourseSchema = Schema(
         children: { type: [{ type: Schema.Types.ObjectId, ref: "Folder" }], default: [] },
         books: [{ type: String }],
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 const CourseModel = model("Course", CourseSchema);

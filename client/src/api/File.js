@@ -5,46 +5,30 @@ const API = axios.create({
     baseURL: `${serverRoot}/api`,
     withCredentials: true,
 });
-API.interceptors.request.use((req) => {
-    const user = JSON.parse(localStorage.getItem("profile"));
-    if (user) req.headers.Authorization = `Bearer ${user.token}`;
-    return req;
-});
-export const downloadFile = async (fileId) => {
-    const { data } = await API.get(`/file/download/${fileId}`);
-    return data;
-};
 export const previewFile = async (fileId) => {
-    const { data } = await API.get(`/file/preview/${fileId}`);
+    const { data } = await API.get(`/files/link/${fileId}`);
+    return { url: new URL(data.file.webUrl, serverRoot).href };
+};
+export const verifyFile = async (fileId, courseCode) => {
+    const { data } = await API.put(`/files/verify/${fileId}`, { courseCode });
     return data;
 };
-export const verifyFile = async (fileId) => {
-    const { data } = await API.put(`/files/verify/${fileId}`);
-    return data;
-};
-export const unverifyFile = async (fileId, oneDriveId, folderId) => {
+export const unverifyFile = async (fileId, courseCode) => {
     await API.delete(`/files/unverify/${fileId}`, {
         data: {
-            oneDriveId,
-            folderId,
+            courseCode,
         },
     });
 };
 
-export const getThumbnail = async (fileId) => {
-    const resp = await axios.post(`${serverRoot}/api/file/thumbnail`, {
-        fileId: fileId,
-    });
-};
-
-export const getFileDownloadLink = async (fileId) => {
+export const getFileDownloadLink = async (fileId, courseCode) => {
     const response = await fetch(serverRoot + "/api/files/download", {
         method: "POST",
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url: fileId }),
+        body: JSON.stringify({ fileId, courseCode }),
     });
 
     if (!response.ok) {
@@ -52,10 +36,10 @@ export const getFileDownloadLink = async (fileId) => {
     }
 
     const data = await response.json();
-    return data.downloadLink;
+    return new URL(data.downloadLink, serverRoot).href;
 };
 
-export const renameFile = async (fileId, newName) => {
-    const { data } = await API.put(`/files/rename/${fileId}`, { newName });
+export const renameFile = async (fileId, newName, courseCode) => {
+    const { data } = await API.put(`/files/rename/${fileId}`, { newName, courseCode });
     return data;
 };

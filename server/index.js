@@ -13,7 +13,6 @@ import { initScheduler } from "./config/cron.js";
 import connectDatabase from "./services/connectDB.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
-import onedriveRoutes from "./modules/onedrive/onedrive.routes.js";
 import courseRoutes from "./modules/course/course.routes.js";
 import searchRoutes from "./modules/search/search.routes.js";
 import eventRoutes from "./modules/event/event.routes.js";
@@ -48,7 +47,6 @@ app.use(ua.express());
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/file", onedriveRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/event", eventRoutes);
@@ -64,6 +62,7 @@ app.use("/api", (req, res) =>
 );
 
 app.use((error, req, res, next) => {
+    if (res.headersSent) return next(error);
     logger.error("Unhandled request error", {
         error,
         attributes: {

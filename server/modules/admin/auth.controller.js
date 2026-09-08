@@ -33,6 +33,7 @@ export const getAdmin = async (req, res, next) => {
     return res.json({
         user: {
             userId: admin.userId,
+            capabilities: { canManageAllCourses: true, canModerate: true },
         },
     });
 };

@@ -27,7 +27,7 @@ if (!clientId || !clientSecret) {
 const scopes = "user.read offline_access files.readwrite";
 
 const authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(
-    redirectUri
+    redirectUri,
 )}&scope=${encodeURIComponent(scopes)}&state=12345`;
 
 console.log("\n========================================================================");
@@ -36,7 +36,9 @@ console.log("===================================================================
 console.log("1. Open the following URL in your browser:\n");
 console.log(`   ${authUrl}\n`);
 console.log("2. Sign in with the Coding Club (OneDrive owner) Microsoft account.");
-console.log("3. Grant consent for requested permissions (user.read, offline_access, files.readwrite).\n");
+console.log(
+    "3. Grant consent for requested permissions (user.read, offline_access, files.readwrite).\n",
+);
 
 const exchangeCodeForTokens = async (code) => {
     try {
@@ -58,7 +60,7 @@ const exchangeCodeForTokens = async (code) => {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
-            }
+            },
         );
 
         if (!response.data || !response.data.refresh_token) {
@@ -122,8 +124,12 @@ const server = http.createServer(async (req, res) => {
 
 server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
-        console.log(`ℹ️  Note: Port ${port} is currently in use (e.g. CourseHub dev server is running).`);
-        console.log("   After signing in, copy the 'code' parameter from the redirected browser URL bar.\n");
+        console.log(
+            `ℹ️  Note: Port ${port} is currently in use (e.g. CourseHub dev server is running).`,
+        );
+        console.log(
+            "   After signing in, copy the 'code' parameter from the redirected browser URL bar.\n",
+        );
 
         const rl = readline.createInterface({
             input: process.stdin,

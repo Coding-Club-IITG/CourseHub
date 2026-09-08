@@ -5,8 +5,6 @@ import {
     addToFavouriteController,
     removeFromFavouritesController,
     updateUserController,
-    addNewCourse,
-    deleteCourse,
     updateDeviceToken,
     getFavouritesController,
     addReadOnly,
@@ -23,9 +21,7 @@ router.get("/favourites", catchAsync(getFavouritesController));
 router.post("/favourites", catchAsync(addToFavouriteController));
 
 router.delete("/favourites/:id", catchAsync(removeFromFavouritesController));
-router.post("/course", catchAsync(addNewCourse));
 router.post("/readonly", catchAsync(addReadOnly));
-router.delete("/course/:code", catchAsync(deleteCourse));
 router.delete("/readonly/:code", catchAsync(deleteReadOnly));
 router.put("/devicetoken", catchAsync(updateDeviceToken));
 export default router;

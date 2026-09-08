@@ -14,7 +14,6 @@ import { fetchFolder } from "../../../../api/Folder";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
 const FolderInfo = ({
-    isBR,
     path,
     name,
     canDownload,
@@ -32,16 +31,8 @@ const FolderInfo = ({
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const user = useSelector((state) => state.user.user);
-    const isReadOnlyCourse =
-        user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !(
-            user?.isBR &&
-            user?.previousCourses?.some((sem) =>
-                sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
-            )
-        );
+    const canManage = currentFolder?.capabilities?.canManage === true;
+    const canContribute = currentFolder?.capabilities?.canContribute === true;
 
     const handleCreateFolder = () => {
         setNewFolderName("");
@@ -142,7 +133,7 @@ const FolderInfo = ({
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({ url: child.webUrl }),
+                            body: JSON.stringify({ fileId: child._id, courseCode }),
                         });
 
                         if (!fileResponse.ok) {
@@ -151,9 +142,10 @@ const FolderInfo = ({
                         }
 
                         const fileData = await fileResponse.json();
-                        const downloadLink = fileData.downloadLink;
+                        const downloadLink = new URL(fileData.downloadLink, server).href;
 
-                        const curfile = await fetch(downloadLink);
+                        const curfile = await fetch(downloadLink, { credentials: "include" });
+                        if (!curfile.ok) throw new Error("File is no longer accessible");
                         const fileBlob = await curfile.blob();
 
                         const filePath = folderPath ? `${folderPath}/${child.name}` : child.name;
@@ -242,14 +234,14 @@ const FolderInfo = ({
                             <span className="text">{isDownloading ? "Download" : "Download"}</span>
                         </button>
 
-                        {!isReadOnlyCourse && canDownload && (
+                        {canContribute && canDownload && (
                             <button className="btn primary" onClick={contributionHandler}>
                                 <span className="icon plus-icon"></span>
-                                <span className="text">{isBR ? "Add File" : "Contribute"}</span>
+                                <span className="text">{canManage ? "Add File" : "Contribute"}</span>
                             </button>
                         )}
 
-                        {!isReadOnlyCourse && isBR && !canDownload && (
+                        {canManage && !canDownload && (
                             <button
                                 className="btn primary"
                                 onClick={handleCreateFolder}

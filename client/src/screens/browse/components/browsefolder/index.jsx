@@ -22,27 +22,17 @@ const BrowseFolder = ({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
-    const isBR = useSelector((state) => state.user.user.isBR);
     const [showConfirm, setShowConfirm] = useState(false);
-    const user = useSelector((state) => state.user.user);
     const courseCode = subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
     const fileCount = getSubtreeFileCount(folderData);
-    const isReadOnlyCourse =
-        user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !(
-            user?.isBR &&
-            user?.previousCourses?.some((sem) =>
-                sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
-            )
-        );
+    const canManage = folderData?.capabilities?.canManage === true;
 
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const setFolderName = async (newName) => {
         try {
-            const renamedFolder = await renameFolder(folderData._id, newName);
+            const renamedFolder = await renameFolder(folderData._id, newName, courseCode);
             toast.success("Folder renamed successfully!");
             dispatch(
                 ChangeFolder({
@@ -71,7 +61,7 @@ const BrowseFolder = ({
         if (isDeleting) return;
         try {
             setIsDeleting(true);
-            await deleteFolder({ folder: folderData, parentFolderId: parentFolder._id, courseCode });
+            await deleteFolder({ folderId: folderData._id, courseCode });
             toast.success("Folder deleted successfully!");
             dispatch(
                 ChangeFolder({
@@ -108,7 +98,7 @@ const BrowseFolder = ({
                             <div className="name-container">
                                 <span className="name">
                                     {name ? name : "Name"}
-                                    {!isMobileView && isBR && !isReadOnlyCourse && (
+                                    {!isMobileView && canManage && (
                                         <div
                                             className="rename-tick"
                                             onClick={(e) => {
@@ -124,6 +114,7 @@ const BrowseFolder = ({
                             </div>
                         ) : (
                             <FolderRename
+                                    affectedCourses={folderData.affectedCourses}
                                 initialName={name}
                                 onCancel={() => setIsEditing(false)}
                                 onSave={(newName) => {
@@ -132,7 +123,7 @@ const BrowseFolder = ({
                                 }}
                             />
                         )}
-                        {!isMobileView && isBR && !isReadOnlyCourse && (
+                        {!isMobileView && canManage && (
                             <span
                                 className="delete"
                                 onClick={(e) => {
@@ -150,8 +141,10 @@ const BrowseFolder = ({
                     </div>
                 </div>
             </div>
-            {!isMobileView && isBR && !isReadOnlyCourse && (
+            {!isMobileView && canManage && (
                 <ConfirmDialog
+                    affectedCourses={folderData.affectedCourses}
+                    courseCode={courseCode}
                     isOpen={showConfirm}
                     type="delete"
                     onConfirm={handleDelete}

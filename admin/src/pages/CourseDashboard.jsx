@@ -50,7 +50,7 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
                     type="button"
                     title={`Delete ${node.name}`}
                     aria-label={`Delete ${node.name}`}
-                    onClick={() => onDelete(nodeType, node._id, node.name)}
+                    onClick={() => onDelete(nodeType, node._id, node.name, node.affectedCourses)}
                     className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-md text-red-600 opacity-0 hover:bg-red-50 group-hover:opacity-100"
                 >
                     <FiTrash2 />
@@ -106,7 +106,7 @@ export default function CourseDashboard() {
 
         try
         {
-            await handleContribution(contributionId,action);
+            await handleContribution(contributionId,action,code);
             alert(`Contribution ${isApprove ? 'Approved' : 'Rejected'} succesfully!`);
             loadData();
         }
@@ -117,15 +117,16 @@ export default function CourseDashboard() {
         }   
     }
 
-   const handleDelete = async (type, id, name) => 
+   const handleDelete = async (type, id, name, affectedCourses = []) =>
     {
-        if (!window.confirm(`Are you SURE you want to permanently delete the ${type} "${name}"? This cannot be undone.`)) 
+        const impact = affectedCourses.length > 1 ? (type === "file" ? ` This shared file will be removed from ${affectedCourses.join(", ")}.` : ` This folder will be unlinked from ${code}; other linked courses keep it.`) : "";
+        if (!window.confirm(`Are you SURE you want to permanently delete the ${type} "${name}"?${impact} This cannot be undone.`))
         {
             return;
         }
         try 
         {
-            await deleteNode(type, id);
+            await deleteNode(type, id, code);
             loadData();
         } 
         catch (error) 

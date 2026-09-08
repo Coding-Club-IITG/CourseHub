@@ -1,5 +1,4 @@
 import { FolderModel } from "../modules/course/course.model.js";
-import { normalizeCourseCode } from "./course.js";
 import logger from "./logger.js";
 
 /**
@@ -29,68 +28,15 @@ export async function calculateFolderSubtreeCount(folderId) {
         await FolderModel.updateOne({ _id: folderId }, { $set: { totalFileCount: count } });
         return count;
     } catch (err) {
-        logger.error("Folder subtree calculation failed", { error: err, attributes: { dependency: "mongodb", operation: "calculate-folder-subtree", outcome: "failure", retryable: false } });
+        logger.error("Folder subtree calculation failed", {
+            error: err,
+            attributes: {
+                dependency: "mongodb",
+                operation: "calculate-folder-subtree",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         return 0;
     }
-}
-
-/**
- * Recalculates subtree count for a parent folder and bubbles up to root folders.
- */
-export async function recalculateParentFolderCounts(parentFolderId) {
-    if (!parentFolderId) return;
-
-    try {
-        await calculateFolderSubtreeCount(parentFolderId);
-
-        // Find any parent folder that has parentFolderId in its children
-        const parents = await FolderModel.find({ children: parentFolderId });
-        for (const parent of parents) {
-            await recalculateParentFolderCounts(parent._id);
-        }
-    } catch (err) {
-        logger.error("Parent folder recalculation failed", { error: err, attributes: { dependency: "mongodb", operation: "recalculate-folder-counts", outcome: "failure", retryable: false } });
-    }
-}
-
-/**
- * Attaches/computes totalFileCount on populated folder objects for API responses,
- * optionally filtering child folders by courseCode.
- */
-export function computePopulatedFolderSubtreeCount(folderObj, courseCodeFilter = null) {
-    if (!folderObj) return 0;
-
-    const normalizedCode = courseCodeFilter ? normalizeCourseCode(courseCodeFilter) : null;
-
-    if (folderObj.childType === "File") {
-        const count = Array.isArray(folderObj.children) ? folderObj.children.length : 0;
-        folderObj.totalFileCount = count;
-        return count;
-    }
-
-    if (folderObj.childType === "Folder") {
-        let total = 0;
-        if (Array.isArray(folderObj.children)) {
-            // Filter children if courseCodeFilter is active
-            if (normalizedCode) {
-                folderObj.children = folderObj.children.filter((child) => {
-                    if (child && child.childType === "Folder") {
-                        return child.courses && child.courses.includes(normalizedCode);
-                    }
-                    return true;
-                });
-            }
-
-            for (const child of folderObj.children) {
-                if (child && typeof child === "object") {
-                    total += computePopulatedFolderSubtreeCount(child, courseCodeFilter);
-                }
-            }
-        }
-        folderObj.totalFileCount = total;
-        return total;
-    }
-
-    folderObj.totalFileCount = folderObj.totalFileCount || 0;
-    return folderObj.totalFileCount;
 }

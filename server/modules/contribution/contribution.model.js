@@ -1,5 +1,4 @@
-import mongoose, { model, mongo, Schema } from "mongoose";
-import User from "../user/user.model.js";
+import { model, Schema } from "mongoose";
 
 const ContributionSchema = Schema(
     {
@@ -11,22 +10,8 @@ const ContributionSchema = Schema(
         approved: { type: Boolean, default: false },
         description: { type: String },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
-
-ContributionSchema.pre("save", async function (next) {
-    try {
-        if (this.uploadedBy) {
-            const user = await User.findById(this.uploadedBy);
-            if (user && user.isBR) {
-                this.approved = true;
-            }
-        }
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
 
 const Contribution = model("Contribution", ContributionSchema);
 

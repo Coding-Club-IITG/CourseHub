@@ -1,246 +1,143 @@
+import { randomUUID } from "node:crypto";
+import fs from "node:fs/promises";
 import Contribution from "./contribution.model.js";
-import User from "../user/user.model.js";
-import Joi from "joi";
-import AppError from "../../utils/appError.js";
-import validatePayload from "../../utils/validate.js";
-import UploadFile from "../../services/UploadFile.js";
-import fs from "fs";
-import path from "path";
 import { FolderModel, FileModel } from "../course/course.model.js";
+import UploadFile from "../../services/UploadFile.js";
+import AppError from "../../utils/appError.js";
+import {
+    actorFor,
+    requireFolder,
+    requireFile,
+    presentFile,
+    libraryGraph,
+} from "../../services/authorization.js";
+import { normalizeCourseCode } from "../../utils/course.js";
 import logger from "../../utils/logger.js";
-import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
-import { recalculateParentFolderCounts } from "../../utils/folder.js";
-import { getAccessToken, clearAccessTokenCache } from "../onedrive/onedrive.controller.js";
-import axios from "axios";
 
-async function ContributionCreation(contributionId, data) {
-    const existingContribution = await Contribution.findOne({ contributionId });
-    if (!existingContribution) {
-        const newContribution = await Contribution.create({ ...data, contributionId });
-        return newContribution;
-    }
-    const updatedContribution = await Contribution.findOneAndUpdate(
-        { contributionId },
-        { ...data },
-        { new: true },
-    );
-    return updatedContribution;
-}
-
-async function HandleFileToDB(contributionId, fileId) {
-    const existingContribution = await Contribution.findOne({ contributionId });
-
-    if (!existingContribution) {
-        const newContribution = await Contribution.create({ contributionId, files: [fileId] });
-        return newContribution;
-    }
-
-    const parentFolder = existingContribution.parentFolder
-        ? await FolderModel.findOne({ _id: existingContribution.parentFolder })
-        : null;
-
-    existingContribution.files.push(fileId);
-    if (parentFolder) {
-        parentFolder.children.push(fileId);
-        await parentFolder.save();
-        await recalculateParentFolderCounts(parentFolder._id);
-    }
-    await existingContribution.save();
-    return existingContribution;
-}
-
-async function HandleFileUpload(req, res, next) {
-    logger.info("Handling File Upload");
-    const contributionId = req.headers["contribution-id"];
-    const username = req.headers.username || "user";
-    const files = req.files;
-    if (!files || files.length === 0) {
-        return res.status(400).json({ error: "No files were uploaded" });
-    }
-
-    const uploadedFiles = [];
-
-    for (const file of files) {
-        try {
-            let initialPath = file.path;
-            let originalFilename = file.originalname;
-
-            let wordArr = originalFilename.split(".");
-            let fileExtension = wordArr.length > 1 ? wordArr.pop() : "";
-            let baseName = wordArr.join(".");
-            let finalFileName = `${baseName}~${username}${fileExtension ? "." + fileExtension : ""}`;
-
-            const dirName = path.dirname(initialPath);
-            const renamedPath = path.join(dirName, finalFileName);
-
-            await fs.promises.rename(initialPath, renamedPath);
-
-            // UploadFile expects directory path ending with slash/backslash
-            const finalDirPath = dirName.endsWith(path.sep) ? dirName : `${dirName}${path.sep}`;
-            let fileId = null;
-
-            try {
-                fileId = await UploadFile(contributionId, finalDirPath, finalFileName);
-            } catch (uploadError) {
-                logger.error("Contribution upload failed", {
-                    error: uploadError,
-                    attributes: {
-                        dependency: "microsoft-graph",
-                        operation: "upload-contribution",
-                        outcome: "failure",
-                        retryable: true,
-                    },
-                });
-            }
-
-            if (fileId) {
-                await HandleFileToDB(contributionId, fileId);
-                uploadedFiles.push(fileId.toString());
-            }
-
-            // Cleanup local temp file
-            if (fs.existsSync(renamedPath)) {
-                await fs.promises.unlink(renamedPath).catch(() => {});
-            }
-        } catch (err) {
-            logger.error("Contribution file processing failed", {
-                error: err,
-                attributes: {
-                    operation: "process-contribution",
-                    outcome: "failure",
-                    retryable: false,
-                },
-            });
-        }
-    }
-
-    if (uploadedFiles.length === 0) {
-        return res.status(500).json({ error: "File upload failed" });
-    }
-
-    // Return the primary file ID string or response for FilePond
-    return res.status(200).send(uploadedFiles[0]);
-}
-
-async function CreateNewContribution(req, res, next) {
-    const payloadSchema = {
-        contributionId: Joi.string().required(),
-        uploadedBy: Joi.string().required(),
-        courseCode: Joi.string().required(),
-        parentFolder: Joi.string().required(),
-        approved: Joi.bool(),
-        description: Joi.string().required(),
-    };
-    const data = req.body;
-    data.courseCode = normalizeCourseCode(data.courseCode);
-
-    const valid = validatePayload(payloadSchema, data);
-    if (valid.error) {
-        return next(new AppError(400, valid.error));
-    }
-
-    const newContribution = await ContributionCreation(data.contributionId, data);
-
-    const uploader = await User.findById(data.uploadedBy);
-
+async function CreateNewContribution(req, res) {
+    const allowed = ["parentFolder", "courseCode", "description"];
+    if (Object.keys(req.body).some((key) => !allowed.includes(key)))
+        throw new AppError(400, "Unexpected contribution fields");
+    const { parentFolder, courseCode, description = "" } = req.body;
+    if (typeof description !== "string" || description.length > 2000)
+        throw new AppError(400, "Invalid description");
+    const context = await requireFolder(req, parentFolder, courseCode, "canContribute");
+    if (context.folder.childType !== "File") throw new AppError(400, "Choose a file folder");
+    const contribution = await Contribution.create({
+        contributionId: randomUUID(),
+        uploadedBy: context.actor.id,
+        parentFolder,
+        courseCode: context.code,
+        description,
+        approved: context.capabilities.canManage,
+    });
     logger.metric?.("contribution_created", {
         value: 1,
         dimensions: {
-            courseCode: data.courseCode,
-            userId: data.uploadedBy,
-            department: uploader ? uploader.department : "unknown",
-            semester: uploader ? uploader.semester : 0,
+            courseCode: context.code,
+            userId: context.actor.id,
+            department: req.user?.department || "administration",
+            semester: req.user?.semester || 0,
         },
     });
-
-    return res.json({
-        created: true,
-        data: newContribution,
-    });
+    res.json({ created: true, data: contribution });
 }
 
-async function GetMyContributions(req, res, next) {
-    const myContributions = await Contribution.find({ uploadedBy: req.user._id }).populate({
-        path: "files",
-    });
-    res.json(myContributions);
-}
-
-async function GetBrContribution(req, res, next) {
+async function HandleFileUpload(req, res) {
+    const files = req.files || [];
+    if (!files.length) throw new AppError(400, "No files were uploaded");
+    const uploaded = [];
+    const actor = await actorFor(req);
     try {
-        const { courses } = req.body;
-
-        if (!courses || !Array.isArray(courses)) {
-            return res.status(400).json({ error: "courses array required" });
-        }
-        const codes = courses.map((course) => normalizeCourseCode(course.code)).filter(Boolean);
-        const contributions = await Contribution.find({
-            courseCode: { $in: codes.map(getCourseCodeCaseInsensitiveRegex) },
-        }).populate({
-            path: "files",
-        });
-        const unverifiedContributions = contributions.filter((c) =>
-            c.files.some((f) => f.isVerified === false),
-        );
-
-        res.json({ unverifiedContributions });
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function viewFile(req, res, next) {
-    try {
-        const { id } = req.params;
-        const file = await FileModel.findById(id);
-        if (!file) {
-            return res.status(404).json({ message: "File not found" });
-        }
-        if (file.isVerified === false && !req.admin && req.user.isBR === false) {
-            return res.status(403).json({ message: "File is not verified" });
-        }
-        const getResponse = async () => {
-            const accessToken = await getAccessToken();
-            if (!accessToken) {
-                return res.status(500).json({ message: "Access token not found" });
-            }
-            const response = await axios.get(
-                `https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                    responseType: "stream",
-                },
+        for (const file of files) {
+            const name = file.originalname;
+            if (!name || /[\\/\x00-\x1f]/.test(name)) throw new AppError(400, "Invalid filename");
+            const dot = name.lastIndexOf(".");
+            const base = dot === -1 ? name : name.slice(0, dot);
+            const extension = dot === -1 ? "" : name.slice(dot);
+            const contributor = (req.admin?.userId || req.user.name)
+                .replace(/[\\/:*?"<>|~\x00-\x1f]/g, "")
+                .slice(0, 80);
+            const fileId = await UploadFile(
+                file.path,
+                base + "~" + contributor + extension,
+                req.contributionApproved,
             );
-
-            res.setHeader("Content-Type", response.headers["content-type"]);
-            res.setHeader("Content-Length", response.headers["content-length"]);
-
-            const downloadStream = response.data;
-            res.on("close", () => {
-                downloadStream.destroy();
-            });
-            downloadStream.pipe(res);
-        };
-        try {
-            await getResponse();
-        } catch (err) {
-            if (err.response?.status === 401) {
-                clearAccessTokenCache();
-                return await getResponse();
-            }
-            throw err;
+            if (!fileId) throw new AppError(502, "File upload failed");
+            await Contribution.updateOne(
+                { _id: req.contribution._id, uploadedBy: actor.id },
+                { $addToSet: { files: fileId }, $set: { approved: req.contributionApproved } },
+            );
+            await FolderModel.updateOne(
+                { _id: req.contribution.parentFolder },
+                { $addToSet: { children: fileId } },
+            );
+            uploaded.push(String(fileId));
         }
-    } catch (error) {
-        next(error);
+        res.send(uploaded[0]);
+    } finally {
+        await Promise.all(files.map((file) => fs.unlink(file.path).catch(() => {})));
     }
 }
 
-export default {
-    CreateNewContribution,
-    HandleFileUpload,
-    GetMyContributions,
-    GetBrContribution,
-    viewFile,
-};
+export async function presentContribution(
+    req,
+    contribution,
+    contextCode = contribution.courseCode,
+) {
+    const files = [];
+    for (const file of contribution.files) {
+        try {
+            await requireFile(req, String(file._id), contextCode);
+            files.push(await presentFile(req, file, contextCode));
+        } catch (error) {
+            if (error.status !== 404) throw error;
+        }
+    }
+    return { ...contribution.toObject(), files, managementCourseCode: contextCode };
+}
+
+async function GetMyContributions(req, res) {
+    const contributions = await Contribution.find({ uploadedBy: String(req.user._id) }).populate(
+        "files",
+    );
+    res.json(await Promise.all(contributions.map((c) => presentContribution(req, c))));
+}
+
+async function GetBrContribution(req, res) {
+    const actor = await actorFor(req);
+    // Course filters are optional narrowing only. They cannot expand a BR's scope.
+    const requested = req.body.courses;
+    if (requested !== undefined && !Array.isArray(requested))
+        throw new AppError(400, "Invalid course filter");
+    const courses = requested?.map((c) =>
+        typeof c?.code === "string" ? normalizeCourseCode(c.code) : "",
+    );
+    if (courses?.some((code) => !code || (!actor.admin && !actor.managed.includes(code))))
+        throw new AppError(403, "You do not have permission for this course");
+    const graph = await libraryGraph(req);
+    const allowed = new Set(courses || (actor.admin ? [...graph.courses.keys()] : actor.managed));
+    const folders = new Map(
+        [...graph.folderCourses]
+            .map(([id, codes]) => [id, [...codes].filter((code) => allowed.has(code))])
+            .filter(([, codes]) => codes.length),
+    );
+    const contributions = await Contribution.find({
+        parentFolder: { $in: [...folders.keys()] },
+    }).populate("files");
+    const visible = [];
+    for (const contribution of contributions) {
+        try {
+            const contexts = folders.get(String(contribution.parentFolder));
+            const submittedCode = normalizeCourseCode(contribution.courseCode);
+            const contextCode = contexts.includes(submittedCode) ? submittedCode : contexts[0];
+            await requireFolder(req, String(contribution.parentFolder), contextCode, "canModerate");
+            const data = await presentContribution(req, contribution, contextCode);
+            if (data.files.some((file) => !file.isVerified)) visible.push(data);
+        } catch (error) {
+            if (error.status !== 404) throw error;
+        }
+    }
+    res.json({ unverifiedContributions: visible });
+}
+export default { CreateNewContribution, HandleFileUpload, GetMyContributions, GetBrContribution };

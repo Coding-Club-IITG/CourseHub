@@ -20,7 +20,18 @@ before(async () => {
 });
 after(async () => browser?.close());
 
-async function openPage(t, { width = 1440, signedIn = true, sessionStatus, holdSession } = {}) {
+async function openPage(
+    t,
+    {
+        width = 1440,
+        signedIn = true,
+        sessionStatus,
+        holdSession,
+        actor = student,
+        folderData = folder,
+        moderationQueue = [],
+    } = {},
+) {
     const context = await browser.newContext({
         viewport: { width, height: 900 },
         locale: "en-US",
@@ -89,21 +100,61 @@ async function openPage(t, { width = 1440, signedIn = true, sessionStatus, holdS
         if (url.pathname === "/api/user") {
             if (holdSession) await holdSession;
             status = sessionStatus ? sessionStatus() : hasSession ? 200 : 401;
-            data = status === 200 ? student : { message: "Unable to restore session" };
+            data = status === 200 ? actor : { message: "Unable to restore session" };
         } else if (!hasSession) {
             status = 401;
             data = { message: "Sign in to continue" };
-        } else if (url.pathname === "/api/course/CS101") data = { found: true, ...course };
-        else if (url.pathname.startsWith("/api/folder/content/")) data = folder;
+        } else if (url.pathname === "/api/course/CS101")
+            data = {
+                found: true,
+                ...course,
+                children: [
+                    {
+                        ...course.children[0],
+                        children: [folderData],
+                        totalFileCount: folderData.children.length,
+                    },
+                ],
+            };
+        else if (url.pathname.startsWith("/api/folder/content/")) data = folderData;
+        else if (url.pathname === `/api/files/thumbnail/${libraryFile._id}`) {
+            assert.ok(hasSession);
+            return route.fulfill({
+                contentType: "image/gif",
+                body: Buffer.from(
+                    "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                    "base64",
+                ),
+            });
+        } else if (url.pathname === "/api/contribution/br")
+            data = { unverifiedContributions: moderationQueue };
+        else if (url.pathname.startsWith("/api/files/verify/"))
+            data = { file: { ...libraryFile, isVerified: true } };
         else if (url.pathname === "/api/contribution/") {
             data =
                 request.method() === "POST"
-                    ? { created: true, data: JSON.parse(request.postData()) }
+                    ? {
+                          created: true,
+                          data: {
+                              ...JSON.parse(request.postData()),
+                              contributionId: "server-issued-contribution",
+                          },
+                      }
                     : [];
         } else if (url.pathname === "/api/contribution/upload") data = libraryFile._id;
         else if (url.pathname === "/api/files/download")
-            data = { downloadLink: "https://download.example.test/notes" };
-        else if (url.pathname === "/api/event/examdates")
+            data = { downloadLink: `/api/files/content/${libraryFile._id}?download=1` };
+        else if (url.pathname === `/api/files/content/${libraryFile._id}`) {
+            assert.ok(hasSession);
+            return route.fulfill({
+                contentType: "application/pdf",
+                body: "%PDF-1.4\nNotes\n%%EOF",
+                headers: {
+                    "access-control-allow-origin": frontend,
+                    "access-control-allow-credentials": "true",
+                },
+            });
+        } else if (url.pathname === "/api/event/examdates")
             data = { dates: { midSem: "2026-09-15", endSem: "2026-11-25" } };
         else if (url.pathname === "/api/search") data = { found: true, results: [course] };
         else if (url.pathname === "/api/user/favourites") data = [];
@@ -175,7 +226,7 @@ test("a failed session check can be retried without losing the requested folder"
         .waitFor();
     const retry = page.getByRole("button", { name: "Try again" });
     await page.keyboard.press("Tab");
-    assert.equal(await retry.evaluate(button => button === document.activeElement), true);
+    assert.equal(await retry.evaluate((button) => button === document.activeElement), true);
     await page.keyboard.press("Enter");
     await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
     assert.equal(new URL(page.url()).pathname, `/browse/CS101/${folder._id}`);
@@ -198,21 +249,24 @@ test("FilePond sends credentials and the contribution association across origins
     const uploaded = requests.find((request) => request.path === "/api/contribution/upload");
     assert.ok(created?.hasSession && uploaded?.hasSession);
     const manifest = JSON.parse(created.body);
-    assert.equal(uploaded.headers["contribution-id"], manifest.contributionId);
-    assert.equal(manifest.uploadedBy, student._id);
+    assert.equal(uploaded.headers["contribution-id"], "server-issued-contribution");
+    assert.equal(manifest.contributionId, undefined);
+    assert.equal(manifest.uploadedBy, undefined);
+    assert.equal(manifest.approved, undefined);
+    assert.equal(uploaded.headers.username, undefined);
     assert.ok(uploaded.headers["content-type"].startsWith("multipart/form-data"));
     assert.ok(uploaded.body.includes("Test notes"));
 });
 
-test("individual and ZIP download requests include the student cookie only on API requests", async (t) => {
+test("individual and ZIP download requests use authorized resource IDs and credentials", async (t) => {
     const { page, requests } = await openPage(t);
     await page.goto(`${frontend}/browse/CS101/${folder._id}`);
     await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
     const link = await page.evaluate(async () => {
         const { getFileDownloadLink } = await import("/src/api/File.js");
-        return getFileDownloadLink("https://example.test/notes");
+        return getFileDownloadLink("507f1f77bcf86cd799439021", "CS101");
     });
-    assert.equal(link, "https://download.example.test/notes");
+    assert.equal(link, `${api}/api/files/content/${libraryFile._id}?download=1`);
     const saved = page.waitForEvent("download");
     await page.getByTitle("Download entire folder as ZIP", { exact: true }).click();
     assert.match((await saved).suggestedFilename(), /\.zip$/);
@@ -229,3 +283,146 @@ for (const width of [1440, 390]) {
         assert.equal(new URL(page.url()).pathname, "/profile");
     });
 }
+
+for (const width of [1440, 390]) {
+    test(`owners can see their pending files with an approval label at ${width}px`, async (t) => {
+        const pending = {
+            ...libraryFile,
+            _id: "507f1f77bcf86cd799439022",
+            name: "Awaiting review.pdf",
+            isVerified: false,
+            capabilities: { canManage: false },
+        };
+        const { page } = await openPage(t, {
+            width,
+            folderData: { ...folder, children: [libraryFile, pending], totalFileCount: 2 },
+        });
+        await page.goto(frontend + `/browse/CS101/${folder._id}`);
+        await page.getByTitle("Awaiting review.pdf", { exact: true }).first().waitFor();
+        await page.getByText("Pending approval", { exact: true }).waitFor();
+        assert.equal(await page.locator(".file-display .unverify").count(), 0);
+    });
+}
+test("resource capabilities hide management controls despite a stale BR flag and editable course list", async (t) => {
+    const actor = {
+        ...student,
+        isBR: true,
+        capabilities: { canManageCourses: [], canContributeCourses: [] },
+    };
+    const { page } = await openPage(t, {
+        actor,
+        folderData: { ...folder, capabilities: { canManage: false, canContribute: false } },
+    });
+    await page.goto(frontend + `/browse/CS101/${folder._id}`);
+    await page.getByTitle(libraryFile.name, { exact: true }).first().waitFor();
+    assert.equal(
+        await page
+            .locator(".file-display .unverify, .file-display .verify, .file-display .rename-tick")
+            .count(),
+        0,
+    );
+    assert.equal(await page.getByRole("button", { name: /Contribute|Add File/ }).count(), 0);
+});
+test("shared file deletion identifies every affected course before confirmation", async (t) => {
+    const file = {
+        ...libraryFile,
+        capabilities: { canManage: true },
+        affectedCourses: ["CS101", "MA101"],
+    };
+    const { page, requests } = await openPage(t, {
+        actor: { ...student, isBR: true },
+        folderData: {
+            ...folder,
+            children: [file],
+            capabilities: { canManage: true, canContribute: true },
+        },
+    });
+    await page.goto(frontend + `/browse/CS101/${folder._id}`);
+    await page.getByTitle("Delete", { exact: true }).click();
+    await page
+        .getByText("Deleting it removes it from every listed course.", { exact: false })
+        .waitFor();
+    assert.ok((await page.locator("body").innerText()).includes("CS101, MA101"));
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.ok(requests.every((request) => request.method !== "DELETE"));
+});
+test("restoring a session discards stored file trees from an earlier actor", async (t) => {
+    const { page, requests } = await openPage(t);
+    await page.addInitScript(
+        (tree) => sessionStorage.setItem("AllCourses", JSON.stringify([tree])),
+        {
+            ...course,
+            children: [
+                {
+                    ...course.children[0],
+                    children: [
+                        {
+                            ...folder,
+                            children: [
+                                {
+                                    ...libraryFile,
+                                    name: "Private cached file.pdf",
+                                    isVerified: false,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    );
+    await page.goto(frontend + `/browse/CS101/${folder._id}`);
+    await page.getByTitle(libraryFile.name, { exact: true }).first().waitFor();
+    assert.equal(await page.getByTitle("Private cached file.pdf", { exact: true }).count(), 0);
+    assert.ok(requests.some((request) => request.path === "/api/course/CS101"));
+});
+
+test("moderation uses the authorized shared-course context returned by the server", async (t) => {
+    const pending = {
+        ...libraryFile,
+        isVerified: false,
+        capabilities: { canManage: true },
+        affectedCourses: ["CS101", "MA101"],
+    };
+    const { page, requests } = await openPage(t, {
+        actor: {
+            ...student,
+            isBR: true,
+            capabilities: { canManageCourses: ["CS101"], canContributeCourses: ["CS101"] },
+        },
+        moderationQueue: [
+            {
+                contributionId: "shared-review",
+                courseCode: "MA101",
+                managementCourseCode: "CS101",
+                parentFolder: folder._id,
+                updatedAt: "2026-09-08T06:30:00Z",
+                files: [pending],
+            },
+        ],
+    });
+    await page.goto(frontend + "/profile");
+    await page.getByText("APPROVE", { exact: true }).click();
+    await page.getByRole("button", { name: "Verify", exact: true }).click();
+    await page.getByText("NO PENDING CONTRIBUTIONS", { exact: true }).waitFor();
+    const action = requests.find((request) => request.path.startsWith("/api/files/verify/"));
+    assert.equal(action.method, "PUT");
+    assert.equal(JSON.parse(action.body).courseCode, "CS101");
+    assert.ok(action.hasSession);
+});
+
+test("thumbnail backgrounds send the session cookie to the resource-ID endpoint", async (t) => {
+    const thumbnailPath = `/api/files/thumbnail/${libraryFile._id}`;
+    const { page, requests } = await openPage(t, {
+        folderData: {
+            ...folder,
+            children: [{ ...libraryFile, thumbnail: { url: thumbnailPath } }],
+        },
+    });
+    const loaded = page.waitForResponse(
+        (response) => new URL(response.url()).pathname === thumbnailPath,
+    );
+    await page.goto(frontend + `/browse/CS101/${folder._id}`);
+    assert.equal((await loaded).status(), 200);
+    assert.ok(requests.find((request) => request.path === thumbnailPath)?.hasSession);
+});

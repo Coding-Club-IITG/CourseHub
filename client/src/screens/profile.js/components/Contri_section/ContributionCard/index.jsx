@@ -1,4 +1,5 @@
 import "./styles.scss";
+import server from "../../../../../api/server";
 import Button from "./Buttons";
 import { toast } from "react-toastify";
 import date from "date-and-time";
@@ -18,7 +19,7 @@ export default function ContributionCard(props) {
             if (isProcessing) return;
             try {
                 setIsProcessing(true);
-                await verifyFile(props?.file?._id);
+                await verifyFile(props?.file?._id, props.managementCourseCode || props.courseCode);
                 props.verify();
                 toast.success("File verified!");
                 setShowDialog(false);
@@ -38,7 +39,7 @@ export default function ContributionCard(props) {
             if (isProcessing) return;
             try {
                 setIsProcessing(true);
-                await unverifyFile(props?.file?._id, props?.file?.fileId, props.parentFolder);
+                await unverifyFile(props?.file?._id, props.managementCourseCode || props.courseCode);
                 props.unverify();
                 toast.success("File deleted!");
                 setShowDialog(false);
@@ -62,13 +63,13 @@ export default function ContributionCard(props) {
                 <p>{props.courseCode}</p>
             </div>
             <p className="content">
-                <a className="file-link" href={props?.file?.webUrl} target="_blank">
+                <a className="file-link" href={`${server}/api/files/preview/${props.file._id}`} target="_blank">
                     {props?.file?.name}
                 </a>
             </p>
 
             <div>
-                {props.isBR ? (
+                {props.file.capabilities?.canManage ? (
                     <div className="br_btn">
                         <div className="btn approve">
                             <Button text="APPROVE" onClick={handleVerify} />
@@ -84,6 +85,7 @@ export default function ContributionCard(props) {
                 )}
             </div>
             <ConfirmDialog
+                affectedCourses={props.file.affectedCourses}
                 isOpen={showDialog}
                 type={dialogType}
                 onConfirm={onConfirmAction}

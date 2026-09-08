@@ -23,8 +23,6 @@ export async function adminLogout() {
 export async function checkAdminSession() {
     const res = await fetch(`${API_BASE_URL}api/admin/`, {
         credentials: "include",
-        headers: { Authorization: "Bearer admin-coursehub-cc23-golang" },
     });
-    // Even though server uses middleware isAdmin with JWT, some older routes may still accept header; cookie is primary.
     return res.ok;
 }

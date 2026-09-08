@@ -11,15 +11,14 @@ async function reverseMigrate() {
         console.log("Starting reversal of migration...");
 
         // This converts the 'courses' field (array) back to 'course' field (first element of array)
-        const result = await FolderModel.updateMany(
-            { courses: { $exists: true, $ne: [] } },
-            [
-                { $set: { course: { $arrayElemAt: ["$courses", 0] } } },
-                { $unset: "courses" }
-            ]
-        );
+        const result = await FolderModel.updateMany({ courses: { $exists: true, $ne: [] } }, [
+            { $set: { course: { $arrayElemAt: ["$courses", 0] } } },
+            { $unset: "courses" },
+        ]);
 
-        console.log(`Reversal completed. Matched ${result.matchedCount} documents and modified ${result.modifiedCount} documents.`);
+        console.log(
+            `Reversal completed. Matched ${result.matchedCount} documents and modified ${result.modifiedCount} documents.`,
+        );
 
         process.exit(0);
     } catch (error) {

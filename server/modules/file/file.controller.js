@@ -1,151 +1,53 @@
-import { FileModel, FolderModel } from "../course/course.model.js";
-import { DeleteFile, RenameOneDriveFile } from "../../services/UploadFile.js";
-import logger from "../../utils/logger.js";
-import { isValidObjectId } from "mongoose";
-import { recalculateParentFolderCounts } from "../../utils/folder.js";
+import Contribution from "../contribution/contribution.model.js";
+import { RenameOneDriveFile } from "../../services/UploadFile.js";
+import { requireFile, presentFile, visibleFiles } from "../../services/authorization.js";
+import { removeFile } from "../../services/resourceRemoval.js";
+import AppError from "../../utils/appError.js";
 
-export const verifyFile = async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        if (!id || !isValidObjectId(id)) {
-            return res.status(400).json({ message: "Invalid file ID" });
-        }
-        
-        const file = await FileModel.findById(id);
-        if (!file) return res.status(404).json({ message: "File not found" });
-
-        file.isVerified = true;
-        await file.save();
-
-        res.status(200).json({ message: "File verified successfully", file });
-    } catch (err) {
-        logger.error("File verification failed", { error: err, attributes: { dependency: "mongodb", operation: "verify-file", outcome: "failure", retryable: false } });
-        res.status(500).json({ message: "Server error", error: err.message });
+export async function verifyFile(req, res) {
+    const { file, code } = await requireFile(
+        req,
+        req.params.id,
+        req.body.courseCode,
+        "canModerate",
+    );
+    file.isVerified = true;
+    await file.save();
+    const contributions = await Contribution.find({ files: file._id }).populate("files");
+    for (const contribution of contributions) {
+        contribution.approved =
+            contribution.files.length > 0 && contribution.files.every((f) => f.isVerified);
+        await contribution.save();
     }
-};
-
-export const unverifyFile = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { folderId, oneDriveId } = req.body;
-        
-        if (!folderId || !oneDriveId) {
-            return res.status(400).json({ message: "folderId and oneDriveId required" });
-        }
-        
-        await FolderModel.findByIdAndUpdate(folderId, { $pull: { children: id } });
-        await recalculateParentFolderCounts(folderId);
-        const file = await FileModel.findByIdAndDelete(id);
-        if (!file) return res.status(404).json({ message: "File not found" });
-
-        await DeleteFile(oneDriveId);
-
-        res.status(200).json({ message: "File deleted (unverified) successfully" });
-    } catch (err) {
-        logger.error("File removal failed", { error: err, attributes: { dependency: "microsoft-graph", operation: "remove-file", outcome: "failure", retryable: true } });
-        res.status(500).json({ message: "Server error", error: err.message });
-    }
-};
-
-export const deleteFile = async (file) => {
-    await FileModel.findByIdAndDelete(file._id);
-    await DeleteFile(file.fileId);
+    res.json({ message: "File verified successfully", file: await presentFile(req, file, code) });
 }
-
-export const getAllFiles = async (req, res) => {
-    try {
-        let files;
-
-        if (req.user.isBR === true) {
-            files = await FileModel.find().sort({ uploadedAt: -1 });
-        } else {
-            // Regular users get only verified files
-            files = await FileModel.find({ isVerified: true }).sort({ uploadedAt: -1 });
-        }
-
-        res.status(200).json(files);
-    } catch (err) {
-        logger.error("File query failed", { error: err, attributes: { dependency: "mongodb", operation: "query-files", outcome: "failure", retryable: false } });
-        res.status(500).json({ message: "Server error", error: err.message });
-    }
-};
-
-
-export const getFileLink = async (req, res) => {
-    try {
-        const fileId = req.params.id;
-        if (!fileId || !isValidObjectId(fileId)) {
-            return res.status(400).json({ message: "Invalid file ID" });
-        }
-
-        const file = await FileModel.findById(fileId).select("webUrl downloadUrl name");
-        
-        if (!file) {
-            return res.status(404).json({ message: "File not found" });
-        }
-
-        return res.status(200).json({ file });
-        
-    } catch (error) {
-        logger.error("File link query failed", { error, attributes: { dependency: "mongodb", operation: "query-file-link", outcome: "failure", retryable: false } });
-        return res.status(500).json({ message: "Internal server error" });
-    }
-};
-
-export const renameFile = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { newName } = req.body;
-
-        if (!id || !isValidObjectId(id)) {
-            return res.status(400).json({ message: "Invalid file ID" });
-        }
-        
-        const trimmedNewName = newName?.trim();
-        if (!trimmedNewName) {
-            return res.status(400).json({ message: "New name is required and cannot be empty" });
-        }
-
-        if (trimmedNewName.length > 200) {
-            return res.status(400).json({ message: "New name is too long (maximum 200 characters)" });
-        }
-
-        // Validate illegal OneDrive characters: \ / : * ? " < > |
-        const illegalChars = /[\\/:*?"<>|]/;
-        if (illegalChars.test(trimmedNewName)) {
-            return res.status(400).json({ 
-                message: "New name contains forbidden characters (\\, /, :, *, ?, \", <, >, |)" 
-            });
-        }
-
-        const file = await FileModel.findById(id);
-        if (!file) {
-            return res.status(404).json({ message: "File not found" });
-        }
-
-        const originalName = file.name;
-        const lastTildeIndex = originalName.lastIndexOf("~");
-        const dotIndex = originalName.lastIndexOf(".");
-        const ext = dotIndex !== -1 ? originalName.slice(dotIndex) : "";
-
-        let contributor = "";
-        if (lastTildeIndex !== -1) {
-            contributor = originalName.slice(lastTildeIndex, dotIndex !== -1 ? dotIndex : undefined);
-        }
-
-        const finalNewName = `${trimmedNewName}${contributor}${ext}`;
-
-        // Rename on OneDrive using the file's fileId
-        await RenameOneDriveFile(file.fileId, finalNewName);
-
-        // Update name in MongoDB
-        file.name = finalNewName;
-        await file.save();
-
-        res.status(200).json({ message: "File renamed successfully", file });
-    } catch (err) {
-        logger.error("File rename failed", { error: err, attributes: { dependency: "microsoft-graph", operation: "rename-file", outcome: "failure", retryable: true } });
-        res.status(500).json({ message: "Server error", error: err.message });
-    }
-};
+export async function unverifyFile(req, res) {
+    const { file } = await requireFile(req, req.params.id, req.body.courseCode, "canManage");
+    await removeFile(file);
+    res.json({ message: "File deleted successfully" });
+}
+export async function getAllFiles(req, res) {
+    res.json(await visibleFiles(req));
+}
+export async function getFileLink(req, res) {
+    const { file } = await requireFile(req, req.params.id, req.query.courseCode);
+    res.json({ file: await presentFile(req, file, req.query.courseCode) });
+}
+export async function downloadFiles(req, res) {
+    const { file } = await requireFile(req, req.body.fileId, req.body.courseCode);
+    res.json({ downloadLink: `/api/files/content/${file._id}?download=1` });
+}
+export async function renameFile(req, res) {
+    const { file, code } = await requireFile(req, req.params.id, req.body.courseCode, "canManage");
+    const newName = typeof req.body.newName === "string" ? req.body.newName.trim() : "";
+    if (!newName || newName.length > 200 || /[\\/:*?"<>|]/.test(newName))
+        throw new AppError(400, "A valid file name is required");
+    const dot = file.name.lastIndexOf("."),
+        tilde = file.name.lastIndexOf("~");
+    const suffix = tilde !== -1 ? file.name.slice(tilde) : dot !== -1 ? file.name.slice(dot) : "";
+    const name = newName + suffix;
+    await RenameOneDriveFile(file.fileId, name);
+    file.name = name;
+    await file.save();
+    res.json({ message: "File renamed successfully", file: await presentFile(req, file, code) });
+}

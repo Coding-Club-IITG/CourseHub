@@ -5,9 +5,6 @@ export const fetchCourses = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}api/admin/dbcourses`, {
             credentials: "include",
-            headers: {
-                Authorization: "Bearer admin-coursehub-cc23-golang",
-            },
         });
         return await response.json();
     } catch (error) {
@@ -24,7 +21,6 @@ export const updateCourseName = async (code, newName, newCode) => {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
             body: JSON.stringify({ name: newName, newCode }),
             credentials: "include",
@@ -43,7 +39,6 @@ export const createCourse = async (code, name) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
             body: JSON.stringify({ name }),
             credentials: "include",
@@ -78,7 +73,7 @@ export const bulkSyncCourses = async (courses, analysis, onProgress = null) => {
             ...analysis.nameConflicts.map((conflict) => ({
                 code: conflict.code,
                 name: conflict.csvName,
-            }))
+            })),
         );
     }
 
@@ -137,7 +132,6 @@ export const linkLegacyCourse = async (targetCode, legacyCode) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
             body: JSON.stringify({ legacyCode }),
             credentials: "include",
@@ -163,7 +157,6 @@ export const deleteCourse = async (code) => {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
             credentials: "include",
         });
@@ -180,13 +173,10 @@ export const deleteCourse = async (code) => {
     }
 };
 
-export const fetchCourseDashboardData = async(code)=>
-{
-    try 
-    {
+export const fetchCourseDashboardData = async (code) => {
+    try {
         const safeCode = code.toLowerCase().trim();
         const response = await fetch(`${API_BASE_URL}api/admin/course/${safeCode}/dashboard`, {
-            headers: {Authorization: "Bearer admin-coursehub-cc23-golang"},
             credentials: "include",
         });
 
@@ -198,51 +188,44 @@ export const fetchCourseDashboardData = async(code)=>
         console.error("Error fetching dashboard:", error);
         throw error;
     }
-}
+};
 
-export const handleContribution = async (contributionId, action) => {
-    try 
-    {
+export const handleContribution = async (contributionId, action, courseCode) => {
+    try {
         const response = await fetch(`${API_BASE_URL}api/admin/contribution/action`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
             },
-            body: JSON.stringify({ contributionId, action}),
+            body: JSON.stringify({ contributionId, action, courseCode }),
             credentials: "include",
         });
-        if (!response.ok)
-        { 
+        if (!response.ok) {
             throw new Error(`Failed to ${action} contribution`);
         }
         return await response.json();
     } catch (error) {
+        console.error("Error handling contribution:", error);
         throw error;
     }
 };
 
-export const deleteNode = async(type,id) =>
-{
-    try
-    {
+export const deleteNode = async (type, id, courseCode) => {
+    try {
         const response = await fetch(`${API_BASE_URL}api/admin/node/${type}/${id}`, {
-            method : "DELETE",
+            method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer admin-coursehub-cc23-golang",
-            },   
-            credentials : "include",
+            },
+            body: JSON.stringify({ courseCode }),
+            credentials: "include",
         });
-        if(!response.ok)
-        {
+        if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || "Failed to delete Item");
         }
-    }
-    catch(error)
-    {
+    } catch (error) {
+        console.error("Error deleting node:", error);
         throw error;
     }
-}
-
+};

@@ -138,12 +138,6 @@ export const getUserFromToken = async function (access_token) {
     }
 };
 
-// export const findUserWithRollNumber = async function (rollNumber) {
-// 	const user = await User.findOne({ rollNumber: rollNumber });
-// 	if (!user) return false;
-// 	return user;
-// };
-
 export const findUserWithEmail = async function (email) {
     const normalizedEmail = email?.toString().trim().toLowerCase();
     if (!normalizedEmail) return false;
@@ -169,29 +163,6 @@ export const addToFavourites = async (userid, name, id, path, code) => {
     const updatedUser = await UserData.save();
     return updatedUser;
 };
-export const AddNewCourse = async (userid, code, name) => {
-    const UserData = await User.findById(userid);
-    const normalizedCode = normalizeCourseCode(code);
-
-    if (UserData.courses.some((c) => normalizeCourseCode(c.code) === normalizedCode))
-        return UserData;
-
-    const color = getRandomColor();
-
-    // Remove from readOnly if present
-    UserData.readOnly = UserData.readOnly.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode,
-    );
-
-    UserData.courses.push({
-        code: normalizedCode,
-        name,
-        color,
-    });
-    const updatedUser = await UserData.save();
-    return updatedUser;
-};
-
 export const AddReadOnlyCourse = async (userid, code, name) => {
     const UserData = await User.findById(userid);
     const normalizedCode = normalizeCourseCode(code);
@@ -217,17 +188,6 @@ export const AddReadOnlyCourse = async (userid, code, name) => {
         name,
         color,
     });
-    const updatedUser = await UserData.save();
-    return updatedUser;
-};
-
-export const RemoveCourse = async (userid, code) => {
-    const UserData = await User.findById(userid);
-    const normalizedCode = normalizeCourseCode(code);
-    let filtered = UserData.courses.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode,
-    );
-    UserData.courses = filtered;
     const updatedUser = await UserData.save();
     return updatedUser;
 };

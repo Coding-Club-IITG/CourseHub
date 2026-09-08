@@ -10,7 +10,7 @@ const sanitizeLocalCourses = (courses) => {
   const byCode = new Map();
   for (const course of courses) {
     if (!course || typeof course !== "object" || !course.code) continue;
-    byCode.set(normalizeCourseCode(course.code), course);
+    byCode.set(normalizeCourseCode(course.code), { code: course.code, name: course.name, color: course.color });
   }
   return Array.from(byCode.values());
 };
