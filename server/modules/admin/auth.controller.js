@@ -27,4 +27,14 @@ export const adminLogout = async (req, res) => {
     return res.json({ success: true });
 };
 
-export default { adminLogin, adminLogout };
+export const getAdmin = async (req, res, next) => {
+    const admin = req.admin;
+    if (!admin) return next(new AppError(500, "Something went wrong!"));
+    return res.json({
+        user: {
+            userId: admin.userId,
+        },
+    });
+};
+
+export default { adminLogin, adminLogout, getAdmin };

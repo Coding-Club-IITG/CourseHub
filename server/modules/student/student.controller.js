@@ -1,7 +1,7 @@
 import User from "../user/user.model.js";
 import UserUpdate from "../user/userUpdate.model.js";
 import logger from "../../utils/logger.js";
-import BR from "../br/br.model.js"
+import BR from "../br/br.model.js";
 // GET /api/student/all?isBR=true
 // Returns every student sorted by rollNumber descending.
 // Pass isBR=true to only return Branch Representatives.
@@ -12,7 +12,15 @@ const getAllStudents = async (req, res) => {
         const students = await User.find(filter).sort({ rollNumber: -1 });
         res.status(200).json({ students });
     } catch (error) {
-        logger.error("Student query failed", { error, attributes: { dependency: "mongodb", operation: "query-students", outcome: "failure", retryable: false } });
+        logger.error("Student query failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "query-students",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -44,10 +52,20 @@ const searchStudents = async (req, res) => {
             },
         ];
 
-        const students = await User.find({ ...brFilter, $or: orConditions }).sort({ rollNumber: -1 });
+        const students = await User.find({ ...brFilter, $or: orConditions }).sort({
+            rollNumber: -1,
+        });
         res.status(200).json({ students });
     } catch (error) {
-        logger.error("Student search failed", { error, attributes: { dependency: "mongodb", operation: "search-students", outcome: "failure", retryable: false } });
+        logger.error("Student search failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "search-students",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -55,7 +73,7 @@ const searchStudents = async (req, res) => {
 // PUT /api/student/refresh/:id
 // Deletes the student's UserUpdate record so their courses are safely
 // re-fetched from the academic portal on their next login.
-// (Per issue #144 — directly calling fetchCoursesForBr would block the
+// (Per issue #144 - directly calling fetchCoursesForBr would block the
 // server for 30-40s and only update previousCourses, not current courses.)
 const refreshStudentCourses = async (req, res) => {
     try {
@@ -66,10 +84,19 @@ const refreshStudentCourses = async (req, res) => {
         await UserUpdate.deleteOne({ rollNumber: student.rollNumber });
 
         res.status(200).json({
-            message: "Student update record reset successfully. Courses will be re-fetched on next login.",
+            message:
+                "Student update record reset successfully. Courses will be re-fetched on next login.",
         });
     } catch (error) {
-        logger.error("Student refresh failed", { error, attributes: { dependency: "mongodb", operation: "refresh-student", outcome: "failure", retryable: false } });
+        logger.error("Student refresh failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "refresh-student",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -81,10 +108,18 @@ const deleteStudent = async (req, res) => {
         const { id } = req.params;
         const student = await User.findByIdAndDelete(id);
         if (!student) return res.status(404).json({ error: "Student not found" });
-        await UserUpdate.deleteOne({rollNumber:student.rollNumber});
+        await UserUpdate.deleteOne({ rollNumber: student.rollNumber });
         res.status(200).json({ message: "Student deleted successfully" });
     } catch (error) {
-        logger.error("Student deletion failed", { error, attributes: { dependency: "mongodb", operation: "delete-student", outcome: "failure", retryable: false } });
+        logger.error("Student deletion failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "delete-student",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -101,11 +136,20 @@ const semesterReset = async (req, res) => {
         const result = await User.updateMany({}, { $set: { courses: [] } });
 
         res.status(200).json({
-            message: "Semester reset successful. All student updates cleared and course lists reset.",
+            message:
+                "Semester reset successful. All student updates cleared and course lists reset.",
             modifiedCount: result.modifiedCount,
         });
     } catch (error) {
-        logger.error("Semester reset failed", { error, attributes: { dependency: "mongodb", operation: "semester-reset", outcome: "failure", retryable: false } });
+        logger.error("Semester reset failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "semester-reset",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

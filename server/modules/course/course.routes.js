@@ -1,10 +1,5 @@
 import express from "express";
-import {
-    deleteCourseByCode,
-    getAllCourses,
-    getCourse,
-    isCourseUpdated,
-} from "./course.controller.js";
+import { getAllCourses, getCourse, isCourseUpdated } from "./course.controller.js";
 import CourseModel from "./course.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import logger from "../../utils/logger.js";
@@ -41,12 +36,19 @@ router.post("/create/:code", async (req, res) => {
 
         return res.status(201).json({ message: "Course created successfully", course: newCourse });
     } catch (error) {
-        logger.error("Course creation failed", { error, attributes: { dependency: "mongodb", operation: "create-course", outcome: "failure", retryable: false } });
+        logger.error("Course creation failed", {
+            error,
+            attributes: {
+                dependency: "mongodb",
+                operation: "create-course",
+                outcome: "failure",
+                retryable: false,
+            },
+        });
         res.status(500).json({ message: "Server Error" });
     }
 });
 router.get("/", catchAsync(getAllCourses));
-router.get("/delete/:code", catchAsync(deleteCourseByCode));
 router.post("/isUpdated", isAuthenticated, catchAsync(isCourseUpdated));
 router.get("/:code", catchAsync(getCourse));
 

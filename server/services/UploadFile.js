@@ -36,13 +36,13 @@ async function CreateFolder(contributionId) {
             Authorization: `Bearer ${access_token}`,
         },
     };
-    
+
     const _data = {
         name: contributionId,
         folder: {},
         "@microsoft.graph.conflictBehavior": "fail",
     };
-    
+
     try {
         const { data } = await axios.post(url, _data, config);
         return data.id;
@@ -78,7 +78,14 @@ async function UploadFile(contributionId, filePath, fileName) {
     const folderId = parent_item_id;
     const session = await createUploadSession(folderId, fileName);
     if (!session?.url) {
-        logger.error("File upload failed", { attributes: { dependency: "microsoft-graph", operation: "upload-file", outcome: "failure", retryable: true } });
+        logger.error("File upload failed", {
+            attributes: {
+                dependency: "microsoft-graph",
+                operation: "upload-file",
+                outcome: "failure",
+                retryable: true,
+            },
+        });
         return null;
     }
     const { url, access_token } = session;
@@ -104,7 +111,7 @@ async function UploadFile(contributionId, filePath, fileName) {
                         Authorization: `Bearer ${access_token}`,
                         "Content-Type": "application/json",
                     },
-                }
+                },
             ),
             axios.get(thumbnaillink, {
                 headers: { Authorization: `Bearer ${access_token}` },
@@ -126,12 +133,18 @@ async function UploadFile(contributionId, filePath, fileName) {
         await fileData.save();
         logger.info("File saved");
 
-        // Upload thumbnail to ImageKit in the background — don't block the response
+        // Upload thumbnail to ImageKit in the background - don't block the response
         if (tempThumbnailUrl) {
             (async () => {
                 try {
-                    const imgResponse = await axios.get(tempThumbnailUrl, { responseType: "arraybuffer" });
-                    const { url: permanentUrl, fileId: imagekitFileId, path: imagekitPath } = await uploadThumbnail(data.id, Buffer.from(imgResponse.data));
+                    const imgResponse = await axios.get(tempThumbnailUrl, {
+                        responseType: "arraybuffer",
+                    });
+                    const {
+                        url: permanentUrl,
+                        fileId: imagekitFileId,
+                        path: imagekitPath,
+                    } = await uploadThumbnail(data.id, Buffer.from(imgResponse.data));
                     await FileModel.updateOne(
                         { fileId: data.id },
                         {
@@ -140,11 +153,25 @@ async function UploadFile(contributionId, filePath, fileName) {
                                 fileId: imagekitFileId,
                                 path: imagekitPath,
                             },
-                        }
+                        },
                     );
-                    logger.info("ImageKit thumbnail stored", { attributes: { dependency: "imagekit", operation: "store-thumbnail", outcome: "success" } });
+                    logger.info("ImageKit thumbnail stored", {
+                        attributes: {
+                            dependency: "imagekit",
+                            operation: "store-thumbnail",
+                            outcome: "success",
+                        },
+                    });
                 } catch (thumbErr) {
-                    logger.warn("ImageKit thumbnail upload failed", { error: thumbErr, attributes: { dependency: "imagekit", operation: "store-thumbnail", outcome: "failure", retryable: true } });
+                    logger.warn("ImageKit thumbnail upload failed", {
+                        error: thumbErr,
+                        attributes: {
+                            dependency: "imagekit",
+                            operation: "store-thumbnail",
+                            outcome: "failure",
+                            retryable: true,
+                        },
+                    });
                 }
             })();
         }
@@ -159,15 +186,26 @@ async function UploadFile(contributionId, filePath, fileName) {
 async function DeleteFile(fileId) {
     const access_token = await getAccessToken();
 
-    // Delete ImageKit thumbnail in the background — don't block the response
-    FileModel.findOne({ fileId }).lean().then((fileDoc) => {
-        const imagekitId = fileDoc?.thumbnail?.fileId || fileDoc?.imagekitFileId;
-        if (imagekitId) {
-            deleteThumbnail(imagekitId).catch((ikErr) => {
-                logger.warn("ImageKit thumbnail deletion failed", { error: ikErr, attributes: { dependency: "imagekit", operation: "delete-thumbnail", outcome: "failure", retryable: true } });
-            });
-        }
-    }).catch(() => {});
+    // Delete ImageKit thumbnail in the background - don't block the response
+    FileModel.findOne({ fileId })
+        .lean()
+        .then((fileDoc) => {
+            const imagekitId = fileDoc?.thumbnail?.fileId || fileDoc?.imagekitFileId;
+            if (imagekitId) {
+                deleteThumbnail(imagekitId).catch((ikErr) => {
+                    logger.warn("ImageKit thumbnail deletion failed", {
+                        error: ikErr,
+                        attributes: {
+                            dependency: "imagekit",
+                            operation: "delete-thumbnail",
+                            outcome: "failure",
+                            retryable: true,
+                        },
+                    });
+                });
+            }
+        })
+        .catch(() => {});
 
     try {
         //obtain parent folder onedrive id
@@ -177,7 +215,7 @@ async function DeleteFile(fileId) {
                 headers: {
                     Authorization: `Bearer ${access_token}`,
                 },
-            }
+            },
         );
         const folderId = data?.parentReference?.id;
 
@@ -208,7 +246,7 @@ async function isFolderEmpty(folderId, access_token) {
             headers: {
                 Authorization: `Bearer ${access_token}`,
             },
-        }
+        },
     );
 
     if (data.value.length === 1) return true;

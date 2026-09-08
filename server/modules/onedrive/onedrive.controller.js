@@ -4,44 +4,17 @@ import AppError from "../../utils/appError.js";
 import settings from "../../config/onedrive.js";
 import fs from "fs";
 import { extractGraphErrorDetails, formatGraphErrorMessage } from "../../utils/graphError.js";
-import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { uploadThumbnail, isImageKitUrl } from "../../services/imagekit.js";
 
-import CourseModel, { FolderModel, FileModel } from "../course/course.model.js";
-import SearchResults from "../search/search.model.js";
-
-const coursehub_id = process.env.ONEDRIVE_FOLDER_ID;
-
-const getCourseCodeFromFolderName = (name) => normalizeCourseCode(name?.split("-")[0]);
-const getCourseNameFromFolderName = (name) => name?.split("-")[1]?.trim() || "";
-
-export async function makeAllCourses(req, res) {
-    await visitAllFiles();
-    return res.sendStatus(200);
-}
-
-export async function makeCourseById(req, res) {
-    await visitCourseById(req.params.id);
-    return res.sendStatus(200);
-}
-
-export async function getCourseIds(req, res) {
-    const data = await getAllCourseIds();
-    return res.send(data);
-}
+import { FileModel } from "../course/course.model.js";
 
 export async function thumbnail(req, res) {
     const fileId = req.body.fileId;
 
-    // 1. Already a permanent ImageKit URL in DB — return immediately.
-    // .lean() returns the raw stored value so legacy string thumbnails stay
-    // strings (a hydrated doc wraps the nested `thumbnail` path as an object,
-    // which breaks the `typeof === "string"` check below).
+    // 1. Already a permanent ImageKit URL in DB - return immediately.
     const file = await FileModel.findOne({ fileId }).select("thumbnail").lean();
     const storedThumbnailUrl =
-        typeof file?.thumbnail === "string"
-            ? file.thumbnail
-            : file?.thumbnail?.url;
+        typeof file?.thumbnail === "string" ? file.thumbnail : file?.thumbnail?.url;
 
     if (storedThumbnailUrl && isImageKitUrl(storedThumbnailUrl)) {
         return res.status(200).json(storedThumbnailUrl);
@@ -51,14 +24,18 @@ export async function thumbnail(req, res) {
     const access_token = await getAccessToken();
     const thumbnaildata = await axios.get(
         `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/thumbnails`,
-        { headers: { Authorization: `Bearer ${access_token}` } }
+        { headers: { Authorization: `Bearer ${access_token}` } },
     );
     const thumbnailurl = thumbnaildata.data.value?.[0]?.medium?.url;
     if (!thumbnailurl) throw new AppError(404, "Thumbnail not found");
 
     // 3. Download raw image bytes and upload to ImageKit as WebP permanently
     const imgResponse = await axios.get(thumbnailurl, { responseType: "arraybuffer" });
-    const { url: permanentUrl, fileId: imagekitFileId, path: imagekitPath } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
+    const {
+        url: permanentUrl,
+        fileId: imagekitFileId,
+        path: imagekitPath,
+    } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
 
     // 4. Persist permanent URL to DB so this file never hits Graph API again
     await FileModel.updateOne(
@@ -71,15 +48,10 @@ export async function thumbnail(req, res) {
                     path: imagekitPath,
                 },
             },
-        }
+        },
     );
 
     return res.status(200).json(permanentUrl);
-}
-
-export async function getFile(req, res) {
-    const resp = await getFileDownloadLink(req.params.id);
-    return res.json({ url: resp });
 }
 
 export async function getFilePreview(req, res) {
@@ -118,167 +90,11 @@ async function getFileWebUrl(file_id) {
     return data.link.webUrl;
 }
 
-export async function getAllCourseIds() {
-    const access_token = await getAccessToken();
-    const headers = {
-        Authorization: `Bearer ${access_token}`,
-        Host: "graph.microsoft.com",
-    };
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${coursehub_id}/children`;
-    const data = await getRequest(url, headers);
-    const children = data.value;
-    const resp = [];
-    children.map((child) => {
-        resp.push({ name: child.name, id: child.id });
-    });
-    return resp;
-}
-
-async function visitAllFiles() {
-    const access_token = await getAccessToken();
-    const headers = {
-        Authorization: `Bearer ${access_token}`,
-        Host: "graph.microsoft.com",
-    };
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${coursehub_id}/children`;
-    const data = await getRequest(url, headers);
-    const children = data.value;
-    const folders = children.map(async (child) => {
-        const folder_data = await visitFolder(child, child.name);
-        return folder_data;
-    });
-    const resolved_folders = await Promise.all(folders);
-    await Promise.all(resolved_folders.map(async (folder) => {
-        const courseCode = getCourseCodeFromFolderName(folder.name);
-        const courseName = getCourseNameFromFolderName(folder.name);
-        await CourseModel.create({
-            name: courseName,
-            code: courseCode,
-            children: folder.children,
-        });
-        const searchDocument = await SearchResults.findOne({
-            code: getCourseCodeCaseInsensitiveRegex(courseCode),
-        });
-        if (!searchDocument) {
-            await SearchResults.create({
-                name: courseName,
-                code: courseCode,
-                isAvailable: true,
-            });
-        } else {
-            await SearchResults.updateOne(
-                { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
-                {
-                    isAvailable: true,
-                }
-            );
-        }
-    }));
-    return "ok";
-}
-
-export async function visitCourseById(id) {
-    const access_token = await getAccessToken();
-    const headers = {
-        Authorization: `Bearer ${access_token}`,
-        Host: "graph.microsoft.com",
-    };
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${coursehub_id}/children`;
-    const data = await getRequest(url, headers);
-    const children = data.value;
-    const required_course = children.find((course) => course.id === id);
-    if (!required_course) throw new AppError(404, "Not Found!");
-    const folder_data = await visitFolder(required_course, required_course.name);
-    const courseCode = getCourseCodeFromFolderName(required_course.name);
-    const courseName = getCourseNameFromFolderName(required_course.name);
-
-    await CourseModel.create({
-        name: courseName,
-        code: courseCode,
-        children: folder_data.children,
-    });
-    const searchDocument = await SearchResults.findOne({
-        code: getCourseCodeCaseInsensitiveRegex(courseCode),
-    });
-    if (!searchDocument) {
-        await SearchResults.create({
-            name: courseName,
-            code: courseCode,
-            isAvailable: true,
-        });
-    } else {
-        await SearchResults.updateOne(
-            { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
-            {
-                isAvailable: true,
-            }
-        );
-    }
-
-    return "ok";
-}
-
-async function visitFolder(folder, currCourse, prevFolder) {
-    const access_token = await getAccessToken();
-    const headers = {
-        Authorization: `Bearer ${access_token}`,
-        Host: "graph.microsoft.com",
-    };
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folder.id}/children?$expand=thumbnails`;
-    const data = await getRequest(url, headers);
-    const children = data.value;
-    const normalizedCourseCode = getCourseCodeFromFolderName(currCourse);
-    let childType = "File";
-
-    const folders = children.map(async function (child) {
-        if (child.folder) {
-            const prevFolderName = prevFolder ? `${prevFolder}/` : "";
-            const passName = prevFolderName + folder.name;
-            childType = "Folder";
-            const nestedData = await visitFolder(child, normalizedCourseCode, passName);
-            return nestedData;
-        }
-
-        const fileData = await visitFile(child, normalizedCourseCode);
-        return fileData;
-    });
-
-    const res = await Promise.all(folders);
-    const prevFolderName = prevFolder ? `${prevFolder}/` : "root/";
-    const NewFolder = await FolderModel.create({
-        courses: [normalizedCourseCode],
-        name: folder.name,
-        childType,
-        children: res,
-        path: prevFolderName,
-        id: folder.id,
-    });
-    return NewFolder;
-}
-
-async function visitFile(file, currCourse) {
-    const NewFile = await FileModel.create({
-        course: normalizeCourseCode(currCourse),
-        name: file.name,
-        id: file.id,
-        size: file.size * 0.000001,
-        thumbnail: {
-            url: file?.thumbnails?.[0]?.medium?.url || "null",
-        },
-    });
-    return NewFile._id;
-}
-
-
 let cachedAccessToken = null;
 let tokenExpiry = 0;
 let refreshPromise = null;
 export async function getAccessToken() {
-
-    if (
-        cachedAccessToken &&
-        Date.now() < tokenExpiry
-    ) {
+    if (cachedAccessToken && Date.now() < tokenExpiry) {
         return cachedAccessToken;
     }
     if (refreshPromise) {
@@ -295,9 +111,7 @@ export async function getAccessToken() {
 
         cachedAccessToken = data.access_token;
 
-        tokenExpiry =
-            Date.now() +
-            (data.expires_in - 60) * 1000;
+        tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
 
         return cachedAccessToken;
     })();
@@ -306,7 +120,6 @@ export async function getAccessToken() {
     } finally {
         refreshPromise = null;
     }
-
 }
 
 export function clearAccessTokenCache() {
@@ -365,7 +178,7 @@ export async function getRequest(url, headers) {
         const details = extractGraphErrorDetails(error);
         const appError = new AppError(
             details.status || 502,
-            formatGraphErrorMessage(details, "Microsoft Graph GET request failed")
+            formatGraphErrorMessage(details, "Microsoft Graph GET request failed"),
         );
         appError.graphDetails = details;
         throw appError;
@@ -393,7 +206,7 @@ export async function postRequest(url, headers, params) {
         const details = extractGraphErrorDetails(error);
         const appError = new AppError(
             details.status || 502,
-            formatGraphErrorMessage(details, "Microsoft Graph POST request failed")
+            formatGraphErrorMessage(details, "Microsoft Graph POST request failed"),
         );
         appError.graphDetails = details;
         throw appError;

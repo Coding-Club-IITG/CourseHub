@@ -4,16 +4,14 @@ import { API_BASE_URL } from "./server.js";
 // Pass brOnly=true to fetch only Branch Representatives.
 export const fetchStudents = async (brOnly = false) => {
     try {
-        const url = brOnly
-            ? `${API_BASE_URL}api/br/allBRs`
-            : `${API_BASE_URL}api/student/all`;
-        const response = await fetch(url, {credentials:"include"});
+        const url = brOnly ? `${API_BASE_URL}api/br/allBRs` : `${API_BASE_URL}api/student/all`;
+        const response = await fetch(url, { credentials: "include" });
         const data = await response.json();
-        return { students : data.students || data.brs || []}; }
-    catch (error) {
-        console.error("Error fetching students :" , error );
-        throw error ;
-    }            
+        return { students: data.students || data.brs || [] };
+    } catch (error) {
+        console.error("Error fetching students :", error);
+        throw error;
+    }
 };
 
 // Search students by name or roll number.
@@ -22,10 +20,9 @@ export const searchStudents = async (query, brOnly = false) => {
     try {
         const params = new URLSearchParams({ q: query });
         if (brOnly) params.set("isBR", "true");
-        const response = await fetch(
-            `${API_BASE_URL}api/student/search?${params.toString()}`,
-            { credentials: "include" }
-        );
+        const response = await fetch(`${API_BASE_URL}api/student/search?${params.toString()}`, {
+            credentials: "include",
+        });
         return await response.json();
     } catch (error) {
         console.error("Error searching students:", error);
@@ -42,7 +39,8 @@ export const refreshStudentCourses = async (id) => {
             credentials: "include",
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || result.message || "Failed to refresh courses");
+        if (!response.ok)
+            throw new Error(result.error || result.message || "Failed to refresh courses");
         return result;
     } catch (error) {
         console.error("Error refreshing student courses:", error);
@@ -58,7 +56,8 @@ export const deleteStudent = async (id) => {
             credentials: "include",
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || result.message || "Failed to delete student");
+        if (!response.ok)
+            throw new Error(result.error || result.message || "Failed to delete student");
         return result;
     } catch (error) {
         console.error("Error deleting student:", error);
@@ -66,7 +65,7 @@ export const deleteStudent = async (id) => {
     }
 };
 
-// Semester reset — deletes all UserUpdate records and clears courses for every student.
+// Semester reset - deletes all UserUpdate records and clears courses for every student.
 export const semesterReset = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}api/student/semester-reset`, {
@@ -74,7 +73,8 @@ export const semesterReset = async () => {
             credentials: "include",
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || result.message || "Semester reset failed");
+        if (!response.ok)
+            throw new Error(result.error || result.message || "Semester reset failed");
         return result;
     } catch (error) {
         console.error("Error during semester reset:", error);

@@ -1,6 +1,6 @@
 import AppError from "../../utils/appError.js";
 import User from "../user/user.model.js";
-import CourseModel, { FolderModel, FileModel } from "./course.model.js";
+import CourseModel from "./course.model.js";
 import logger from "../../utils/logger.js";
 import SearchResults from "../search/search.model.js";
 import courselist from "./course.list.js";
@@ -73,7 +73,7 @@ export const getCourse = async (req, res, next) => {
         if (a?.name > b?.name) return 1;
         else if (a?.name < b?.name) return -1;
         else return 1;
-    }
+    };
 
     if (courseObj?.children && courseObj.children.length > 0) {
         for (const childFolder of courseObj.children) {
@@ -93,37 +93,16 @@ export const getCourse = async (req, res, next) => {
     }
 
     logger.metric?.("course_opened", {
-        value: 1, 
-        dimensions: { 
+        value: 1,
+        dimensions: {
             courseCode: courseObj.code,
             userEmail: req.user ? req.user.email : "guest",
             department: req.user ? req.user.department : "unknown",
-            semester: req.user ? req.user.semester : 0
-        }
+            semester: req.user ? req.user.semester : 0,
+        },
     });
 
     return res.json({ found: true, ...courseObj });
-};
-
-export const deleteCourseByCode = async (req, res, next) => {
-    const { code } = req.params;
-    const normalizedCode = normalizeCourseCode(code);
-    if (!normalizedCode) throw new AppError(400, "Missing Course Id");
-
-    const courseCodeRegex = getCourseCodeCaseInsensitiveRegex(normalizedCode);
-    const courseFolders = await FolderModel.find({ courses: courseCodeRegex });
-    for (const folder of courseFolders) {
-        if (folder.courses.length > 1) {
-            await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: normalizedCode } });
-        } else {
-            await FolderModel.deleteOne({ _id: folder._id });
-        }
-    }
-    await FileModel.deleteMany({
-        course: { $regex: `^${normalizedCode}\\s-\\s`, $options: "i" },
-    });
-    await CourseModel.deleteOne({ code: courseCodeRegex });
-    res.sendStatus(200);
 };
 
 export const getAllCourses = async (req, res, next) => {
@@ -137,9 +116,7 @@ export const isCourseUpdated = async (req, res, next) => {
     if (!clientOn) return next(new AppError(500, "Invalid data provided!"));
     let outdatedOnClient = [];
 
-    const courses = req.user.courses
-        .map((c) => normalizeCourseCode(c.code))
-        .filter(Boolean);
+    const courses = req.user.courses.map((c) => normalizeCourseCode(c.code)).filter(Boolean);
     const searchResults = await SearchResults.find({
         code: { $in: courses.map(getCourseCodeCaseInsensitiveRegex) },
     });
