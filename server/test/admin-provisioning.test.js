@@ -1,4 +1,5 @@
 import "./support/environment.js";
+import { storedPasswordHashes } from "./fixtures/password-hashes.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { spawnSync } from "node:child_process";
@@ -46,6 +47,15 @@ test("user IDs are trimmed, passwords retain their exact whitespace, and the 72-
         validateAdminCredentials({ ...credentials, password: "🔒".repeat(18) }).password,
         "🔒".repeat(18),
     );
+});
+
+test("persisted administrator hashes still authenticate without a password reset", async () => {
+    for (const { password, hash } of storedPasswordHashes) {
+        const admin = new Admin({ userId: "existing-admin", password: hash });
+        assert.equal(await admin.comparePassword(password), true);
+        assert.equal(await admin.comparePassword("incorrect-password"), false);
+        assert.equal(admin.password, hash);
+    }
 });
 
 test("an existing administrator cannot be reset by provisioning", async (t) => {

@@ -87,6 +87,46 @@ after(async () => {
     }
 });
 
+test("authenticated administrator CSV uploads persist courses and clean up parsed and rejected files", async (t) => {
+    const admin = await Admin.create({ userId: "multipart-admin", password });
+    let importedCourse;
+    t.after(async () => {
+        if (importedCourse) await Course.deleteOne({ _id: importedCourse._id });
+        await Admin.deleteOne({ _id: admin._id });
+    });
+    const headers = await sessionHeaders(admin.id, "admin");
+    delete headers["content-type"];
+    fs.mkdirSync("uploads", { recursive: true });
+    const beforeFiles = fs.readdirSync("uploads").sort();
+    const body = new FormData();
+    body.append(
+        "file",
+        new Blob(["QA6001,Multipart Course\n"], { type: "text/csv" }),
+        "courses.csv",
+    );
+    const response = await fetch(origin + "/api/admin/courses/upload", {
+        method: "POST",
+        headers,
+        body,
+    });
+    assert.equal(response.status, 200);
+    assert.ok((await response.json()).some((course) => course.code === "QA6001"));
+    importedCourse = await Course.findOne({ code: "QA6001" });
+    assert.equal(importedCourse.name, "Multipart Course");
+    assert.deepEqual(fs.readdirSync("uploads").sort(), beforeFiles);
+
+    for (const endpoint of ["/api/admin/courses/upload", "/api/admin/courses/bulk-link"]) {
+        const invalid = new FormData();
+        invalid.append("file", new Blob(["QA6002,Must Not Import\n"]), "courses.csv");
+        invalid.append("items[4294967294]", "invalid");
+        const rejected = await fetch(origin + endpoint, { method: "POST", headers, body: invalid });
+        assert.equal(rejected.status, 400);
+        await rejected.json();
+        assert.equal(await Course.exists({ code: "QA6002" }), null);
+        assert.deepEqual(fs.readdirSync("uploads").sort(), beforeFiles);
+    }
+});
+
 test("provisioned password hashes work with the existing administrator login", async () => {
     const result = await provisionAdmin({ userId: "login-fixture", password });
     const stored = await Admin.findById(result.id);
