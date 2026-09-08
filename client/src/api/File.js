@@ -18,10 +18,6 @@ export const previewFile = async (fileId) => {
     const { data } = await API.get(`/file/preview/${fileId}`);
     return data;
 };
-export const fetchAllFiles = async () => {
-    const { data } = await API.get("/file/all");
-    return data;
-};
 export const verifyFile = async (fileId) => {
     const { data } = await API.put(`/files/verify/${fileId}`);
     return data;
@@ -44,6 +40,7 @@ export const getThumbnail = async (fileId) => {
 export const getFileDownloadLink = async (fileId) => {
     const response = await fetch(serverRoot + "/api/files/download", {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },

@@ -1,0 +1,31 @@
+.session-gate {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #f5f5f5;
+    color: #111;
+    text-align: center;
+}
+
+.session-gate-message {
+    max-width: 420px;
+    line-height: 1.5;
+}
+
+.session-gate-retry {
+    margin-top: 16px;
+    min-height: 44px;
+    padding: 10px 24px;
+    border: 2px solid #111;
+    border-radius: 8px;
+    background: #ffd700;
+    color: #111;
+    font: inherit;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: 3px solid #111;
+        outline-offset: 3px;
+    }
+}

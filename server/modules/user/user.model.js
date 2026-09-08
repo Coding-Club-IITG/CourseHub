@@ -15,7 +15,7 @@ const userSchema = Schema({
     semester: { type: Number, reqiured: true },
     degree: { type: String, required: true },
     courses: { type: Array, default: [], required: true },
-    readOnly: {type: Array, default: []},
+    readOnly: { type: Array, default: [] },
     isBR: { type: Boolean },
     previousCourses: { type: Array, default: [] },
     department: { type: String, required: true }, //dup
@@ -40,7 +40,7 @@ userSchema.pre("save", function (next) {
         const courseCodes = new Set([
             ...user.courses.map((c) => normalizeCourseCode(c.code)),
             ...(user.previousCourses?.flatMap((sem) =>
-                sem.courses.map((c) => normalizeCourseCode(c.code))
+                sem.courses.map((c) => normalizeCourseCode(c.code)),
             ) || []),
         ]);
         user.readOnly = user.readOnly.filter((c) => !courseCodes.has(normalizeCourseCode(c.code)));
@@ -50,13 +50,9 @@ userSchema.pre("save", function (next) {
 
 userSchema.methods.generateJWT = function () {
     var user = this;
-    var token = jwt.sign(
-        { user: user._id, isBR: user.isBR },
-        config.jwtSecret,
-        {
-            expiresIn: "24d",
-        }
-    );
+    var token = jwt.sign({ user: user._id, isBR: user.isBR }, config.jwtSecret, {
+        expiresIn: "24d",
+    });
     return token;
 };
 
@@ -65,6 +61,7 @@ userSchema.statics.findByJWT = async function (token) {
         var user = this;
         var decoded = jwt.verify(token, config.jwtSecret);
         const id = decoded.user;
+        if (typeof id !== "string" || !/^[a-f0-9]{24}$/i.test(id)) return false;
         const fetchedUser = await user.findOne({ _id: id });
         if (!fetchedUser) return false;
         return fetchedUser;
@@ -86,13 +83,15 @@ export const validateUser = function (obj) {
         degree: Joi.string().required(),
         courses: Joi.array().required(),
         isBR: Joi.boolean().optional(),
-        previousCourses: Joi.array().items(
-            Joi.object({
-                semester: Joi.number().required(),
-                year: Joi.number().required(),
-                courses: Joi.array().required()
-            })
-        ).required(),
+        previousCourses: Joi.array()
+            .items(
+                Joi.object({
+                    semester: Joi.number().required(),
+                    year: Joi.number().required(),
+                    courses: Joi.array().required(),
+                }),
+            )
+            .required(),
         department: Joi.string().required(),
         readOnly: Joi.array().required(),
     });
@@ -101,7 +100,14 @@ export const validateUser = function (obj) {
 export const updateUserData = async (userId, userData) => {
     User.findOne({ _id: userId }, async (err, doc) => {
         if (err) {
-            logger.error("User update failed", { attributes: { dependency: "mongodb", operation: "update-user", outcome: "failure", retryable: false } });
+            logger.error("User update failed", {
+                attributes: {
+                    dependency: "mongodb",
+                    operation: "update-user",
+                    outcome: "failure",
+                    retryable: false,
+                },
+            });
         }
         if (userData.newUserData.newUserName) {
             doc.name = userData.newUserData.newUserName;
@@ -174,7 +180,7 @@ export const AddNewCourse = async (userid, code, name) => {
 
     // Remove from readOnly if present
     UserData.readOnly = UserData.readOnly.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode
+        (course) => normalizeCourseCode(course.code) !== normalizedCode,
     );
 
     UserData.courses.push({
@@ -195,13 +201,13 @@ export const AddReadOnlyCourse = async (userid, code, name) => {
 
     // Check if in courses
     const inCourses = UserData.courses.some(
-        (course) => normalizeCourseCode(course.code) === normalizedCode
+        (course) => normalizeCourseCode(course.code) === normalizedCode,
     );
     if (inCourses) return UserData;
 
     // Check if in previousCourses
     const inPrevious = UserData.previousCourses?.some((sem) =>
-        sem.courses.some((course) => normalizeCourseCode(course.code) === normalizedCode)
+        sem.courses.some((course) => normalizeCourseCode(course.code) === normalizedCode),
     );
     if (inPrevious) return UserData;
 
@@ -219,7 +225,7 @@ export const RemoveCourse = async (userid, code) => {
     const UserData = await User.findById(userid);
     const normalizedCode = normalizeCourseCode(code);
     let filtered = UserData.courses.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode
+        (course) => normalizeCourseCode(course.code) !== normalizedCode,
     );
     UserData.courses = filtered;
     const updatedUser = await UserData.save();
@@ -230,7 +236,7 @@ export const RemoveReadOnly = async (userid, code) => {
     const UserData = await User.findById(userid);
     const normalizedCode = normalizeCourseCode(code);
     let filtered = UserData.readOnly.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode
+        (course) => normalizeCourseCode(course.code) !== normalizedCode,
     );
     UserData.readOnly = filtered;
     const updatedUser = await UserData.save();
@@ -241,7 +247,7 @@ export const removeFromFavourites = async (userid, fileid) => {
     const resp = await User.findOneAndUpdate(
         { _id: userid },
         { $pull: { favourites: { _id: fileid } } },
-        { new: true }
+        { new: true },
     );
     return resp;
 };

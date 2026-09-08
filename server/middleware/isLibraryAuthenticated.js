@@ -1,3 +1,3 @@
 import { requireSession } from "./sessionAuthentication.js";
 
-export default requireSession("student");
+export default requireSession("student", "admin");

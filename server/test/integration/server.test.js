@@ -1,14 +1,27 @@
 import "../support/environment.js";
 import assert from "node:assert/strict";
-import { after, before, test } from "node:test";
+import { after, before, beforeEach, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
+import fs from "node:fs";
+import path from "node:path";
+import axios from "axios";
+import User from "../../modules/user/user.model.js";
+import UserUpdate from "../../modules/user/userUpdate.model.js";
+import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
+import Contribution from "../../modules/contribution/contribution.model.js";
+import { upload } from "../../modules/contribution/contribution.routes.js";
+import { clearAccessTokenCache } from "../../modules/onedrive/onedrive.controller.js";
+import { guardExternalServices } from "../support/provider-guards.js";
+import { student, course, year, folder } from "../fixtures/library.js";
 import { app } from "../../index.js";
 import Admin from "../../modules/admin/admin.model.js";
 import { provisionAdmin } from "../../modules/admin/admin.provisioning.js";
+
+beforeEach(guardExternalServices);
 
 const owner = randomUUID();
 const password = "database-fixture-password-only";
@@ -196,4 +209,161 @@ test("the database suite leaves a nonempty test target intact", async () => {
         (await mongoose.connection.db.collection("_testRun").findOne({ _id: "owner" })).token,
         owner,
     );
+});
+
+test("authenticated browsing and multipart upload persist content with mocked Graph storage", async (t) => {
+    const person = await User.create(student);
+    await UserUpdate.create({ rollNumber: person.rollNumber });
+    await FolderModel.create({ ...folder, children: [] });
+    await FolderModel.create({ ...year, children: [folder._id] });
+    await Course.create({ ...course, children: [year._id] });
+    const headers = { cookie: `token=${person.generateJWT()}` };
+    for (const route of [
+        "/api/user",
+        "/api/course/CS101",
+        `/api/folder/content/${folder._id}?courseCode=CS101`,
+    ]) {
+        const response = await fetch(origin + route, { headers });
+        assert.equal(response.status, 200, route);
+        await response.json();
+    }
+    const absent = await fetch(origin + "/api/course/MISSING", { headers });
+    assert.equal(absent.status, 404);
+    assert.equal(await Course.countDocuments(), 1);
+    const unsigned = await fetch(origin + "/api/course/CS101");
+    assert.equal(unsigned.status, 401);
+
+    const contributionId = randomUUID();
+    const created = await fetch(origin + "/api/contribution", {
+        method: "POST",
+        headers: { ...headers, "content-type": "application/json" },
+        body: JSON.stringify({
+            contributionId,
+            uploadedBy: person.id,
+            courseCode: "CS101",
+            parentFolder: folder._id,
+            approved: false,
+            description: "Test upload",
+        }),
+    });
+    assert.equal(created.status, 200);
+    assert.equal((await created.json()).created, true);
+
+    clearAccessTokenCache();
+    t.after(clearAccessTokenCache);
+    for (const method of ["existsSync", "readFileSync", "writeFileSync"]) {
+        const original = fs[method];
+        t.mock.method(fs, method, (file, ...rest) => {
+            if (!String(file).endsWith(".token")) return original(file, ...rest);
+            if (method === "existsSync") return true;
+            if (method === "readFileSync") return "test-refresh-token";
+        });
+    }
+    const calls = [];
+    t.mock.method(axios, "post", async (url) => {
+        calls.push(url);
+        if (url.startsWith("https://login.microsoftonline.com/"))
+            return {
+                data: {
+                    access_token: "test-access",
+                    expires_in: 3600,
+                    refresh_token: "test-refresh",
+                },
+            };
+        if (url.endsWith("/createUploadSession")) {
+            assert.ok(url.includes("/test-storage-root:/"));
+            return { data: { uploadUrl: "https://upload.example.test/session" } };
+        }
+        if (url.endsWith("/createLink"))
+            return { data: { link: { webUrl: "https://example.test/notes" } } };
+        assert.fail(`Unexpected mock Graph POST: ${url}`);
+    });
+    const contents = Buffer.from("%PDF-1.4\nSynthetic upload test\n%%EOF\n");
+    t.mock.method(axios, "put", async (url, bytes, config) => {
+        calls.push(url);
+        assert.equal(url, "https://upload.example.test/session");
+        assert.deepEqual(bytes, contents);
+        assert.equal(
+            config.headers["Content-Range"],
+            `bytes 0-${contents.length - 1}/${contents.length}`,
+        );
+        return { data: { id: "test-uploaded-drive-file", size: contents.length } };
+    });
+    t.mock.method(axios, "get", async (url) => {
+        calls.push(url);
+        if (url.endsWith("/thumbnails")) return { data: { value: [] } };
+        if (url.endsWith("/test-uploaded-drive-file"))
+            return {
+                data: { "@microsoft.graph.downloadUrl": "https://download.example.test/file" },
+            };
+        assert.fail(`Unexpected mock Graph GET: ${url}`);
+    });
+    const temporaryPaths = [];
+    const handleFile = upload.storage._handleFile;
+    t.mock.method(upload.storage, "_handleFile", function (req, file, callback) {
+        handleFile.call(this, req, file, (error, info) => {
+            if (info?.path) temporaryPaths.push(info.path);
+            callback(error, info);
+        });
+    });
+    const filename = `test-${randomUUID()}.pdf`;
+    const renamedPath = path.join("external/uploads", filename.replace(".pdf", "~TestStudent.pdf"));
+    t.after(async () => {
+        for (const file of [...temporaryPaths, renamedPath])
+            await fs.promises.rm(file, { force: true });
+    });
+    const form = new FormData();
+    form.append("file", new Blob([contents], { type: "application/pdf" }), filename);
+    const uploaded = await fetch(origin + "/api/contribution/upload", {
+        method: "POST",
+        headers: { ...headers, "contribution-id": contributionId, username: "TestStudent" },
+        body: form,
+    });
+    assert.equal(uploaded.status, 200, await uploaded.clone().text());
+    const id = await uploaded.text();
+    const saved = await FileModel.findById(id);
+    assert.equal(saved.fileId, "test-uploaded-drive-file");
+    assert.equal(saved.isVerified, false);
+    assert.equal(Number(saved.size), contents.length);
+    const savedContribution = await Contribution.findOne({ contributionId });
+    assert.equal(savedContribution.uploadedBy, person.id);
+    assert.ok(savedContribution.files.some((file) => file.toString() === id));
+    assert.ok(
+        (await FolderModel.findById(folder._id)).children.some((file) => file.toString() === id),
+    );
+    assert.equal(temporaryPaths.length, 1);
+    assert.ok(temporaryPaths.every((file) => !fs.existsSync(file)));
+    assert.equal(fs.existsSync(renamedPath), false);
+    const download = await fetch(origin + "/api/file/download/test-uploaded-drive-file", {
+        headers,
+    });
+    assert.equal(download.status, 200);
+    assert.deepEqual(await download.json(), { url: "https://download.example.test/file" });
+    assert.equal(calls.filter((url) => url === "https://upload.example.test/session").length, 1);
+});
+
+test("an administrator session can explicitly create a course", async () => {
+    await provisionAdmin({ userId: "course-manager-fixture", password });
+    const login = await fetch(origin + "/api/admin/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ userId: "course-manager-fixture", password }),
+    });
+    assert.equal(login.status, 200);
+    const headers = {
+        cookie: login.headers.get("set-cookie").split(";")[0],
+        "content-type": "application/json",
+    };
+    const created = await fetch(origin + "/api/course/create/QA202", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ name: "Administrator-created test course" }),
+    });
+    assert.equal(created.status, 201);
+    const { course: saved } = await created.json();
+    assert.equal(saved.code, "QA202");
+    assert.equal((await Course.findById(saved._id)).name, "Administrator-created test course");
+    const response = await fetch(origin + "/api/course/QA202", { headers });
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).children, []);
 });

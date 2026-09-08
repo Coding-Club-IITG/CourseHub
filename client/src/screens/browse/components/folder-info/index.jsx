@@ -138,6 +138,7 @@ const FolderInfo = ({
                     try {
                         const fileResponse = await fetch(`${server}/api/files/download`, {
                             method: "POST",
+                            credentials: "include",
                             headers: {
                                 "Content-Type": "application/json",
                             },

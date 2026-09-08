@@ -84,10 +84,10 @@ const App = () => {
                     <Route element={<PrivateRoutes />}>
                         <Route element={<Dashboard />} path="dashboard" exact />
                         <Route element={<ProfilePage />} path="profile" exact />
+                        <Route element={<BrowseScreen />} path="browse" />
+                        <Route element={<BrowseScreen />} path="browse/:code" />
+                        <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
                     </Route>
-                    <Route element={<BrowseScreen />} path="browse" />
-                    <Route element={<BrowseScreen />} path="browse/:code" />
-                    <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
                     <Route element={<LandingPage />} path="/" />
                     <Route element={<ErrorScreen />} path="*" />
                 </Routes>

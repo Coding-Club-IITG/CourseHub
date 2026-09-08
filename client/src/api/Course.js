@@ -7,27 +7,11 @@ export const getCourse = async (code) => {
     return resp;
 };
 
-export const getUserCourses = async (courses) => {
-    try {
-        const resp = await axios.get(`${root}/api/course/getUserCourses`, {
-            params: {
-                courses: courses,
-            },
-        });
-        return resp.data;
-    } catch (err) {
-    }
-};
-
 export const fetchUserCoursesData = async (user) => {
     const [coursesRes, prevCoursesRes] = await Promise.all([
-        axios.post(`${root}/api/auth/fetchCourses`, {
-            rollNumber: user.rollNumber,
-        }),
+        axios.post(`${root}/api/auth/fetchCourses`, {}),
         user.isBR
-            ? axios.post(`${root}/api/auth/fetchCoursesForBr`, {
-                  rollNumber: user.rollNumber,
-              })
+            ? axios.post(`${root}/api/auth/fetchCoursesForBr`, {})
             : Promise.resolve({ data: { courses: [] } }),
     ]);
 

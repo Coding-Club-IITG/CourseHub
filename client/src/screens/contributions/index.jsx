@@ -99,6 +99,7 @@ const Contributions = () => {
                         server={{
                             url: `${server}/api/contribution/upload`,
                             process: {
+                                withCredentials: true,
                                 headers: {
                                     "contribution-id": contributionId,
                                     username: userName,

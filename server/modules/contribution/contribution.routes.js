@@ -1,18 +1,22 @@
+import isLibraryAuthenticated from "../../middleware/isLibraryAuthenticated.js";
 import express from "express";
 const router = express.Router();
+router.use(isLibraryAuthenticated);
 import ContributionController from "./contribution.controller.js";
 import catchAsync from "../../utils/catchAsync.js";
 import isAuthenticated from "../../middleware/isAuthenticated.js";
+import { isBR } from "../../middleware/isBR.js";
 import multer from "multer";
 
 export const upload = multer({ dest: "external/uploads" });
-router.get("/", isAuthenticated, ContributionController.GetMyContributions);
-router.get("/all", ContributionController.GetAllContributions);
-router.delete("/:contributionId", ContributionController.DeleteContribution);
-router.post("/", catchAsync(ContributionController.CreateNewContribution));
-router.post("/upload", upload.array("file"), catchAsync(ContributionController.HandleFileUpload));
-// router.get("/:id", catchAsync(ContributionController.CreateNewContribution));
-router.post("/updated", catchAsync(ContributionController.GetContributionsUpdatedSince));
-router.post("/br",isAuthenticated, ContributionController.GetBrContribution)
-router.get('/view/:id', isAuthenticated, catchAsync(ContributionController.viewFile))
+router.get("/", isAuthenticated, catchAsync(ContributionController.GetMyContributions));
+router.post("/", isAuthenticated, catchAsync(ContributionController.CreateNewContribution));
+router.post(
+    "/upload",
+    isAuthenticated,
+    upload.array("file"),
+    catchAsync(ContributionController.HandleFileUpload),
+);
+router.post("/br", isBR, catchAsync(ContributionController.GetBrContribution));
+router.get("/view/:id", catchAsync(ContributionController.viewFile));
 export default router;

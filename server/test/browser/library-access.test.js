@@ -1,0 +1,231 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { before, after, test } from "node:test";
+import { createRequire } from "node:module";
+import { student, course, folder, libraryFile } from "../fixtures/library.js";
+
+// Use the installed browser-test toolchain; no browser or provider is downloaded at runtime.
+const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || "playwright");
+const frontend = process.env.BROWSER_CLIENT_ORIGIN || "http://127.0.0.1:4183";
+const api = process.env.BROWSER_API_ORIGIN || "http://127.0.0.1:4185";
+const cookieValue = "synthetic-browser-session";
+let browser;
+before(async () => {
+    assert.notEqual(frontend, api, "Use distinct frontend/API origins to test credentials");
+    browser = await chromium.launch({
+        headless: true,
+        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
+    });
+});
+after(async () => browser?.close());
+
+async function openPage(t, { width = 1440, signedIn = true, sessionStatus, holdSession } = {}) {
+    const context = await browser.newContext({
+        viewport: { width, height: 900 },
+        locale: "en-US",
+        timezoneId: "Asia/Kolkata",
+        serviceWorkers: "block",
+    });
+    if (signedIn)
+        await context.addCookies([
+            { name: "token", value: cookieValue, url: api, httpOnly: true, sameSite: "Lax" },
+        ]);
+    const page = await context.newPage();
+    const errors = [];
+    const requests = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    t.after(async () => {
+        if (process.env.BROWSER_ARTIFACT_DIR) {
+            fs.mkdirSync(process.env.BROWSER_ARTIFACT_DIR, { recursive: true });
+            const name = t.name.replace(/[^a-z0-9-]+/gi, "-");
+            await page.screenshot({
+                path: path.join(process.env.BROWSER_ARTIFACT_DIR, name + ".png"),
+                fullPage: true,
+            });
+            fs.writeFileSync(
+                path.join(process.env.BROWSER_ARTIFACT_DIR, name + ".json"),
+                JSON.stringify(
+                    { requests, errors, text: await page.locator("body").innerText() },
+                    null,
+                    2,
+                ),
+            );
+        }
+        await context.close();
+        assert.deepEqual(errors, []);
+    });
+    await context.route("**/*", async (route) => {
+        const request = route.request();
+        const url = new URL(request.url());
+        if (url.origin === frontend && !url.pathname.startsWith("/api/")) return route.continue();
+        if (url.href === libraryFile.thumbnail.url)
+            return route.fulfill({
+                contentType: "image/gif",
+                body: Buffer.from(
+                    "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                    "base64",
+                ),
+            });
+        if (url.href === "https://download.example.test/notes") {
+            assert.equal((await request.allHeaders()).cookie, undefined);
+            return route.fulfill({
+                contentType: "application/pdf",
+                body: "%PDF-1.4\nSynthetic notes\n%%EOF",
+            });
+        }
+        if (url.origin !== api) return route.abort();
+        const headers = await request.allHeaders();
+        const hasSession = headers.cookie?.includes(`token=${cookieValue}`);
+        requests.push({
+            path: url.pathname,
+            method: request.method(),
+            hasSession: Boolean(hasSession),
+            headers,
+            body: request.postData(),
+        });
+        let status = 200;
+        let data;
+        if (url.pathname === "/api/user") {
+            if (holdSession) await holdSession;
+            status = sessionStatus ? sessionStatus() : hasSession ? 200 : 401;
+            data = status === 200 ? student : { message: "Unable to restore session" };
+        } else if (!hasSession) {
+            status = 401;
+            data = { message: "Sign in to continue" };
+        } else if (url.pathname === "/api/course/CS101") data = { found: true, ...course };
+        else if (url.pathname.startsWith("/api/folder/content/")) data = folder;
+        else if (url.pathname === "/api/contribution/") {
+            data =
+                request.method() === "POST"
+                    ? { created: true, data: JSON.parse(request.postData()) }
+                    : [];
+        } else if (url.pathname === "/api/contribution/upload") data = libraryFile._id;
+        else if (url.pathname === "/api/files/download")
+            data = { downloadLink: "https://download.example.test/notes" };
+        else if (url.pathname === "/api/event/examdates")
+            data = { dates: { midSem: "2026-09-15", endSem: "2026-11-25" } };
+        else if (url.pathname === "/api/search") data = { found: true, results: [course] };
+        else if (url.pathname === "/api/user/favourites") data = [];
+        else {
+            status = 404;
+            data = { message: "Unexpected fixture endpoint" };
+        }
+        return route
+            .fulfill({
+                status,
+                headers: {
+                    "access-control-allow-origin": frontend,
+                    "access-control-allow-credentials": "true",
+                },
+                contentType: typeof data === "string" ? "text/plain" : "application/json",
+                body: typeof data === "string" ? data : JSON.stringify(data),
+            })
+            .catch(() => {});
+    });
+    return { page, requests };
+}
+
+for (const width of [1440, 390]) {
+    test(`signed-out and expired sessions return to sign-in without fetching content at ${width}px`, async (t) => {
+        for (const signedIn of [false, true]) {
+            const { page, requests } = await openPage(t, {
+                width,
+                signedIn,
+                sessionStatus: () => 401,
+            });
+            await page.goto(`${frontend}/browse/CS101/${folder._id}`);
+            await page.waitForURL(frontend + "/");
+            await page.getByText("Sign in with Microsoft", { exact: false }).waitFor();
+            assert.ok(requests.length > 0);
+            assert.ok(requests.every((request) => request.path === "/api/user"));
+        }
+    });
+    test(`a student session restores the requested folder at ${width}px`, async (t) => {
+        const { page, requests } = await openPage(t, { width });
+        await page.goto(`${frontend}/browse/CS101/${folder._id}`);
+        await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
+        assert.equal(new URL(page.url()).pathname, `/browse/CS101/${folder._id}`);
+        assert.equal(requests[0].path, "/api/user");
+        assert.ok(requests.every((request) => request.hasSession));
+    });
+}
+
+test("library content waits for session confirmation", async (t) => {
+    let release;
+    const holdSession = new Promise((resolve) => {
+        release = resolve;
+    });
+    const { page, requests } = await openPage(t, { holdSession });
+    await page.goto(`${frontend}/browse/CS101`, { waitUntil: "domcontentloaded" });
+    await page.getByText("Checking your session...").waitFor();
+    assert.ok(requests.every((request) => request.path === "/api/user"));
+    assert.equal(await page.locator(".browse-folder").count(), 0);
+    release();
+    await page.getByText("Lecture Notes", { exact: true }).first().waitFor();
+});
+
+test("a failed session check can be retried without losing the requested folder", async (t) => {
+    let attempts = 0;
+    const { page } = await openPage(t, { sessionStatus: () => (++attempts === 1 ? 503 : 200) });
+    await page.goto(`${frontend}/browse/CS101/${folder._id}`);
+    await page
+        .getByRole("alert")
+        .getByText("We couldn’t check your session.", { exact: false })
+        .waitFor();
+    const retry = page.getByRole("button", { name: "Try again" });
+    await page.keyboard.press("Tab");
+    assert.equal(await retry.evaluate(button => button === document.activeElement), true);
+    await page.keyboard.press("Enter");
+    await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
+    assert.equal(new URL(page.url()).pathname, `/browse/CS101/${folder._id}`);
+});
+
+test("FilePond sends credentials and the contribution association across origins", async (t) => {
+    const { page, requests } = await openPage(t);
+    await page.goto(`${frontend}/browse/CS101/${folder._id}`);
+    await page.getByRole("button", { name: "Contribute", exact: true }).click();
+    await page.locator(".filepond--browser").setInputFiles({
+        name: "synthetic-notes.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("%PDF-1.4\nTest notes\n%%EOF"),
+    });
+    await page.locator(".contri .button").click();
+    await page.getByText("Files uploaded successfully!", { exact: true }).waitFor();
+    const created = requests.find(
+        (request) => request.path === "/api/contribution/" && request.method === "POST",
+    );
+    const uploaded = requests.find((request) => request.path === "/api/contribution/upload");
+    assert.ok(created?.hasSession && uploaded?.hasSession);
+    const manifest = JSON.parse(created.body);
+    assert.equal(uploaded.headers["contribution-id"], manifest.contributionId);
+    assert.equal(manifest.uploadedBy, student._id);
+    assert.ok(uploaded.headers["content-type"].startsWith("multipart/form-data"));
+    assert.ok(uploaded.body.includes("Test notes"));
+});
+
+test("individual and ZIP download requests include the student cookie only on API requests", async (t) => {
+    const { page, requests } = await openPage(t);
+    await page.goto(`${frontend}/browse/CS101/${folder._id}`);
+    await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
+    const link = await page.evaluate(async () => {
+        const { getFileDownloadLink } = await import("/src/api/File.js");
+        return getFileDownloadLink("https://example.test/notes");
+    });
+    assert.equal(link, "https://download.example.test/notes");
+    const saved = page.waitForEvent("download");
+    await page.getByTitle("Download entire folder as ZIP", { exact: true }).click();
+    assert.match((await saved).suggestedFilename(), /\.zip$/);
+    const downloads = requests.filter((request) => request.path === "/api/files/download");
+    assert.ok(downloads.length >= 2);
+    assert.ok(downloads.every((request) => request.hasSession));
+});
+
+for (const width of [1440, 390]) {
+    test(`a signed-in direct profile link retains its destination at ${width}px`, async (t) => {
+        const { page } = await openPage(t, { width });
+        await page.goto(`${frontend}/profile`);
+        await page.getByText(student.name, { exact: true }).first().waitFor();
+        assert.equal(new URL(page.url()).pathname, "/profile");
+    });
+}

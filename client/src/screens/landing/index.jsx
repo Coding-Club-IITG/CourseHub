@@ -1,5 +1,4 @@
 import MicrosoftSignIn from "./components/microsoftbutton";
-import SearchCourseButton from "./components/searchcoursebtn";
 import "./styles.scss";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
@@ -7,7 +6,6 @@ import { LoginUser, LogoutUser } from "../../actions/user_actions";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { getUser, handleLogin } from "../../api/User";
-import AddCourseModal from "./components/searchcoursemodal";
 import Loader from "../../components/Loader";
 import { clearLegacySessionLocalCoursesCache } from "../../utils/frontendCache";
 
@@ -20,11 +18,6 @@ const LandingPage = () => {
         clearLegacySessionLocalCoursesCache();
     }, []);
 
-    const searchCourseShowModalHandler = (event) => {
-        const collection = document.getElementsByClassName("add_modal");
-        const contributionSection = collection[0];
-        contributionSection.classList.add("show");
-    };
     useEffect(() => {
         async function getAuth() {
             try {
@@ -83,7 +76,6 @@ const LandingPage = () => {
                     </div>
                 </div>
             </section>
-            <AddCourseModal />
         </>
     );
 };

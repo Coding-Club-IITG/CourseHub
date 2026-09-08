@@ -22,18 +22,19 @@ const upload = multer({ dest: "uploads/" });
 // Admin auth
 router.post("/auth/login", catchAsync(adminLogin));
 router.post("/auth/logout", catchAsync(adminLogout));
+router.use(isAdmin);
 
-router.get("/course/:code/dashboard", isAdmin, catchAsync(getCourseDashboardData));
-router.post("/contribution/action", isAdmin, catchAsync(handleContribution));
-router.delete("/node/:type/:id", isAdmin, catchAsync(deleteNode));
-router.get("/", isAdmin, catchAsync(getAdmin));
-router.get("/dbcourses", isAdmin, catchAsync(getDBCourses));
+router.get("/course/:code/dashboard", catchAsync(getCourseDashboardData));
+router.post("/contribution/action", catchAsync(handleContribution));
+router.delete("/node/:type/:id", catchAsync(deleteNode));
+router.get("/", catchAsync(getAdmin));
+router.get("/dbcourses", catchAsync(getDBCourses));
 
-router.post("/courses/upload", isAdmin, upload.single("file"), uploadCourses);
-router.post("/courses/bulk-link", isAdmin, upload.single("file"), bulkLinkCourses);
-router.patch("/course/:code", isAdmin, renameCourse);
-router.post("/course/:code/link", isAdmin, linkLegacyCourse);
-router.delete("/course/:code/delete", isAdmin, catchAsync(deleteCourse));
-router.post("/sync-courses-cache", isAdmin, catchAsync(syncCoursesCacheController));
+router.post("/courses/upload", upload.single("file"), uploadCourses);
+router.post("/courses/bulk-link", upload.single("file"), bulkLinkCourses);
+router.patch("/course/:code", renameCourse);
+router.post("/course/:code/link", linkLegacyCourse);
+router.delete("/course/:code/delete", catchAsync(deleteCourse));
+router.post("/sync-courses-cache", catchAsync(syncCoursesCacheController));
 
 export default router;

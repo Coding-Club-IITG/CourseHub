@@ -2,7 +2,6 @@ import formatLongText from "../../../../utils/formatLongText";
 import { capitalise } from "../../../../utils/capitalise";
 import "./styles.scss";
 import { useEffect, useState } from "react";
-import { IsCourseAvailable } from "../../../../api/Search";
 import { DeleteCourseAPI } from "../../../../api/User";
 import { toast } from "react-toastify";
 import { ConfirmDialog } from "./ConfirmDialog";

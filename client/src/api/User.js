@@ -5,9 +5,10 @@ let redirectUri = "https://www.coursehubiitg.in/api/auth/login/redirect";
 
 axios.defaults.withCredentials = true;
 
-export const getUser = async () => {
+export const getUser = async (signal) => {
     const resp = await axios.get(`${serverRoot}/api/user`, {
         withCredentials: true,
+        signal,
     });
     return resp;
 };

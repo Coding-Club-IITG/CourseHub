@@ -11,8 +11,6 @@ import config from "./config/default.js";
 import { flushLogging, lifecycleLogger, logger, opsHttpMiddleware } from "./utils/logger.js";
 import { initScheduler } from "./config/cron.js";
 import connectDatabase from "./services/connectDB.js";
-import catchAsync from "./utils/catchAsync.js";
-import User from "./modules/user/user.model.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import onedriveRoutes from "./modules/onedrive/onedrive.routes.js";
@@ -44,10 +42,10 @@ app.use(
         credentials: true,
     }),
 );
-app.use(express.static("static"));
 app.use(express.json());
 app.use(cookieParser());
 app.use(ua.express());
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/file", onedriveRoutes);
@@ -61,13 +59,8 @@ app.use("/api/files", fileRoutes);
 app.use("/api/folder", folderRoutes);
 app.use("/api/year", yearRoutes);
 app.use("/api/student", studentRoutes);
-app.use(
-    "/homepage",
-    catchAsync(async (req, res) => {
-        const user = await User.findByJWT(req.cookies.token);
-        if (!user) return res.redirect(config.clientURL);
-        return res.json(user);
-    }),
+app.use("/api", (req, res) =>
+    res.status(404).json({ error: true, message: "API endpoint not found" }),
 );
 
 app.use((error, req, res, next) => {
@@ -83,6 +76,7 @@ app.use((error, req, res, next) => {
     const { status = 500, message = "Something went wrong!" } = error;
     return res.status(status).json({ error: true, message });
 });
+app.use(express.static("static"));
 app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
 async function closeServer() {

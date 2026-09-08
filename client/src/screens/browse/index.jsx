@@ -23,8 +23,7 @@ import {
     ClearFolderHistory,
 } from "../../actions/filebrowser_actions";
 import { getColors } from "../../utils/colors";
-import { AddNewCourseLocal, LoginUser, LogoutUser } from "../../actions/user_actions";
-import { getUser } from "../../api/User";
+import { AddNewCourseLocal } from "../../actions/user_actions";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
 import { fetchFolder } from "../../api/Folder";
@@ -74,7 +73,6 @@ const BrowseScreen = () => {
         contributionSection.classList.add("show");
     };
     const dispatch = useDispatch();
-    const [loading, setLoading] = useState(true);
     const { code, folderId } = useParams();
     const fb = useSelector((state) => state.fileBrowser);
 
@@ -86,37 +84,7 @@ const BrowseScreen = () => {
     }, []);
 
     useEffect(() => {
-        async function getAuth() {
-            try {
-                const { data } = await getUser();
-                if (!data) {
-                    dispatch(LogoutUser());
-                    setLoading(false);
-                    return;
-                }
-                if (data.needsCourseSync) {
-                    setLoading(false);
-                    return navigate("/loading");
-                }
-                dispatch(LoginUser(data));
-                setLoading(false);
-            } catch (error) {
-                dispatch(LogoutUser());
-                setLoading(false);
-                navigate("/");
-            }
-        }
-
-        if (!user?.loggedIn) {
-            getAuth();
-        } else {
-            setLoading(false);
-        }
-    }, []);
-
-
-    useEffect(() => {
-        if (loading || !code) {
+        if (!code) {
             return;
         }
         const run = async () => {
@@ -223,7 +191,7 @@ const BrowseScreen = () => {
             }
         };
         run();
-    }, [loading, code]);
+    }, [code]);
 
     useEffect(() => {
         if (!code || !currCourse || !Array.isArray(currCourse) || currCourse.length === 0) {

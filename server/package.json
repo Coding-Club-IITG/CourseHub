@@ -11,7 +11,8 @@
         "test": "node --test test/*.test.js",
         "test:db": "node --test test/integration/*.test.js",
         "admin": "node scripts/provisionAdmin.js",
-        "sync-cache": "node scripts/syncCoursesCache.js"
+        "sync-cache": "node scripts/syncCoursesCache.js",
+        "test:browser": "node --test test/browser/*.test.js"
     },
     "keywords": [],
     "author": "",

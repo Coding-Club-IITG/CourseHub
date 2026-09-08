@@ -22,7 +22,7 @@ async function ContributionCreation(contributionId, data) {
     const updatedContribution = await Contribution.findOneAndUpdate(
         { contributionId },
         { ...data },
-        { new: true }
+        { new: true },
     );
     return updatedContribution;
 }
@@ -47,11 +47,6 @@ async function HandleFileToDB(contributionId, fileId) {
     }
     await existingContribution.save();
     return existingContribution;
-}
-
-async function GetAllContributions(req, res, next) {
-    const allContributions = await Contribution.find({});
-    res.json(allContributions);
 }
 
 async function HandleFileUpload(req, res, next) {
@@ -87,7 +82,15 @@ async function HandleFileUpload(req, res, next) {
             try {
                 fileId = await UploadFile(contributionId, finalDirPath, finalFileName);
             } catch (uploadError) {
-                logger.error("Contribution upload failed", { error: uploadError, attributes: { dependency: "microsoft-graph", operation: "upload-contribution", outcome: "failure", retryable: true } });
+                logger.error("Contribution upload failed", {
+                    error: uploadError,
+                    attributes: {
+                        dependency: "microsoft-graph",
+                        operation: "upload-contribution",
+                        outcome: "failure",
+                        retryable: true,
+                    },
+                });
             }
 
             if (fileId) {
@@ -100,7 +103,14 @@ async function HandleFileUpload(req, res, next) {
                 await fs.promises.unlink(renamedPath).catch(() => {});
             }
         } catch (err) {
-            logger.error("Contribution file processing failed", { error: err, attributes: { operation: "process-contribution", outcome: "failure", retryable: false } });
+            logger.error("Contribution file processing failed", {
+                error: err,
+                attributes: {
+                    operation: "process-contribution",
+                    outcome: "failure",
+                    retryable: false,
+                },
+            });
         }
     }
 
@@ -130,7 +140,7 @@ async function CreateNewContribution(req, res, next) {
     }
 
     const newContribution = await ContributionCreation(data.contributionId, data);
-    
+
     const uploader = await User.findById(data.uploadedBy);
 
     logger.metric?.("contribution_created", {
@@ -139,8 +149,8 @@ async function CreateNewContribution(req, res, next) {
             courseCode: data.courseCode,
             userId: data.uploadedBy,
             department: uploader ? uploader.department : "unknown",
-            semester: uploader ? uploader.semester : 0
-        }
+            semester: uploader ? uploader.semester : 0,
+        },
     });
 
     return res.json({
@@ -156,25 +166,6 @@ async function GetMyContributions(req, res, next) {
     res.json(myContributions);
 }
 
-async function DeleteContribution(req, res, next) {
-    const { contributionId } = req.params;
-    await Contribution.deleteOne({ contributionId });
-    res.json({ deleted: true });
-}
-
-// date format : YYYY-MM-DD
-async function GetContributionsUpdatedSince(req, res, next) {
-    const { date } = req.body;
-    if (!date) return next(new AppError(400, "Invalid date"));
-    const d = new Date(date);
-    const contributions = await Contribution.find({ updatedAt: { $gte: d } });
-    let codeSet = new Set();
-    contributions.map((c) => codeSet.add(normalizeCourseCode(c.courseCode)));
-    let codes = [];
-    codeSet.forEach((c) => codes.push(c));
-    return res.json({ codes, contributions });
-}
-
 async function GetBrContribution(req, res, next) {
     try {
         const { courses } = req.body;
@@ -188,7 +179,9 @@ async function GetBrContribution(req, res, next) {
         }).populate({
             path: "files",
         });
-        const unverifiedContributions = contributions.filter(c => c.files.some(f => f.isVerified === false));
+        const unverifiedContributions = contributions.filter((c) =>
+            c.files.some((f) => f.isVerified === false),
+        );
 
         res.json({ unverifiedContributions });
     } catch (error) {
@@ -203,7 +196,7 @@ async function viewFile(req, res, next) {
         if (!file) {
             return res.status(404).json({ message: "File not found" });
         }
-        if (file.isVerified === false && req.user.isBR === false) {
+        if (file.isVerified === false && !req.admin && req.user.isBR === false) {
             return res.status(403).json({ message: "File is not verified" });
         }
         const getResponse = async () => {
@@ -211,18 +204,18 @@ async function viewFile(req, res, next) {
             if (!accessToken) {
                 return res.status(500).json({ message: "Access token not found" });
             }
-            const response = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`, {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
+            const response = await axios.get(
+                `https://graph.microsoft.com/v1.0/me/drive/items/${file.fileId}/content`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    responseType: "stream",
                 },
-                responseType: "stream"
-            });
-
-            res.setHeader("Content-Type", response.headers["content-type"])
-            res.setHeader(
-                "Content-Length",
-                response.headers["content-length"]
             );
+
+            res.setHeader("Content-Type", response.headers["content-type"]);
+            res.setHeader("Content-Length", response.headers["content-length"]);
 
             const downloadStream = response.data;
             res.on("close", () => {
@@ -245,12 +238,9 @@ async function viewFile(req, res, next) {
 }
 
 export default {
-    GetAllContributions,
     CreateNewContribution,
     HandleFileUpload,
     GetMyContributions,
-    DeleteContribution,
-    GetContributionsUpdatedSince,
     GetBrContribution,
-    viewFile
+    viewFile,
 };

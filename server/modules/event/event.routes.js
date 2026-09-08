@@ -5,6 +5,6 @@ import isAuthenticated from "../../middleware/isAuthenticated.js";
 
 const router = Router();
 
-router.get("/examdates", isAuthenticated, catchAsync(EventController.GetExamDates));
-router.post("/create", catchAsync(EventController.CreateEvent));
+router.use(isAuthenticated);
+router.get("/examdates", catchAsync(EventController.GetExamDates));
 export default router;

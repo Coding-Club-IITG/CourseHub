@@ -9,10 +9,4 @@ async function GetExamDates(req, res, next) {
     return res.json({ dates: examDates.otherDates });
 }
 
-async function CreateEvent(req, res) {
-    const content = req.body;
-    const event = await EventModel.create(content);
-    return res.status(201).json({ event });
-}
-
-export default { GetExamDates, CreateEvent };
+export default { GetExamDates };

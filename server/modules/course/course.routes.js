@@ -1,13 +1,15 @@
+import isLibraryAuthenticated from "../../middleware/isLibraryAuthenticated.js";
 import express from "express";
-import { getAllCourses, getCourse, isCourseUpdated } from "./course.controller.js";
+import { getAllCourses, getCourse } from "./course.controller.js";
 import CourseModel from "./course.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import isAdmin from "../../middleware/isAdmin.js";
 import logger from "../../utils/logger.js";
 const router = express.Router();
+router.use(isLibraryAuthenticated);
 
 import catchAsync from "../../utils/catchAsync.js";
-import isAuthenticated from "../../middleware/isAuthenticated.js";
-router.post("/create/:code", async (req, res) => {
+router.post("/create/:code", isAdmin, async (req, res) => {
     try {
         const { code } = req.params;
         const { name } = req.body;
@@ -49,7 +51,6 @@ router.post("/create/:code", async (req, res) => {
     }
 });
 router.get("/", catchAsync(getAllCourses));
-router.post("/isUpdated", isAuthenticated, catchAsync(isCourseUpdated));
 router.get("/:code", catchAsync(getCourse));
 
 export default router;
