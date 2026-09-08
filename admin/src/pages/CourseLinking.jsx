@@ -1,3 +1,4 @@
+import { apiFetch } from "@/apis/http";
 import React, { useState } from "react";
 import {
     FaLink,
@@ -46,7 +47,7 @@ const CourseLinking = () => {
         formData.append("file", file);
 
         try {
-            const response = await fetch(`${API_BASE_URL}api/admin/courses/bulk-link`, {
+            const response = await apiFetch(`${API_BASE_URL}api/admin/courses/bulk-link`, {
                 method: "POST",
                 body: formData,
                 credentials: "include",
@@ -86,7 +87,7 @@ const CourseLinking = () => {
         setManualSuccess(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}api/admin/course/${manualNewCode.toLowerCase().trim()}/link`, {
+            const response = await apiFetch(`${API_BASE_URL}api/admin/course/${manualNewCode.toLowerCase().trim()}/link`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

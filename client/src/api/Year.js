@@ -1,15 +1,5 @@
-import axios from "axios";
+import API from "./http";
 import serverRoot from "./server";
-import { Children } from "react";
-const API = axios.create({
-    baseURL: `${serverRoot}/api`,
-    withCredentials: true,
-});
-API.interceptors.request.use((req) => {
-    const user = JSON.parse(localStorage.getItem("profile"));
-    if (user) req.headers.Authorization = `Bearer ${user.token}`;
-    return req;
-});
 
 export const addYear = async ({ name, course }) => {
     const { data } = await API.post("/year", {

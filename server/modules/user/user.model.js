@@ -1,9 +1,7 @@
 import { model, Schema } from "mongoose";
 import Joi from "joi";
+import AppError from "../../utils/appError.js";
 import axios from "axios";
-import jwt from "jsonwebtoken";
-import config from "../../config/default.js";
-import logger from "../../utils/logger.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
@@ -48,28 +46,6 @@ userSchema.pre("save", function (next) {
     next();
 });
 
-userSchema.methods.generateJWT = function () {
-    var user = this;
-    var token = jwt.sign({ user: user._id, isBR: user.isBR }, config.jwtSecret, {
-        expiresIn: "24d",
-    });
-    return token;
-};
-
-userSchema.statics.findByJWT = async function (token) {
-    try {
-        var user = this;
-        var decoded = jwt.verify(token, config.jwtSecret);
-        const id = decoded.user;
-        if (typeof id !== "string" || !/^[a-f0-9]{24}$/i.test(id)) return false;
-        const fetchedUser = await user.findOne({ _id: id });
-        if (!fetchedUser) return false;
-        return fetchedUser;
-    } catch (error) {
-        return false;
-    }
-};
-
 const User = model("User", userSchema);
 export default User;
 
@@ -98,45 +74,39 @@ export const validateUser = function (obj) {
     return joiSchema.validate(obj);
 };
 export const updateUserData = async (userId, userData) => {
-    User.findOne({ _id: userId }, async (err, doc) => {
-        if (err) {
-            logger.error("User update failed", {
-                attributes: {
-                    dependency: "mongodb",
-                    operation: "update-user",
-                    outcome: "failure",
-                    retryable: false,
-                },
-            });
-        }
-        if (userData.newUserData.newUserName) {
-            doc.name = userData.newUserData.newUserName;
-            await doc.save();
-        } else if (userData.newUserData.newUserSem) {
-            doc.semester = userData.newUserData.newUserSem;
-            await doc.save();
-        }
+    const schema = Joi.object({
+        newUserName: Joi.string().trim().min(1).max(120),
+        newUserSem: Joi.number().integer().min(1).max(12),
+    })
+        .min(1)
+        .required();
+    const { value, error } = schema.validate(userData, { abortEarly: false });
+    if (error)
+        throw new AppError(
+            400,
+            "Check the profile fields",
+            "VALIDATION_FAILED",
+            Object.fromEntries(
+                error.details.map((detail) => [detail.path.join("."), detail.message]),
+            ),
+        );
+    const updates = {};
+    if (value.newUserName !== undefined) updates.name = value.newUserName;
+    if (value.newUserSem !== undefined) updates.semester = value.newUserSem;
+    const saved = await User.findByIdAndUpdate(
+        userId,
+        { $set: updates },
+        { new: true, runValidators: true },
+    );
+    if (!saved) throw new AppError(404, "Profile not found");
+    return { name: saved.name, semester: saved.semester };
+};
+
+export const getUserFromToken = (accessToken) =>
+    axios.get("https://graph.microsoft.com/v1.0/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: 30000,
     });
-};
-
-export const getUserFromToken = async function (access_token) {
-    try {
-        var config = {
-            method: "get",
-            url: "https://graph.microsoft.com/v1.0/me",
-            headers: {
-                Authorization: `Bearer ${access_token}`,
-            },
-        };
-        const response = await axios.get(config.url, {
-            headers: config.headers,
-        });
-
-        return response;
-    } catch (error) {
-        return false;
-    }
-};
 
 export const findUserWithEmail = async function (email) {
     const normalizedEmail = email?.toString().trim().toLowerCase();

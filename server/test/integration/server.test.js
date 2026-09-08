@@ -1,4 +1,5 @@
 import "../support/environment.js";
+import { sessionHeaders, testOrigin } from "../fixtures/sessions.js";
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 import { randomUUID } from "node:crypto";
@@ -94,17 +95,19 @@ test("provisioned password hashes work with the existing administrator login", a
     assert.equal(await stored.comparePassword("wrong-fixture-password"), false);
     const response = await fetch(origin + "/api/admin/auth/login", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", origin: testOrigin },
         body: JSON.stringify({ userId: "login-fixture", password }),
     });
     assert.equal(response.status, 200);
-    assert.equal((await response.json()).success, true);
+    const loginData = await response.json();
+    assert.equal(loginData.success, true);
     assert.match(response.headers.get("set-cookie"), /adminToken=/);
 
     const headers = { cookie: response.headers.get("set-cookie").split(";")[0] };
     const session = await fetch(origin + "/api/admin/", { headers });
     assert.equal(session.status, 200);
     assert.deepEqual(await session.json(), {
+        csrfToken: loginData.csrfToken,
         user: {
             userId: "login-fixture",
             capabilities: { canManageAllCourses: true, canModerate: true },
@@ -230,7 +233,7 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
     await FolderModel.create({ ...folder, children: [] });
     await FolderModel.create({ ...year, children: [folder._id] });
     await Course.create({ ...course, children: [year._id] });
-    const headers = { cookie: `token=${person.generateJWT()}` };
+    const headers = await sessionHeaders(person.id);
     for (const route of [
         "/api/user",
         "/api/course/CS101",
@@ -384,12 +387,14 @@ test("an administrator session can explicitly create a course", async () => {
     await provisionAdmin({ userId: "course-manager-fixture", password });
     const login = await fetch(origin + "/api/admin/auth/login", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", origin: testOrigin },
         body: JSON.stringify({ userId: "course-manager-fixture", password }),
     });
     assert.equal(login.status, 200);
     const headers = {
         cookie: login.headers.get("set-cookie").split(";")[0],
+        origin: testOrigin,
+        "x-csrf-token": (await login.json()).csrfToken,
         "content-type": "application/json",
     };
     const created = await fetch(origin + "/api/course/create/QA202", {
@@ -409,3 +414,7 @@ test("an administrator session can explicitly create a course", async () => {
 import { exerciseCoursePermissions } from "../support/course-permissions.js";
 test("course permission and moderation boundaries", async (t) =>
     exerciseCoursePermissions(t, origin));
+
+import { exerciseSessionSecurity } from "../support/session-security.js";
+test("session, OAuth, CSRF and profile boundaries", async (t) =>
+    exerciseSessionSecurity(t, origin));

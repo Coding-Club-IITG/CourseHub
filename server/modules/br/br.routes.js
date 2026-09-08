@@ -1,3 +1,4 @@
+import catchAsync from "../../utils/catchAsync.js";
 import isAdmin from "../../middleware/isAdmin.js";
 import express from "express";
 import {
@@ -11,11 +12,11 @@ import {
 const router = express.Router();
 router.use(isAdmin);
 
-router.post("/updateList", updateBRs);
-router.post("/create", createBR);
-router.get("/all", getAll);
-router.get("/allBRs", getBRs);
-router.get("/coursesWithoutBR", getCoursesWithoutBR);
-router.delete("/delete", deleteBR);
+router.post("/updateList", catchAsync(updateBRs));
+router.post("/create", catchAsync(createBR));
+router.get("/all", catchAsync(getAll));
+router.get("/allBRs", catchAsync(getBRs));
+router.get("/coursesWithoutBR", catchAsync(getCoursesWithoutBR));
+router.delete("/delete", catchAsync(deleteBR));
 
 export default router;

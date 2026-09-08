@@ -39,6 +39,16 @@
             display: flex;
             align-items: center;
 
+            button {
+                background-color: transparent;
+                border: 0;
+                padding: 0;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            button:focus-visible { outline: 2px solid #f8d648; outline-offset: 4px; }
+            button:disabled { opacity: 0.5; cursor: wait; }
+
             .inputName {
                 background: none;
                 border: none;
@@ -75,6 +85,8 @@
             }
         }
     }
+
+    .profile-save-error { color: #ffd167; max-width: 32rem; font-size: 1rem; }
 }
 
 @media screen and (max-width: 1182px) {

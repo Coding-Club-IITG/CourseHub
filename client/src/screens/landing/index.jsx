@@ -1,3 +1,4 @@
+import { loginDestination } from "../../utils/loginDestination";
 import MicrosoftSignIn from "./components/microsoftbutton";
 import "./styles.scss";
 import { useDispatch } from "react-redux";
@@ -29,11 +30,11 @@ const LandingPage = () => {
                 }
                 if (data.needsCourseSync) {
                     setLoading(false);
-                    return navigate("/loading");
+                    return navigate(`/loading${window.location.search}`);
                 }
                 dispatch(LoginUser(data));
                 setLoading(false);
-                navigate(`/dashboard`);
+                navigate(loginDestination(new URLSearchParams(window.location.search).get("returnTo")), { replace: true });
             } catch (error) {
                 dispatch(LogoutUser());
                 setLoading(false);

@@ -1,3 +1,4 @@
+import { getFileDownloadLink } from "../../../../api/File";
 import "./styles.scss";
 import { toast } from "react-toastify";
 import clientRoot from "../../../../api/server";
@@ -127,22 +128,7 @@ const FolderInfo = ({
                     }
                 } else {
                     try {
-                        const fileResponse = await fetch(`${server}/api/files/download`, {
-                            method: "POST",
-                            credentials: "include",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ fileId: child._id, courseCode }),
-                        });
-
-                        if (!fileResponse.ok) {
-                            toast.error(`Failed to download file: ${child.name}`);
-                            continue;
-                        }
-
-                        const fileData = await fileResponse.json();
-                        const downloadLink = new URL(fileData.downloadLink, server).href;
+                        const downloadLink = await getFileDownloadLink(child._id, courseCode);
 
                         const curfile = await fetch(downloadLink, { credentials: "include" });
                         if (!curfile.ok) throw new Error("File is no longer accessible");

@@ -6,7 +6,8 @@ import SearchBar from "./components/searchbar";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import server from "../../api/server";
+import { logoutUser } from "../../api/User";
+import { toast } from "react-toastify";
 
 import { LogoutUser } from "../../actions/user_actions";
 
@@ -17,9 +18,12 @@ const NavBar = () => {
     const mobileMenuRef = useRef(null);
     const toggleButtonRef = useRef(null);
 
-    const handleLogout = () => {
-        dispatch(LogoutUser());
-        window.location = `${server}/api/auth/logout`;
+    const handleLogout = async () => {
+        try {
+            await logoutUser();
+            dispatch(LogoutUser());
+            window.location.href = "/";
+        } catch { toast.error("Could not log out. Please try again."); }
     };
 
     const toggleMobileMenu = (e) => {

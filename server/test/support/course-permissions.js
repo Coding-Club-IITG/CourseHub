@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { Readable } from "node:stream";
 import axios from "axios";
-import jwt from "jsonwebtoken";
+import { sessionHeaders } from "../fixtures/sessions.js";
 import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
 import BR from "../../modules/br/br.model.js";
 import CourseAllotment from "../../modules/course/courseAllotment.model.js";
@@ -20,7 +20,7 @@ export async function exerciseCoursePermissions(t, origin) {
     f.actors.admin = {
         person: admin,
         headers: {
-            cookie: `adminToken=${jwt.sign(admin.id, process.env.ADMIN_JWT_SECRET)}`,
+            ...(await sessionHeaders(admin.id, "admin")),
             "content-type": "application/json",
         },
     };
@@ -382,7 +382,11 @@ export async function exerciseCoursePermissions(t, origin) {
             const response = await fetch(origin + "/api/contribution/upload", {
                 method: "POST",
                 headers: {
-                    cookie: f.actors[role].headers.cookie,
+                    ...Object.fromEntries(
+                        Object.entries(f.actors[role].headers).filter(
+                            ([name]) => name !== "content-type",
+                        ),
+                    ),
                     "contribution-id": id,
                     username: "forged-uploader",
                 },
@@ -584,7 +588,11 @@ export async function exerciseCoursePermissions(t, origin) {
             const response = await fetch(origin + "/api/contribution/upload", {
                 method: "POST",
                 headers: {
-                    cookie: f.actors.currentBR.headers.cookie,
+                    ...Object.fromEntries(
+                        Object.entries(f.actors.currentBR.headers).filter(
+                            ([name]) => name !== "content-type",
+                        ),
+                    ),
                     "contribution-id": data.contributionId,
                     username: "Administrator",
                     approved: "true",

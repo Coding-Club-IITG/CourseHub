@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
@@ -17,7 +18,8 @@ const Sidebar = () => {
         try {
             await adminLogout();
         } catch (err) {
-            console.error("Logout failed", err);
+            toast.error("Could not log out. Please try again.");
+            return;
         }
         window.location.href = "/admin/login";
     };

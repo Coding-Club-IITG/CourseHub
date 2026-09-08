@@ -16,40 +16,30 @@ const FrontBanner = () => {
     const [isNameEdit, setIsNameEdit] = useState(false);
     const user = useSelector((state) => state.user);
     const [userName, setUserName] = useState(formatName(user?.user?.name));
+    const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState("");
 
-    function editNameHandler(newName) {
+    function editNameHandler() {
+        setUserName(user.user.name);
+        setSaveError("");
         setIsNameEdit(true);
     }
     async function submitNameHandler() {
-        const newUserData = {
-            newUserName: userName,
-        };
-        if (!userName) {
-            toast.error("Username cannot be empty", {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-            });
+        if (saving) return;
+        if (!userName.trim()) {
+            setSaveError("Name cannot be empty.");
             return;
         }
-        setIsNameEdit((prev) => !prev);
-        dispatch(UpdateUserAction(newUserData));
-        toast.success("Succesfully Updated", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
-        const resp = await updateUser(newUserData);
+        setSaving(true);
+        setSaveError("");
+        try {
+            const { data } = await updateUser({ newUserName: userName.trim() });
+            dispatch(UpdateUserAction({ newUserName: data.name }));
+            setIsNameEdit(false);
+            toast.success("Profile updated");
+        } catch (error) {
+            setSaveError(error.response?.data?.message || "Could not save your name. Please try again.");
+        } finally { setSaving(false); }
     }
     return (
         <Container color={"dark"}>
@@ -62,8 +52,14 @@ const FrontBanner = () => {
                         <header>
                             {isNameEdit ? (
                                 <input
-                                    autofocus="autofocus"
+                                    autoFocus
                                     id="nameField"
+                                    aria-label="Name"
+                                    aria-describedby={saveError ? "profile-save-error" : undefined}
+                                    aria-invalid={!!saveError}
+                                    maxLength={120}
+                                    disabled={saving}
+                                    onKeyDown={event => { if (event.key === "Enter") submitNameHandler(); }}
                                     className="inputName"
                                     value={userName}
                                     onChange={(event) => {
@@ -77,11 +73,13 @@ const FrontBanner = () => {
                                 formatName(user?.user?.name)
                             )}
                             {isNameEdit ? (
-                                <div className="tickDiv" onClick={submitNameHandler} />
+                                <button type="button" aria-label="Save name" className="tickDiv" disabled={saving} onClick={submitNameHandler} />
                             ) : (
-                                <div className="editDiv" onClick={editNameHandler} />
+                                <button type="button" aria-label="Edit name" className="editDiv" onClick={editNameHandler} />
                             )}
                         </header>
+                        {saving && <p role="status">Saving…</p>}
+                        {saveError && <p id="profile-save-error" className="profile-save-error" role="alert">{saveError}</p>}
                         <div className="branch">
                             {formatBranch(user?.user?.degree, user?.user?.department)}
                         </div>

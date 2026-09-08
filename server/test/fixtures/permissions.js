@@ -6,6 +6,7 @@ import Course, { FolderModel, FileModel } from "../../modules/course/course.mode
 import Contribution from "../../modules/contribution/contribution.model.js";
 import { academicPeriod } from "../../services/authorization.js";
 import { student } from "./library.js";
+import { sessionHeaders } from "./sessions.js";
 
 export async function permissionFixtures() {
     const period = academicPeriod();
@@ -45,7 +46,7 @@ export async function permissionFixtures() {
         actors[role] = {
             person,
             headers: {
-                cookie: `token=${person.generateJWT()}`,
+                ...(await sessionHeaders(person.id)),
                 "content-type": "application/json",
             },
         };

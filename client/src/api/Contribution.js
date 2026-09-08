@@ -1,5 +1,4 @@
-import axios from "axios";
-axios.defaults.withCredentials = true;
+import axios from "./http";
 import root from "./server";
 
 export const CreateNewContribution = async (data) => {

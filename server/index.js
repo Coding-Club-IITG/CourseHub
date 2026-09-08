@@ -8,7 +8,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import ua from "express-useragent";
 import config from "./config/default.js";
-import { flushLogging, lifecycleLogger, logger, opsHttpMiddleware } from "./utils/logger.js";
+import { flushLogging, lifecycleLogger, opsHttpMiddleware } from "./utils/logger.js";
 import { initScheduler } from "./config/cron.js";
 import connectDatabase from "./services/connectDB.js";
 import authRoutes from "./modules/auth/auth.routes.js";
@@ -23,6 +23,11 @@ import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
+import { allowedOrigins, validateSecuritySettings } from "./config/security.js";
+import { requestContext, requestErrorHandler } from "./middleware/requestErrors.js";
+import Session from "./modules/session/session.model.js";
+import { OAuthAttempt } from "./services/oauth.js";
+import { AuthRateLimit } from "./middleware/authThrottle.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -30,15 +35,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let scheduler;
 let shutdownPromise;
 
+app.set("trust proxy", validateSecuritySettings());
 app.use(opsHttpMiddleware);
+app.use(requestContext);
 app.use(
     cors({
-        origin: [
-            "http://localhost:5174",
-            "http://localhost:5173",
-            "https://coursehub.codingclub.in",
-        ],
+        origin: (origin, callback) => callback(null, !!origin && allowedOrigins().has(origin)),
         credentials: true,
+        exposedHeaders: ["X-Request-Id"],
     }),
 );
 app.use(express.json());
@@ -61,20 +65,7 @@ app.use("/api", (req, res) =>
     res.status(404).json({ error: true, message: "API endpoint not found" }),
 );
 
-app.use((error, req, res, next) => {
-    if (res.headersSent) return next(error);
-    logger.error("Unhandled request error", {
-        error,
-        attributes: {
-            component: "express-error-handler",
-            operation: "request",
-            outcome: "failure",
-            retryable: false,
-        },
-    });
-    const { status = 500, message = "Something went wrong!" } = error;
-    return res.status(status).json({ error: true, message });
-});
+app.use(requestErrorHandler);
 app.use(express.static("static"));
 app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
@@ -124,6 +115,7 @@ process.once("unhandledRejection", (error) => void terminate({ error, exitCode: 
 
 export async function start() {
     await connectDatabase();
+    await Promise.all([Session, OAuthAttempt, AuthRateLimit].map((model) => model.createIndexes()));
     scheduler = initScheduler();
     await new Promise((resolve, reject) => {
         server.once("error", reject);

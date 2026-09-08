@@ -1,9 +1,10 @@
+import { apiFetch } from "./http";
 import { API_BASE_URL } from "./server.js";
 
 // Fetch all courses
 export const fetchCourses = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/admin/dbcourses`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/dbcourses`, {
             credentials: "include",
         });
         return await response.json();
@@ -17,7 +18,7 @@ export const fetchCourses = async () => {
 export const updateCourseName = async (code, newName, newCode) => {
     try {
         const safeCode = code.toLowerCase().trim();
-        const response = await fetch(`${API_BASE_URL}api/admin/course/${safeCode}`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/course/${safeCode}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -35,7 +36,7 @@ export const updateCourseName = async (code, newName, newCode) => {
 // Create a new course
 export const createCourse = async (code, name) => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/course/create/${code}`, {
+        const response = await apiFetch(`${API_BASE_URL}api/course/create/${code}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -128,7 +129,7 @@ export const bulkSyncCourses = async (courses, analysis, onProgress = null) => {
 export const linkLegacyCourse = async (targetCode, legacyCode) => {
     try {
         const safeCode = targetCode.toLowerCase().trim();
-        const response = await fetch(`${API_BASE_URL}api/admin/course/${safeCode}/link`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/course/${safeCode}/link`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -153,7 +154,7 @@ export const linkLegacyCourse = async (targetCode, legacyCode) => {
 export const deleteCourse = async (code) => {
     try {
         const safeCode = code.toLowerCase().trim();
-        const response = await fetch(`${API_BASE_URL}api/admin/course/${safeCode}/delete`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/course/${safeCode}/delete`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -176,7 +177,7 @@ export const deleteCourse = async (code) => {
 export const fetchCourseDashboardData = async (code) => {
     try {
         const safeCode = code.toLowerCase().trim();
-        const response = await fetch(`${API_BASE_URL}api/admin/course/${safeCode}/dashboard`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/course/${safeCode}/dashboard`, {
             credentials: "include",
         });
 
@@ -192,7 +193,7 @@ export const fetchCourseDashboardData = async (code) => {
 
 export const handleContribution = async (contributionId, action, courseCode) => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/admin/contribution/action`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/contribution/action`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -212,7 +213,7 @@ export const handleContribution = async (contributionId, action, courseCode) => 
 
 export const deleteNode = async (type, id, courseCode) => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/admin/node/${type}/${id}`, {
+        const response = await apiFetch(`${API_BASE_URL}api/admin/node/${type}/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",

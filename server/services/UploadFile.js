@@ -11,15 +11,15 @@ import { uploadThumbnail } from "./imagekit.js";
 const parent_item_id = process.env.ONEDRIVE_FOLDER_ID;
 
 async function createUploadSession(folderId, fileName) {
-    const access_token = await getAccessToken();
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folderId}:/${encodeURIComponent(fileName)}:/createUploadSession`;
-    const config = {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    };
-
     try {
+        const access_token = await getAccessToken();
+        const url = `https://graph.microsoft.com/v1.0/me/drive/items/${folderId}:/${encodeURIComponent(fileName)}:/createUploadSession`;
+        const config = {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+        };
+
         const { data } = await axios.post(url, {}, config);
         return { url: data?.uploadUrl, access_token };
     } catch (error) {
@@ -149,18 +149,18 @@ async function DeleteFile(fileId) {
 }
 
 async function RenameOneDriveFile(fileId, newName) {
-    const access_token = await getAccessToken();
-    const url = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}`;
-    const config = {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-            "Content-Type": "application/json",
-        },
-    };
-    const _data = {
-        name: randomUUID() + path.extname(newName),
-    };
     try {
+        const access_token = await getAccessToken();
+        const url = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}`;
+        const config = {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+                "Content-Type": "application/json",
+            },
+        };
+        const _data = {
+            name: randomUUID() + path.extname(newName),
+        };
         const { data } = await axios.patch(url, _data, config);
         return data;
     } catch (err) {

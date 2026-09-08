@@ -1,7 +1,13 @@
 import axios from "axios";
 import qs from "querystring";
 import AppError from "../../utils/appError.js";
-import catchAsync from "../../utils/catchAsync.js";
+import { beginOAuth, consumeOAuth, oauthEndpoint } from "../../services/oauth.js";
+import {
+    createSession,
+    setSessionCookie,
+    clearSessionCookie,
+    revokeSession,
+} from "../../services/sessions.js";
 
 import appConfig from "../../config/default.js";
 
@@ -21,7 +27,6 @@ import {
     parseCourseAllotmentsFromHtml,
 } from "../../utils/course.js";
 
-import { getRandomColor } from "../../utils/generateRandomColor.js";
 import UserUpdate from "../user/userUpdate.model.js";
 import BR from "../br/br.model.js";
 import CourseAllotment from "../course/courseAllotment.model.js";
@@ -29,11 +34,7 @@ import logger from "../../utils/logger.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
-export const loginHandler = (req, res) => {
-    res.redirect(
-        `https://login.microsoftonline.com/850aa78d-94e1-4bc6-9cf3-8c11b530701c/oauth2/v2.0/authorize?client_id=${clientid}&response_type=code&redirect_uri=${redirect_uri}&scope=user.read%20offline_access&state=12345`,
-    );
-};
+export const loginHandler = beginOAuth;
 
 // Helper function to get course names from database and courselist
 async function resolveCourseNames(courseCodes, dbCourses) {
@@ -99,6 +100,7 @@ export const fetchCourses = async (rollNumber) => {
 
     const response = await axios.post(config.url, config.data, {
         headers: config.headers,
+        timeout: 30000,
     });
 
     if (!response.data) {
@@ -321,6 +323,7 @@ const getDepartment = async (access_token, roll) => {
     };
     const response = await axios.get(config.url, {
         headers: config.headers,
+        timeout: 30000,
     });
     return response.data.positions[0].detail.company.department;
 };
@@ -336,6 +339,7 @@ function calculateSemester(rollNumber) {
 }
 
 export const redirectHandler = async (req, res, next) => {
+    const attempt = await consumeOAuth(req, res);
     const { code } = req.query;
 
     const data = qs.stringify({
@@ -345,22 +349,23 @@ export const redirectHandler = async (req, res, next) => {
         scope: "user.read",
         grant_type: "authorization_code",
         code: code,
+        code_verifier: attempt.verifier,
     });
 
     let newUser = false;
 
     const config = {
         method: "post",
-        url: `https://login.microsoftonline.com/850aa78d-94e1-4bc6-9cf3-8c11b530701c/oauth2/v2.0/token`,
+        url: oauthEndpoint("token"),
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            client_secret: clientSecret,
         },
         data: data,
     };
 
     const response = await axios.post(config.url, config.data, {
         headers: config.headers,
+        timeout: 30000,
     });
 
     if (!response.data) {
@@ -368,7 +373,6 @@ export const redirectHandler = async (req, res, next) => {
     }
 
     const AccessToken = response.data.access_token;
-    const RefreshToken = response.data.refresh_token;
 
     const userFromToken = await getUserFromToken(AccessToken);
 
@@ -430,7 +434,7 @@ export const redirectHandler = async (req, res, next) => {
         await newUpdation.save();
     }
 
-    const token = existingUser.generateJWT();
+    const { token } = await createSession(existingUser._id, "student");
 
     logger.metric?.("user_login", {
         value: 1,
@@ -442,16 +446,12 @@ export const redirectHandler = async (req, res, next) => {
         },
     });
 
-    res.cookie("token", token, {
-        maxAge: 2073600000,
-        sameSite: "lax",
-        secure: false,
-        expires: new Date(Date.now() + 2073600000),
-        httpOnly: true,
-    });
+    setSessionCookie(res, "student", token);
 
     if (newUser || (existingUser && !userUpdated)) {
-        return res.redirect(`${appConfig.clientURL}/loading`);
+        return res.redirect(
+            `${appConfig.clientURL}/loading?returnTo=${encodeURIComponent(attempt.returnTo)}`,
+        );
     }
 
     const needsCourseSync =
@@ -459,19 +459,16 @@ export const redirectHandler = async (req, res, next) => {
         (!Array.isArray(existingUser.previousCourses) || existingUser.previousCourses.length === 0);
 
     if (needsCourseSync) {
-        return res.redirect(`${appConfig.clientURL}/loading`);
+        return res.redirect(
+            `${appConfig.clientURL}/loading?returnTo=${encodeURIComponent(attempt.returnTo)}`,
+        );
     }
 
-    res.redirect(`${appConfig.clientURL}/dashboard`);
+    res.redirect(new URL(attempt.returnTo, appConfig.clientURL).href);
 };
 
-export const logoutHandler = (req, res, next) => {
-    res.cookie("token", "loggedout", {
-        maxAge: 0,
-        sameSite: "lax",
-        secure: false,
-        expires: new Date(Date.now()),
-        httpOnly: true,
-    });
-    res.redirect(appConfig.clientURL);
+export const logoutHandler = async (req, res) => {
+    await revokeSession(req.session);
+    clearSessionCookie(res, "student");
+    res.json({ success: true });
 };

@@ -1,151 +1,158 @@
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import http from "http";
-import fs from "fs";
-import path from "path";
-import readline from "readline";
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import readline from "node:readline/promises";
 import axios from "axios";
-import qs from "querystring";
+import { createOAuthProof, createLocalOAuthCallback } from "../utils/oauthProof.js";
 
-// Resolve paths relative to server/ directory (where .env and token files live)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const serverDir = path.resolve(__dirname, "..");
+const serverDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-dotenv.config({ path: path.join(serverDir, ".env") });
+export async function provisionOneDriveToken() {
+    dotenv.config({ path: path.join(serverDir, ".env") });
+    const clientId = process.env.AZURE_CLIENT_ID;
+    const clientSecret = process.env.AZURE_CLIENT_SECRET;
+    const tenantId = process.env.AZURE_TENANT_ID || "850aa78d-94e1-4bc6-9cf3-8c11b530701c";
+    const redirectUri =
+        process.env.ONEDRIVE_REDIRECT_URI ||
+        process.env.REDIRECT_URI ||
+        "http://localhost:8080/api/auth/login/redirect";
+    if (!clientId || !clientSecret)
+        throw new Error("Configure AZURE_CLIENT_ID and AZURE_CLIENT_SECRET in server/.env.");
+    const redirect = new URL(redirectUri);
+    const scope = "user.read offline_access files.readwrite";
+    const proof = createOAuthProof();
+    const consume = createLocalOAuthCallback(redirectUri, proof.state);
+    const endpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0`;
+    const url = new URL(`${endpoint}/authorize`);
+    url.search = new URLSearchParams({
+        client_id: clientId,
+        response_type: "code",
+        redirect_uri: redirectUri,
+        scope,
+        state: proof.state,
+        code_challenge: proof.challenge,
+        code_challenge_method: "S256",
+    }).toString();
+    console.log("Open this URL and sign in with the configured OneDrive owner account:");
+    console.log(url.href);
+    console.log("This sign-in attempt expires in ten minutes.");
 
-const clientId = process.env.AZURE_CLIENT_ID;
-const clientSecret = process.env.AZURE_CLIENT_SECRET;
-const tenantId = process.env.AZURE_TENANT_ID || "850aa78d-94e1-4bc6-9cf3-8c11b530701c";
-const redirectUri = process.env.REDIRECT_URI || "http://localhost:8080/api/auth/login/redirect";
-
-if (!clientId || !clientSecret) {
-    console.error("❌ Missing AZURE_CLIENT_ID or AZURE_CLIENT_SECRET in server/.env file.");
-    process.exit(1);
+    const exchange = async (callbackUrl) => {
+        const code = consume(callbackUrl);
+        const response = await axios.post(
+            `${endpoint}/token`,
+            new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                grant_type: "authorization_code",
+                code,
+                redirect_uri: redirectUri,
+                scope,
+                code_verifier: proof.verifier,
+            }).toString(),
+            { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 30000 },
+        );
+        if (!response.data?.refresh_token)
+            throw new Error("Microsoft did not return a refresh token.");
+        for (const [name, value] of [
+            ["onedrive-refresh-token.token", response.data.refresh_token],
+            ["onedrive-access-token.token", response.data.access_token],
+        ]) {
+            if (!value) continue;
+            const target = path.join(serverDir, name);
+            if (fs.existsSync(target)) fs.chmodSync(target, 0o600);
+            fs.writeFileSync(target, value, { encoding: "utf8", mode: 0o600 });
+        }
+        console.log("OneDrive tokens saved in the server directory with owner-only permissions.");
+    };
+    const manual = async () => {
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 600000);
+        try {
+            const callbackUrl = await rl.question(
+                "Paste the complete redirected URL (including code and state): ",
+                { signal: controller.signal },
+            );
+            await exchange(callbackUrl.trim());
+        } finally {
+            clearTimeout(timer);
+            rl.close();
+        }
+    };
+    if (
+        redirect.protocol !== "http:" ||
+        !["localhost", "127.0.0.1", "[::1]"].includes(redirect.hostname)
+    )
+        return manual();
+    const port = Number(redirect.port || 80);
+    const listener = http.createServer();
+    try {
+        await new Promise((resolve, reject) => {
+            listener.once("error", reject);
+            listener.listen(port, redirect.hostname === "[::1]" ? "::1" : "127.0.0.1", resolve);
+        });
+    } catch (error) {
+        if (error.code === "EADDRINUSE") return manual();
+        throw error;
+    }
+    console.log(
+        `Listening on the configured loopback callback: ${redirect.origin}${redirect.pathname}`,
+    );
+    try {
+        await new Promise((resolve, reject) => {
+            const timer = setTimeout(
+                () => reject(new Error("Sign-in timed out. Start again.")),
+                600000,
+            );
+            let processing = false;
+            listener.on("request", (req, res) => {
+                const callback = new URL(req.url, redirect.origin);
+                if (callback.pathname !== redirect.pathname) {
+                    res.writeHead(404).end();
+                    return;
+                }
+                if (processing) {
+                    res.writeHead(409).end("Sign-in is already processing.");
+                    return;
+                }
+                processing = true;
+                exchange(callback.href)
+                    .then(() => {
+                        res.writeHead(200, {
+                            "Content-Type": "text/plain",
+                            "Cache-Control": "no-store",
+                        }).end("OneDrive tokens saved. You can close this window.");
+                        clearTimeout(timer);
+                        resolve();
+                    })
+                    .catch(() => {
+                        res.writeHead(400, {
+                            "Content-Type": "text/plain",
+                            "Cache-Control": "no-store",
+                        }).end("Sign-in could not be completed. Start again from the terminal.");
+                        clearTimeout(timer);
+                        reject(
+                            new Error(
+                                "OneDrive sign-in failed. Check the callback configuration and start again.",
+                            ),
+                        );
+                    });
+            });
+        });
+    } finally {
+        listener.closeAllConnections();
+        await new Promise((resolve) => listener.close(resolve));
+    }
 }
 
-const scopes = "user.read offline_access files.readwrite";
-
-const authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(
-    redirectUri,
-)}&scope=${encodeURIComponent(scopes)}&state=12345`;
-
-console.log("\n========================================================================");
-console.log("🔑 COURSEHUB ONEDRIVE REFRESH TOKEN GENERATOR");
-console.log("========================================================================\n");
-console.log("1. Open the following URL in your browser:\n");
-console.log(`   ${authUrl}\n`);
-console.log("2. Sign in with the Coding Club (OneDrive owner) Microsoft account.");
-console.log(
-    "3. Grant consent for requested permissions (user.read, offline_access, files.readwrite).\n",
-);
-
-const exchangeCodeForTokens = async (code) => {
-    try {
-        console.log("⏳ Exchanging authorization code for tokens...");
-
-        const data = qs.stringify({
-            client_id: clientId,
-            client_secret: clientSecret,
-            grant_type: "authorization_code",
-            code: code.trim(),
-            redirect_uri: redirectUri,
-            scope: scopes,
-        });
-
-        const response = await axios.post(
-            `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-            data,
-            {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-            },
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    provisionOneDriveToken().catch(() => {
+        console.error(
+            "OneDrive sign-in failed. Check the Azure credentials and registered redirect URI, then start again.",
         );
-
-        if (!response.data || !response.data.refresh_token) {
-            throw new Error("No refresh_token returned in response from Microsoft");
-        }
-
-        const refreshToken = response.data.refresh_token;
-        const accessToken = response.data.access_token;
-
-        const refreshTokenPath = path.join(serverDir, "onedrive-refresh-token.token");
-        const accessTokenPath = path.join(serverDir, "onedrive-access-token.token");
-
-        fs.writeFileSync(refreshTokenPath, refreshToken, "utf-8");
-        if (accessToken) {
-            fs.writeFileSync(accessTokenPath, accessToken, "utf-8");
-        }
-
-        console.log("\n========================================================================");
-        console.log("✅ REFRESH TOKEN SUCCESSFULLY GENERATED & SAVED!");
-        console.log("========================================================================");
-        console.log(`📁 File written: ${refreshTokenPath}`);
-        console.log("\nRefresh Token:\n");
-        console.log(refreshToken);
-        console.log("\n========================================================================\n");
-
-        return true;
-    } catch (err) {
-        const errorData = err?.response?.data;
-        console.error("\n❌ Failed to exchange code for token:");
-        console.error(errorData?.error_description || errorData?.error || err.message);
-        return false;
-    }
-};
-
-const parsedUrl = new URL(redirectUri);
-const port = parseInt(parsedUrl.port || "8080", 10);
-
-const server = http.createServer(async (req, res) => {
-    const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    if (reqUrl.pathname === parsedUrl.pathname || reqUrl.pathname === "/api/auth/login/redirect") {
-        const code = reqUrl.searchParams.get("code");
-        if (code) {
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.end(`
-                <div style="font-family: sans-serif; text-align: center; padding: 50px;">
-                    <h2 style="color: #10B981;">✅ OneDrive Authorization Received!</h2>
-                    <p>Generating and saving refresh token in terminal...</p>
-                    <p>You can close this window now.</p>
-                </div>
-            `);
-            const success = await exchangeCodeForTokens(code);
-            server.close(() => {
-                process.exit(success ? 0 : 1);
-            });
-            return;
-        }
-    }
-    res.writeHead(404);
-    res.end();
-});
-
-server.on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-        console.log(
-            `ℹ️  Note: Port ${port} is currently in use (e.g. CourseHub dev server is running).`,
-        );
-        console.log(
-            "   After signing in, copy the 'code' parameter from the redirected browser URL bar.\n",
-        );
-
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-        });
-
-        rl.question("Paste the 'code' parameter here: ", async (inputCode) => {
-            rl.close();
-            const success = await exchangeCodeForTokens(inputCode);
-            process.exit(success ? 0 : 1);
-        });
-    } else {
-        console.error("Server error:", err);
-    }
-});
-
-server.listen(port, () => {
-    console.log(`🌐 Listening on http://localhost:${port} for automated callback redirect...\n`);
-});
+        process.exitCode = 1;
+    });
+}

@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import "./loading.css";
 import { LoginUser } from "./actions/user_actions";
 import { useDispatch } from "react-redux";
+import { loginDestination } from "./utils/loginDestination";
 
 const LoadingPage = () => {
     const navigate = useNavigate();
@@ -42,7 +43,7 @@ const LoadingPage = () => {
             }
 
             dispatch(LoginUser(user));
-            navigate("/dashboard");
+            navigate(loginDestination(new URLSearchParams(window.location.search).get("returnTo")), { replace: true });
         }
 
         loadData();

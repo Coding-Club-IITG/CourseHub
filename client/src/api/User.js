@@ -1,10 +1,10 @@
-import axios from "axios";
+import axios from "./http";
 import serverRoot from "./server";
 import { clearAllCoursesCache } from "../utils/frontendCache";
 
-let redirectUri = "https://www.coursehubiitg.in/api/auth/login/redirect";
+import { clearCsrfToken } from "./csrf";
+import { loginDestination } from "../utils/loginDestination";
 
-axios.defaults.withCredentials = true;
 
 export const getUser = async (signal) => {
     clearAllCoursesCache();
@@ -20,7 +20,8 @@ export const updateUser = async (newUserData) => {
 };
 
 export const handleLogin = () => {
-    window.location.href = `${serverRoot}/api/auth/login`;
+    const destination = loginDestination(new URLSearchParams(window.location.search).get("returnTo"));
+    window.location.href = `${serverRoot}/api/auth/login?returnTo=${encodeURIComponent(destination)}`;
 };
 export const AddNewCourseAPI = async (code, name) => {
     const resp = await axios.post(`${serverRoot}/api/user/readonly`, { code, name });
@@ -48,4 +49,10 @@ export const RemoveFromFavourites = async (id) => {
 export const GetExamDates = async () => {
     const resp = await axios.get(`${serverRoot}/api/event/examdates`);
     return resp;
+};
+
+export const logoutUser = async () => {
+    try { await axios.post(`${serverRoot}/api/auth/logout`); }
+    catch (error) { if (error.response?.status !== 401) throw error; }
+    clearCsrfToken();
 };

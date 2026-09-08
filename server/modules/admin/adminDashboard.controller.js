@@ -9,8 +9,8 @@ import { removeFolderFromCourse, removeFile } from "../../services/resourceRemov
 import { presentContribution } from "../contribution/contribution.controller.js";
 import AppError from "../../utils/appError.js";
 import CourseModel, { FileModel, FolderModel } from "../course/course.model.js";
-import fs from "fs";
-import csv from "csv-parser";
+import { processUploadedCsv } from "../../utils/uploadedCsv.js";
+import { safeError } from "../../middleware/requestErrors.js";
 import User from "../user/user.model.js";
 import UserUpdate from "../user/userUpdate.model.js";
 import SearchResults from "../search/search.model.js";
@@ -34,39 +34,24 @@ export async function getDBCourses(req, res, next) {
 }
 
 // Upload courses via CSV file (comma-separated)
-export async function uploadCourses(req, res, next) {
-    if (!req.file) return next(new AppError(400, "No file uploaded"));
-    const results = [];
-    fs.createReadStream(req.file.path)
-        .pipe(csv(["code", "name"]))
-        .on("data", (data) => results.push(data))
-        .on("end", async () => {
-            try {
-                await Promise.all(
-                    results.map(async ({ code, name }) => {
-                        if (!code || !name) return null;
-                        const codeUpper = normalizeCourseCode(code);
-                        let course = await CourseModel.findOne({
-                            code: getCourseCodeCaseInsensitiveRegex(codeUpper),
-                        });
-                        if (!course) {
-                            course = await CourseModel.create({ code: codeUpper, name });
-                        } else {
-                            course.code = codeUpper;
-                            course.name = name;
-                            await course.save();
-                        }
-                    }),
-                );
-                fs.unlinkSync(req.file.path);
-                // Fetch and return the full course list
-                const allCourses = await CourseModel.find({});
-                res.json(allCourses);
-            } catch (err) {
-                fs.unlinkSync(req.file.path);
-                next(new AppError(500, "Failed to process CSV"));
+export async function uploadCourses(req, res) {
+    const allCourses = await processUploadedCsv(req.file, ["code", "name"], async (results) => {
+        for (const { code, name } of results) {
+            if (!code || !name) continue;
+            const codeUpper = normalizeCourseCode(code);
+            const course = await CourseModel.findOne({
+                code: getCourseCodeCaseInsensitiveRegex(codeUpper),
+            });
+            if (!course) await CourseModel.create({ code: codeUpper, name });
+            else {
+                course.code = codeUpper;
+                course.name = name;
+                await course.save();
             }
-        });
+        }
+        return CourseModel.find({});
+    });
+    res.json(allCourses);
 }
 
 export async function getCourseDashboardData(req, res) {
@@ -315,14 +300,7 @@ export async function deleteCourse(req, res, next) {
                         // UNLESS it's a shared folder.
                         // If it's a shared folder, we should ONLY delete files if we are deleting the last reference.
                         if (folder.courses.length <= 1) {
-                            // Remove file from database
-                            await FileModel.findByIdAndDelete(file._id);
-
-                            // Delete file from OneDrive if fileId exists
-                            if (file.fileId) {
-                                const { DeleteFile } = await import("../../services/UploadFile.js");
-                                await DeleteFile(file.fileId);
-                            }
+                            await removeFile(file);
                         }
                     } catch (fileError) {
                         logger.error("Admin file deletion failed", {
@@ -334,7 +312,7 @@ export async function deleteCourse(req, res, next) {
                                 retryable: true,
                             },
                         });
-                        // Continue with other files even if one fails
+                        throw fileError;
                     }
                 }
             }
@@ -368,7 +346,7 @@ export async function deleteCourse(req, res, next) {
             deletedContributions: contributionsDeleted.deletedCount,
         });
     } catch (error) {
-        return next(new AppError(500, "Failed to delete course: " + error.message));
+        return next(error);
     }
 }
 
@@ -457,11 +435,7 @@ async function removeCourseFromFolderTree(startFolderId, codeToRemove) {
 
         for (const f of fileFolders) {
             for (const fileId of f.children) {
-                try {
-                    await removeFile(fileId);
-                } catch (e) {
-                    // ignore individual file deletion errors
-                }
+                await removeFile(fileId);
             }
         }
         await FolderModel.deleteMany({ _id: { $in: foldersToDelete } });
@@ -631,26 +605,11 @@ export async function linkLegacyCourse(req, res, next) {
         const course = await performLinkWithLock(code, legacyCode);
         res.json({ message: "Legacy course linked successfully", course });
     } catch (error) {
-        return next(new AppError(500, error.message));
+        return next(error);
     }
 }
 
-export async function bulkLinkCourses(req, res, next) {
-    if (!req.file) return next(new AppError(400, "No file uploaded"));
-
-    const results = [];
-    const filePath = req.file.path;
-
-    const cleanupFile = () => {
-        if (fs.existsSync(filePath)) {
-            try {
-                fs.unlinkSync(filePath);
-            } catch (e) {
-                // ignore unlink errors
-            }
-        }
-    };
-
+export async function bulkLinkCourses(req, res) {
     const isHeaderValue = (val) => {
         if (!val) return true;
         const norm = normalizeCourseCode(val);
@@ -679,64 +638,52 @@ export async function bulkLinkCourses(req, res, next) {
         return headerTerms.includes(norm);
     };
 
-    fs.createReadStream(filePath)
-        .pipe(csv({ headers: false }))
-        .on("data", (data) => results.push(data))
-        .on("error", (err) => {
-            cleanupFile();
-            return next(new AppError(400, "Failed to parse CSV file: " + err.message));
-        })
-        .on("end", async () => {
-            const summary = { success: 0, failed: 0, errors: [] };
-            try {
-                for (const row of results) {
-                    const keys = Object.keys(row);
-                    if (keys.length === 0) continue;
+    const summary = await processUploadedCsv(req.file, { headers: false }, async (results) => {
+        const summary = { success: 0, failed: 0, errors: [] };
+        for (const row of results) {
+            const keys = Object.keys(row);
+            if (keys.length === 0) continue;
 
-                    let rawOld = "";
-                    let rawNew = "";
+            let rawOld = "";
+            let rawNew = "";
 
-                    if (row.oldCode || row.legacyCode || row.old || row.sourceCode) {
-                        rawOld = row.oldCode || row.legacyCode || row.old || row.sourceCode;
-                        rawNew = row.newCode || row.targetCode || row.new || row.target;
-                    } else if (keys.length >= 2) {
-                        rawOld = row[keys[0]];
-                        rawNew = row[keys[1]];
-                    } else if (keys.length === 1 && typeof row[keys[0]] === "string") {
-                        const parts = row[keys[0]].split(",").map((s) => s.trim());
-                        if (parts.length >= 2) {
-                            rawOld = parts[0];
-                            rawNew = parts[1];
-                        }
-                    }
-
-                    if (!rawOld || !rawNew) continue;
-
-                    if (isHeaderValue(rawOld) && isHeaderValue(rawNew)) {
-                        continue;
-                    }
-
-                    const oldCode = normalizeCourseCode(rawOld);
-                    const newCode = normalizeCourseCode(rawNew);
-
-                    if (!oldCode || !newCode) continue;
-
-                    try {
-                        await performLinkWithLock(newCode, oldCode);
-                        summary.success++;
-                    } catch (err) {
-                        summary.failed++;
-                        summary.errors.push({ oldCode, newCode, error: err.message });
-                    }
+            if (row.oldCode || row.legacyCode || row.old || row.sourceCode) {
+                rawOld = row.oldCode || row.legacyCode || row.old || row.sourceCode;
+                rawNew = row.newCode || row.targetCode || row.new || row.target;
+            } else if (keys.length >= 2) {
+                rawOld = row[keys[0]];
+                rawNew = row[keys[1]];
+            } else if (keys.length === 1 && typeof row[keys[0]] === "string") {
+                const parts = row[keys[0]].split(",").map((s) => s.trim());
+                if (parts.length >= 2) {
+                    rawOld = parts[0];
+                    rawNew = parts[1];
                 }
-
-                cleanupFile();
-                res.json({ message: "Bulk linking completed", summary });
-            } catch (err) {
-                cleanupFile();
-                next(new AppError(500, `Failed to process bulk linking CSV: ${err.message}`));
             }
-        });
+
+            if (!rawOld || !rawNew) continue;
+
+            if (isHeaderValue(rawOld) && isHeaderValue(rawNew)) {
+                continue;
+            }
+
+            const oldCode = normalizeCourseCode(rawOld);
+            const newCode = normalizeCourseCode(rawNew);
+
+            if (!oldCode || !newCode) continue;
+
+            try {
+                await performLinkWithLock(newCode, oldCode);
+                summary.success++;
+            } catch (err) {
+                summary.failed++;
+                summary.errors.push({ oldCode, newCode, error: safeError(err).message });
+            }
+        }
+
+        return summary;
+    });
+    res.json({ message: "Bulk linking completed", summary });
 }
 
 export async function syncCoursesCacheController(req, res, next) {
@@ -744,6 +691,6 @@ export async function syncCoursesCacheController(req, res, next) {
         await runSync();
         res.json({ success: true, message: "Course cache synchronized successfully." });
     } catch (err) {
-        next(new AppError(500, `Cache sync failed: ${err.message}`));
+        next(err);
     }
 }

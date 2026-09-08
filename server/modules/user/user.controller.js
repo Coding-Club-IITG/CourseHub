@@ -81,24 +81,15 @@ export const getUser = async (req, res, next) => {
     }
 
     const userUpdated = await UserUpdate.findOne({ rollNumber: user.rollNumber });
-    if (!userUpdated) {
-        res.cookie("token", "loggedout", {
-            maxAge: 0,
-            sameSite: "lax",
-            secure: false,
-            expires: new Date(Date.now()),
-            httpOnly: true,
-        });
-        return res.status(401).json({ error: "User update required, please log in again" });
-    }
 
     const actor = await actorFor(req);
     const isBranchRep = actor.isBR;
 
     const previousCourses = Array.isArray(user.previousCourses) ? user.previousCourses : [];
-    const needsCourseSync = isBranchRep && previousCourses.length === 0;
+    const needsCourseSync = !userUpdated || (isBranchRep && previousCourses.length === 0);
 
     const responseUser = {
+        csrfToken: req.session.csrfToken,
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -126,8 +117,10 @@ export const getUser = async (req, res, next) => {
 };
 
 export const updateUserController = async (req, res) => {
-    const data = req.body;
-    updateUserData(req.user._id, data);
+    if (Object.keys(req.body).some((key) => key !== "newUserData"))
+        throw new AppError(400, "Unexpected profile fields", "VALIDATION_FAILED");
+    const saved = await updateUserData(req.user._id, req.body.newUserData);
+    res.json(saved);
 };
 export const addToFavouriteController = async (req, res, next) => {
     const data = req.body;
@@ -172,7 +165,7 @@ export const removeFromFavouritesController = async (req, res, next) => {
 export const updateDeviceToken = async (req, res, next) => {
     const user = req.user;
     const { deviceToken } = req.body;
-    if (!deviceToken) return next(new AppError("Invalid device token"));
+    if (!deviceToken) return next(new AppError(400, "Invalid device token"));
     await User.findByIdAndUpdate(user._id, { deviceToken: deviceToken });
     return res.json({ status: 200 });
 };

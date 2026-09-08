@@ -1,10 +1,6 @@
-import axios from "axios";
+import API from "./http";
 import serverRoot from "./server";
 
-const API = axios.create({
-    baseURL: `${serverRoot}/api`,
-    withCredentials: true,
-});
 export const previewFile = async (fileId) => {
     const { data } = await API.get(`/files/link/${fileId}`);
     return { url: new URL(data.file.webUrl, serverRoot).href };
@@ -22,20 +18,7 @@ export const unverifyFile = async (fileId, courseCode) => {
 };
 
 export const getFileDownloadLink = async (fileId, courseCode) => {
-    const response = await fetch(serverRoot + "/api/files/download", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ fileId, courseCode }),
-    });
-
-    if (!response.ok) {
-        throw new Error(`Error fetching download link: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const { data } = await API.post("/files/download", { fileId, courseCode });
     return new URL(data.downloadLink, serverRoot).href;
 };
 

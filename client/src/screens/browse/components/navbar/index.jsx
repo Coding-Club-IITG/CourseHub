@@ -6,7 +6,8 @@ import SearchBar from "../../../../components/navbar/components/searchbar";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { LogoutUser } from "../../../../actions/user_actions";
-import server from "../../../../api/server";
+import { logoutUser } from "../../../../api/User";
+import { toast } from "react-toastify";
 
 const NavBarBrowseScreen = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,9 +17,12 @@ const NavBarBrowseScreen = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const handleLogout = () => {
-        dispatch(LogoutUser());
-        window.location = `${server}/api/auth/logout`;
+    const handleLogout = async () => {
+        try {
+            await logoutUser();
+            dispatch(LogoutUser());
+            window.location.href = "/";
+        } catch { toast.error("Could not log out. Please try again."); }
     };
 
     const toggleMobileMenu = (e) => {

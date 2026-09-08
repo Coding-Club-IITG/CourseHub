@@ -1,4 +1,9 @@
 import "./support/environment.js";
+import { randomUUID } from "node:crypto";
+import Session from "../modules/session/session.model.js";
+import { OAuthAttempt } from "../services/oauth.js";
+import { AuthRateLimit } from "../middleware/authThrottle.js";
+import { testOrigin, testCsrfToken } from "./fixtures/sessions.js";
 import assert from "node:assert/strict";
 import { before, beforeEach, after, test } from "node:test";
 import { once } from "node:events";
@@ -32,9 +37,20 @@ after(async () => {
     await new Promise((resolve) => listener.close(resolve));
 });
 
-const studentToken = (options = {}) =>
-    jwt.sign({ user: student._id }, process.env.JWT_SECRET, options);
-const adminToken = () => jwt.sign(administrator._id, process.env.ADMIN_JWT_SECRET);
+const signedToken = (role, id, options = {}) =>
+    jwt.sign(
+        { sub: id, role },
+        role === "student" ? process.env.JWT_SECRET : process.env.ADMIN_JWT_SECRET,
+        {
+            issuer: "coursehub",
+            audience: "coursehub-api",
+            jwtid: randomUUID(),
+            expiresIn: role === "student" ? "24d" : "7d",
+            ...options,
+        },
+    );
+const studentToken = (options = {}) => signedToken("student", student._id, options);
+const adminToken = () => signedToken("admin", administrator._id);
 const query = (value) => ({
     collation() {
         return this;
@@ -53,6 +69,14 @@ const query = (value) => ({
     },
 });
 function signedIn(t, actor = student) {
+    t.mock.method(Session, "findOne", (filter) =>
+        query({
+            _id: filter._id,
+            actorId: filter.actorId,
+            role: filter.role,
+            csrfToken: testCsrfToken,
+        }),
+    );
     t.mock.method(BR, "findOne", () => query(null));
     t.mock.method(CourseAllotment, "find", () =>
         query([{ ...academicPeriod(), courses: ["CS101"] }]),
@@ -62,7 +86,7 @@ function signedIn(t, actor = student) {
     t.mock.method(FileModel, "findById", async () => libraryFile);
     t.mock.method(Contribution, "find", () => query([]));
     t.mock.method(Course, "find", () => query([course]));
-    t.mock.method(User, "findOne", async ({ _id }) => (_id === actor._id ? actor : null));
+    t.mock.method(User, "findById", async (id) => (String(id) === actor._id ? actor : null));
     t.mock.method(Admin, "findById", async (id) =>
         id === administrator._id ? administrator : null,
     );
@@ -109,9 +133,7 @@ function blockIO(t) {
 const publicActions = new Set([
     "GET /api/auth/login",
     "GET /api/auth/login/redirect",
-    "GET /api/auth/logout",
     "POST /api/admin/auth/login",
-    "POST /api/admin/auth/logout",
 ]);
 const protectedRoutes = [];
 for (const [prefix, module] of [
@@ -137,8 +159,15 @@ for (const [prefix, module] of [
             const concrete = path.replace(/:([a-zA-Z]+)/g, (_, name) =>
                 name === "code" ? "CS101" : name === "type" ? "file" : libraryFile._id,
             );
-            protectedRoutes.push([method.toUpperCase(), concrete]);
-            if (method === "get") protectedRoutes.push(["HEAD", concrete]);
+            protectedRoutes.push([
+                method.toUpperCase(),
+                concrete + (route.path === "/csrf" ? "?role=student" : ""),
+            ]);
+            if (method === "get")
+                protectedRoutes.push([
+                    "HEAD",
+                    concrete + (route.path === "/csrf" ? "?role=student" : ""),
+                ]);
         }
     }
 }
@@ -188,6 +217,8 @@ test("public authentication entry and minimal health work; unknown API requests 
     const health = await fetch(origin + "/api/health");
     assert.equal(health.status, 200);
     assert.deepEqual(await health.json(), { status: "ok" });
+    t.mock.method(AuthRateLimit, "findOneAndUpdate", () => query({ count: 1 }));
+    t.mock.method(OAuthAttempt, "create", async (data) => data);
     const login = await fetch(origin + "/api/auth/login", { redirect: "manual" });
     assert.equal(login.status, 302);
     assert.equal(new URL(login.headers.get("location")).hostname, "login.microsoftonline.com");
@@ -204,7 +235,7 @@ test("student and administrator cookie/bearer sessions can read courses", async 
     t.mock.method(Course, "find", () => query([course]));
     t.mock.method(Course, "findOne", () => query({ toObject: () => structuredClone(course) }));
     for (const headers of [
-        { cookie: `token=${studentToken()}` },
+        { cookie: `token=${studentToken()}`, origin: testOrigin, "x-csrf-token": testCsrfToken },
         { authorization: `Bearer ${studentToken()}` },
         { cookie: `adminToken=${adminToken()}` },
         { authorization: `Bearer ${adminToken()}` },
@@ -226,7 +257,11 @@ test("missing-course reads return 404 without creating content", async (t) => {
         assert.fail("GET must not create a course"),
     );
     const response = await fetch(origin + "/api/course/MISSING", {
-        headers: { cookie: `token=${studentToken()}` },
+        headers: {
+            cookie: `token=${studentToken()}`,
+            origin: testOrigin,
+            "x-csrf-token": testCsrfToken,
+        },
     });
     assert.equal(response.status, 404);
     assert.equal(create.mock.callCount(), 0);
@@ -244,7 +279,11 @@ test("students cannot create courses or perform BR/administrator actions", async
     ]) {
         const response = await fetch(origin + path, {
             method,
-            headers: { cookie: `token=${studentToken()}` },
+            headers: {
+                cookie: `token=${studentToken()}`,
+                origin: testOrigin,
+                "x-csrf-token": testCsrfToken,
+            },
         });
         assert.equal(response.status, 403, path);
     }
@@ -252,14 +291,23 @@ test("students cannot create courses or perform BR/administrator actions", async
 });
 
 test("removed accounts and shared-account credentials cannot establish a student session", async (t) => {
-    t.mock.method(User, "findOne", async () => null);
+    signedIn(t);
+    t.mock.method(User, "findById", async () => null);
     let response = await fetch(origin + "/api/course", {
-        headers: { cookie: `token=${studentToken()}` },
+        headers: {
+            cookie: `token=${studentToken()}`,
+            origin: testOrigin,
+            "x-csrf-token": testCsrfToken,
+        },
     });
     assert.equal(response.status, 401);
-    t.mock.method(User, "findOne", async () => ({ ...student, email: "guest@coursehubiitg.in" }));
+    t.mock.method(User, "findById", async () => ({ ...student, email: "guest@coursehubiitg.in" }));
     response = await fetch(origin + "/api/course", {
-        headers: { cookie: `token=${studentToken()}` },
+        headers: {
+            cookie: `token=${studentToken()}`,
+            origin: testOrigin,
+            "x-csrf-token": testCsrfToken,
+        },
     });
     assert.equal(response.status, 401);
 });
@@ -284,7 +332,12 @@ test("signed-in search and contribution listing still work", async (t) => {
     t.mock.method(Course, "find", () => query([course]));
     t.mock.method(FileModel, "findOne", () => query(libraryFile));
     t.mock.method(Contribution, "find", () => query([]));
-    const headers = { cookie: `token=${studentToken()}`, "content-type": "application/json" };
+    const headers = {
+        cookie: `token=${studentToken()}`,
+        origin: testOrigin,
+        "x-csrf-token": testCsrfToken,
+        "content-type": "application/json",
+    };
     for (const [path, body] of [["/api/search", { words: ["CS101"] }]]) {
         const response = await fetch(origin + path, {
             method: "POST",
@@ -311,7 +364,12 @@ test("course refresh derives its target from the authenticated student", async (
         updates.push(filter);
         return { modifiedCount: 1 };
     });
-    const headers = { cookie: `token=${studentToken()}`, "content-type": "application/json" };
+    const headers = {
+        cookie: `token=${studentToken()}`,
+        origin: testOrigin,
+        "x-csrf-token": testCsrfToken,
+        "content-type": "application/json",
+    };
     for (const body of [{}, { rollNumber: student.rollNumber }]) {
         const response = await fetch(origin + "/api/auth/fetchCourses", {
             method: "POST",

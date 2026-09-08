@@ -2,6 +2,10 @@ import { devNull } from "node:os";
 
 process.env.DOTENV_CONFIG_PATH = devNull;
 process.env.NODE_ENV = "test";
+process.env.ALLOWED_ORIGINS = "http://client.coursehub.test";
+process.env.CLIENT_URL = "http://client.coursehub.test";
+process.env.AZURE_CLIENT_ID = "test-client-id";
+process.env.REDIRECT_URI = "http://api.coursehub.test/api/auth/login/redirect";
 process.env.OPS_LOGGING_ENABLED = "false";
 process.env.MONGO_URI = "mongodb://127.0.0.1:1/coursehub_test_no_connection";
 process.env.JWT_SECRET = "coursehub-student-unit-test-key";

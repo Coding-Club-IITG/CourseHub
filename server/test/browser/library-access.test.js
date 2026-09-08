@@ -100,11 +100,15 @@ async function openPage(
         if (url.pathname === "/api/user") {
             if (holdSession) await holdSession;
             status = sessionStatus ? sessionStatus() : hasSession ? 200 : 401;
-            data = status === 200 ? actor : { message: "Unable to restore session" };
+            data =
+                status === 200
+                    ? { ...actor, csrfToken: "c".repeat(43) }
+                    : { message: "Unable to restore session" };
         } else if (!hasSession) {
             status = 401;
             data = { message: "Sign in to continue" };
-        } else if (url.pathname === "/api/course/CS101")
+        } else if (url.pathname === "/api/auth/csrf") data = { csrfToken: "c".repeat(43) };
+        else if (url.pathname === "/api/course/CS101")
             data = {
                 found: true,
                 ...course,
@@ -186,7 +190,11 @@ for (const width of [1440, 390]) {
                 sessionStatus: () => 401,
             });
             await page.goto(`${frontend}/browse/CS101/${folder._id}`);
-            await page.waitForURL(frontend + "/");
+            await page.waitForURL(
+                (url) =>
+                    url.pathname === "/" &&
+                    url.searchParams.get("returnTo") === `/browse/CS101/${folder._id}`,
+            );
             await page.getByText("Sign in with Microsoft", { exact: false }).waitFor();
             assert.ok(requests.length > 0);
             assert.ok(requests.every((request) => request.path === "/api/user"));
@@ -254,6 +262,8 @@ test("FilePond sends credentials and the contribution association across origins
     assert.equal(manifest.uploadedBy, undefined);
     assert.equal(manifest.approved, undefined);
     assert.equal(uploaded.headers.username, undefined);
+    assert.equal(uploaded.headers["x-csrf-token"], "c".repeat(43));
+    assert.equal(created.headers["x-csrf-token"], "c".repeat(43));
     assert.ok(uploaded.headers["content-type"].startsWith("multipart/form-data"));
     assert.ok(uploaded.body.includes("Test notes"));
 });

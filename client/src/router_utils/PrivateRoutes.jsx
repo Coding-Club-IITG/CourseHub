@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "../api/User";
 import { LoginUser, LogoutUser } from "../actions/user_actions";
@@ -7,6 +7,8 @@ import Loader from "../components/Loader";
 import "./PrivateRoutes.scss";
 
 const PrivateRoutes = () => {
+    const location = useLocation();
+    const destination = encodeURIComponent(location.pathname + location.search + location.hash);
     const loggedIn = useSelector((state) => state.user.loggedIn);
     const dispatch = useDispatch();
     const [status, setStatus] = useState("checking");
@@ -36,8 +38,8 @@ const PrivateRoutes = () => {
     }, [loggedIn, dispatch, attempt]);
 
     if (loggedIn) return <Outlet />;
-    if (status === "signed-out") return <Navigate to="/" replace />;
-    if (status === "sync") return <Navigate to="/loading" replace />;
+    if (status === "signed-out") return <Navigate to={`/?returnTo=${destination}`} replace />;
+    if (status === "sync") return <Navigate to={`/loading?returnTo=${destination}`} replace />;
     if (status === "error") {
         return (
             <div className="session-gate" role="alert">

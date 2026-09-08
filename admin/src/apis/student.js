@@ -1,3 +1,4 @@
+import { apiFetch } from "./http";
 import { API_BASE_URL } from "./server.js";
 
 // Fetch all students sorted by rollNumber descending.
@@ -5,7 +6,7 @@ import { API_BASE_URL } from "./server.js";
 export const fetchStudents = async (brOnly = false) => {
     try {
         const url = brOnly ? `${API_BASE_URL}api/br/allBRs` : `${API_BASE_URL}api/student/all`;
-        const response = await fetch(url, { credentials: "include" });
+        const response = await apiFetch(url, { credentials: "include" });
         const data = await response.json();
         return { students: data.students || data.brs || [] };
     } catch (error) {
@@ -20,7 +21,7 @@ export const searchStudents = async (query, brOnly = false) => {
     try {
         const params = new URLSearchParams({ q: query });
         if (brOnly) params.set("isBR", "true");
-        const response = await fetch(`${API_BASE_URL}api/student/search?${params.toString()}`, {
+        const response = await apiFetch(`${API_BASE_URL}api/student/search?${params.toString()}`, {
             credentials: "include",
         });
         return await response.json();
@@ -34,7 +35,7 @@ export const searchStudents = async (query, brOnly = false) => {
 // Courses will be re-fetched when the student next logs in.
 export const refreshStudentCourses = async (id) => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/student/refresh/${id}`, {
+        const response = await apiFetch(`${API_BASE_URL}api/student/refresh/${id}`, {
             method: "PUT",
             credentials: "include",
         });
@@ -51,7 +52,7 @@ export const refreshStudentCourses = async (id) => {
 // Delete a single student permanently.
 export const deleteStudent = async (id) => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/student/${id}`, {
+        const response = await apiFetch(`${API_BASE_URL}api/student/${id}`, {
             method: "DELETE",
             credentials: "include",
         });
@@ -68,7 +69,7 @@ export const deleteStudent = async (id) => {
 // Semester reset - deletes all UserUpdate records and clears courses for every student.
 export const semesterReset = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/student/semester-reset`, {
+        const response = await apiFetch(`${API_BASE_URL}api/student/semester-reset`, {
             method: "POST",
             credentials: "include",
         });

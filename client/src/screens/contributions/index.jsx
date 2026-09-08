@@ -11,11 +11,13 @@ import { useDispatch } from "react-redux";
 import server from "../../api/server";
 import { ChangeFolder, RefreshCurrentFolder } from "../../actions/filebrowser_actions";
 import { fetchFolder } from "../../api/Folder";
+import { getCsrfToken } from "../../api/csrf";
 
 const Contributions = () => {
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const currentCourseCode = useSelector((state) => state.fileBrowser.currentCourseCode);
     const contributionId = useRef("");
+    const csrfToken = useRef("");
     const isBR = currentFolder?.capabilities?.canManage === true;
     const dispatch = useDispatch();
 
@@ -50,6 +52,7 @@ const Contributions = () => {
                 description: "default",
             });
             contributionId.current = response.data.data.contributionId;
+            csrfToken.current = await getCsrfToken(true);
             await pond.current.processFiles();
             pond.current.removeFiles();
             contributionSection.classList.remove("show");
@@ -92,7 +95,7 @@ const Contributions = () => {
                             url: `${server}/api/contribution/upload`,
                             process: {
                                 withCredentials: true,
-                                headers: () => ({ "contribution-id": contributionId.current }),
+                                headers: () => ({ "contribution-id": contributionId.current, "X-CSRF-Token": csrfToken.current, "X-Session-Role": "student" }),
                             },
                         }}
                         instantUpload={false}

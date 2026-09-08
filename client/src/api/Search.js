@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "./http";
 import serverRoot from "./server";
 
 export const GetSearchResult = async (wordArr) => {

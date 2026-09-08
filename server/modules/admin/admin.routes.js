@@ -2,6 +2,8 @@ import express from "express";
 import catchAsync from "../../utils/catchAsync.js";
 import isAdmin from "../../middleware/isAdmin.js";
 import multer from "multer";
+import { requireTrustedOrigin } from "../../middleware/csrf.js";
+import { authThrottle } from "../../middleware/authThrottle.js";
 import { adminLogin, adminLogout, getAdmin } from "./auth.controller.js";
 import {
     getDBCourses,
@@ -20,8 +22,13 @@ const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
 // Admin auth
-router.post("/auth/login", catchAsync(adminLogin));
-router.post("/auth/logout", catchAsync(adminLogout));
+router.post(
+    "/auth/login",
+    requireTrustedOrigin,
+    authThrottle("admin-login"),
+    catchAsync(adminLogin),
+);
+router.post("/auth/logout", isAdmin, catchAsync(adminLogout));
 router.use(isAdmin);
 
 router.get("/course/:code/dashboard", catchAsync(getCourseDashboardData));
@@ -30,10 +37,10 @@ router.delete("/node/:type/:id", catchAsync(deleteNode));
 router.get("/", catchAsync(getAdmin));
 router.get("/dbcourses", catchAsync(getDBCourses));
 
-router.post("/courses/upload", upload.single("file"), uploadCourses);
-router.post("/courses/bulk-link", upload.single("file"), bulkLinkCourses);
-router.patch("/course/:code", renameCourse);
-router.post("/course/:code/link", linkLegacyCourse);
+router.post("/courses/upload", upload.single("file"), catchAsync(uploadCourses));
+router.post("/courses/bulk-link", upload.single("file"), catchAsync(bulkLinkCourses));
+router.patch("/course/:code", catchAsync(renameCourse));
+router.post("/course/:code/link", catchAsync(linkLegacyCourse));
 router.delete("/course/:code/delete", catchAsync(deleteCourse));
 router.post("/sync-courses-cache", catchAsync(syncCoursesCacheController));
 

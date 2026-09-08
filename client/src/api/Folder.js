@@ -1,15 +1,6 @@
-import axios from "axios";
+import API from "./http";
 import serverRoot from "./server";
-const API = axios.create({
-    baseURL: `${serverRoot}/api`,
-    withCredentials: true,
-});
 
-API.interceptors.request.use((req) => {
-    const user = JSON.parse(localStorage.getItem("profile"));
-    if (user) req.headers.Authorization = `Bearer ${user.token}`;
-    return req;
-});
 
 export const createFolder = async ({ name, course, parentFolder, childType }) => {
     const { data } = await API.post("/folder/create", {

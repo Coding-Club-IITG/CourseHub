@@ -1,9 +1,10 @@
+import { apiFetch } from "./http";
 import { API_BASE_URL } from "./server.js";
 
 // Fetch all branch representatives
 export const fetchBRs = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/br/allBRs`, {
+        const response = await apiFetch(`${API_BASE_URL}api/br/allBRs`, {
             credentials: "include",
         });
         return await response.json();
@@ -16,7 +17,7 @@ export const fetchBRs = async () => {
 // Fetch all courses that don't have a branch representative
 export const fetchCoursesWithoutBR = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/br/coursesWithoutBR`, {
+        const response = await apiFetch(`${API_BASE_URL}api/br/coursesWithoutBR`, {
             credentials: "include",
         });
         return await response.json();
@@ -29,7 +30,7 @@ export const fetchCoursesWithoutBR = async () => {
 // Create a single BR
 export const createBR = async (email) => {
     try {
-        const response = await fetch(`${API_BASE_URL}api/br/create`, {
+        const response = await apiFetch(`${API_BASE_URL}api/br/create`, {
             method: "POST",
             credentials: "include",
             headers: {
@@ -73,7 +74,7 @@ export const uploadBRs = async (file) => {
         }
 
         // Call backend API
-        const response = await fetch(`${API_BASE_URL}api/br/updateList`, {
+        const response = await apiFetch(`${API_BASE_URL}api/br/updateList`, {
             method: "POST",
             credentials: "include",
             headers: {
@@ -98,7 +99,7 @@ export const uploadBRs = async (file) => {
 export const deleteBR = async (email) => {
     try {
         const response = await 
-        fetch(`${API_BASE_URL}api/br/delete`,{
+        apiFetch(`${API_BASE_URL}api/br/delete`,{
             method: "DELETE",
             credentials: "include",
             headers:{

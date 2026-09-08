@@ -13,11 +13,9 @@ import { createStore } from "redux";
 import reducers from "./reducers";
 const store = createStore(reducers);
 import { Provider } from "react-redux";
-import axios from "axios";
-axios.defaults.withCredentials = true;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-	<Provider store={store}>
-		<App />
-	</Provider>
+    <Provider store={store}>
+        <App />
+    </Provider>,
 );

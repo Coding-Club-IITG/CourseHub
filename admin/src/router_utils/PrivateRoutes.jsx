@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { checkAdminSession } from "@/apis/auth";
 
 export default function PrivateRoute({ children }) {
+    const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [ok, setOk] = useState(false);
 
@@ -24,6 +25,6 @@ export default function PrivateRoute({ children }) {
     }, []);
 
     if (loading) return null;
-    if (!ok) return <Navigate to="/admin/login" replace />;
+    if (!ok) return <Navigate to={`/admin/login?returnTo=${encodeURIComponent(location.pathname + location.search + location.hash)}`} replace />;
     return children;
 }
