@@ -2,6 +2,7 @@ import isAuthenticated from "../../middleware/isAuthenticated.js";
 import { Router } from "express";
 import {
     getUser,
+    synchronizeCourses,
     addToFavouriteController,
     removeFromFavouritesController,
     updateUserController,
@@ -15,6 +16,7 @@ const router = Router();
 router.use(isAuthenticated);
 
 router.get("/", catchAsync(getUser));
+router.post("/synchronize", catchAsync(synchronizeCourses));
 router.put("/update", catchAsync(updateUserController));
 
 router.get("/favourites", catchAsync(getFavouritesController));

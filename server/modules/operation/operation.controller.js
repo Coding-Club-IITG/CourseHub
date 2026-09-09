@@ -5,6 +5,7 @@ import AppError from "../../utils/appError.js";
 
 export function presentOperation(operation, actor) {
     const own = String(operation.actorId) === actor.id;
+    const selfSync = operation.kind === "academic-sync" && operation.target.userId === actor.id;
     return {
         id: operation._id,
         kind: operation.kind,
@@ -17,9 +18,24 @@ export function presentOperation(operation, actor) {
                 ? "File upload"
                 : operation.kind === "link"
                   ? "Course linking"
-                  : "Content deletion"),
-        affectedCourses: operation.plan?.affectedCourses || [operation.target.code],
+                  : operation.kind === "rename"
+                    ? "Course update"
+                    : operation.kind === "academic-sync"
+                      ? "Academic course refresh"
+                      : "Content deletion"),
+        affectedCourses:
+            operation.plan?.affectedCourses ||
+            (operation.target.code ? [operation.target.code] : []),
         linking: operation.kind === "link" ? operation.plan?.result : undefined,
+        synchronization: operation.kind === "academic-sync" ? operation.plan?.result : undefined,
+        course:
+            operation.kind === "rename" && operation.plan
+                ? {
+                      _id: operation.plan.courseId,
+                      code: operation.plan.newCode,
+                      name: operation.plan.name,
+                  }
+                : undefined,
         createdAt: operation.createdAt,
         updatedAt: operation.updatedAt,
         nextRunAt: operation.nextRunAt,
@@ -31,7 +47,9 @@ export function presentOperation(operation, actor) {
             operation.kind === "upload" &&
             !["completed", "cancelled"].includes(operation.status),
         canRetry:
-            (actor.admin || (own && operation.kind === "upload")) &&
+            (actor.admin ||
+                (own && operation.kind === "upload") ||
+                (selfSync && !operation.target.force)) &&
             ["failed", "partial"].includes(operation.status),
         entries: operation.entries.map((entry) => ({
             id: entry.id,
@@ -57,6 +75,7 @@ async function permittedOperation(req) {
         !operation ||
         (!actor.admin &&
             String(operation.actorId) !== actor.id &&
+            !(operation.kind === "academic-sync" && operation.target.userId === actor.id) &&
             !actor.managed.includes(operation.target.code) &&
             !(operation.kind === "link" && actor.managed.includes(operation.target.sourceCode)))
     )
@@ -86,6 +105,7 @@ export async function listOperations(req, res) {
         : {
               $or: [
                   { actorId: actor.id },
+                  { kind: "academic-sync", "target.userId": actor.id },
                   { "target.code": { $in: actor.managed } },
                   { kind: "link", "target.sourceCode": { $in: actor.managed } },
               ],
@@ -137,7 +157,15 @@ export async function cancelOperation(req, res) {
 }
 export async function retryOperation(req, res) {
     const { actor, operation } = await permittedOperation(req);
-    if (!actor.admin && (operation.kind !== "upload" || String(operation.actorId) !== actor.id))
+    const selfSync =
+        operation.kind === "academic-sync" &&
+        operation.target.userId === actor.id &&
+        !operation.target.force;
+    if (
+        !actor.admin &&
+        !selfSync &&
+        (operation.kind !== "upload" || String(operation.actorId) !== actor.id)
+    )
         throw new AppError(403, "Administrator access is required to retry this operation");
     if (!["failed", "partial"].includes(operation.status))
         throw new AppError(409, "This operation is not waiting for retry");

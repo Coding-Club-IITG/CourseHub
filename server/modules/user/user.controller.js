@@ -1,3 +1,4 @@
+import { mutateContent } from "../../services/contentMutation.js";
 import AppError from "../../utils/appError.js";
 import logger from "../../utils/logger.js";
 import User from "./user.model.js";
@@ -8,8 +9,13 @@ import {
     RemoveReadOnly,
 } from "./user.model.js";
 import { updateUserData } from "./user.model.js";
-import UserUpdate from "./userUpdate.model.js";
-import { actorFor, requireFile } from "../../services/authorization.js";
+import { synchronizationStatus, scheduleStudentSync } from "../../services/academicSync.js";
+import {
+    actorFor,
+    requireFile,
+    requireCourse,
+    libraryGraph,
+} from "../../services/authorization.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
 async function visibleFavourites(req, user) {
@@ -80,13 +86,11 @@ export const getUser = async (req, res, next) => {
         }
     }
 
-    const userUpdated = await UserUpdate.findOne({ rollNumber: user.rollNumber });
-
     const actor = await actorFor(req);
     const isBranchRep = actor.isBR;
 
     const previousCourses = Array.isArray(user.previousCourses) ? user.previousCourses : [];
-    const needsCourseSync = !userUpdated || (isBranchRep && previousCourses.length === 0);
+    const synchronization = await synchronizationStatus(user, { isBR: isBranchRep });
 
     const responseUser = {
         csrfToken: req.session.csrfToken,
@@ -106,7 +110,8 @@ export const getUser = async (req, res, next) => {
             canContributeCourses: [...new Set([...actor.current, ...actor.managed])],
         },
         readOnly: user.readOnly,
-        needsCourseSync,
+        needsCourseSync: synchronization.needsSync,
+        synchronization,
     };
 
     if (isBranchRep) {
@@ -122,37 +127,35 @@ export const updateUserController = async (req, res) => {
     const saved = await updateUserData(req.user._id, req.body.newUserData);
     res.json(saved);
 };
-export const addToFavouriteController = async (req, res, next) => {
+export const addToFavouriteController = async (req, res) => {
     const data = req.body;
-    if (!data.id || !data.name || !data.path || !data.code) return res.sendStatus(400);
-    await requireFile(req, data.id, data.code);
-    const updatedUser = await addToFavourites(
-        req.user._id,
-        data.name,
-        data.id,
-        data.path,
-        normalizeCourseCode(data.code),
-    );
-    return res.status(200).json(await userResult(req, updatedUser));
+    if (!data.id || !data.path || !data.code) throw new AppError(400, "File context is required");
+    return mutateContent(req, [data.code], async () => {
+        const context = await requireFile(req, data.id, data.code);
+        const user = await addToFavourites(
+            req.user._id,
+            context.file.name,
+            data.id,
+            data.path,
+            context.code,
+        );
+        res.json(await userResult(req, user));
+    });
 };
-export const addReadOnly = async (req, res, next) => {
-    const data = req.body;
-    if (!data.code || !data.name) return res.sendStatus(400);
-
-    const updatedUser = await AddReadOnlyCourse(
-        req.user._id,
-        normalizeCourseCode(data.code),
-        data.name,
-    );
-    return res.status(200).json(await userResult(req, updatedUser));
+export const addReadOnly = async (req, res) => {
+    return mutateContent(req, [req.body.code], async () => {
+        const context = await requireCourse(req, req.body.code);
+        const user = await AddReadOnlyCourse(req.user._id, context.code, context.course.name);
+        res.json(await userResult(req, user));
+    });
 };
-
-export const deleteReadOnly = async (req, res, next) => {
-    const { code } = req.params;
-    if (!code) return res.sendStatus(400);
-    const updatedUser = await RemoveReadOnly(req.user._id, normalizeCourseCode(code));
-
-    return res.status(200).json(await userResult(req, updatedUser));
+export const deleteReadOnly = async (req, res) => {
+    return mutateContent(req, [req.params.code], async () => {
+        const graph = await libraryGraph(req),
+            raw = normalizeCourseCode(req.params.code);
+        const user = await RemoveReadOnly(req.user._id, graph.aliases?.get(raw) || raw);
+        res.json(await userResult(req, user));
+    });
 };
 
 export const removeFromFavouritesController = async (req, res, next) => {
@@ -180,3 +183,18 @@ export const getFavouritesController = async (req, res, next) => {
 
     return res.status(200).json({ favourites: await visibleFavourites(req, foundUser) });
 };
+
+export async function synchronizeCourses(req, res) {
+    if (
+        !req.body ||
+        typeof req.body !== "object" ||
+        Array.isArray(req.body) ||
+        Object.keys(req.body).length
+    )
+        throw new AppError(
+            400,
+            "This endpoint synchronizes only the signed-in student",
+            "VALIDATION_FAILED",
+        );
+    res.status(202).json(await scheduleStudentSync(req.user));
+}

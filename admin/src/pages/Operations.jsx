@@ -137,11 +137,15 @@ export default function Operations() {
                             </span>
                         </div>
                         <p className="mt-2 text-sm text-gray-600">
-                            {item.kind === "link"
-                                ? `Linking · ${item.completedSteps} steps completed`
-                                : item.kind === "delete"
-                                  ? `Cleanup · ${item.completedSteps} ${item.completedSteps === 1 ? "step" : "steps"} completed`
-                                  : `${item.entries.filter((entry) => entry.state === "completed").length} of ${item.entries.length} files uploaded`}
+                            {item.kind === "academic-sync"
+                                ? `Course refresh · ${item.completedSteps} steps completed`
+                                : item.kind === "rename"
+                                  ? `Course update · ${item.completedSteps} steps completed`
+                                  : item.kind === "link"
+                                    ? `Linking · ${item.completedSteps} steps completed`
+                                    : item.kind === "delete"
+                                      ? `Cleanup · ${item.completedSteps} ${item.completedSteps === 1 ? "step" : "steps"} completed`
+                                      : `${item.entries.filter((entry) => entry.state === "completed").length} of ${item.entries.length} files uploaded`}
                         </p>
                         {item.kind === "link" && (
                             <LinkingResult

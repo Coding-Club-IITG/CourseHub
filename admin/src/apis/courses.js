@@ -1,4 +1,4 @@
-import { apiFetch } from "./http";
+import { apiFetch, responseError } from "./http";
 import { API_BASE_URL } from "./server.js";
 import { waitForOperation } from "./operations";
 
@@ -27,7 +27,9 @@ export const updateCourseName = async (code, newName, newCode) => {
             body: JSON.stringify({ name: newName, newCode }),
             credentials: "include",
         });
-        return await response.json();
+        if (!response.ok) throw await responseError(response, "Could not save the course");
+        const completed = await waitForOperation(await response.json());
+        return completed.course || completed;
     } catch (error) {
         console.error("Error updating course name:", error);
         throw error;

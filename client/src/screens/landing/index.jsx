@@ -28,10 +28,6 @@ const LandingPage = () => {
                     setLoading(false);
                     return;
                 }
-                if (data.needsCourseSync) {
-                    setLoading(false);
-                    return navigate(`/loading${window.location.search}`);
-                }
                 dispatch(LoginUser(data));
                 setLoading(false);
                 navigate(loginDestination(new URLSearchParams(window.location.search).get("returnTo")), { replace: true });

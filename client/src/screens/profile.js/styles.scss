@@ -4,3 +4,6 @@
     flex-direction: column;
     justify-content: space-between;
 }
+.profile-course-refresh { text-align: right; padding: 0 6% 16px; }
+.profile-course-refresh a { color: #222; text-underline-offset: 4px; font-size: 14px; }
+.profile-course-refresh a:focus-visible { outline: 2px solid #222; outline-offset: 4px; }

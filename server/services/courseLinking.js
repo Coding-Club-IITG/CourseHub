@@ -1,3 +1,4 @@
+import { identityLock, assertCourseIdentityAvailable } from "./courseIdentity.js";
 import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
 import Course, { FolderModel } from "../modules/course/course.model.js";
@@ -30,8 +31,9 @@ export function planCourseLink(graph, sourceCode, targetCode) {
     assertValidCourseTree(graph, targetCode);
     const source = graph.courses.get(sourceCode),
         target = graph.courses.get(targetCode);
-    if (!source || source.deletingOperation) throw new AppError(404, "Source course not found");
-    if (target?.deletingOperation)
+    if (!source || source.deletingOperation || source.changingOperation)
+        throw new AppError(404, "Source course not found");
+    if (target?.deletingOperation || target?.changingOperation)
         throw new AppError(409, "Target course cleanup is in progress", "COURSE_BUSY");
     const byName = (course, code) => {
         const groups = new Map();
@@ -173,7 +175,8 @@ export async function prepareLink(operation, req = {}) {
         operation.target.sourceCode,
         operation.target.code,
     );
-    plan.affectedCourses = [...operation.courses];
+    if (plan.createTarget) await assertCourseIdentityAvailable(plan.targetCode, plan.targetId);
+    plan.affectedCourses = operation.courses.filter((code) => code !== identityLock);
     await OperationModel.updateOne(
         { _id: operation._id, plan: { $exists: false } },
         { $set: { plan, status: "queued" } },
@@ -185,14 +188,15 @@ export async function scheduleCourseLink(req, targetValue, sourceValue) {
     const actor = await actorFor(req);
     if (!actor.admin) throw new AppError(403, "Administrator access is required");
     req.authorizationGraph = undefined;
-    const targetCode = courseContext(targetValue),
-        sourceCode = courseContext(sourceValue);
+    const graph = await libraryGraph(req);
+    const targetCode = graph.aliases?.get(courseContext(targetValue)) || courseContext(targetValue),
+        sourceCode = graph.aliases?.get(courseContext(sourceValue)) || courseContext(sourceValue);
     if (targetCode === sourceCode)
         throw new AppError(400, "Source and target courses must be different");
     const requestKey = `link:${sourceCode}:${targetCode}`;
     const previous = await OperationModel.findOne({ actorId: actor.id, requestKey });
     if (previous) return accepted(previous);
-    const courses = await relatedCourses(req, [sourceCode, targetCode]);
+    const courses = [identityLock, ...(await relatedCourses(req, [sourceCode, targetCode]))];
     // Validate before creating an operation, then re-read under the durable locks
     planCourseLink(await libraryGraph(req), sourceCode, targetCode);
     let operation;

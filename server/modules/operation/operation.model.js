@@ -25,10 +25,20 @@ const Entry = new Schema(
 const Operation = new Schema(
     {
         _id: { type: String, required: true },
-        kind: { type: String, enum: ["upload", "delete", "link"], required: true },
-        actorId: { type: Schema.Types.ObjectId, required: true },
-        actorRole: { type: String, enum: ["student", "admin"], required: true },
+        kind: {
+            type: String,
+            enum: ["upload", "delete", "link", "rename", "academic-sync"],
+            required: true,
+        },
+        actorId: {
+            type: Schema.Types.ObjectId,
+            required: function () {
+                return this.actorRole !== "system";
+            },
+        },
+        actorRole: { type: String, enum: ["student", "admin", "system"], required: true },
         requestKey: String,
+        syncKey: String,
         status: {
             type: String,
             enum: [
@@ -63,6 +73,10 @@ const Operation = new Schema(
 Operation.index(
     { actorId: 1, requestKey: 1 },
     { unique: true, partialFilterExpression: { requestKey: { $type: "string" } } },
+);
+Operation.index(
+    { syncKey: 1 },
+    { unique: true, partialFilterExpression: { syncKey: { $type: "string" } } },
 );
 Operation.index({ status: 1, nextRunAt: 1, leaseUntil: 1 });
 Operation.index({ courses: 1, status: 1 });

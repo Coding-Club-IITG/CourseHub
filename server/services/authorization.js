@@ -24,23 +24,8 @@ export function courseContext(value) {
     return normalizeCourseCode(value);
 }
 
-// Evaluate the existing academic cutoff on each request, including after semester rollover
-export function academicPeriod(now = new Date()) {
-    const parts = Object.fromEntries(
-        new Intl.DateTimeFormat("en-US", {
-            timeZone: "Asia/Kolkata",
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-        })
-            .formatToParts(now)
-            .map(({ type, value }) => [type, Number(value)]),
-    );
-    return {
-        year: parts.year,
-        session: parts.month < 7 || (parts.month === 7 && parts.day <= 23) ? "Jan-May" : "July-Nov",
-    };
-}
+import { academicPeriod } from "./academicPeriod.js";
+export { academicPeriod } from "./academicPeriod.js";
 
 export async function actorFor(req) {
     if (!req.authorizationActor)
@@ -88,15 +73,19 @@ export function capabilities(actor, code) {
 }
 
 export async function requireCourse(req, value, action = "read") {
-    const code = courseContext(value);
+    const graph = await libraryGraph(req);
+    const code = graph.aliases?.get(courseContext(value)) || courseContext(value);
     const actor = await actorFor(req);
     const permitted = capabilities(actor, code);
     if (action !== "read" && !permitted[action])
         throw new AppError(403, "You do not have permission for this course");
-    const graph = await libraryGraph(req);
     assertValidCourseTree(graph, code);
     const course = graph.courses.get(code);
-    if (!course || (course.deletingOperation && course.deletingOperation !== req.operationId))
+    if (
+        !course ||
+        (course.deletingOperation && course.deletingOperation !== req.operationId) ||
+        (course.changingOperation && course.changingOperation !== req.operationId)
+    )
         throw new AppError(404, "Course not found");
     return { course, code, actor, capabilities: permitted };
 }
@@ -113,7 +102,7 @@ export async function requireFolder(req, id, value, action = "read") {
     if (value) assertValidCourseTree(graph, courseContext(value));
     const affectedCourses = [...(graph.folderCourses.get(id) || [])].sort();
     const code = value
-        ? courseContext(value)
+        ? graph.aliases?.get(courseContext(value)) || courseContext(value)
         : action === "read"
           ? affectedCourses[0]
           : courseContext(value);
@@ -170,7 +159,7 @@ export async function requireFile(req, id, value, action = "read") {
     )
         throw new AppError(404, "File not found");
     const code = value
-        ? courseContext(value)
+        ? graph.aliases?.get(courseContext(value)) || courseContext(value)
         : action === "read"
           ? undefined
           : courseContext(value);

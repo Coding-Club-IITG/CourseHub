@@ -1,5 +1,7 @@
 import User from "../user/user.model.js";
-import UserUpdate from "../user/userUpdate.model.js";
+import { scheduleStudentSync } from "../../services/academicSync.js";
+import { resourceId } from "../../services/authorization.js";
+import AppError from "../../utils/appError.js";
 import logger from "../../utils/logger.js";
 import BR from "../br/br.model.js";
 // GET /api/student/all?isBR=true
@@ -70,35 +72,16 @@ const searchStudents = async (req, res) => {
     }
 };
 
-// PUT /api/student/refresh/:id
-// Deletes the student's UserUpdate record so their courses are safely
-// re-fetched from the academic portal on their next login.
-// (Per issue #144 - directly calling fetchCoursesForBr would block the
-// server for 30-40s and only update previousCourses, not current courses.)
 const refreshStudentCourses = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const student = await User.findById(id);
-        if (!student) return res.status(404).json({ error: "Student not found" });
-
-        await UserUpdate.deleteOne({ rollNumber: student.rollNumber });
-
-        res.status(200).json({
-            message:
-                "Student update record reset successfully. Courses will be re-fetched on next login.",
-        });
-    } catch (error) {
-        logger.error("Student refresh failed", {
-            error,
-            attributes: {
-                dependency: "mongodb",
-                operation: "refresh-student",
-                outcome: "failure",
-                retryable: false,
-            },
-        });
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+    const student = await User.findById(resourceId(req.params.id));
+    if (!student) throw new AppError(404, "Student not found");
+    res.status(202).json(
+        await scheduleStudentSync(student, {
+            actorId: req.admin._id,
+            actorRole: "admin",
+            force: true,
+        }),
+    );
 };
 
 // DELETE /api/student/:id
@@ -108,7 +91,6 @@ const deleteStudent = async (req, res) => {
         const { id } = req.params;
         const student = await User.findByIdAndDelete(id);
         if (!student) return res.status(404).json({ error: "Student not found" });
-        await UserUpdate.deleteOne({ rollNumber: student.rollNumber });
         res.status(200).json({ message: "Student deleted successfully" });
     } catch (error) {
         logger.error("Student deletion failed", {
@@ -124,34 +106,4 @@ const deleteStudent = async (req, res) => {
     }
 };
 
-// POST /api/student/semester-reset
-// Deletes all UserUpdate tracking records (forcing re-fetch on next login)
-// and atomically clears the courses array on every User document.
-const semesterReset = async (req, res) => {
-    try {
-        // Delete all user update tracking logs so the SSO scraper runs again
-        await UserUpdate.deleteMany({});
-
-        // Clear current course associations
-        const result = await User.updateMany({}, { $set: { courses: [] } });
-
-        res.status(200).json({
-            message:
-                "Semester reset successful. All student updates cleared and course lists reset.",
-            modifiedCount: result.modifiedCount,
-        });
-    } catch (error) {
-        logger.error("Semester reset failed", {
-            error,
-            attributes: {
-                dependency: "mongodb",
-                operation: "semester-reset",
-                outcome: "failure",
-                retryable: false,
-            },
-        });
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export { getAllStudents, searchStudents, refreshStudentCourses, deleteStudent, semesterReset };
+export { getAllStudents, searchStudents, refreshStudentCourses, deleteStudent };

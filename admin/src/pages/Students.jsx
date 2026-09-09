@@ -4,7 +4,7 @@ import {
     searchStudents,
     refreshStudentCourses,
     deleteStudent,
-    semesterReset,    
+    refreshAllStudentCourses,
 } from "@/apis/student";
 import { deleteBR } from "@/apis/br";
 import AddBRs from "../components/AddBRs";
@@ -58,10 +58,10 @@ export default function Students() {
     const [rowLoadingId, setRowLoadingId] = useState(null);
     const [rowConfirm, setRowConfirm] = useState(null);
 
-    const [showResetConfirm, setShowResetConfirm] = useState(false);
-    const [resetLoading, setResetLoading] = useState(false);
-    const [resetSuccess, setResetSuccess] = useState(null);
-    const [resetError, setResetError] = useState(null);
+    const [showRefreshAllConfirm, setShowRefreshAllConfirm] = useState(false);
+    const [refreshAllLoading, setRefreshAllLoading] = useState(false);
+    const [refreshAllSuccess, setRefreshAllSuccess] = useState(null);
+    const [refreshAllError, setRefreshAllError] = useState(null);
 
     const loadStudents = useCallback(async () => {
         try {
@@ -158,20 +158,20 @@ export default function Students() {
     };
 
 
-    const handleSemesterReset = async () => {
-        setResetLoading(true);
-        setResetError(null);
-        setResetSuccess(null);
+    const handleRefreshAll = async () => {
+        setRefreshAllLoading(true);
+        setRefreshAllError(null);
+        setRefreshAllSuccess(null);
         try {
-            const result = await semesterReset();
-            setResetSuccess(result.message || "Semester reset complete.");
-            setShowResetConfirm(false);
+            const result = await refreshAllStudentCourses();
+            setRefreshAllSuccess(result.message || "Courses refreshed.");
+            setShowRefreshAllConfirm(false);
             loadStudents();
         } catch (err) {
-            setResetError(err.message || "Semester reset failed.");
-            setShowResetConfirm(false);
+            setRefreshAllError(err.message || "Course refresh failed.");
+            setShowRefreshAllConfirm(false);
         } finally {
-            setResetLoading(false);
+            setRefreshAllLoading(false);
         }
     };
 
@@ -197,11 +197,11 @@ export default function Students() {
                             </button>
                         )}
                         <button
-                            onClick={() => setShowResetConfirm(true)}
+                            onClick={() => setShowRefreshAllConfirm(true)}
                             className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-xl transition-all"
                         >
                             <FaRedo className="h-3.5 w-3.5" />
-                            Semester Reset
+                            Refresh all courses
                         </button>
                     </div>
                 </div>
@@ -250,16 +250,16 @@ export default function Students() {
             </div>
 
             {/* Status banners */}
-            {resetSuccess && (
+            {refreshAllSuccess && (
                 <div className="flex items-center justify-between p-4 rounded-xl border bg-green-50 border-green-200 text-green-700 text-sm">
-                    {resetSuccess}
-                    <button onClick={() => setResetSuccess(null)} className="text-green-500 hover:text-green-700 ml-4">✕</button>
+                    {refreshAllSuccess}
+                    <button onClick={() => setRefreshAllSuccess(null)} className="text-green-500 hover:text-green-700 ml-4">✕</button>
                 </div>
             )}
-            {resetError && (
+            {refreshAllError && (
                 <div className="flex items-center justify-between p-4 rounded-xl border bg-red-50 border-red-200 text-red-700 text-sm">
-                    {resetError}
-                    <button onClick={() => setResetError(null)} className="text-red-400 hover:text-red-600 ml-4">✕</button>
+                    {refreshAllError}
+                    <button onClick={() => setRefreshAllError(null)} className="text-red-400 hover:text-red-600 ml-4">✕</button>
                 </div>
             )}
 
@@ -340,7 +340,7 @@ export default function Students() {
                                                         <button
                                                             onClick={() => setRowConfirm({ type: "refresh", id: student._id, label: student.name })}
                                                             disabled={isRowLoading}
-                                                            title="Reset courses (re-fetched on next login)"
+                                                            title="Refresh courses from upstream"
                                                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                                         >
                                                             {isRowLoading && rowConfirm?.type === "refresh" ? (
@@ -430,7 +430,7 @@ export default function Students() {
                             ? `Delete ${rowConfirm.label}? This will permanently remove their student record and cannot be undone.`
                             : rowConfirm.type === "removeBR"
                             ? `Remove BR privileges from ${rowConfirm.label}? They will remain as a student but lose Branch Representative access. `
-                            : `Reset courses for ${rowConfirm.label}? Their courses will be re-fetched the next time they log in.`
+                            : `Refresh courses for ${rowConfirm.label} from the academic portal? Their last saved courses remain available if the refresh fails.`
                     }
                     loading={rowLoadingId === rowConfirm.id}
                     onConfirm={() => rowConfirm.type === "delete" 
@@ -442,12 +442,12 @@ export default function Students() {
                 />
             )}
 
-            {showResetConfirm && (
+            {showRefreshAllConfirm && (
                 <ConfirmDialog
-                    message="This will delete all UserUpdate records and clear every student's course list. Courses will be re-fetched when students next log in. This cannot be undone."
-                    loading={resetLoading}
-                    onConfirm={handleSemesterReset}
-                    onCancel={() => setShowResetConfirm(false)}
+                    message="Refresh current course registrations for all students from the academic portal? Saved courses are kept if the portal is unavailable."
+                    loading={refreshAllLoading}
+                    onConfirm={handleRefreshAll}
+                    onCancel={() => setShowRefreshAllConfirm(false)}
                 />
             )}
 

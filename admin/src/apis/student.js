@@ -1,4 +1,5 @@
-import { apiFetch } from "./http";
+import { apiFetch, responseError } from "./http";
+import { waitForOperation } from "./operations";
 import { API_BASE_URL } from "./server.js";
 
 // Fetch all students sorted by rollNumber descending.
@@ -31,8 +32,7 @@ export const searchStudents = async (query, brOnly = false) => {
     }
 };
 
-// Refresh a single student's courses by deleting their UserUpdate record.
-// Courses will be re-fetched when the student next logs in.
+// Refresh from upstream and wait for persistence
 export const refreshStudentCourses = async (id) => {
     try {
         const response = await apiFetch(`${API_BASE_URL}api/student/refresh/${id}`, {
@@ -42,7 +42,8 @@ export const refreshStudentCourses = async (id) => {
         const result = await response.json();
         if (!response.ok)
             throw new Error(result.error || result.message || "Failed to refresh courses");
-        return result;
+        const operation = await waitForOperation(result);
+        return operation.synchronization || operation;
     } catch (error) {
         console.error("Error refreshing student courses:", error);
         throw error;
@@ -66,19 +67,11 @@ export const deleteStudent = async (id) => {
     }
 };
 
-// Semester reset - deletes all UserUpdate records and clears courses for every student.
-export const semesterReset = async () => {
-    try {
-        const response = await apiFetch(`${API_BASE_URL}api/student/semester-reset`, {
-            method: "POST",
-            credentials: "include",
-        });
-        const result = await response.json();
-        if (!response.ok)
-            throw new Error(result.error || result.message || "Semester reset failed");
-        return result;
-    } catch (error) {
-        console.error("Error during semester reset:", error);
-        throw error;
-    }
+export const refreshAllStudentCourses = async () => {
+    const response = await apiFetch(`${API_BASE_URL}api/admin/sync-courses-cache`, {
+        method: "POST",
+    });
+    if (!response.ok) throw await responseError(response, "Course refresh failed");
+    const operation = await waitForOperation(await response.json());
+    return operation.synchronization || operation;
 };

@@ -29,7 +29,9 @@ export async function completeOperation(operation, checkpoint) {
                 error: 1,
                 leaseUntil: 1,
                 leaseToken: 1,
-                ...(operation.kind === "link" ? { requestKey: 1 } : {}),
+                ...(["link", "rename", "academic-sync"].includes(operation.kind)
+                    ? { requestKey: 1, syncKey: 1 }
+                    : {}),
             },
         },
     );

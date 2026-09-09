@@ -1,3 +1,4 @@
+import { identityLock } from "./courseIdentity.js";
 import { libraryGraph } from "./authorization.js";
 import { assertValidCourseTree, treeCodes } from "./folderTrees.js";
 import { withCourseLocks } from "./courseLocks.js";
@@ -6,7 +7,14 @@ import AppError from "../utils/appError.js";
 
 export async function relatedCourses(req, codes) {
     const graph = await libraryGraph(req);
-    const related = new Set(codes.filter(Boolean).map(normalizeCourseCode));
+    const related = new Set(
+        codes
+            .filter(Boolean)
+            .map(
+                (code) =>
+                    graph.aliases?.get(normalizeCourseCode(code)) || normalizeCourseCode(code),
+            ),
+    );
     const memberships = [
         ...graph.folderCourses.values(),
         ...graph.fileCourses.values(),
@@ -29,7 +37,7 @@ export async function relatedCourses(req, codes) {
 }
 
 export async function mutateContent(req, codes, task) {
-    const related = await relatedCourses(req, codes);
+    const related = [identityLock, ...(await relatedCourses(req, codes))];
     return withCourseLocks(related, async (lock) => {
         req.authorizationGraph = undefined;
         req.authorizationVisibleFiles = undefined;

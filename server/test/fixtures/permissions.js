@@ -1,5 +1,4 @@
 import User from "../../modules/user/user.model.js";
-import UserUpdate from "../../modules/user/userUpdate.model.js";
 import BR from "../../modules/br/br.model.js";
 import CourseAllotment from "../../modules/course/courseAllotment.model.js";
 import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
@@ -33,7 +32,7 @@ export async function permissionFixtures() {
             ],
             readOnly: [{ code: "AUTH301", name: "Others course" }],
         });
-        await UserUpdate.create({ rollNumber: person.rollNumber });
+
         if (["currentBR", "historicalBR", "unrelatedBR", "unallottedBR"].includes(role))
             await BR.create({ email: person.email.toUpperCase() });
         if (role !== "unallottedBR")

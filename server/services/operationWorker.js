@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { OperationModel, CourseLock, StorageLease } from "../modules/operation/operation.model.js";
 import { acquireStorageLease, releaseStorageLease } from "./storageLeases.js";
+import { runAcademicSync } from "./academicSync.js";
+import { runCourseRename } from "./courseReferences.js";
 import { runCourseLink } from "./courseLinking.js";
 import { runDeletion } from "./deletions.js";
 import { runUploads, recoverReceiving, removeTemporary } from "./uploads.js";
@@ -8,10 +10,20 @@ import { releaseCourseLocks } from "./courseLocks.js";
 import AppError from "../utils/appError.js";
 import logger from "../utils/logger.js";
 
-export async function processOperation(id) {
+export async function processOperation(id, lane = "content") {
+    if (id)
+        lane =
+            (await OperationModel.findById(id).select("kind").lean())?.kind === "academic-sync"
+                ? "academic"
+                : "content";
     const owner = randomUUID();
     try {
-        await acquireStorageLease("worker", owner, 1, 60000);
+        await acquireStorageLease(
+            lane === "academic" ? "academic-worker" : "worker",
+            owner,
+            1,
+            60000,
+        );
     } catch (error) {
         if (error.code === "STORAGE_BUSY") return false;
         throw error;
@@ -31,7 +43,7 @@ export async function processOperation(id) {
     }, 15000);
     timer.unref();
     try {
-        return await processClaim(id, async () => {
+        return await processClaim(id, lane, async () => {
             if (lost || !(await StorageLease.exists({ owner, expiresAt: { $gt: new Date() } })))
                 throw new AppError(409, "Operation lease was lost", "LEASE_LOST");
         });
@@ -41,11 +53,12 @@ export async function processOperation(id) {
     }
 }
 
-async function processClaim(id, checkWorker) {
+async function processClaim(id, lane, checkWorker) {
     const token = randomUUID();
     const operation = await OperationModel.findOneAndUpdate(
         {
             ...(id ? { _id: id } : {}),
+            kind: lane === "academic" ? "academic-sync" : { $ne: "academic-sync" },
             status: { $in: ["planning", "queued", "running", "cancelling"] },
             nextRunAt: { $lte: new Date() },
             $or: [{ leaseUntil: { $exists: false } }, { leaseUntil: { $lte: new Date() } }],
@@ -91,6 +104,8 @@ async function processClaim(id, checkWorker) {
     try {
         if (operation.kind === "delete") await runDeletion(operation, checkpoint);
         else if (operation.kind === "link") await runCourseLink(operation, checkpoint);
+        else if (operation.kind === "rename") await runCourseRename(operation, checkpoint);
+        else if (operation.kind === "academic-sync") await runAcademicSync(operation, checkpoint);
         else await runUploads(operation, checkpoint);
     } catch (error) {
         if (error.code === "LEASE_LOST") return true;
@@ -119,9 +134,13 @@ async function processClaim(id, checkWorker) {
                 ...(busy ? { $inc: { attempts: -1 } } : {}),
             },
         );
-        if (operation.kind !== "upload" && !current.plan && !retry) {
+        if (operation.kind !== "upload" && !current.plan) {
             await releaseCourseLocks(operation._id);
-            await OperationModel.updateOne({ _id: operation._id }, { $unset: { requestKey: 1 } });
+            if (!retry)
+                await OperationModel.updateOne(
+                    { _id: operation._id },
+                    { $unset: { requestKey: 1 } },
+                );
         }
         logger.warn("Content operation needs recovery", {
             attributes: {
@@ -149,7 +168,11 @@ export async function recoverLocks() {
                 status: { $in: ["failed", "partial", "awaiting"] },
                 leaseUntil: { $exists: false },
             },
-            { kind: { $in: ["delete", "link"] }, status: "failed", plan: { $exists: false } },
+            {
+                kind: { $in: ["delete", "link", "rename", "academic-sync"] },
+                status: "failed",
+                plan: { $exists: false },
+            },
         ],
     })
         .select("_id")
@@ -172,16 +195,18 @@ export async function recoverLocks() {
     }
 }
 
-export function startOperationWorker({ intervalMs = 1000 } = {}) {
+function startLane(lane, intervalMs) {
     let stopped = false;
     let timer;
     let active = Promise.resolve();
     const tick = () => {
         active = (async () => {
             try {
-                await recoverReceiving();
-                await recoverLocks();
-                await processOperation();
+                if (lane === "content") {
+                    await recoverReceiving();
+                    await recoverLocks();
+                }
+                await processOperation(undefined, lane);
             } catch {
                 logger.warn("Content operation worker will retry after a database failure");
             }
@@ -199,4 +224,9 @@ export function startOperationWorker({ intervalMs = 1000 } = {}) {
             await active;
         },
     };
+}
+
+export function startOperationWorker({ intervalMs = 1000 } = {}) {
+    const workers = [startLane("content", intervalMs), startLane("academic", intervalMs)];
+    return { stop: () => Promise.all(workers.map((worker) => worker.stop())) };
 }

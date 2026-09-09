@@ -26,6 +26,12 @@ const userSchema = Schema({
         },
     ],
     deviceToken: { type: String, default: "" },
+    courseSync: {
+        operationId: String,
+        period: String,
+        historyPeriod: String,
+        lastSucceededAt: Date,
+    },
 });
 
 userSchema.pre("save", function (next) {

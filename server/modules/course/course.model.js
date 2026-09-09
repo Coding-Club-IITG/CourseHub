@@ -35,6 +35,8 @@ export const FileModel = model("File", FileSchema);
 const CourseSchema = Schema(
     {
         deletingOperation: String,
+        changingOperation: String,
+        aliases: { type: [String], default: [] },
         name: { type: String, required: true },
         code: { type: String, required: true, unique: true },
         children: { type: [{ type: Schema.Types.ObjectId, ref: "Folder" }], default: [] },

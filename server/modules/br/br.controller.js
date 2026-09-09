@@ -1,6 +1,7 @@
 import BR from "./br.model.js";
 import User from "../user/user.model.js";
-import { fetchCoursesForBr } from "../auth/auth.controller.js";
+import { scheduleStudentSync } from "../../services/academicSync.js";
+import AppError from "../../utils/appError.js";
 import logger from "../../utils/logger.js";
 import CourseModel from "../course/course.model.js";
 
@@ -20,106 +21,46 @@ const findUserByEmailInsensitive = async (email) => {
     return User.findOne({ email }).collation({ locale: "en", strength: 2 });
 };
 
+async function assignBR(value, admin) {
+    const email = normalizeEmail(value);
+    if (
+        typeof email !== "string" ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        email.length > 254
+    )
+        throw new AppError(400, "A valid email address is required");
+    const br = await BR.findOneAndUpdate(
+        { email },
+        { $set: { email } },
+        { upsert: true, new: true, collation: { locale: "en", strength: 2 } },
+    );
+    const user = await findUserByEmailInsensitive(email);
+    let synchronization;
+    if (user) {
+        await User.updateOne({ _id: user._id }, { $set: { isBR: true } });
+        synchronization = await scheduleStudentSync(user, {
+            actorId: admin._id,
+            actorRole: "admin",
+        });
+    }
+    return { br, synchronization };
+}
 const updateBRs = async (req, res) => {
-    try {
-        const { emails } = req.body;
-
-        if (!emails || emails.length === 0) {
-            return res.status(400).json({ error: "emails are required" });
-        }
-
-        for (const { email } of emails) {
-            const normalizedEmail = normalizeEmail(email);
-            if (!normalizedEmail) continue;
-            const user = await findUserByEmailInsensitive(normalizedEmail);
-
-            if (user) {
-                if (!user.isBR) {
-                    user.isBR = true;
-                    fetchCoursesForBr(user.rollNumber).catch((error) =>
-                        logger.error("BR course refresh failed", {
-                            error,
-                            attributes: {
-                                dependency: "academic-portal",
-                                operation: "refresh-br-courses",
-                                outcome: "failure",
-                                retryable: true,
-                            },
-                        }),
-                    );
-                    await user.save();
-                }
-                await BR.updateOne(
-                    { email: normalizedEmail },
-                    { $set: { email: normalizedEmail } },
-                    { upsert: true },
-                );
-            } else {
-                await BR.updateOne(
-                    { email: normalizedEmail },
-                    { $set: { email: normalizedEmail } },
-                    { upsert: true },
-                );
-            }
-        }
-
-        res.status(201).json({ message: "BRs updated successfully" });
-    } catch (error) {
-        logger.error("BR update failed", {
-            error,
-            attributes: {
-                dependency: "mongodb",
-                operation: "update-br",
-                outcome: "failure",
-                retryable: false,
-            },
-        });
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+    if (!Array.isArray(req.body.emails) || !req.body.emails.length || req.body.emails.length > 1000)
+        throw new AppError(400, "Supply between 1 and 1000 email records");
+    const results = [];
+    for (const { email } of req.body.emails) results.push(await assignBR(email, req.admin));
+    res.status(201).json({
+        message:
+            "BR assignments saved; course synchronization is scheduled for registered students.",
+        results,
+    });
 };
-
 const createBR = async (req, res) => {
-    try {
-        const normalizedEmail = normalizeEmail(req.body?.email);
-
-        if (!normalizedEmail) return res.status(400).json({ error: "email is required" });
-
-        const exists = await BR.findOne({ email: normalizedEmail });
-        if (exists) return res.status(409).json({ error: "BR already exists" });
-
-        const user = await findUserByEmailInsensitive(normalizedEmail);
-        if (user) {
-            if (!user.isBR) {
-                user.isBR = true;
-                await user.save();
-            }
-            fetchCoursesForBr(user.rollNumber).catch((error) =>
-                logger.error("BR course refresh failed", {
-                    error,
-                    attributes: {
-                        dependency: "academic-portal",
-                        operation: "refresh-br-courses",
-                        outcome: "failure",
-                        retryable: true,
-                    },
-                }),
-            );
-        }
-
-        const br = await BR.create({ email: normalizedEmail });
-        res.status(201).json({ message: "BR added", br });
-    } catch (error) {
-        logger.error("BR creation failed", {
-            error,
-            attributes: {
-                dependency: "mongodb",
-                operation: "create-br",
-                outcome: "failure",
-                retryable: false,
-            },
-        });
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+    res.status(201).json({
+        message: "BR assignment saved",
+        ...(await assignBR(req.body.email, req.admin)),
+    });
 };
 
 const getAll = async (req, res, next) => {

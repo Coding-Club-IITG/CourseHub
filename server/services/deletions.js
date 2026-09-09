@@ -2,10 +2,8 @@ import { randomUUID } from "node:crypto";
 import { OperationModel } from "../modules/operation/operation.model.js";
 import Course, { FolderModel, FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
-import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import User from "../modules/user/user.model.js";
 import Admin from "../modules/admin/admin.model.js";
-import SearchResults from "../modules/search/search.model.js";
 import {
     actorFor,
     requireCourse,
@@ -22,6 +20,8 @@ import { storage, storageId } from "./storage.js";
 import { storageRoot } from "../config/storage.js";
 import { deleteThumbnail } from "./imagekit.js";
 import { invalidateThumbnail } from "./thumbnails.js";
+import { removeCourseReferences, assertCourseReferenceShapes } from "./courseReferences.js";
+import { identityLock } from "./courseIdentity.js";
 import { normalizeCourseCode } from "../utils/course.js";
 import AppError from "../utils/appError.js";
 
@@ -71,6 +71,9 @@ async function authorizeTarget(req, target) {
 
 async function deletionPlan(req, target) {
     const context = await authorizeTarget(req, target);
+    if (target.kind === "course")
+        for (const code of [context.code, ...(context.course.aliases || [])])
+            await assertCourseReferenceShapes(code);
     const graph = await libraryGraph(req);
     const fileIds = new Set();
     const folderIds = new Set();
@@ -151,6 +154,7 @@ async function deletionPlan(req, target) {
                   ? [target.id]
                   : [],
         deleteCourse: target.kind === "course",
+        identityCodes: [context.code, ...(context.course?.aliases || [])],
         affectedCourses: [...affectedCourses].sort(),
     };
     if (JSON.stringify(plan).length > 8 * 1024 * 1024)
@@ -164,7 +168,11 @@ async function deletionPlan(req, target) {
 
 export async function scheduleDeletion(req, target) {
     const actor = await actorFor(req);
-    target = { ...target, code: courseContext(target.code) };
+    const graph = await libraryGraph(req);
+    target = {
+        ...target,
+        code: graph.aliases?.get(courseContext(target.code)) || courseContext(target.code),
+    };
     if (
         target.kind !== "course" &&
         (typeof target.id !== "string" ||
@@ -220,7 +228,12 @@ export async function scheduleDeletion(req, target) {
             actorRole: actor.admin ? "admin" : "student",
             requestKey: `delete:${target.kind}:${target.id}:${target.code}`,
             target: { ...target, code: context.code, confirmedCourses: context.affectedCourses },
-            courses: await relatedCourses(req, [context.code]),
+            courses: [
+                ...new Set([
+                    ...(target.kind === "course" ? [identityLock] : []),
+                    ...(await relatedCourses(req, [context.code])),
+                ]),
+            ].sort(),
             status: "planning",
         });
     } catch (error) {
@@ -393,28 +406,7 @@ export async function runDeletion(operation, checkpoint) {
     });
     if (plan.deleteCourse)
         await step("course", async () => {
-            const code = new RegExp(`^${plan.code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
-            await User.updateMany(
-                {
-                    $or: [
-                        { "courses.code": code },
-                        { "readOnly.code": code },
-                        { "favourites.code": code },
-                    ],
-                },
-                {
-                    $pull: { courses: { code }, readOnly: { code }, favourites: { code } },
-                },
-            );
-            await User.collection.updateMany(
-                { "previousCourses.courses.code": code },
-                {
-                    $pull: { "previousCourses.$[semester].courses": { code } },
-                },
-                { arrayFilters: [{ "semester.courses": { $type: "array" } }] },
-            );
-            await CourseAllotment.updateMany({ courses: code }, { $pull: { courses: code } });
-            await SearchResults.updateMany({ code }, { $set: { isAvailable: false } });
+            await removeCourseReferences(plan);
             await Course.deleteOne({ _id: plan.courseId, deletingOperation: operation._id });
         });
     await completeOperation(operation, checkpoint);

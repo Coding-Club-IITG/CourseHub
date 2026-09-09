@@ -4,7 +4,6 @@ import axios from "axios";
 import { graph } from "../../services/graphClient.js";
 import jwt from "jsonwebtoken";
 import User from "../../modules/user/user.model.js";
-import UserUpdate from "../../modules/user/userUpdate.model.js";
 import Admin from "../../modules/admin/admin.model.js";
 import Session from "../../modules/session/session.model.js";
 import { OAuthAttempt } from "../../services/oauth.js";
@@ -21,7 +20,7 @@ export async function exerciseSessionSecurity(t, origin) {
         email: "session@example.test",
         rollNumber: 298123456,
     });
-    await UserUpdate.create({ rollNumber: person.rollNumber });
+
     const admin = await Admin.create({
         userId: "session-admin",
         password: "session-admin-test-password",
@@ -247,12 +246,11 @@ export async function exerciseSessionSecurity(t, origin) {
         "missing synchronization metadata leaves the session authenticated and reports synchronization needed",
         async () => {
             const headers = await sessionHeaders(person.id);
-            await UserUpdate.deleteOne({ rollNumber: person.rollNumber });
+            await User.updateOne({ _id: person._id }, { $unset: { courseSync: 1 } });
             const response = await send("/api/user", { headers });
             assert.equal(response.status, 200);
             assert.equal((await response.json()).needsCourseSync, true);
             assert.equal(response.headers.get("set-cookie"), null);
-            await UserUpdate.create({ rollNumber: person.rollNumber });
         },
     );
 
@@ -342,7 +340,7 @@ export async function exerciseSessionSecurity(t, origin) {
             const success = responses.find((r) => r.status === 302);
             assert.equal(
                 success.headers.get("location"),
-                testOrigin + "/profile?tab=files#pending",
+                testOrigin + "/loading?returnTo=%2Fprofile%3Ftab%3Dfiles%23pending",
             );
             assert.ok(
                 success.headers

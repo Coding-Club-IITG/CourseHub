@@ -187,7 +187,7 @@ export async function exerciseSharedTrees(t, origin) {
             const { operationId } = await link(f);
             const saved = await OperationModel.findById(operationId);
             assert.ok(saved.plan.removeMembership.includes(empty.id));
-            assert.equal(await CourseLock.countDocuments({ owner: operationId }), 2);
+            assert.equal(await CourseLock.countDocuments({ owner: operationId }), 3);
             await send(
                 "/api/folder/create",
                 "POST",
@@ -216,7 +216,7 @@ export async function exerciseSharedTrees(t, origin) {
                 (await OperationModel.findById(operationId)).completedSteps.includes("memberships"),
             );
             assert.deepEqual((await Course.findById(f.target.id)).children.map(String), [empty.id]);
-            assert.equal(await CourseLock.countDocuments({ owner: operationId }), 2);
+            assert.equal(await CourseLock.countDocuments({ owner: operationId }), 3);
             await send(`/api/operations/${operationId}/retry`, "POST", {}, 403, f.headers);
             await send(`/api/operations/${operationId}/retry`, "POST", {}, 202);
             const completed = await run(operationId);
@@ -490,7 +490,7 @@ export async function exerciseSharedTrees(t, origin) {
             const failed = await run(operationId);
             assert.equal(failed.status, "failed");
             assert.equal(failed.error.code, "LINK_TARGET_MISSING");
-            assert.equal(await CourseLock.countDocuments({ owner: operationId }), 2);
+            assert.equal(await CourseLock.countDocuments({ owner: operationId }), 3);
             await Course.create(target);
             await send("/api/operations/" + operationId + "/retry", "POST", {}, 202);
             assert.equal((await run(operationId)).status, "completed");

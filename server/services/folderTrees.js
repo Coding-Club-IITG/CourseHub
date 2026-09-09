@@ -70,6 +70,7 @@ export function walkFolderTree(graph, roots, code, { operationId } = {}) {
 export function buildLibraryGraph(courses, folders, files, { operationId } = {}) {
     const graph = {
         courses: new Map(),
+        aliases: new Map(),
         folders: new Map(folders.map((f) => [treeId(f), f])),
         files: new Set(files.map(treeId)),
         folderCourses: new Map(),
@@ -89,6 +90,23 @@ export function buildLibraryGraph(courses, folders, files, { operationId } = {})
             );
         graph.courses.set(code, course);
     }
+    for (const [code, course] of graph.courses) {
+        for (const alias of course.aliases || []) {
+            const normalized = normalizeCourseCode(alias);
+            if (
+                (graph.courses.has(normalized) && normalized !== code) ||
+                (graph.aliases.has(normalized) && graph.aliases.get(normalized) !== code)
+            ) {
+                const error = new AppError(
+                    409,
+                    "Conflicting course aliases require repair",
+                    "TREE_DUPLICATE_COURSE",
+                );
+                graph.errors.set(code, error);
+                graph.errors.set(normalized, error);
+            } else graph.aliases.set(normalized, code);
+        }
+    }
     const add = (map, id, code) => {
         if (!map.has(id)) map.set(id, new Set());
         map.get(id).add(code);
@@ -96,7 +114,8 @@ export function buildLibraryGraph(courses, folders, files, { operationId } = {})
     for (const [code, course] of graph.courses) {
         if (
             graph.errors.has(code) ||
-            (course.deletingOperation && course.deletingOperation !== operationId)
+            (course.deletingOperation && course.deletingOperation !== operationId) ||
+            (course.changingOperation && course.changingOperation !== operationId)
         )
             continue;
         try {
@@ -114,7 +133,9 @@ export function buildLibraryGraph(courses, folders, files, { operationId } = {})
 export async function loadLibraryGraph(options) {
     const [courses, folders, files] = await Promise.all([
         Course.find()
-            .select("_id code name children books createdAt updatedAt deletingOperation")
+            .select(
+                "_id code name children books createdAt updatedAt deletingOperation changingOperation aliases",
+            )
             .lean(),
         FolderModel.find().select("_id name courses childType children deletingOperation").lean(),
         FileModel.find().select("_id").lean(),

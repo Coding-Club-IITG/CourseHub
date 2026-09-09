@@ -10,11 +10,15 @@ export default function OperationNotice() {
         return () => window.removeEventListener(operationEvent, update);
     }, []);
     const activity =
-        operation?.kind === "link"
-            ? "Linking"
-            : operation?.kind === "upload"
-              ? "Upload"
-              : "Cleanup";
+        operation?.kind === "academic-sync"
+            ? "Course refresh"
+            : operation?.kind === "rename"
+              ? "Course update"
+              : operation?.kind === "link"
+                ? "Linking"
+                : operation?.kind === "upload"
+                  ? "Upload"
+                  : "Cleanup";
     return (
         <div className="flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 bg-white px-4 py-2 text-sm">
             {operation && (

@@ -17,7 +17,6 @@ import { OperationModel } from "../../modules/operation/operation.model.js";
 import { processOperation } from "../../services/operationWorker.js";
 import CourseAllotment from "../../modules/course/courseAllotment.model.js";
 import { academicPeriod } from "../../services/authorization.js";
-import UserUpdate from "../../modules/user/userUpdate.model.js";
 import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
 import Contribution from "../../modules/contribution/contribution.model.js";
 import { upload } from "../../middleware/receiveUpload.js";
@@ -272,7 +271,7 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
         ...academicPeriod(),
         courses: ["CS101"],
     });
-    await UserUpdate.create({ rollNumber: person.rollNumber });
+
     await FolderModel.create({ ...folder, children: [] });
     await FolderModel.create({ ...year, children: [folder._id] });
     await Course.create({ ...course, children: [year._id] });
@@ -424,3 +423,7 @@ test("upload and deletion journal recovery", async (t) => exerciseOperations(t, 
 
 import { exerciseSharedTrees } from "../support/shared-trees.js";
 test("shared course trees and journaled linking", async (t) => exerciseSharedTrees(t, origin));
+
+import { exerciseAcademicReferences } from "../support/academic-references.js";
+test("course reference maintenance and academic synchronization", async (t) =>
+    exerciseAcademicReferences(t, origin));

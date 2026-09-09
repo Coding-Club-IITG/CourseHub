@@ -1,66 +1,95 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getUser } from "./api/User";
-import { fetchUserCoursesData } from "./api/Course";
-import { toast } from "react-toastify";
-import "./loading.css";
-import { LoginUser } from "./actions/user_actions";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { getUser } from "./api/User";
+import { synchronizeCourses } from "./api/Course";
+import { getOperation } from "./api/Operation";
+import { LoginUser } from "./actions/user_actions";
 import { loginDestination } from "./utils/loginDestination";
+import "./loading.css";
 
-const LoadingPage = () => {
+export default function LoadingPage() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [error, setError] = useState(null);
+    const [attempt, setAttempt] = useState(0);
+    const [saved, setSaved] = useState(null);
+    const destination = loginDestination(
+        new URLSearchParams(window.location.search).get("returnTo"),
+    );
 
     useEffect(() => {
-        async function loadData() {
-            let user;
+        const controller = new AbortController();
+        let timer;
+        const signal = controller.signal;
+        setError(null);
+        const finish = async () => {
+            const { data } = await getUser(signal);
+            if (signal.aborted) return;
+            dispatch(LoginUser(data));
+            navigate(destination, { replace: true });
+        };
+        const fail = (failure) => {
+            if (signal.aborted) return;
+            if (failure.response?.status === 401)
+                navigate(`/?returnTo=${encodeURIComponent(destination)}`, { replace: true });
+            else
+                setError(
+                    failure.response?.data?.message ||
+                        failure.message ||
+                        "Courses could not be refreshed. Please try again.",
+                );
+        };
+        const poll = async (id) => {
             try {
-                const { data } = await getUser();
-                user = data;
-            } catch (err) {
-                console.error("Failed to fetch user:", err);
-                toast.error("Session expired. Please log in again.");
-                setError("Session expired.");
-                return navigate("/");
+                const operation = await getOperation(id, signal);
+                if (signal.aborted) return;
+                if (operation.status === "completed") return await finish();
+                if (["failed", "cancelled"].includes(operation.status))
+                    throw new Error(
+                        operation.error?.message || "The course refresh could not finish.",
+                    );
+                timer = setTimeout(() => poll(id), 1000);
+            } catch (failure) {
+                fail(failure);
             }
-
-            if (!user || !user.rollNumber) {
-                toast.error("Invalid user data. Please log in again.");
-                setError("Invalid user data.");
-                return navigate("/");
-            }
-
+        };
+        (async () => {
             try {
-                const { courses, previousCourses } = await fetchUserCoursesData(user);
-                user.courses = courses;
-                user.previousCourses = previousCourses;
-            } catch (err) {
-                console.error("Failed to fetch courses:", err);
-                user.courses = user.courses || [];
-                user.previousCourses = user.previousCourses || [];
+                const { data } = await getUser(signal);
+                if (signal.aborted) return;
+                setSaved(data);
+                const operation = await synchronizeCourses(signal);
+                if (!signal.aborted) await poll(operation.operationId);
+            } catch (failure) {
+                fail(failure);
             }
-
-            dispatch(LoginUser(user));
-            navigate(loginDestination(new URLSearchParams(window.location.search).get("returnTo")), { replace: true });
-        }
-
-        loadData();
-    }, [dispatch, navigate]);
+        })();
+        return () => {
+            controller.abort();
+            clearTimeout(timer);
+        };
+    }, [attempt, destination, dispatch, navigate]);
 
     return (
-        <div className="loading-page">
-            
-            <div className="loader"></div>
-
-            
+        <main className="loading-page" aria-busy={!error}>
+            {!error && <div className="course-sync-spinner" aria-hidden="true" />}
             <div className="loading-text">
-                <h2>Fetching your courses</h2>
-                <h2>This may take up to a minute</h2>
+                <h1>{error ? "Course refresh unavailable" : "Refreshing your courses"}</h1>
+                <p role={error ? "alert" : "status"}>
+                    {error || "This may take a minute. You can continue while it runs."}
+                </p>
+                {error && (
+                    <button type="button" onClick={() => setAttempt((value) => value + 1)}>
+                        Try again
+                    </button>
+                )}
+                {saved && (
+                    <Link to={destination} onClick={() => dispatch(LoginUser(saved))}>
+                        Continue with saved courses
+                    </Link>
+                )}
             </div>
-        </div>
+        </main>
     );
-};
-
-export default LoadingPage;
+}

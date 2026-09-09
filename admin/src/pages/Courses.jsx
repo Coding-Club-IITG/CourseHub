@@ -75,44 +75,45 @@ function Courses() {
         loadCourses();
     }, []);
 
+    const [savingEdit, setSavingEdit] = useState(false);
+    const [editError, setEditError] = useState(null);
+
     const handleRename = async (oldCode, newName, newCode) => {
-        try {
-            const updated = await updateCourseName(oldCode, newName, newCode);
-            if (updated && updated.code) {
-                setCourses((courses) =>
-                    courses.map((c) =>
-                        c.code === oldCode ? { ...c, code: updated.code, name: updated.name } : c
-                    )
-                );
-            }
-        } catch (error) {
-            if (error.status === 400) {
-                alert(error.message || "Invalid input");
-            }
-        }
+        const updated = await updateCourseName(oldCode, newName, newCode);
+        if (!updated?.code) throw new Error("The saved course could not be confirmed. Your edits are retained.");
+        setCourses((courses) => courses.map((course) => course.code === oldCode ? { ...course, code: updated.code, name: updated.name } : course));
     };
 
     const startEdit = (code, currentName) => {
+        if (savingEdit) return;
+        setEditError(null);
         setEditingCode(code);
         setEditedCode(code);
         setEditedName(currentName || "");
     };
 
     const cancelEdit = () => {
+        if (savingEdit) return;
+        setEditError(null);
         setEditingCode(null);
         setEditedCode("");
         setEditedName("");
     };
 
-    const saveEdit = () => {
-        if (!editingCode) return;
+    const saveEdit = async () => {
+        if (!editingCode || savingEdit) return;
         const newCode = editedCode.trim().toUpperCase();
         const newName = editedName.trim();
-        if (!newCode || !newName) return;
-        handleRename(editingCode, newName, newCode);
-        setEditingCode(null);
-        setEditedCode("");
-        setEditedName("");
+        if (!newCode || !newName) { setEditError("Enter a course code and name."); return; }
+        setSavingEdit(true);
+        setEditError(null);
+        try {
+            await handleRename(editingCode, newName, newCode);
+            setEditingCode(null);
+            setEditedCode("");
+            setEditedName("");
+        } catch (error) { setEditError(error.message || "Could not save the course. Your edits are retained."); }
+        finally { setSavingEdit(false); }
     };
 
     const handleDeleteClick = (course) => {
@@ -343,7 +344,9 @@ function Courses() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
             <div className="p-6 space-y-6">
-                {/* Header Section */}
+                {editError && <p role="alert" className="text-red-700 px-4 py-2">{editError}</p>}
+            {savingEdit && <p role="status" className="px-4 py-2">Saving course and its references…</p>}
+            {/* Header Section */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 transition-all duration-300 hover:shadow-xl">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-4">
@@ -552,7 +555,7 @@ function Courses() {
                                                         )}
                                                         {editingCode === course.code ? (
                                                             <Input
-                                                                value={editedCode}
+                                                                disabled={savingEdit} value={editedCode}
                                                                 onChange={(e) =>
                                                                     setEditedCode(e.target.value)
                                                                 }
@@ -573,7 +576,7 @@ function Courses() {
                                                 <TableCell className="py-4 pl-6">
                                                     {editingCode === course.code ? (
                                                         <Input
-                                                            value={editedName}
+                                                            disabled={savingEdit} value={editedName}
                                                             onChange={(e) =>
                                                                 setEditedName(e.target.value)
                                                             }
@@ -646,6 +649,7 @@ function Courses() {
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     className="h-8 w-8 p-0 hover:bg-green-100/80 transition-all duration-200 transform hover:scale-110"
+                                                                    disabled={savingEdit}
                                                                     onClick={saveEdit}
                                                                     title="Save"
                                                                 >
@@ -655,6 +659,7 @@ function Courses() {
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     className="h-8 w-8 p-0 hover:bg-red-100/80 transition-all duration-200 transform hover:scale-110"
+                                                                    disabled={savingEdit}
                                                                     onClick={cancelEdit}
                                                                     title="Cancel"
                                                                 >

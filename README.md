@@ -265,6 +265,8 @@ npm run build
 - [Storage configuration, uploads, and operation recovery](docs/storage-operations.md)
 - [Shared course trees and linking](./docs/shared-course-trees.md)
 - [Course linking and shared-folder model](./docs/course_link_logic.md)
+- [Academic synchronization](./docs/academic-synchronization.md)
+- [Data maintenance](./docs/data-maintenance.md)
 - [Frontend caching](./docs/frontend-caching.md)
 
 ---

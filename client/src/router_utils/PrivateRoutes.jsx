@@ -22,7 +22,6 @@ const PrivateRoutes = () => {
         getUser(controller.signal)
             .then(({ data }) => {
                 if (controller.signal.aborted) return;
-                if (data.needsCourseSync) return setStatus("sync");
                 dispatch(LoginUser(data));
                 setStatus("ready");
             })
@@ -40,7 +39,6 @@ const PrivateRoutes = () => {
 
     if (loggedIn) return <><Outlet /><OperationNotice /></>;
     if (status === "signed-out") return <Navigate to={`/?returnTo=${destination}`} replace />;
-    if (status === "sync") return <Navigate to={`/loading?returnTo=${destination}`} replace />;
     if (status === "error") {
         return (
             <div className="session-gate" role="alert">

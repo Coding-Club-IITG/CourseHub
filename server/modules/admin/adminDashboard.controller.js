@@ -1,8 +1,13 @@
 import {
+    assertCourseIdentityAvailable,
+    validCourseCode,
+    codeReferenceRegex,
+} from "../../services/courseIdentity.js";
+import { scheduleCourseRename } from "../../services/courseReferences.js";
+import {
     presentCourse,
     requireFile,
     requireFolder,
-    requireCourse,
     courseContext,
     libraryGraph,
 } from "../../services/authorization.js";
@@ -11,14 +16,13 @@ import { scheduleDeletion } from "../../services/deletions.js";
 import { mutateContent } from "../../services/contentMutation.js";
 import { presentContribution } from "../contribution/contribution.controller.js";
 import AppError from "../../utils/appError.js";
-import CourseModel, { FileModel, FolderModel } from "../course/course.model.js";
+import CourseModel, { FileModel } from "../course/course.model.js";
 import { processUploadedCsv } from "../../utils/uploadedCsv.js";
 import { safeError } from "../../middleware/requestErrors.js";
 import User from "../user/user.model.js";
-import UserUpdate from "../user/userUpdate.model.js";
 import Contribution from "../contribution/contribution.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
-import { runSync } from "../../scripts/syncCoursesCache.js";
+import { scheduleAcademicRefresh } from "../../services/academicSync.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -32,24 +36,28 @@ export async function getDBCourses(req, res, next) {
 
 // Upload courses via CSV file (comma-separated)
 export async function uploadCourses(req, res) {
+    const operations = [];
     const allCourses = await processUploadedCsv(req.file, ["code", "name"], async (results) => {
         for (const { code, name } of results) {
             if (!code || !name) continue;
-            const codeUpper = normalizeCourseCode(code);
+            const codeUpper = validCourseCode(code);
             await mutateContent(req, [codeUpper], async () => {
                 const course = await CourseModel.findOne({
-                    code: getCourseCodeCaseInsensitiveRegex(codeUpper),
+                    code: codeReferenceRegex(codeUpper),
                 });
-                if (!course) await CourseModel.create({ code: codeUpper, name });
-                else {
-                    course.code = codeUpper;
-                    course.name = name;
-                    await course.save();
+                if (!course) {
+                    await assertCourseIdentityAvailable(codeUpper);
+                    await CourseModel.create({ code: codeUpper, name });
+                } else {
+                    operations.push(
+                        await scheduleCourseRename(req, course.code, { newCode: codeUpper, name }),
+                    );
                 }
             });
         }
         return CourseModel.find({});
     });
+    if (operations.length) return res.status(202).json({ items: allCourses, operations });
     res.json(allCourses);
 }
 
@@ -115,121 +123,6 @@ export async function handleContribution(req, res) {
             }),
         );
     return mutateContent(req, [code], () => approveContribution(req, res));
-}
-
-async function renameCourseAction(req, res, next) {
-    const { code } = req.params;
-    const { name, newCode } = req.body;
-
-    if (!name) {
-        return next(new AppError(400, "Name required"));
-    }
-
-    const codeUpper = normalizeCourseCode(code);
-    if (!codeUpper) {
-        return next(new AppError(400, "Course code required"));
-    }
-    const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
-
-    // If a newCode is provided, check for conflicts (case-insensitive, trimmed)
-    if (newCode) {
-        const newCodeUpper = normalizeCourseCode(newCode);
-        // If the new code is different from the current code, ensure it doesn't already exist
-        if (newCodeUpper !== codeUpper) {
-            const conflict = await CourseModel.findOne({
-                code: getCourseCodeCaseInsensitiveRegex(newCodeUpper),
-            });
-            if (conflict) {
-                return next(new AppError(400, "Course code already exists"));
-            }
-
-            // 1. Update all folders with the old code to use the new code
-            const foldersToUpdate = await FolderModel.find({ courses: codeRegex });
-            const folderUpdateResult = await FolderModel.updateMany(
-                { courses: codeRegex },
-                { $set: { "courses.$": newCodeUpper } },
-            );
-
-            // 2. Update all users' courses that have the old course code
-            const usersWithCourses = await User.find({
-                "courses.code": { $regex: `^${codeUpper}$`, $options: "i" },
-            });
-            const courseUpdateResult = await User.updateMany(
-                { "courses.code": { $regex: `^${codeUpper}$`, $options: "i" } },
-                { $set: { "courses.$.code": newCodeUpper } },
-            );
-
-            const usersWithPreviousCourses = await User.find({
-                "previousCourses.code": { $regex: `^${codeUpper}$`, $options: "i" },
-            });
-            const previousCourseUpdateResult = await User.updateMany(
-                { "previousCourses.code": { $regex: `^${codeUpper}$`, $options: "i" } },
-                { $set: { "previousCourses.$.code": newCodeUpper } },
-            );
-
-            const usersWithReadOnly = await User.find({
-                "readOnly.code": { $regex: `^${codeUpper}$`, $options: "i" },
-            });
-            const readOnlyUpdateResult = await User.updateMany(
-                { "readOnly.code": { $regex: `^${codeUpper}$`, $options: "i" } },
-                { $set: { "readOnly.$.code": newCodeUpper } },
-            );
-
-            // 3. Update all contributions with the old course code
-            const contributionsToUpdate = await Contribution.find({
-                courseCode: getCourseCodeCaseInsensitiveRegex(codeUpper),
-            });
-            const contributionUpdateResult = await Contribution.updateMany(
-                { courseCode: getCourseCodeCaseInsensitiveRegex(codeUpper) },
-                { courseCode: newCodeUpper },
-            );
-        }
-    }
-
-    const course = await CourseModel.findOneAndUpdate(
-        { code: codeRegex },
-        { name, code: newCode ? normalizeCourseCode(newCode) : codeUpper },
-        { new: true },
-    );
-    if (!course) {
-        return next(new AppError(404, "Course not found"));
-    }
-
-    // Preprocess user data to clean up code fields - remove all spaces and convert to uppercase
-    const allUsers = await User.find({});
-    for (const user of allUsers) {
-        user.courses = user.courses.map((c) => ({
-            ...c,
-            code: c.code?.replace(/\s+/g, "").toUpperCase(),
-        }));
-        user.previousCourses = user.previousCourses.map((c) => ({
-            ...c,
-            code: c.code?.replace(/\s+/g, "").toUpperCase(),
-        }));
-        user.readOnly = user.readOnly.map((c) => ({
-            ...c,
-            code: c.code?.replace(/\s+/g, "").toUpperCase(),
-        }));
-        await user.save();
-    }
-
-    const users = await User.find({
-        $or: [
-            { courses: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
-            {
-                previousCourses: {
-                    $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } },
-                },
-            },
-            { readOnly: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
-        ],
-    });
-
-    for (const user of users) {
-        await UserUpdate.deleteOne({ rollNumber: user.rollNumber });
-    }
-
-    res.json(course);
 }
 
 /**
@@ -323,16 +216,14 @@ export async function bulkLinkCourses(req, res) {
 
 export async function syncCoursesCacheController(req, res, next) {
     try {
-        await runSync();
-        res.json({ success: true, message: "Course cache synchronized successfully." });
+        res.status(202).json(
+            await scheduleAcademicRefresh({ actorId: req.admin._id, actorRole: "admin" }),
+        );
     } catch (err) {
         next(err);
     }
 }
 
-export async function renameCourse(req, res, next) {
-    const context = await requireCourse(req, req.params.code, "canManage");
-    return mutateContent(req, [context.code, req.body.newCode].filter(Boolean), () =>
-        renameCourseAction(req, res, next),
-    );
+export async function renameCourse(req, res) {
+    res.status(202).json(await scheduleCourseRename(req, req.params.code, req.body));
 }

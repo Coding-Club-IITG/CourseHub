@@ -1,43 +1,66 @@
-
 .loading-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    width: 100vw;
-    background-color: black;
-    color: white;
+    min-height: 100dvh;
+    padding: 24px;
+    box-sizing: border-box;
+    background: #000;
+    color: #fff;
 }
-
-
-.loader {
-    border: 3px solid #d4af37; 
-    border-top: 3px solid transparent; 
+.loading-page .course-sync-spinner {
+    border: 3px solid #ffd500;
+    border-top-color: transparent;
     border-radius: 50%;
-    width: 48px; 
-    height: 48px; 
-    animation: spin 1s linear infinite;
+    width: 48px;
+    height: 48px;
+    animation: course-sync-spin 1s linear infinite;
 }
-
-
-.loading-text {
+.loading-page .loading-text {
     margin-top: 24px;
     text-align: center;
+    max-width: 440px;
 }
-
-.loading-text h2 {
-    font-size: 18px;
-    font-weight: 500;
-    margin: 4px 0;
+.loading-page h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 12px;
 }
-
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
+.loading-page p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ddd;
+}
+.loading-page button,
+.loading-page a {
+    display: block;
+    margin: 20px auto 0;
+    font: inherit;
+}
+.loading-page button {
+    background: #ffd500;
+    border: 0;
+    border-radius: 6px;
+    padding: 10px 20px;
+    color: #000;
+    cursor: pointer;
+}
+.loading-page a {
+    color: #ffd500;
+    text-underline-offset: 4px;
+}
+.loading-page :focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 4px;
+}
+@keyframes course-sync-spin {
+    to {
         transform: rotate(360deg);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .loading-page .course-sync-spinner {
+        animation: none;
     }
 }

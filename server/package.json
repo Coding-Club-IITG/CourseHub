@@ -12,7 +12,10 @@
         "test:db": "node --test test/integration/*.test.js",
         "admin": "node scripts/provisionAdmin.js",
         "sync-cache": "node scripts/syncCoursesCache.js",
-        "test:browser": "node --test test/browser/*.test.js"
+        "test:browser": "node --test test/browser/*.test.js",
+        "inventory:data": "node scripts/maintainData.js inventory",
+        "migrate:data": "node scripts/maintainData.js migrate",
+        "import:data": "node scripts/maintainData.js import"
     },
     "keywords": [],
     "author": "",

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const CourseAllotmentSchema = new mongoose.Schema(
     {
+        fetchedAt: Date,
         rollNumber: {
             type: Number,
             required: true,

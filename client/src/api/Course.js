@@ -6,16 +6,5 @@ export const getCourse = async (code) => {
     return resp;
 };
 
-export const fetchUserCoursesData = async (user) => {
-    const [coursesRes, prevCoursesRes] = await Promise.all([
-        axios.post(`${root}/api/auth/fetchCourses`, {}),
-        user.isBR
-            ? axios.post(`${root}/api/auth/fetchCoursesForBr`, {})
-            : Promise.resolve({ data: { courses: [] } }),
-    ]);
-
-    return {
-        courses: coursesRes.data.courses,
-        previousCourses: prevCoursesRes.data.courses,
-    };
-};
+export const synchronizeCourses = async (signal) =>
+    (await axios.post(`${root}/api/user/synchronize`, {}, { signal })).data;

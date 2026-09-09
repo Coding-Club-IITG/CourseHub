@@ -352,48 +352,6 @@ test("signed-in search and contribution listing still work", async (t) => {
     assert.deepEqual(await response.json(), []);
 });
 
-test("course refresh derives its target from the authenticated student", async (t) => {
-    signedIn(t);
-    const lookups = [];
-    t.mock.method(CourseAllotment, "findOne", async (filter) => {
-        lookups.push(filter);
-        return { courses: ["CS101"] };
-    });
-    t.mock.method(Course, "find", () => query([course]));
-    const updates = [];
-    t.mock.method(User, "updateOne", async (filter) => {
-        updates.push(filter);
-        return { modifiedCount: 1 };
-    });
-    const headers = {
-        cookie: `token=${studentToken()}`,
-        origin: testOrigin,
-        "x-csrf-token": testCsrfToken,
-        "content-type": "application/json",
-    };
-    for (const body of [{}, { rollNumber: student.rollNumber }]) {
-        const response = await fetch(origin + "/api/auth/fetchCourses", {
-            method: "POST",
-            headers,
-            body: JSON.stringify(body),
-        });
-        assert.equal(response.status, 200);
-        assert.equal((await response.json()).courses[0].code, "CS101");
-    }
-    assert.ok(lookups.every((filter) => filter.rollNumber === student.rollNumber));
-    assert.ok(updates.every((filter) => filter.rollNumber === student.rollNumber));
-    const before = lookups.length;
-    for (const path of ["/api/auth/fetchCourses", "/api/auth/fetchCoursesForBr"]) {
-        const response = await fetch(origin + path, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ rollNumber: 999999999 }),
-        });
-        assert.equal(response.status, 403);
-    }
-    assert.equal(lookups.length, before);
-});
-
 test("academic permissions use the current India calendar at the semester boundary", () => {
     assert.deepEqual(academicPeriod(new Date("2026-07-23T18:29:59Z")), {
         year: 2026,
