@@ -20,7 +20,7 @@ import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import BR from "../modules/br/br.model.js";
 import { academicPeriod } from "../services/authorization.js";
 import Contribution from "../modules/contribution/contribution.model.js";
-import { upload } from "../modules/contribution/contribution.routes.js";
+import { upload } from "../middleware/receiveUpload.js";
 import { student, administrator, course, year, folder, libraryFile } from "./fixtures/library.js";
 
 beforeEach(guardExternalServices);
@@ -149,6 +149,7 @@ for (const [prefix, module] of [
     ["folder", "folder"],
     ["year", "year"],
     ["student", "student"],
+    ["operations", "operation"],
 ]) {
     const { default: router } = await import(`../modules/${module}/${module}.routes.js`);
     for (const { route } of router.stack) {

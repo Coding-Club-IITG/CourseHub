@@ -2,6 +2,8 @@ import { model, Schema } from "mongoose";
 
 const ContributionSchema = Schema(
     {
+        operationId: String,
+        deletingOperation: String,
         contributionId: { type: String },
         uploadedBy: { type: String },
         courseCode: { type: String },

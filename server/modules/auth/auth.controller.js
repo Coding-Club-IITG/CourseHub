@@ -1,3 +1,4 @@
+import { graph } from "../../services/graphClient.js";
 import axios from "axios";
 import qs from "querystring";
 import AppError from "../../utils/appError.js";
@@ -311,20 +312,7 @@ const getDepartment = async (access_token, roll) => {
         const dep = rollmap[rollstring.slice(4, 6)];
         if (dep) return rollmap[rollstring.slice(4, 6)];
     }
-    var config = {
-        method: "get",
-        url: "https://graph.microsoft.com/beta/me/profile",
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-            Host: "graph.microsoft.com",
-        },
-    };
-    const response = await axios.get(config.url, {
-        headers: config.headers,
-        timeout: 30000,
-    });
+    const response = await graph.request("/beta/me/profile", { token: access_token });
     return response.data.positions[0].detail.company.department;
 };
 

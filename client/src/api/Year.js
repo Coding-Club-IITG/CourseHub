@@ -1,5 +1,6 @@
 import API from "./http";
 import serverRoot from "./server";
+import { waitForOperation } from "./Operation";
 
 export const addYear = async ({ name, course }) => {
     const { data } = await API.post("/year", {
@@ -15,5 +16,5 @@ export const deleteYear = async ({ folderId, courseCode }) => {
     const { data } = await API.delete("/year/delete", {
         data: { folderId, courseCode },
     });
-    return data;
+    return waitForOperation(data);
 };

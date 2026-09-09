@@ -1,4 +1,4 @@
-import { useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
 import {
@@ -34,13 +34,15 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
                         aria-label={open ? "Collapse folder" : "Expand folder"}
                         className="grid h-5 w-5 flex-shrink-0 place-items-center rounded text-slate-400 hover:bg-slate-200 hover:text-slate-700"
                     >
-                        {hasChildren ? (open ? <FiChevronDown /> : <FiChevronRight />) : null}
+                        {hasChildren ? open ? <FiChevronDown /> : <FiChevronRight /> : null}
                     </button>
                 ) : (
                     <span className="w-5 flex-shrink-0" />
                 )}
 
-                <span className={`grid flex-shrink-0 place-items-center text-base ${isFolder ? "text-blue-600" : "text-slate-500"}`}>
+                <span
+                    className={`grid flex-shrink-0 place-items-center text-base ${isFolder ? "text-blue-600" : "text-slate-500"}`}
+                >
                     {isFolder ? <FiFolder /> : <FiFile />}
                 </span>
 
@@ -57,7 +59,8 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
                 </button>
             </div>
 
-            {isFolder && open &&
+            {isFolder &&
+                open &&
                 node.children?.map((child) => (
                     <LoadStructure
                         key={child._id}
@@ -81,63 +84,69 @@ export default function CourseDashboard() {
     }, [code]);
 
     const loadData = async () => {
-        try 
-        {
+        try {
             const getDashboard = await fetchCourseDashboardData(code);
             setData(getDashboard);
-        } 
-        catch (error) 
-        {
+        } catch (error) {
             console.log(error);
-        } 
-        finally 
-        {
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleContributionAction = async(contributionId, action) =>
-    {
+    const handleContributionAction = async (contributionId, action) => {
         const isApprove = action === "approve";
-        if(!window.confirm(`Are you sure you want to ${action} this contribution`))
-        {
+        const contribution = data.contributions.find(
+            (item) => item.contributionId === contributionId,
+        );
+        const affectedCourses = [
+            ...new Set(contribution?.files.flatMap((file) => file.affectedCourses || [code])),
+        ].sort();
+        const impact =
+            !isApprove && affectedCourses.length > 1
+                ? ` Shared files will be deleted from every affected course: ${affectedCourses.join(", ")}.`
+                : "";
+        if (!window.confirm(`Are you sure you want to ${action} this contribution?${impact}`)) {
             return;
         }
 
-        try
-        {
-            await handleContribution(contributionId,action,code);
-            alert(`Contribution ${isApprove ? 'Approved' : 'Rejected'} succesfully!`);
+        try {
+            await handleContribution(contributionId, action, code, affectedCourses);
+            alert(`Contribution ${isApprove ? "Approved" : "Rejected"} succesfully!`);
             loadData();
-        }
-        catch(error)
-        {
+        } catch (error) {
             console.log(error);
-            alert("error");
-        }   
-    }
-
-   const handleDelete = async (type, id, name, affectedCourses = []) =>
-    {
-        const impact = affectedCourses.length > 1 ? (type === "file" ? ` This shared file will be removed from ${affectedCourses.join(", ")}.` : ` This folder will be unlinked from ${code}; other linked courses keep it.`) : "";
-        if (!window.confirm(`Are you SURE you want to permanently delete the ${type} "${name}"?${impact} This cannot be undone.`))
-        {
-            return;
-        }
-        try 
-        {
-            await deleteNode(type, id, code);
-            loadData();
-        } 
-        catch (error) 
-        {
-            console.error(error);
-            alert(`Failed to delete the ${type}. Check the console.`);
+            alert(error.message || "The contribution action could not finish.");
         }
     };
 
-    if (loading) 
-    {
+    const handleDelete = async (type, id, name, affectedCourses = []) => {
+        const impact =
+            affectedCourses.length > 1
+                ? type === "file"
+                    ? ` This shared file will be removed from ${affectedCourses.join(", ")}.`
+                    : ` This folder will be unlinked from ${code}; other linked courses keep it.`
+                : "";
+        if (
+            !window.confirm(
+                `Are you SURE you want to permanently delete the ${type} "${name}"?${impact} This cannot be undone.`,
+            )
+        ) {
+            return;
+        }
+        try {
+            await deleteNode(type, id, code, affectedCourses);
+            loadData();
+        } catch (error) {
+            console.error(error);
+            alert(
+                error.message ||
+                    `Could not finish deleting the ${type}. Open Operations for its status.`,
+            );
+        }
+    };
+
+    if (loading) {
         return (
             <div className="flex min-h-[60vh] items-center justify-center gap-3 text-sm text-slate-600">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
@@ -147,20 +156,19 @@ export default function CourseDashboard() {
     }
 
     const studentCount = data?.studentCount || 0;
-    const approvedContributions =  data?.contributions?.filter(c => c.approved) || [];
-    const verifiedFilesCount = approvedContributions.reduce((total,contribution) =>
-    {
+    const approvedContributions = data?.contributions?.filter((c) => c.approved) || [];
+    const verifiedFilesCount = approvedContributions.reduce((total, contribution) => {
         return total + (contribution.files?.length || 0);
-    },0);
+    }, 0);
 
-    const pendingContributions = data?.contributions?.filter(c => !c.approved) || [];
+    const pendingContributions = data?.contributions?.filter((c) => !c.approved) || [];
 
     return (
         <div className="min-h-full bg-slate-100 text-slate-900">
             <header className="flex items-center gap-4 border-b border-slate-200 bg-white px-7 py-4">
                 <h1 className="text-lg font-bold tracking-tight">
                     {data?.course?.code}
-                    <span className="font-medium text-slate-600">  ·  {data?.course?.name}</span>
+                    <span className="font-medium text-slate-600"> · {data?.course?.name}</span>
                 </h1>
             </header>
 
@@ -171,7 +179,9 @@ export default function CourseDashboard() {
                             <FiUsers />
                         </span>
                         <div>
-                            <div className="text-2xl font-bold leading-tight tracking-tight">{studentCount}</div>
+                            <div className="text-2xl font-bold leading-tight tracking-tight">
+                                {studentCount}
+                            </div>
                             <div className="mt-0.5 text-xs text-slate-600">Registered students</div>
                         </div>
                     </div>
@@ -180,8 +190,12 @@ export default function CourseDashboard() {
                             <FiCheckCircle />
                         </span>
                         <div>
-                            <div className="text-2xl font-bold leading-tight tracking-tight">{verifiedFilesCount}</div>
-                            <div className="mt-0.5 text-xs text-slate-600">Verified contributions</div>
+                            <div className="text-2xl font-bold leading-tight tracking-tight">
+                                {verifiedFilesCount}
+                            </div>
+                            <div className="mt-0.5 text-xs text-slate-600">
+                                Verified contributions
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -193,15 +207,23 @@ export default function CourseDashboard() {
                     <div className="p-2.5">
                         {data?.course?.children?.length ? (
                             data.course.children.map((child) => (
-                                <LoadStructure key={child._id} node={child} onDelete={handleDelete} />
+                                <LoadStructure
+                                    key={child._id}
+                                    node={child}
+                                    onDelete={handleDelete}
+                                />
                             ))
                         ) : (
                             <div className="px-5 py-9 text-center text-slate-600">
                                 <span className="mb-2.5 inline-grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-xl text-slate-400">
                                     <FiFolder />
                                 </span>
-                                <div className="text-sm font-semibold text-slate-900">No folders or files yet</div>
-                                <div className="mt-0.5 text-sm">Course content will appear here once added.</div>
+                                <div className="text-sm font-semibold text-slate-900">
+                                    No folders or files yet
+                                </div>
+                                <div className="mt-0.5 text-sm">
+                                    Course content will appear here once added.
+                                </div>
                             </div>
                         )}
                     </div>
@@ -220,8 +242,12 @@ export default function CourseDashboard() {
                                 <span className="mb-2.5 inline-grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-xl text-slate-400">
                                     <FiCheckCircle />
                                 </span>
-                                <div className="text-sm font-semibold text-slate-900">You're all caught up</div>
-                                <div className="mt-0.5 text-sm">New submissions will show up here for review.</div>
+                                <div className="text-sm font-semibold text-slate-900">
+                                    You're all caught up
+                                </div>
+                                <div className="mt-0.5 text-sm">
+                                    New submissions will show up here for review.
+                                </div>
                             </div>
                         ) : (
                             pendingContributions.map((contribution) => (
@@ -234,19 +260,32 @@ export default function CourseDashboard() {
                                     </span>
                                     <div className="min-w-0 flex-1">
                                         <div className="text-sm font-semibold">
-                                            {contribution.files?.map(f => f.name).join(", ") || contribution.contributionId}
+                                            {contribution.files?.map((f) => f.name).join(", ") ||
+                                                contribution.contributionId}
                                         </div>
-                                        <div className="text-xs text-slate-600">Awaiting review</div>
+                                        <div className="text-xs text-slate-600">
+                                            Awaiting review
+                                        </div>
                                     </div>
                                     <div className="flex flex-shrink-0 gap-2">
                                         <button
-                                            onClick={() => handleContributionAction(contribution.contributionId, 'approve')}
+                                            onClick={() =>
+                                                handleContributionAction(
+                                                    contribution.contributionId,
+                                                    "approve",
+                                                )
+                                            }
                                             className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700"
                                         >
                                             <FiCheck /> Approve
                                         </button>
                                         <button
-                                            onClick={() => handleContributionAction(contribution.contributionId, 'reject')}
+                                            onClick={() =>
+                                                handleContributionAction(
+                                                    contribution.contributionId,
+                                                    "reject",
+                                                )
+                                            }
                                             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50"
                                         >
                                             <FiX /> Reject

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "../api/User";
 import { LoginUser, LogoutUser } from "../actions/user_actions";
 import Loader from "../components/Loader";
+import OperationNotice from "../components/OperationNotice";
 import "./PrivateRoutes.scss";
 
 const PrivateRoutes = () => {
@@ -37,7 +38,7 @@ const PrivateRoutes = () => {
         return () => controller.abort();
     }, [loggedIn, dispatch, attempt]);
 
-    if (loggedIn) return <Outlet />;
+    if (loggedIn) return <><Outlet /><OperationNotice /></>;
     if (status === "signed-out") return <Navigate to={`/?returnTo=${destination}`} replace />;
     if (status === "sync") return <Navigate to={`/loading?returnTo=${destination}`} replace />;
     if (status === "error") {

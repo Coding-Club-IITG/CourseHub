@@ -1,8 +1,6 @@
-import { randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
+import { createUpload } from "../../services/uploads.js";
+import { presentOperation } from "../operation/operation.controller.js";
 import Contribution from "./contribution.model.js";
-import { FolderModel, FileModel } from "../course/course.model.js";
-import UploadFile from "../../services/UploadFile.js";
 import AppError from "../../utils/appError.js";
 import {
     actorFor,
@@ -12,72 +10,10 @@ import {
     libraryGraph,
 } from "../../services/authorization.js";
 import { normalizeCourseCode } from "../../utils/course.js";
-import logger from "../../utils/logger.js";
 
 async function CreateNewContribution(req, res) {
-    const allowed = ["parentFolder", "courseCode", "description"];
-    if (Object.keys(req.body).some((key) => !allowed.includes(key)))
-        throw new AppError(400, "Unexpected contribution fields");
-    const { parentFolder, courseCode, description = "" } = req.body;
-    if (typeof description !== "string" || description.length > 2000)
-        throw new AppError(400, "Invalid description");
-    const context = await requireFolder(req, parentFolder, courseCode, "canContribute");
-    if (context.folder.childType !== "File") throw new AppError(400, "Choose a file folder");
-    const contribution = await Contribution.create({
-        contributionId: randomUUID(),
-        uploadedBy: context.actor.id,
-        parentFolder,
-        courseCode: context.code,
-        description,
-        approved: context.capabilities.canManage,
-    });
-    logger.metric?.("contribution_created", {
-        value: 1,
-        dimensions: {
-            courseCode: context.code,
-            userId: context.actor.id,
-            department: req.user?.department || "administration",
-            semester: req.user?.semester || 0,
-        },
-    });
-    res.json({ created: true, data: contribution });
-}
-
-async function HandleFileUpload(req, res) {
-    const files = req.files || [];
-    if (!files.length) throw new AppError(400, "No files were uploaded");
-    const uploaded = [];
-    const actor = await actorFor(req);
-    try {
-        for (const file of files) {
-            const name = file.originalname;
-            if (!name || /[\\/\x00-\x1f]/.test(name)) throw new AppError(400, "Invalid filename");
-            const dot = name.lastIndexOf(".");
-            const base = dot === -1 ? name : name.slice(0, dot);
-            const extension = dot === -1 ? "" : name.slice(dot);
-            const contributor = (req.admin?.userId || req.user.name)
-                .replace(/[\\/:*?"<>|~\x00-\x1f]/g, "")
-                .slice(0, 80);
-            const fileId = await UploadFile(
-                file.path,
-                base + "~" + contributor + extension,
-                req.contributionApproved,
-            );
-            if (!fileId) throw new AppError(502, "File upload failed");
-            await Contribution.updateOne(
-                { _id: req.contribution._id, uploadedBy: actor.id },
-                { $addToSet: { files: fileId }, $set: { approved: req.contributionApproved } },
-            );
-            await FolderModel.updateOne(
-                { _id: req.contribution.parentFolder },
-                { $addToSet: { children: fileId } },
-            );
-            uploaded.push(String(fileId));
-        }
-        res.send(uploaded[0]);
-    } finally {
-        await Promise.all(files.map((file) => fs.unlink(file.path).catch(() => {})));
-    }
+    const operation = await createUpload(req);
+    res.status(201).json(presentOperation(operation, await actorFor(req)));
 }
 
 export async function presentContribution(
@@ -94,7 +30,12 @@ export async function presentContribution(
             if (error.status !== 404) throw error;
         }
     }
-    return { ...contribution.toObject(), files, managementCourseCode: contextCode };
+    return {
+        ...contribution.toObject(),
+        files,
+        approved: files.length > 0 && files.every((file) => file.isVerified),
+        managementCourseCode: contextCode,
+    };
 }
 
 async function GetMyContributions(req, res) {
@@ -140,4 +81,4 @@ async function GetBrContribution(req, res) {
     }
     res.json({ unverifiedContributions: visible });
 }
-export default { CreateNewContribution, HandleFileUpload, GetMyContributions, GetBrContribution };
+export default { CreateNewContribution, GetMyContributions, GetBrContribution };

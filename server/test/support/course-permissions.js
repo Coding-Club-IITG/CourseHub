@@ -2,16 +2,19 @@ import getImageKit from "../../services/imagekit.js";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { Readable } from "node:stream";
-import axios from "axios";
+import { randomUUID } from "node:crypto";
+import { storage } from "../../services/storage.js";
+import { graph } from "../../services/graphClient.js";
+import { OperationModel } from "../../modules/operation/operation.model.js";
+import { processOperation } from "../../services/operationWorker.js";
 import { sessionHeaders } from "../fixtures/sessions.js";
 import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
 import BR from "../../modules/br/br.model.js";
 import CourseAllotment from "../../modules/course/courseAllotment.model.js";
 import Contribution from "../../modules/contribution/contribution.model.js";
 import Admin from "../../modules/admin/admin.model.js";
-import { upload } from "../../modules/contribution/contribution.routes.js";
+import { upload } from "../../middleware/receiveUpload.js";
 import { permissionFixtures } from "../fixtures/permissions.js";
-import { clearAccessTokenCache } from "../../modules/onedrive/onedrive.controller.js";
 import { academicPeriod } from "../../services/authorization.js";
 
 export async function exerciseCoursePermissions(t, origin) {
@@ -27,7 +30,7 @@ export async function exerciseCoursePermissions(t, origin) {
     const request = async (actor, method, route, body, status = 200) => {
         const response = await fetch(origin + route, {
             method,
-            headers: f.actors[actor].headers,
+            headers: { ...f.actors[actor].headers, "idempotency-key": randomUUID() },
             body: body === undefined ? undefined : JSON.stringify(body),
             signal: AbortSignal.timeout(5000),
         });
@@ -42,54 +45,32 @@ export async function exerciseCoursePermissions(t, origin) {
     const deletedThumbnails = [];
     process.env.IMAGEKIT_PUBLIC_KEY = "fake-test-public-key";
     process.env.IMAGEKIT_PRIVATE_KEY = "fake-test-private-key";
-    clearAccessTokenCache();
-    t.after(clearAccessTokenCache);
     t.beforeEach((sub) => {
         sub.mock.method(getImageKit().files, "delete", async (id) => {
             deletedThumbnails.push(id);
         });
-        for (const method of ["existsSync", "readFileSync", "writeFileSync"]) {
-            const original = fs[method];
-            sub.mock.method(fs, method, (name, ...args) =>
-                String(name).endsWith(".token")
-                    ? method === "existsSync"
-                        ? true
-                        : method === "readFileSync"
-                          ? "fake-refresh"
-                          : undefined
-                    : original(name, ...args),
-            );
-        }
-        sub.mock.method(axios, "post", async (url) => {
-            providerCalls.push(url);
-            assert.ok(url.startsWith("https://login.microsoftonline.com/"));
-            return { data: { access_token: "fake-access", expires_in: 3600 } };
+        sub.mock.method(storage, "withinRoot", async (id) => {
+            providerCalls.push(id);
+            return { id, file: {} };
         });
-        sub.mock.method(axios, "get", async (url) => {
-            providerCalls.push(url);
-            assert.ok(
-                url.startsWith("https://graph.microsoft.com/v1.0/me/drive/items/") ||
-                    url === f.pending.thumbnail.url,
-            );
+        sub.mock.method(storage, "content", async (id) => {
+            providerCalls.push(id);
             return {
-                data: Readable.from([
-                    url === f.pending.thumbnail.url
-                        ? "image-fixture"
-                        : "%PDF-1.4 permission document",
-                ]),
-                headers: {
-                    "content-type":
-                        url === f.pending.thumbnail.url ? "image/webp" : "application/pdf",
-                },
+                data: Readable.from(["%PDF-1.4 permission document"]),
+                headers: { "content-type": "application/pdf" },
             };
         });
-        sub.mock.method(axios, "delete", async (url) => {
+        sub.mock.method(graph, "request", async (url) => {
             providerCalls.push(url);
-            return { status: 204 };
+            assert.equal(url, f.pending.thumbnail.url);
+            return {
+                status: 200,
+                data: Readable.from(["image-fixture"]),
+                headers: { "content-type": "image/webp" },
+            };
         });
-        sub.mock.method(axios, "patch", async (url, body) => {
-            providerCalls.push(url);
-            return { data: { name: body.name } };
+        sub.mock.method(storage, "remove", async (id) => {
+            providerCalls.push("delete/" + id);
         });
     });
 
@@ -312,6 +293,7 @@ export async function exerciseCoursePermissions(t, origin) {
                 parentFolder: f.leaf.id,
                 courseCode: "AUTH101",
                 description: "matrix upload",
+                manifest: [{ name: "notes.pdf", size: 14 }],
             };
             for (const [key, value] of [
                 ["uploadedBy", f.actors.student.person.id],
@@ -333,12 +315,14 @@ export async function exerciseCoursePermissions(t, origin) {
                 "revokedBR",
                 "admin",
             ]) {
-                const { data } = await (
-                    await request(role, "POST", "/api/contribution", input)
+                const operation = await (
+                    await request(role, "POST", "/api/contribution", input, 201)
                 ).json();
+                const data = await Contribution.findOne({ contributionId: operation.id });
                 assert.equal(data.uploadedBy, f.actors[role].person.id);
                 assert.match(data.contributionId, /^[0-9a-f-]{36}$/);
-                assert.equal(data.approved, ["currentBR", "historicalBR", "admin"].includes(role));
+                assert.equal(data.approved, false);
+                assert.equal(operation.entries[0].name, "notes.pdf");
             }
             for (const role of ["unrelatedBR", "unallottedBR"])
                 await request(role, "POST", "/api/contribution", input, 403);
@@ -500,10 +484,17 @@ export async function exerciseCoursePermissions(t, origin) {
                     name: "2030",
                 })
             ).json();
-            await request("historicalBR", "DELETE", "/api/year/delete", {
-                courseCode: "AUTH101",
-                folderId: year._id,
-            });
+            const removedYear = await request(
+                "historicalBR",
+                "DELETE",
+                "/api/year/delete",
+                {
+                    courseCode: "AUTH101",
+                    folderId: year._id,
+                },
+                202,
+            );
+            await processOperation((await removedYear.json()).operationId);
             assert.equal(await FolderModel.findById(year._id), null);
         },
     );
@@ -552,14 +543,20 @@ export async function exerciseCoursePermissions(t, origin) {
     await t.test(
         "uploading after BR revocation rechecks approval and ignores claimed uploader headers",
         async (sub) => {
-            const { data } = await (
-                await request("currentBR", "POST", "/api/contribution", {
-                    courseCode: "AUTH101",
-                    parentFolder: f.leaf.id,
-                    description: "revocation test",
-                })
+            const operation = await (
+                await request(
+                    "currentBR",
+                    "POST",
+                    "/api/contribution",
+                    {
+                        courseCode: "AUTH101",
+                        parentFolder: f.leaf.id,
+                        description: "revocation test",
+                        manifest: [{ name: "notes.pdf", size: 14 }],
+                    },
+                    201,
+                )
             ).json();
-            assert.equal(data.approved, true);
             await BR.deleteOne({ email: f.actors.currentBR.person.email });
             sub.after(async () => {
                 await BR.updateOne(
@@ -568,21 +565,7 @@ export async function exerciseCoursePermissions(t, origin) {
                     { upsert: true },
                 );
             });
-            sub.mock.method(axios, "post", async (url) => {
-                if (url.endsWith("/createUploadSession"))
-                    return { data: { uploadUrl: "https://upload.example.test/revoked" } };
-                if (url.endsWith("/createLink"))
-                    return { data: { link: { webUrl: "https://tenant.sharepoint.com/revoked" } } };
-                assert.fail("Unexpected upload provider POST");
-            });
-            sub.mock.method(axios, "put", async (url, bytes) => {
-                assert.equal(url, "https://upload.example.test/revoked");
-                return { data: { id: "provider-revoked-upload", size: bytes.length } };
-            });
-            sub.mock.method(axios, "get", async (url) => {
-                assert.ok(url.endsWith("/thumbnails"));
-                return { data: { value: [] } };
-            });
+            sub.mock.method(storage, "upload", async () => ({ id: "provider-revoked-upload" }));
             const form = new FormData();
             form.append("file", new Blob(["revoked upload"]), "notes.pdf");
             const response = await fetch(origin + "/api/contribution/upload", {
@@ -593,34 +576,46 @@ export async function exerciseCoursePermissions(t, origin) {
                             ([name]) => name !== "content-type",
                         ),
                     ),
-                    "contribution-id": data.contributionId,
+                    "contribution-id": operation.id,
+                    "upload-file-id": operation.entries[0].id,
                     username: "Administrator",
                     approved: "true",
                 },
                 body: form,
             });
-            assert.equal(response.status, 200, await response.clone().text());
-            const fileId = await response.text();
+            assert.equal(response.status, 202, await response.clone().text());
+            await processOperation(operation.id);
+            const finished = await OperationModel.findById(operation.id);
+            assert.equal(finished.status, "completed", JSON.stringify(finished.error));
+            const fileId = finished.entries[0].fileId;
             const file = await FileModel.findById(fileId);
             assert.equal(file.isVerified, false);
-            assert.equal(file.name, "notes~Permission currentBR.pdf");
+            assert.equal(file.name, "notes.pdf");
+            assert.equal(file.contributorName, "Permission currentBR");
             assert.equal(
-                (await Contribution.findOne({ contributionId: data.contributionId })).approved,
+                (await Contribution.findOne({ contributionId: operation.id })).approved,
                 false,
             );
             await FolderModel.updateOne({ _id: f.leaf.id }, { $pull: { children: file._id } });
             await FileModel.deleteOne({ _id: file._id });
-            await Contribution.deleteOne({ contributionId: data.contributionId });
+            await Contribution.deleteOne({ contributionId: operation.id });
         },
     );
     await t.test(
         "shared removal unlinks only the active course and ignores forged descendants",
         async () => {
-            await request("currentBR", "DELETE", "/api/folder/delete", {
-                courseCode: "AUTH101",
-                folderId: f.leaf.id,
-                folder: { _id: f.foreignLeaf.id, children: [f.foreign] },
-            });
+            const unlink = await request(
+                "currentBR",
+                "DELETE",
+                "/api/folder/delete",
+                {
+                    courseCode: "AUTH101",
+                    folderId: f.leaf.id,
+                    folder: { _id: f.foreignLeaf.id, children: [f.foreign] },
+                },
+                202,
+            );
+            await processOperation((await unlink.json()).operationId);
             assert.ok(await FileModel.findById(f.pending.id));
             await FileModel.updateOne(
                 { _id: f.pending.id },
@@ -651,9 +646,16 @@ export async function exerciseCoursePermissions(t, origin) {
                 { courseCode: "AUTH101" },
                 404,
             );
-            await request("admin", "DELETE", `/api/admin/node/file/${f.pending.id}`, {
-                courseCode: "AUTH301",
-            });
+            const deletion = await request(
+                "admin",
+                "DELETE",
+                `/api/admin/node/file/${f.pending.id}`,
+                {
+                    courseCode: "AUTH301",
+                },
+                202,
+            );
+            await processOperation((await deletion.json()).operationId);
             assert.equal(await FileModel.findById(f.pending.id), null);
             assert.deepEqual(deletedThumbnails, ["owned-thumbnail"]);
             assert.ok(

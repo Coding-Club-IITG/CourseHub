@@ -12,3 +12,4 @@ process.env.JWT_SECRET = "coursehub-student-unit-test-key";
 process.env.ADMIN_JWT_SECRET = "coursehub-admin-unit-test-key";
 process.env.IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/coursehub-test/";
 process.env.ONEDRIVE_FOLDER_ID = "test-storage-root";
+process.env.ONEDRIVE_TOKEN_DIR = `/tmp/coursehub-test-unprovisioned-${process.pid}`;

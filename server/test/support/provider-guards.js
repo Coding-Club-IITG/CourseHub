@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import axios from "axios";
+import { storageTokens } from "../../services/tokenStore.js";
 
 export function guardExternalServices(t) {
     const attempts = [];
@@ -8,6 +9,7 @@ export function guardExternalServices(t) {
         attempts.push(name);
         throw new Error(`External services are blocked in tests: ${name}`);
     };
+    t.mock.method(storageTokens, "getAccessToken", () => deny("storage token"));
     for (const method of ["get", "post", "put", "patch", "delete", "request"]) {
         t.mock.method(axios, method, () => deny(`axios.${method}`));
     }

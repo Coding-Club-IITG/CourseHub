@@ -572,7 +572,7 @@ const BrowseScreen = () => {
                 )}
             </div>
 
-            {!isMobile && <Contributions />}
+            <Contributions key={`${code}/${folderId || ""}`} />
         </Container>
     );
 };

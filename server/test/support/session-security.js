@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import axios from "axios";
+import { graph } from "../../services/graphClient.js";
 import jwt from "jsonwebtoken";
 import User from "../../modules/user/user.model.js";
 import UserUpdate from "../../modules/user/userUpdate.model.js";
@@ -326,7 +327,7 @@ export async function exerciseSessionSecurity(t, origin) {
                 );
                 return { data: { access_token: "test-graph-access" } };
             });
-            st.mock.method(axios, "get", async () => ({
+            st.mock.method(graph, "request", async () => ({
                 data: { mail: person.email, surname: String(person.rollNumber) },
             }));
             for (const headers of [{}, { cookie: other.cookie }])

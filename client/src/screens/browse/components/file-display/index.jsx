@@ -18,12 +18,11 @@ import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
 
 const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
-
-    const fileSize = formatFileSize(file.size);
+    const fileSize = formatFileSize(file.sizeBytes ?? file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogType, setDialogType] = useState("verify");
-    const [onConfirmAction, setOnConfirmAction] = useState(() => () => { });
+    const [onConfirmAction, setOnConfirmAction] = useState(() => () => {});
     const [isProcessing, setIsProcessing] = useState(false);
 
     let name = file.name;
@@ -32,7 +31,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
     let untruncatedDispName = name;
     try {
         const lastTildeIndex = name.lastIndexOf("~");
-        if (lastTildeIndex !== -1) {
+        if (lastTildeIndex !== -1 && !file.contributorName) {
             untruncatedDispName = name.slice(0, lastTildeIndex);
             _dispName = formatFileName(untruncatedDispName);
             let contributorPart = name.slice(lastTildeIndex + 1);
@@ -42,7 +41,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
             const dotIdx = name.lastIndexOf(".");
             untruncatedDispName = dotIdx !== -1 ? name.slice(0, dotIdx) : name;
             _dispName = formatFileName(untruncatedDispName);
-            contributor = "Anonymous";
+            contributor = file.contributorName || "Anonymous";
         }
     } catch (error) {
         _dispName = formatFileName(file.name);
@@ -58,9 +57,9 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const dispatch = useDispatch();
 
-
-    const thumbnailUrl =
-        file.thumbnail?.url ? new URL(file.thumbnail.url, API_BASE_URL).href : undefined;
+    const thumbnailUrl = file.thumbnail?.url
+        ? new URL(file.thumbnail.url, API_BASE_URL).href
+        : undefined;
 
     const handleRename = async (newName) => {
         const trimmed = newName?.trim();
@@ -69,7 +68,9 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
         // Validation for illegal OneDrive characters: \ / : * ? " < > |
         const illegalChars = /[\\/:*?"<>|]/;
         if (illegalChars.test(trimmed)) {
-            toast.error("Filename cannot contain any of the following characters: \\ / : * ? \" < > |");
+            toast.error(
+                'Filename cannot contain any of the following characters: \\ / : * ? " < > |',
+            );
             return;
         }
 
@@ -85,9 +86,9 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
                 ChangeFolder({
                     ...currentFolder,
                     children: (currentFolder?.children || []).map((child) =>
-                        child._id === file._id ? { ...child, name: responseData.file.name } : child
+                        child._id === file._id ? { ...child, name: responseData.file.name } : child,
                     ),
-                })
+                }),
             );
         } catch (err) {
             console.error("Error renaming file:", err);
@@ -126,7 +127,6 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
         window.open(`${API_BASE_URL}/api/files/preview/${file._id}`, "_blank", "noopener");
     };
 
-
     const handleVerify = async () => {
         setDialogType("verify");
         setOnConfirmAction(() => async () => {
@@ -155,7 +155,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
             try {
                 setIsProcessing(true);
-                await unverifyFile(file._id, currCourseCode);
+                await unverifyFile(file._id, currCourseCode, file.affectedCourses);
                 toast.success("File deleted!");
                 dispatch(RemoveFileFromFolder(file._id));
             } catch (err) {
@@ -171,8 +171,9 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
 
     return (
         <div
-            className={`file-display ${!file.isVerified || canManage ? (file.isVerified ? "verified" : "unverified") : ""
-                }`}
+            className={`file-display ${
+                !file.isVerified || canManage ? (file.isVerified ? "verified" : "unverified") : ""
+            }`}
             style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
         >
             <div
@@ -185,11 +186,19 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
                     {!isMobileView && canManage && (
                         <>
                             {!file.isVerified ? (
-                                <span className="verify" onClick={handleVerify} title="Verify"></span>
+                                <span
+                                    className="verify"
+                                    onClick={handleVerify}
+                                    title="Verify"
+                                ></span>
                             ) : (
                                 <></>
                             )}
-                            <span className="unverify" onClick={handleUnverify} title="Delete"></span>
+                            <span
+                                className="unverify"
+                                onClick={handleUnverify}
+                                title="Delete"
+                            ></span>
                         </>
                     )}
 

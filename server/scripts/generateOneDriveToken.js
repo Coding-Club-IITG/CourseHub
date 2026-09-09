@@ -1,11 +1,11 @@
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import http from "node:http";
-import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
 import axios from "axios";
 import { createOAuthProof, createLocalOAuthCallback } from "../utils/oauthProof.js";
+import { storageTokens } from "../services/tokenStore.js";
 
 const serverDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -56,16 +56,10 @@ export async function provisionOneDriveToken() {
         );
         if (!response.data?.refresh_token)
             throw new Error("Microsoft did not return a refresh token.");
-        for (const [name, value] of [
-            ["onedrive-refresh-token.token", response.data.refresh_token],
-            ["onedrive-access-token.token", response.data.access_token],
-        ]) {
-            if (!value) continue;
-            const target = path.join(serverDir, name);
-            if (fs.existsSync(target)) fs.chmodSync(target, 0o600);
-            fs.writeFileSync(target, value, { encoding: "utf8", mode: 0o600 });
-        }
-        console.log("OneDrive tokens saved in the server directory with owner-only permissions.");
+        await storageTokens.save(response.data);
+        console.log(
+            "OneDrive tokens saved atomically in ONEDRIVE_TOKEN_DIR with owner-only permissions.",
+        );
     };
     const manual = async () => {
         const rl = readline.createInterface({ input: process.stdin, output: process.stdout });

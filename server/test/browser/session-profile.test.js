@@ -66,6 +66,7 @@ async function studentPage(
                 : { message: "Sign in to continue" };
         } else if (url.pathname === "/api/auth/csrf") data = { csrfToken: csrf };
         else if (url.pathname === "/api/contribution/") data = [];
+        else if (url.pathname === "/api/operations") data = { items: [], total: 0 };
         else if (url.pathname === "/api/user/update") {
             assert.ok(headers.cookie?.includes("token=synthetic-session"));
             assert.equal(headers.authorization, undefined);

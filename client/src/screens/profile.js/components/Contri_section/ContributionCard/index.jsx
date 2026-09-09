@@ -39,7 +39,11 @@ export default function ContributionCard(props) {
             if (isProcessing) return;
             try {
                 setIsProcessing(true);
-                await unverifyFile(props?.file?._id, props.managementCourseCode || props.courseCode);
+                await unverifyFile(
+                    props?.file?._id,
+                    props.managementCourseCode || props.courseCode,
+                    props.file?.affectedCourses,
+                );
                 props.unverify();
                 toast.success("File deleted!");
                 setShowDialog(false);
@@ -63,7 +67,11 @@ export default function ContributionCard(props) {
                 <p>{props.courseCode}</p>
             </div>
             <p className="content">
-                <a className="file-link" href={`${server}/api/files/preview/${props.file._id}`} target="_blank">
+                <a
+                    className="file-link"
+                    href={`${server}/api/files/preview/${props.file._id}`}
+                    target="_blank"
+                >
                     {props?.file?.name}
                 </a>
             </p>

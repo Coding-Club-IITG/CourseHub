@@ -1,5 +1,6 @@
 import { apiFetch } from "./http";
 import { API_BASE_URL } from "./server.js";
+import { waitForOperation } from "./operations";
 
 // Fetch all courses
 export const fetchCourses = async () => {
@@ -167,7 +168,7 @@ export const deleteCourse = async (code) => {
             throw new Error(errorData.message || "Failed to delete course");
         }
 
-        return await response.json();
+        return await waitForOperation(await response.json());
     } catch (error) {
         console.error("Error deleting course:", error);
         throw error;
@@ -191,40 +192,42 @@ export const fetchCourseDashboardData = async (code) => {
     }
 };
 
-export const handleContribution = async (contributionId, action, courseCode) => {
+export const handleContribution = async (contributionId, action, courseCode, affectedCourses) => {
     try {
         const response = await apiFetch(`${API_BASE_URL}api/admin/contribution/action`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ contributionId, action, courseCode }),
+            body: JSON.stringify({ contributionId, action, courseCode, affectedCourses }),
             credentials: "include",
         });
         if (!response.ok) {
-            throw new Error(`Failed to ${action} contribution`);
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || `Failed to ${action} contribution`);
         }
-        return await response.json();
+        return await waitForOperation(await response.json());
     } catch (error) {
         console.error("Error handling contribution:", error);
         throw error;
     }
 };
 
-export const deleteNode = async (type, id, courseCode) => {
+export const deleteNode = async (type, id, courseCode, affectedCourses) => {
     try {
         const response = await apiFetch(`${API_BASE_URL}api/admin/node/${type}/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ courseCode }),
+            body: JSON.stringify({ courseCode, affectedCourses }),
             credentials: "include",
         });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || "Failed to delete Item");
         }
+        return await waitForOperation(await response.json());
     } catch (error) {
         console.error("Error deleting node:", error);
         throw error;

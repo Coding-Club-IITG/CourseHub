@@ -1,0 +1,43 @@
+.operation-notice {
+    position: fixed;
+    inset: auto 1rem 1rem auto;
+    z-index: 900;
+    width: min(24rem, calc(100vw - 2rem));
+    max-height: 40vh;
+    overflow: auto;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d2bb63;
+    border-radius: 0.5rem;
+    background: #fff8dc;
+    color: #242015;
+    box-shadow: 0 3px 16px #0002;
+    font-size: 0.875rem;
+    div + div {
+        margin-top: 0.75rem;
+        border-top: 1px solid #d2bb63;
+        padding-top: 0.75rem;
+    }
+    p {
+        margin: 0.35rem 0;
+    }
+    li {
+        overflow-wrap: anywhere;
+    }
+    a,
+    button {
+        display: inline-block;
+        margin: 0.35rem 0.75rem 0 0;
+        color: #242015;
+        text-decoration: underline;
+    }
+    button {
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+    :focus-visible {
+        outline: 2px solid #242015;
+        outline-offset: 2px;
+    }
+}

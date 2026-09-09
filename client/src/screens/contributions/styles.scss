@@ -1,9 +1,9 @@
 .head {
     width: 100%;
     text-align: center;
-    font-family: 'bold';
+    font-family: "bold";
     font-size: 2rem;
-    color:black;
+    color: black;
 }
 
 .course {
@@ -13,7 +13,7 @@
     margin-top: 2rem;
 
     .label_course {
-        font-family: 'Bold';
+        font-family: "Bold";
         font-size: 1.2rem;
     }
 
@@ -25,14 +25,13 @@
     }
 }
 
-
 .section {
     display: flex;
     align-items: center;
     justify-content: space-between;
 
     .label_section {
-        font-family: 'Bold';
+        font-family: "Bold";
         justify-content: start;
         font-size: 1.2rem;
         color: black;
@@ -56,7 +55,7 @@
     justify-content: space-between;
 
     .label_year {
-        font-family: 'Bold';
+        font-family: "Bold";
         font-size: 1.2rem;
     }
 
@@ -86,7 +85,7 @@
     margin-top: 2rem;
 
     .label_description {
-        font-family: 'Bold';
+        font-family: "Bold";
         font-size: 1.2rem;
     }
 
@@ -107,12 +106,52 @@
     justify-content: space-between;
 
     .label_file {
-        background-image: repeating-linear-gradient(0deg, #333333, #333333 11px, transparent 11px, transparent 18px, #333333 18px), repeating-linear-gradient(90deg, #333333, #333333 11px, transparent 11px, transparent 18px, #333333 18px), repeating-linear-gradient(180deg, #333333, #333333 11px, transparent 11px, transparent 18px, #333333 18px), repeating-linear-gradient(270deg, #333333, #333333 11px, transparent 11px, transparent 18px, #333333 18px);
-        background-size: 2px 100%, 100% 2px, 2px 100%, 100% 2px;
-        background-position: 0 0, 0 0, 100% 0, 0 100%;
+        background-image:
+            repeating-linear-gradient(
+                0deg,
+                #333333,
+                #333333 11px,
+                transparent 11px,
+                transparent 18px,
+                #333333 18px
+            ),
+            repeating-linear-gradient(
+                90deg,
+                #333333,
+                #333333 11px,
+                transparent 11px,
+                transparent 18px,
+                #333333 18px
+            ),
+            repeating-linear-gradient(
+                180deg,
+                #333333,
+                #333333 11px,
+                transparent 11px,
+                transparent 18px,
+                #333333 18px
+            ),
+            repeating-linear-gradient(
+                270deg,
+                #333333,
+                #333333 11px,
+                transparent 11px,
+                transparent 18px,
+                #333333 18px
+            );
+        background-size:
+            2px 100%,
+            100% 2px,
+            2px 100%,
+            100% 2px;
+        background-position:
+            0 0,
+            0 0,
+            100% 0,
+            0 100%;
 
         background-repeat: no-repeat;
-        font-family: 'Bold';
+        font-family: "Bold";
         width: 100%;
         text-align: center;
         padding: 2rem;
@@ -120,7 +159,6 @@
         justify-content: center;
         align-items: center;
         font-size: 1.2rem;
-
 
         &:hover {
             cursor: pointer;
@@ -155,14 +193,15 @@
 
 .button {
     text-align: center;
-    background-color: #FECF6F;
+    background-color: #fecf6f;
     padding: 1rem;
     margin-top: 1rem;
-    font-family: 'bold';
+    font-family: "bold";
     cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.2s ease,
-                background-color 0.2s ease;
+    transition:
+        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
 
     &:hover:not(.false) {
         transform: translateY(-2px);
@@ -174,7 +213,7 @@
     }
 
     &.true {
-        background-color: #FECF6F;
+        background-color: #fecf6f;
         cursor: pointer;
     }
 
@@ -186,4 +225,67 @@
 
 .filepond--root {
     max-height: 20vh;
+}
+
+.contri .upload-content {
+    max-height: 75vh;
+    overflow: auto;
+    color: #242424;
+    .upload-limits,
+    .upload-hint {
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: #535353;
+    }
+    .upload-error {
+        color: #a21c1c;
+        line-height: 1.5;
+    }
+    .upload-results ul {
+        list-style: none;
+        padding: 0;
+    }
+    .upload-results li {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #dedede;
+        overflow-wrap: anywhere;
+    }
+    .upload-results strong {
+        font-size: 0.8rem;
+    }
+    .upload-results progress {
+        width: 100%;
+        accent-color: #9b741b;
+    }
+    .upload-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1rem;
+    }
+    button {
+        font: inherit;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #8a8a8a;
+        border-radius: 0.25rem;
+        background: #fff;
+        color: #242424;
+        cursor: pointer;
+    }
+    button.button {
+        margin: 0;
+        background: #fecf6f;
+        border-color: #b8913f;
+    }
+    button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    :focus-visible {
+        outline: 2px solid #242424;
+        outline-offset: 2px;
+    }
 }

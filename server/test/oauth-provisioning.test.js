@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { once } from "node:events";
 import http from "node:http";
-import fs from "node:fs";
+import { storageTokens } from "../services/tokenStore.js";
 import dotenv from "dotenv";
 import axios from "axios";
 import { createOAuthProof, createLocalOAuthCallback, hashOAuthValue } from "../utils/oauthProof.js";
@@ -51,13 +51,7 @@ test("the OneDrive CLI exchanges PKCE through a loopback callback and saves toke
     const messages = [],
         saved = [];
     t.mock.method(console, "log", (value) => messages.push(value));
-    const originalExists = fs.existsSync;
-    t.mock.method(fs, "existsSync", (file) =>
-        String(file).endsWith(".token") ? false : originalExists(file),
-    );
-    t.mock.method(fs, "writeFileSync", (file, value, options) =>
-        saved.push({ file, value, options }),
-    );
+    t.mock.method(storageTokens, "save", async (data) => saved.push(data));
     t.mock.method(axios, "post", async (url, data) => {
         const params = new URLSearchParams(data);
         const authorize = new URL(
@@ -91,8 +85,9 @@ test("the OneDrive CLI exchanges PKCE through a loopback callback and saves toke
     assert.equal(response.status, 200);
     assert.match(await response.text(), /tokens saved/);
     await running;
-    assert.equal(saved.length, 2);
-    assert.ok(saved.every((file) => file.options.mode === 0o600));
+    assert.deepEqual(saved, [
+        { refresh_token: "synthetic-refresh-secret", access_token: "synthetic-access-secret" },
+    ]);
     assert.doesNotMatch(
         messages.join("\n"),
         /synthetic-refresh-secret|synthetic-access-secret|synthetic-client-secret/,

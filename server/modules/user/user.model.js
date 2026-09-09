@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 import Joi from "joi";
 import AppError from "../../utils/appError.js";
-import axios from "axios";
+import { graph } from "../../services/graphClient.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
@@ -102,11 +102,7 @@ export const updateUserData = async (userId, userData) => {
     return { name: saved.name, semester: saved.semester };
 };
 
-export const getUserFromToken = (accessToken) =>
-    axios.get("https://graph.microsoft.com/v1.0/me", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        timeout: 30000,
-    });
+export const getUserFromToken = (accessToken) => graph.request("me", { token: accessToken });
 
 export const findUserWithEmail = async function (email) {
     const normalizedEmail = email?.toString().trim().toLowerCase();

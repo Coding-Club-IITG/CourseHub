@@ -45,6 +45,7 @@ async function openPage(
     const page = await context.newPage();
     const errors = [];
     const requests = [];
+    let operation;
     page.on("pageerror", (error) => errors.push(error.message));
     t.after(async () => {
         if (process.env.BROWSER_ARTIFACT_DIR) {
@@ -134,19 +135,39 @@ async function openPage(
             data = { unverifiedContributions: moderationQueue };
         else if (url.pathname.startsWith("/api/files/verify/"))
             data = { file: { ...libraryFile, isVerified: true } };
+        else if (url.pathname === "/api/contribution/limits")
+            data = { fileBytes: 104857600, batchBytes: 1073741824, files: 40, concurrentFiles: 2 };
+        else if (url.pathname === "/api/operations")
+            data = { items: [], page: 1, pageSize: 20, total: 0 };
+        else if (url.pathname.startsWith("/api/operations/")) data = operation;
         else if (url.pathname === "/api/contribution/") {
-            data =
-                request.method() === "POST"
-                    ? {
-                          created: true,
-                          data: {
-                              ...JSON.parse(request.postData()),
-                              contributionId: "server-issued-contribution",
-                          },
-                      }
-                    : [];
-        } else if (url.pathname === "/api/contribution/upload") data = libraryFile._id;
-        else if (url.pathname === "/api/files/download")
+            if (request.method() === "POST") {
+                status = 201;
+                operation = {
+                    id: "server-issued-contribution",
+                    kind: "upload",
+                    name: "File upload",
+                    status: "awaiting",
+                    canCancel: true,
+                    entries: JSON.parse(request.postData()).manifest.map((file, index) => ({
+                        ...file,
+                        id: "entry-" + index,
+                        state: "pending",
+                        uploadedBytes: 0,
+                    })),
+                };
+                data = operation;
+            } else data = [];
+        } else if (url.pathname === "/api/contribution/upload") {
+            status = 202;
+            operation.status = "completed";
+            operation.canCancel = false;
+            operation.entries.forEach((entry) => {
+                entry.state = "completed";
+                entry.uploadedBytes = entry.size;
+            });
+            data = { operationId: operation.id };
+        } else if (url.pathname === "/api/files/download")
             data = { downloadLink: `/api/files/content/${libraryFile._id}?download=1` };
         else if (url.pathname === `/api/files/content/${libraryFile._id}`) {
             assert.ok(hasSession);
@@ -258,6 +279,11 @@ test("FilePond sends credentials and the contribution association across origins
     assert.ok(created?.hasSession && uploaded?.hasSession);
     const manifest = JSON.parse(created.body);
     assert.equal(uploaded.headers["contribution-id"], "server-issued-contribution");
+    assert.match(created.headers["idempotency-key"], /^[a-f0-9-]{36}$/);
+    assert.equal(uploaded.headers["upload-file-id"], "entry-0");
+    assert.deepEqual(manifest.manifest, [
+        { name: "synthetic-notes.pdf", size: Buffer.byteLength("%PDF-1.4\nTest notes\n%%EOF") },
+    ]);
     assert.equal(manifest.contributionId, undefined);
     assert.equal(manifest.uploadedBy, undefined);
     assert.equal(manifest.approved, undefined);

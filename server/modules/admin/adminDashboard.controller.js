@@ -2,10 +2,12 @@ import {
     presentCourse,
     requireFile,
     requireFolder,
+    requireCourse,
     courseContext,
     libraryGraph,
 } from "../../services/authorization.js";
-import { removeFolderFromCourse, removeFile } from "../../services/resourceRemoval.js";
+import { scheduleDeletion } from "../../services/deletions.js";
+import { mutateContent } from "../../services/contentMutation.js";
 import { presentContribution } from "../contribution/contribution.controller.js";
 import AppError from "../../utils/appError.js";
 import CourseModel, { FileModel, FolderModel } from "../course/course.model.js";
@@ -39,15 +41,17 @@ export async function uploadCourses(req, res) {
         for (const { code, name } of results) {
             if (!code || !name) continue;
             const codeUpper = normalizeCourseCode(code);
-            const course = await CourseModel.findOne({
-                code: getCourseCodeCaseInsensitiveRegex(codeUpper),
+            await mutateContent(req, [codeUpper], async () => {
+                const course = await CourseModel.findOne({
+                    code: getCourseCodeCaseInsensitiveRegex(codeUpper),
+                });
+                if (!course) await CourseModel.create({ code: codeUpper, name });
+                else {
+                    course.code = codeUpper;
+                    course.name = name;
+                    await course.save();
+                }
             });
-            if (!course) await CourseModel.create({ code: codeUpper, name });
-            else {
-                course.code = codeUpper;
-                course.name = name;
-                await course.save();
-            }
         }
         return CourseModel.find({});
     });
@@ -71,16 +75,16 @@ export async function getCourseDashboardData(req, res) {
     res.json({ course, studentCount, contributions });
 }
 export async function deleteNode(req, res) {
-    const { type, id } = req.params;
-    if (type === "file") {
-        const { file } = await requireFile(req, id, req.body.courseCode, "canManage");
-        await removeFile(file);
-        return res.json({ success: true });
-    }
-    if (type !== "folder") throw new AppError(400, "Invalid node type");
-    res.json(await removeFolderFromCourse(req, id, req.body.courseCode));
+    if (!["file", "folder"].includes(req.params.type)) throw new AppError(400, "Invalid node type");
+    res.status(202).json(
+        await scheduleDeletion(req, {
+            kind: req.params.type,
+            id: req.params.id,
+            code: req.body.courseCode,
+        }),
+    );
 }
-export async function handleContribution(req, res) {
+async function approveContribution(req, res) {
     const { contributionId, action } = req.body;
     if (typeof contributionId !== "string" || !["approve", "reject"].includes(action))
         throw new AppError(400, "Invalid contribution action");
@@ -91,21 +95,34 @@ export async function handleContribution(req, res) {
     // Validate the entire stored manifest before the first side effect.
     for (const file of contribution.files)
         await requireFile(req, String(file._id), code, "canModerate");
-    if (action === "approve") {
-        await FileModel.updateMany(
-            { _id: { $in: contribution.files.map((f) => f._id) } },
-            { $set: { isVerified: true } },
-        );
-        contribution.approved = true;
-        await contribution.save();
-    } else {
-        for (const file of contribution.files) await removeFile(file);
-        await Contribution.deleteOne({ _id: contribution._id });
-    }
+    await FileModel.updateMany(
+        { _id: { $in: contribution.files.map((file) => file._id) } },
+        { $set: { isVerified: true } },
+    );
+    contribution.approved = true;
+    await contribution.save();
     res.json({ success: true });
 }
 
-export async function renameCourse(req, res, next) {
+export async function handleContribution(req, res) {
+    if (
+        typeof req.body.contributionId !== "string" ||
+        !["approve", "reject"].includes(req.body.action)
+    )
+        throw new AppError(400, "Invalid contribution action");
+    const code = courseContext(req.body.courseCode);
+    if (req.body.action === "reject")
+        return res.status(202).json(
+            await scheduleDeletion(req, {
+                kind: "contribution",
+                id: req.body.contributionId,
+                code,
+            }),
+        );
+    return mutateContent(req, [code], () => approveContribution(req, res));
+}
+
+async function renameCourseAction(req, res, next) {
     const { code } = req.params;
     const { name, newCode } = req.body;
 
@@ -222,160 +239,18 @@ export async function renameCourse(req, res, next) {
 
 /**
  * Delete a course and remove it from all users' course lists
- * @description This function safely deletes a course by:
- * 1. Removing the course from all users who have it in their courses, previousCourses, or readOnly arrays
- * 2. Deleting all associated folders and files from the database
- * 3. Deleting all contributions related to this course
- * 4. Marking the course as unavailable in search results
- * 5. Finally deleting the course itself from the database
- * @param {Object} req - Express request object with course code in params
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
  */
-export async function deleteCourse(req, res, next) {
-    const { code } = req.params;
-
-    if (!code) {
-        return next(new AppError(400, "Course code required"));
-    }
-
-    const codeUpper = normalizeCourseCode(code);
-    if (!codeUpper) {
-        return next(new AppError(400, "Course code required"));
-    }
-    const codeRegex = getCourseCodeCaseInsensitiveRegex(codeUpper);
-
-    try {
-        // Find the course first
-        const course = await CourseModel.findOne({ code: codeRegex });
-        if (!course) {
-            return next(new AppError(404, "Course not found"));
-        }
-
-        // Find all users who have this course and remove it from their lists
-        const users = await User.find({
-            $or: [
-                { courses: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
-                {
-                    previousCourses: {
-                        $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } },
-                    },
-                },
-                { readOnly: { $elemMatch: { code: { $regex: `^${codeUpper}$`, $options: "i" } } } },
-            ],
-        });
-
-        // Remove the course from each user's lists
-        for (const user of users) {
-            // Remove from courses array
-            user.courses = user.courses.filter((c) => normalizeCourseCode(c.code) !== codeUpper);
-
-            // Remove from previousCourses array
-            user.previousCourses = user.previousCourses.filter(
-                (c) => normalizeCourseCode(c.code) !== codeUpper,
-            );
-
-            // Remove from readOnly array
-            user.readOnly = user.readOnly.filter((c) => normalizeCourseCode(c.code) !== codeUpper);
-
-            await user.save();
-
-            // Delete user update records for affected users
-            await UserUpdate.deleteOne({ rollNumber: user.rollNumber });
-        }
-
-        // Delete all associated folders and files
-        // Find all folders associated with this course
-        const courseFolders = await FolderModel.find({ courses: codeRegex }).populate("children");
-
-        // Process folders that contain files first
-        for (const folder of courseFolders) {
-            if (folder.childType === "File" && folder.children && folder.children.length > 0) {
-                // Delete all files in this folder using the file deletion logic
-                for (const file of folder.children) {
-                    try {
-                        // Check if this folder is shared with other courses
-                        // If it is, we might not want to delete the files?
-                        // BUT if the user is deleting the course, they probably expect the data to be cleaned up
-                        // UNLESS it's a shared folder.
-                        // If it's a shared folder, we should ONLY delete files if we are deleting the last reference.
-                        if (folder.courses.length <= 1) {
-                            await removeFile(file);
-                        }
-                    } catch (fileError) {
-                        logger.error("Admin file deletion failed", {
-                            error: fileError,
-                            attributes: {
-                                dependency: "microsoft-graph",
-                                operation: "delete-file",
-                                outcome: "failure",
-                                retryable: true,
-                            },
-                        });
-                        throw fileError;
-                    }
-                }
-            }
-        }
-
-        // Now handle folders: if shared, just pull the code; if not, delete.
-        for (const folder of courseFolders) {
-            if (folder.courses.length > 1) {
-                await FolderModel.updateOne({ _id: folder._id }, { $pull: { courses: codeUpper } });
-            } else {
-                await FolderModel.deleteOne({ _id: folder._id });
-            }
-        }
-
-        // Delete all contributions related to this course
-        const contributionsDeleted = await Contribution.deleteMany({ courseCode: codeRegex });
-
-        // Update search results to mark course as unavailable
-        const searchResult = await SearchResults.findOne({ code: codeRegex });
-        if (searchResult) {
-            await SearchResults.updateOne({ code: codeRegex }, { isAvailable: false });
-        }
-
-        // Finally, delete the course from the database
-        await CourseModel.deleteOne({ code: codeRegex });
-
-        res.json({
-            message: "Course deleted successfully",
-            deletedCourse: course,
-            affectedUsers: users.length,
-            deletedContributions: contributionsDeleted.deletedCount,
-        });
-    } catch (error) {
-        return next(error);
-    }
+export async function deleteCourse(req, res) {
+    res.status(202).json(await scheduleDeletion(req, { kind: "course", code: req.params.code }));
 }
 
-/**
+/*
  * Internal helper to link a legacy course to a target course
  */
-const activeLinkLocks = new Map();
-
-async function performLinkWithLock(targetCodeRaw, sourceCodeRaw) {
-    const targetCode = normalizeCourseCode(targetCodeRaw);
-    const lockKey = targetCode || "global";
-
-    while (activeLinkLocks.has(lockKey)) {
-        await activeLinkLocks.get(lockKey);
-    }
-
-    let resolver;
-    const lockPromise = new Promise((resolve) => {
-        resolver = resolve;
-    });
-    activeLinkLocks.set(lockKey, lockPromise);
-
-    try {
-        const result = await performLink(targetCodeRaw, sourceCodeRaw);
-        return result;
-    } finally {
-        activeLinkLocks.delete(lockKey);
-        resolver();
-    }
+async function performLinkWithLock(targetCodeRaw, sourceCodeRaw, req) {
+    return mutateContent(req, [targetCodeRaw, sourceCodeRaw], () =>
+        performLink(targetCodeRaw, sourceCodeRaw),
+    );
 }
 
 async function getAllFolderIdsUnderTree(startFolderId) {
@@ -411,42 +286,15 @@ async function addCourseToFolderTree(startFolderId, codeToAdd) {
 }
 
 async function removeCourseFromFolderTree(startFolderId, codeToRemove) {
-    const folderIds = await getAllFolderIdsUnderTree(startFolderId);
-    if (folderIds.length === 0) return;
-
-    const folders = await FolderModel.find({ _id: { $in: folderIds } });
-    const foldersToDelete = [];
-    const foldersToUpdate = [];
-
-    for (const folder of folders) {
-        const remainingCourses = (folder.courses || []).filter((c) => c !== codeToRemove);
-        if (remainingCourses.length === 0) {
-            foldersToDelete.push(folder._id);
-        } else {
-            foldersToUpdate.push(folder._id);
-        }
-    }
-
-    if (foldersToDelete.length > 0) {
-        const fileFolders = await FolderModel.find({
-            _id: { $in: foldersToDelete },
-            childType: "File",
-        }).select("children");
-
-        for (const f of fileFolders) {
-            for (const fileId of f.children) {
-                await removeFile(fileId);
-            }
-        }
-        await FolderModel.deleteMany({ _id: { $in: foldersToDelete } });
-    }
-
-    if (foldersToUpdate.length > 0) {
-        await FolderModel.updateMany(
-            { _id: { $in: foldersToUpdate } },
-            { $pull: { courses: codeToRemove } },
-        );
-    }
+    const ids = await getAllFolderIdsUnderTree(startFolderId);
+    const populated = await FolderModel.exists({
+        _id: { $in: ids },
+        childType: "File",
+        "children.0": { $exists: true },
+    });
+    if (populated) throw new AppError(409, "A populated year cannot be replaced", "LINK_CONFLICT");
+    // Linking detaches empty structures
+    await FolderModel.updateMany({ _id: { $in: ids } }, { $pull: { courses: codeToRemove } });
 }
 
 async function performLink(targetCodeRaw, sourceCodeRaw) {
@@ -529,7 +377,7 @@ async function performLink(targetCodeRaw, sourceCodeRaw) {
             }
             // Delete and un-link all other duplicate empty folders
             for (const d of docs) {
-                if (d._id.toString() !== chosen._id.toString()) {
+                if (d._id.toString() !== chosen._id.toString() && (await isFolderEmpty(d._id))) {
                     await removeCourseFromFolderTree(d._id, targetCode);
                     updatedTargetChildIds = updatedTargetChildIds.filter(
                         (id) => id !== d._id.toString(),
@@ -602,7 +450,7 @@ export async function linkLegacyCourse(req, res, next) {
     }
 
     try {
-        const course = await performLinkWithLock(code, legacyCode);
+        const course = await performLinkWithLock(code, legacyCode, req);
         res.json({ message: "Legacy course linked successfully", course });
     } catch (error) {
         return next(error);
@@ -673,7 +521,7 @@ export async function bulkLinkCourses(req, res) {
             if (!oldCode || !newCode) continue;
 
             try {
-                await performLinkWithLock(newCode, oldCode);
+                await performLinkWithLock(newCode, oldCode, req);
                 summary.success++;
             } catch (err) {
                 summary.failed++;
@@ -693,4 +541,11 @@ export async function syncCoursesCacheController(req, res, next) {
     } catch (err) {
         next(err);
     }
+}
+
+export async function renameCourse(req, res, next) {
+    const context = await requireCourse(req, req.params.code, "canManage");
+    return mutateContent(req, [context.code, req.body.newCode].filter(Boolean), () =>
+        renameCourseAction(req, res, next),
+    );
 }

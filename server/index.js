@@ -28,11 +28,15 @@ import { requestContext, requestErrorHandler } from "./middleware/requestErrors.
 import Session from "./modules/session/session.model.js";
 import { OAuthAttempt } from "./services/oauth.js";
 import { AuthRateLimit } from "./middleware/authThrottle.js";
+import operationRoutes from "./modules/operation/operation.routes.js";
+import { OperationModel, CourseLock, StorageLease } from "./modules/operation/operation.model.js";
+import { startOperationWorker } from "./services/operationWorker.js";
 
 const app = express();
 const server = http.createServer(app);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let scheduler;
+let operationWorker;
 let shutdownPromise;
 
 app.set("trust proxy", validateSecuritySettings());
@@ -61,6 +65,7 @@ app.use("/api/files", fileRoutes);
 app.use("/api/folder", folderRoutes);
 app.use("/api/year", yearRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/operations", operationRoutes);
 app.use("/api", (req, res) =>
     res.status(404).json({ error: true, message: "API endpoint not found" }),
 );
@@ -93,6 +98,7 @@ export function shutdown({ signal, error, exitCode }) {
             });
         else lifecycleLogger.info("Server shutdown started", details);
         scheduler?.stop();
+        await operationWorker?.stop();
         await closeServer();
         await mongoose.disconnect();
         await flushLogging();
@@ -115,7 +121,12 @@ process.once("unhandledRejection", (error) => void terminate({ error, exitCode: 
 
 export async function start() {
     await connectDatabase();
-    await Promise.all([Session, OAuthAttempt, AuthRateLimit].map((model) => model.createIndexes()));
+    await Promise.all(
+        [Session, OAuthAttempt, AuthRateLimit, OperationModel, CourseLock, StorageLease].map(
+            (model) => model.createIndexes(),
+        ),
+    );
+    operationWorker = startOperationWorker();
     scheduler = initScheduler();
     await new Promise((resolve, reject) => {
         server.once("error", reject);

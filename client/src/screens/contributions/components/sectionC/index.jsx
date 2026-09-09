@@ -1,7 +1,7 @@
 import "./styles.scss";
 const SectionC = (props) => {
     const offHandler = (event) => {
-        if (event.target.id === "contri") {
+        if (event.target.id === "contri" && !props.busy) {
             const collection = document.getElementsByClassName("contri");
             const contributionSection = collection[0];
             contributionSection.classList.remove("show");

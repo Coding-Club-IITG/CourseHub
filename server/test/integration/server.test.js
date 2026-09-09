@@ -12,13 +12,15 @@ import path from "node:path";
 import axios from "axios";
 import User from "../../modules/user/user.model.js";
 import { Readable } from "node:stream";
+import { storage } from "../../services/storage.js";
+import { OperationModel } from "../../modules/operation/operation.model.js";
+import { processOperation } from "../../services/operationWorker.js";
 import CourseAllotment from "../../modules/course/courseAllotment.model.js";
 import { academicPeriod } from "../../services/authorization.js";
 import UserUpdate from "../../modules/user/userUpdate.model.js";
 import Course, { FolderModel, FileModel } from "../../modules/course/course.model.js";
 import Contribution from "../../modules/contribution/contribution.model.js";
-import { upload } from "../../modules/contribution/contribution.routes.js";
-import { clearAccessTokenCache } from "../../modules/onedrive/onedrive.controller.js";
+import { upload } from "../../middleware/receiveUpload.js";
 import { guardExternalServices } from "../support/provider-guards.js";
 import { student, course, year, folder } from "../fixtures/library.js";
 import { app } from "../../index.js";
@@ -55,6 +57,7 @@ before(async () => {
     );
     await db.collection("_testRun").insertOne({ _id: "owner", token: owner });
     ownsDatabase = true;
+    await OperationModel.createIndexes();
 
     listener = app.listen(0, "127.0.0.1");
     await once(listener, "listening");
@@ -289,138 +292,95 @@ test("authenticated browsing and multipart upload persist content with mocked Gr
     const unsigned = await fetch(origin + "/api/course/CS101");
     assert.equal(unsigned.status, 401);
 
+    const contents = Buffer.from("%PDF-1.4\nSynthetic upload test\n%%EOF\n");
+    const filename = "notes.pdf";
     const created = await fetch(origin + "/api/contribution", {
         method: "POST",
-        headers: { ...headers, "content-type": "application/json" },
+        headers: {
+            ...headers,
+            "content-type": "application/json",
+            "idempotency-key": randomUUID(),
+        },
         body: JSON.stringify({
             courseCode: "CS101",
             parentFolder: folder._id,
             description: "Test upload",
+            manifest: [0, 1].map(() => ({ name: filename, size: contents.length })),
         }),
     });
-    assert.equal(created.status, 200);
-    const createdData = await created.json();
-    assert.equal(createdData.created, true);
-    const contributionId = createdData.data.contributionId;
-
-    clearAccessTokenCache();
-    t.after(clearAccessTokenCache);
-    for (const method of ["existsSync", "readFileSync", "writeFileSync"]) {
-        const original = fs[method];
-        t.mock.method(fs, method, (file, ...rest) => {
-            if (!String(file).endsWith(".token")) return original(file, ...rest);
-            if (method === "existsSync") return true;
-            if (method === "readFileSync") return "test-refresh-token";
-        });
-    }
-    const calls = [];
-    t.mock.method(axios, "post", async (url) => {
-        calls.push(url);
-        if (url.startsWith("https://login.microsoftonline.com/"))
-            return {
-                data: {
-                    access_token: "test-access",
-                    expires_in: 3600,
-                    refresh_token: "test-refresh",
-                },
-            };
-        if (url.endsWith("/createUploadSession")) {
-            assert.ok(url.includes("/test-storage-root:/"));
-            return { data: { uploadUrl: "https://upload.example.test/session" } };
-        }
-        if (url.endsWith("/createLink"))
-            return { data: { link: { webUrl: "https://example.test/notes" } } };
-        assert.fail(`Unexpected mock Graph POST: ${url}`);
-    });
-    const contents = Buffer.from("%PDF-1.4\nSynthetic upload test\n%%EOF\n");
-    let uploadedCount = 0;
-    t.mock.method(axios, "put", async (url, bytes, config) => {
-        calls.push(url);
-        assert.equal(url, "https://upload.example.test/session");
-        assert.deepEqual(bytes, contents);
-        assert.equal(
-            config.headers["Content-Range"],
-            `bytes 0-${contents.length - 1}/${contents.length}`,
-        );
-        return {
-            data: {
-                id: uploadedCount++ ? "second-uploaded-drive-file" : "test-uploaded-drive-file",
-                size: contents.length,
-            },
-        };
-    });
-    t.mock.method(axios, "get", async (url) => {
-        calls.push(url);
-        if (url.endsWith("/thumbnails")) return { data: { value: [] } };
-        if (url.endsWith("/test-uploaded-drive-file/content"))
-            return {
-                data: Readable.from([contents]),
-                headers: { "content-type": "application/pdf" },
-            };
-        assert.fail(`Unexpected mock Graph GET: ${url}`);
-    });
+    assert.equal(created.status, 201, await created.clone().text());
+    const operation = await created.json();
+    const remoteNames = [];
     const temporaryPaths = [];
-    const handleFile = upload.storage._handleFile;
-    t.mock.method(upload.storage, "_handleFile", function (req, file, callback) {
-        handleFile.call(this, req, file, (error, info) => {
-            if (info?.path) temporaryPaths.push(info.path);
-            callback(error, info);
+    t.mock.method(storage, "upload", async (args) => {
+        remoteNames.push(args.remoteName);
+        temporaryPaths.push(args.filename);
+        assert.deepEqual(await fs.promises.readFile(args.filename), contents);
+        assert.match(path.basename(args.filename), /^[a-f0-9-]{36}\.upload$/);
+        return { id: "test-uploaded-drive-file-" + remoteNames.length };
+    });
+    t.mock.method(storage, "content", async () => ({
+        data: Readable.from([contents]),
+        headers: { "content-type": "application/pdf" },
+    }));
+    for (const entry of operation.entries) {
+        const form = new FormData();
+        form.append("file", new Blob([contents]), filename);
+        const response = await fetch(origin + "/api/contribution/upload", {
+            method: "POST",
+            headers: {
+                ...headers,
+                "contribution-id": operation.id,
+                "upload-file-id": entry.id,
+                username: "forged",
+            },
+            body: form,
         });
-    });
-    const filename = `test-${randomUUID()}.pdf`;
-    const renamedPath = path.join("external/uploads", filename.replace(".pdf", "~TestStudent.pdf"));
-    t.after(async () => {
-        for (const file of [...temporaryPaths, renamedPath])
-            await fs.promises.rm(file, { force: true });
-    });
-    const form = new FormData();
-    form.append("file", new Blob([contents], { type: "application/pdf" }), filename);
-    const uploaded = await fetch(origin + "/api/contribution/upload", {
-        method: "POST",
-        headers: { ...headers, "contribution-id": contributionId, username: "TestStudent" },
-        body: form,
-    });
-    assert.equal(uploaded.status, 200, await uploaded.clone().text());
-    const id = await uploaded.text();
-    const saved = await FileModel.findById(id);
-    assert.equal(saved.fileId, "test-uploaded-drive-file");
-    assert.equal(saved.isVerified, false);
-    assert.equal(Number(saved.size), contents.length);
-    const savedContribution = await Contribution.findOne({ contributionId });
-    assert.equal(savedContribution.uploadedBy, person.id);
-    assert.ok(savedContribution.files.some((file) => file.toString() === id));
-    assert.ok(
-        (await FolderModel.findById(folder._id)).children.some((file) => file.toString() === id),
-    );
-    assert.equal(temporaryPaths.length, 1);
-    assert.ok(temporaryPaths.every((file) => !fs.existsSync(file)));
-    assert.equal(fs.existsSync(renamedPath), false);
-    const download = await fetch(origin + `/api/files/content/${id}`, {
-        headers,
-    });
-    assert.equal(download.status, 200);
-    assert.deepEqual(Buffer.from(await download.arrayBuffer()), contents);
-    assert.equal(saved.name, filename.replace(".pdf", "~Library Test Student.pdf"));
-    const secondForm = new FormData();
-    secondForm.append("file", new Blob([contents], { type: "application/pdf" }), filename);
-    const secondUpload = await fetch(origin + "/api/contribution/upload", {
-        method: "POST",
-        headers: { ...headers, "contribution-id": contributionId },
-        body: secondForm,
-    });
-    assert.equal(secondUpload.status, 200);
-    const second = await FileModel.findById(await secondUpload.text());
-    assert.equal(second.name, saved.name);
-    assert.notEqual(second.fileId, saved.fileId);
-    const sessions = calls.filter((url) => url.endsWith("/createUploadSession"));
-    assert.equal(sessions.length, 2);
+        assert.equal(response.status, 202, await response.clone().text());
+    }
+    assert.equal(await processOperation(operation.id), true);
+    const completed = await (
+        await fetch(origin + "/api/operations/" + operation.id, { headers })
+    ).json();
+    assert.equal(completed.status, "completed", JSON.stringify(completed));
     assert.equal(
-        new Set(sessions).size,
+        new Set(remoteNames).size,
         2,
-        "Equal display names must target different storage paths",
+        "Equal display names have distinct storage identities",
     );
-    assert.ok(temporaryPaths.every((file) => !fs.existsSync(file)));
-    assert.equal(calls.filter((url) => url === "https://upload.example.test/session").length, 2);
+    for (const entry of completed.entries) {
+        const saved = await FileModel.findById(entry.fileId);
+        assert.equal(saved.isVerified, false);
+        assert.equal(saved.sizeBytes, contents.length);
+        assert.equal(saved.name, filename);
+        assert.equal(saved.contributorName, person.name);
+        const contribution = await Contribution.findOne({ contributionId: operation.id });
+        assert.equal(contribution.uploadedBy, person.id);
+        assert.ok(contribution.files.some((id) => String(id) === entry.fileId));
+        assert.ok(
+            (await FolderModel.findById(folder._id)).children.some(
+                (id) => String(id) === entry.fileId,
+            ),
+        );
+        const download = await fetch(origin + "/api/files/content/" + entry.fileId, { headers });
+        assert.equal(download.status, 200);
+        assert.deepEqual(Buffer.from(await download.arrayBuffer()), contents);
+    }
+    assert.equal(temporaryPaths.length, 2);
+    assert.ok(temporaryPaths.every((filename) => !fs.existsSync(filename)));
+    const retry = new FormData();
+    retry.append("file", new Blob([contents]), filename);
+    const replay = await fetch(origin + "/api/contribution/upload", {
+        method: "POST",
+        headers: {
+            ...headers,
+            "contribution-id": operation.id,
+            "upload-file-id": operation.entries[0].id,
+        },
+        body: retry,
+    });
+    assert.equal(replay.status, 202);
+    assert.equal(remoteNames.length, 2, "A repeated upload request does not create another file");
 });
 
 test("an administrator session can explicitly create a course", async () => {
@@ -458,3 +418,6 @@ test("course permission and moderation boundaries", async (t) =>
 import { exerciseSessionSecurity } from "../support/session-security.js";
 test("session, OAuth, CSRF and profile boundaries", async (t) =>
     exerciseSessionSecurity(t, origin));
+
+import { exerciseOperations } from "../support/operations.js";
+test("upload and deletion journal recovery", async (t) => exerciseOperations(t, origin));

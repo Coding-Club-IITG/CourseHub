@@ -90,7 +90,8 @@ export async function requireCourse(req, value, action = "read") {
         throw new AppError(403, "You do not have permission for this course");
     const graph = await libraryGraph(req);
     const course = graph.courses.get(code);
-    if (!course) throw new AppError(404, "Course not found");
+    if (!course || (course.deletingOperation && course.deletingOperation !== req.operationId))
+        throw new AppError(404, "Course not found");
     return { course, code, actor, capabilities: permitted };
 }
 
@@ -99,8 +100,12 @@ export async function libraryGraph(req) {
     if (!req.authorizationGraph)
         req.authorizationGraph = (async () => {
             const [courses, folders] = await Promise.all([
-                Course.find().select("_id code name children books createdAt updatedAt").lean(),
-                FolderModel.find().select("_id name courses childType children").lean(),
+                Course.find()
+                    .select("_id code name children books createdAt updatedAt deletingOperation")
+                    .lean(),
+                FolderModel.find()
+                    .select("_id name courses childType children deletingOperation")
+                    .lean(),
             ]);
             const graph = {
                 courses: new Map(courses.map((c) => [normalizeCourseCode(c.code), c])),
@@ -113,6 +118,8 @@ export async function libraryGraph(req) {
                 map.get(id).add(code);
             };
             for (const [code, course] of graph.courses) {
+                if (course.deletingOperation && course.deletingOperation !== req.operationId)
+                    continue;
                 const visited = new Set();
                 const walk = (id, ancestors = new Set()) => {
                     id = idOf(id);
@@ -120,7 +127,12 @@ export async function libraryGraph(req) {
                         throw new AppError(409, "Course tree requires repair");
                     if (visited.has(id)) return;
                     const folder = graph.folders.get(id);
-                    if (!folder || !codesOf(folder.courses).includes(code)) return;
+                    if (
+                        !folder ||
+                        !codesOf(folder.courses).includes(code) ||
+                        (folder.deletingOperation && folder.deletingOperation !== req.operationId)
+                    )
+                        return;
                     visited.add(id);
                     add(graph.folderCourses, id, code);
                     if (folder.childType === "File")
@@ -146,7 +158,13 @@ export async function requireFolder(req, id, value, action = "read") {
         : action === "read"
           ? affectedCourses[0]
           : courseContext(value);
-    if (!code || !affectedCourses.includes(code)) throw new AppError(404, "Folder not found");
+    if (
+        !code ||
+        !affectedCourses.includes(code) ||
+        (graph.folders.get(id)?.deletingOperation &&
+            graph.folders.get(id).deletingOperation !== req.operationId)
+    )
+        throw new AppError(404, "Folder not found");
     const course = await requireCourse(req, code, action);
     return { ...course, folder: graph.folders.get(id), affectedCourses };
 }
@@ -165,6 +183,7 @@ async function ownedFiles(req) {
 }
 
 export async function canReadFile(req, file) {
+    if (file.deletingOperation || file.resourceState === "uploading") return false;
     const [actor, graph] = await Promise.all([actorFor(req), libraryGraph(req)]);
     const courses = [...(graph.fileCourses.get(idOf(file)) || [])];
     if (!courses.length) return false;
@@ -184,7 +203,13 @@ export async function requireFile(req, id, value, action = "read") {
         actorFor(req),
     ]);
     const affectedCourses = [...(graph.fileCourses.get(id) || [])].sort();
-    if (!file || !affectedCourses.length) throw new AppError(404, "File not found");
+    if (
+        !file ||
+        !affectedCourses.length ||
+        (file.deletingOperation && file.deletingOperation !== req.operationId) ||
+        file.resourceState === "uploading"
+    )
+        throw new AppError(404, "File not found");
     const code = value
         ? courseContext(value)
         : action === "read"
@@ -204,6 +229,8 @@ export async function presentFile(req, file, code) {
         _id: id,
         name: file.name,
         size: file.size,
+        sizeBytes: file.sizeBytes,
+        contributorName: file.contributorName,
         isVerified: file.isVerified === true,
         webUrl: `/api/files/preview/${id}`,
         downloadUrl: `/api/files/content/${id}?download=1`,
@@ -238,7 +265,8 @@ export async function presentFolder(req, id, code) {
         actorFor(req),
     ]);
     const folder = graph.folders.get(idOf(id));
-    if (!folder || !graph.folderCourses.get(idOf(id))?.has(code)) return null;
+    if (!folder || folder.deletingOperation || !graph.folderCourses.get(idOf(id))?.has(code))
+        return null;
     const children = (
         await Promise.all(
             folder.children.map(async (child) =>
@@ -275,29 +303,4 @@ export async function visibleFiles(req) {
     return Promise.all(
         [...(await visibleFileMap(req)).values()].map((file) => presentFile(req, file)),
     );
-}
-
-export async function authorizeContributionUpload(req, res, next) {
-    try {
-        const id = req.headers["contribution-id"];
-        if (typeof id !== "string" || !id || id.length > 100)
-            throw new AppError(404, "Contribution not found");
-        const contribution = await Contribution.findOne({
-            contributionId: id,
-            uploadedBy: (await actorFor(req)).id,
-        });
-        if (!contribution) throw new AppError(404, "Contribution not found");
-        const context = await requireFolder(
-            req,
-            idOf(contribution.parentFolder),
-            contribution.courseCode,
-            "canContribute",
-        );
-        if (context.folder.childType !== "File") throw new AppError(400, "Choose a file folder");
-        req.contribution = contribution;
-        req.contributionApproved = context.capabilities.canManage;
-        next();
-    } catch (error) {
-        next(error);
-    }
 }

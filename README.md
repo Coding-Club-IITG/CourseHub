@@ -161,7 +161,7 @@ It supports student and BR management, course dashboards, bulk course imports, c
 
 The Node.js and Express API owns authentication, authorization, course and file metadata, contribution review, and administration workflows.
 MongoDB stores the application data, while Microsoft Graph and OneDrive provide file storage and delivery.
-ImageKit stores permanent thumbnails instead of relying on expiring OneDrive preview URLs.
+The API refreshes Graph thumbnails and continues serving existing ImageKit thumbnails after authorization.
 
 Course allotments are cached in MongoDB after they are resolved from IITG's academic data.
 A scheduled job synchronizes the shared course cache each month.
@@ -262,6 +262,7 @@ npm run build
 
 - [Usage Guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material)
 - [Authentication and session configuration](docs/authentication.md)
+- [Storage configuration, uploads, and operation recovery](docs/storage-operations.md)
 - [Course linking and shared-folder model](./docs/course_link_logic.md)
 - [Frontend caching](./docs/frontend-caching.md)
 

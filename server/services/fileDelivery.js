@@ -1,9 +1,8 @@
-import axios from "axios";
 import { pipeline } from "node:stream/promises";
 import { requireFile } from "./authorization.js";
-import { getAccessToken } from "../modules/onedrive/onedrive.controller.js";
+import { storage } from "./storage.js";
+import { thumbnailStream } from "./thumbnails.js";
 import AppError from "../utils/appError.js";
-import { isImageKitUrl } from "./imagekit.js";
 
 export async function filePreview(req, res) {
     const { file } = await requireFile(req, req.params.id, req.query.courseCode);
@@ -18,22 +17,28 @@ export async function filePreview(req, res) {
         if (
             url?.protocol === "https:" &&
             /(^|\.)(sharepoint\.com|onedrive\.live\.com|1drv\.ms)$/i.test(url.hostname)
-        )
+        ) {
+            await storage.withinRoot(file.fileId);
             return res.redirect(url.href);
+        }
     }
+    if (
+        /\.(doc|docx|dot|dotx|dotm|odp|ods|odt|pps|ppsx|ppt|pptx|rtf|xls|xlsm|xlsx)$/i.test(
+            file.name,
+        )
+    )
+        req.previewAsPdf = true;
     return fileContent(req, res);
 }
 
 export async function fileContent(req, res) {
     const { file } = await requireFile(req, req.params.id, req.query.courseCode);
-    const token = await getAccessToken();
-    const response = await axios.get(
-        `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(file.fileId)}/content`,
-        {
-            headers: { Authorization: `Bearer ${token}` },
-            responseType: "stream",
-        },
-    );
+    const controller = new AbortController();
+    res.once("close", () => controller.abort());
+    const response = await storage.content(file.fileId, {
+        signal: controller.signal,
+        ...(req.previewAsPdf ? { format: "pdf" } : {}),
+    });
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
     const contentType = response.headers["content-type"] || "application/octet-stream";
@@ -44,7 +49,7 @@ export async function fileContent(req, res) {
         /^(application\/pdf|image\/(png|jpeg|webp|gif))(;|$)/i.test(contentType);
     res.setHeader(
         "Content-Disposition",
-        `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+        `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(req.previewAsPdf ? file.name.replace(/\.[^.]+$/, ".pdf") : file.name)}`,
     );
     if (response.headers["content-length"])
         res.setHeader("Content-Length", response.headers["content-length"]);
@@ -54,19 +59,9 @@ export async function fileContent(req, res) {
 
 export async function fileThumbnail(req, res) {
     const { file } = await requireFile(req, req.params.id, req.query.courseCode);
-    let url = typeof file.thumbnail === "string" ? file.thumbnail : file.thumbnail?.url;
-    if (!url || !isImageKitUrl(url)) {
-        const token = await getAccessToken();
-        const { data } = await axios.get(
-            `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(file.fileId)}/thumbnails`,
-            {
-                headers: { Authorization: `Bearer ${token}` },
-            },
-        );
-        url = data.value?.[0]?.medium?.url;
-    }
-    if (!url) throw new AppError(404, "Thumbnail not found");
-    const response = await axios.get(url, { responseType: "stream" });
+    const controller = new AbortController();
+    res.once("close", () => controller.abort());
+    const response = await thumbnailStream(file, { signal: controller.signal });
     const type = response.headers["content-type"] || "";
     if (!/^image\/(png|jpeg|webp|gif)(;|$)/i.test(type)) {
         response.data.destroy();
