@@ -1,4 +1,5 @@
 const examScheduleData = {
+    period: { year: 2026, session: "July-Nov" },
     courseSlotMap: {
         BM5103H: "B",
         BM5105H: "D",

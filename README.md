@@ -275,6 +275,7 @@ Start with the guide that matches what you are trying to understand:
 | [Runtime and Database Models](docs/runtime-and-models.md)                 | Request errors, shutdown, validated references and compatibility with existing data.                     |
 | [Course Linking & Shared Folders](docs/course_link_logic.md)              | Why folders are shared, how populated years are preserved, and how unlinking differs from file deletion. |
 | [Shared Course Trees: Server Implementation](docs/shared-course-trees.md) | Reachable membership, linking API results, locks, recovery and tree limits.                              |
+| [Data Sources and Maintenance](docs/data-sources.md)                      | What is scraped, what needs manual input, refresh triggers, and the semester checklist.                  |
 | [Academic Synchronization](docs/academic-synchronization.md)              | Current/history registrations, ordinary versus force refresh, empty data and failure behavior.           |
 | [Course References and Data Maintenance](docs/data-maintenance.md)        | Renames, old bookmarks, inventory, staged imports and reviewed migration recovery.                       |
 | [Authentication and Sessions](docs/authentication.md)                     | Student/admin login, permissions, cookies, CSRF and environment configuration.                           |
@@ -282,6 +283,7 @@ Start with the guide that matches what you are trying to understand:
 | [Frontend Sessions](docs/frontend-sessions.md)                            | Session restoration, sign-in destinations, request errors and retries.                                   |
 | [Frontend Caching](docs/frontend-caching.md)                              | Query caches, URL selection, shared invalidation and freshness checks.                                   |
 | [Favourites and Sharing](docs/favourites-and-sharing.md)                  | Saving files, current paths, shared destinations, access checks and unavailable resources.               |
+| [Exam Schedules](docs/exam-schedules.md)                                  | Course timetables, countdowns, missing dates, and semester rollover.                                     |
 
 The [public usage guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material) provides a broader introduction to CourseHub.
 

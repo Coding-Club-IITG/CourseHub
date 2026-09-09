@@ -1,3 +1,4 @@
+import { unavailableExamResponse } from "../fixtures/exams.js";
 import { linkingOperation } from "../fixtures/linking.js";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
@@ -106,8 +107,7 @@ async function studentPage(
                 status: 302,
                 headers: { location: frontend + url.searchParams.get("returnTo") },
             });
-        } else if (url.pathname === "/api/event/examdates")
-            data = { dates: { midSem: "2026-09-15", endSem: "2026-11-25" } };
+        } else if (url.pathname === "/api/event/examdates") data = unavailableExamResponse;
         else return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
         await route
             .fulfill({

@@ -1,3 +1,4 @@
+import { unavailableExamResponse } from "../fixtures/exams.js";
 import assert from "node:assert/strict";
 import { before, after, test } from "node:test";
 import { createRequire } from "node:module";
@@ -63,7 +64,7 @@ async function fixture(t, width, administrator = false) {
         else if (url.pathname === "/api/br/allBRs") data = { brs: [] };
         else if (url.pathname === "/api/operations") data = { items: [], total: 0 };
         else if (url.pathname === "/api/contribution/") data = [];
-        else if (url.pathname === "/api/event/examdates") data = { dates: {} };
+        else if (url.pathname === "/api/event/examdates") data = unavailableExamResponse;
         else if (
             url.pathname === "/api/user/synchronize" ||
             url.pathname.startsWith("/api/student/refresh/") ||

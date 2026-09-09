@@ -42,7 +42,7 @@ export const AddToFavourites = (id, code) =>
     });
 export const RemoveFromFavourites = (id) =>
     transport.json(`user/favourites/${id}`, { method: "DELETE" });
-export const GetExamDates = () => transport.json("event/examdates");
+export const GetExamSchedule = (signal) => transport.json("event/examdates", { signal });
 
 export const logoutUser = async () => {
     try {

@@ -1,7 +1,7 @@
 .exam-card {
     width: 250px;
     height: 150px;
-    background-color: #fff;
+    background-color: #fecf6f;
     padding: 10px 20px;
     display: flex;
     flex-direction: column;
@@ -23,6 +23,10 @@
     }
     .name {
         text-align: right;
+    }
+
+    .ndays .word {
+        font-size: clamp(1.5rem, 3vw, 2.5rem);
     }
 
     @media screen and (max-width: 768px) {

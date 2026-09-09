@@ -428,6 +428,10 @@ import { exerciseAcademicReferences } from "../support/academic-references.js";
 test("course reference maintenance and academic synchronization", async (t) =>
     exerciseAcademicReferences(t, origin));
 
+import { exerciseExams } from "../support/exams.js";
+test("authenticated exam schedules and current registrations", async (t) =>
+    exerciseExams(t, origin));
+
 test("unknown destructive filters fail before changing any records", async () => {
     const files = await FileModel.find().sort({ _id: 1 }).lean();
     assert.ok(files.length > 0, "Exercise the filter guard against populated data");

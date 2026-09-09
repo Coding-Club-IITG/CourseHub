@@ -1,22 +1,14 @@
-$small: 1000px;
-$medium: 1250px;
-
 .contributionbanner {
     background-color: #fecf6f;
 
     .content {
-        max-width: 1400px;
-        padding: 0px 32px 0 64px;
-        margin: auto;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        height: 250px;
+        align-items: flex-start;
+        gap: 32px;
 
         .left {
-            margin: 40px 0;
             flex: 1;
+            min-width: 0;
 
             .title {
                 font-family: "Bold";
@@ -24,89 +16,31 @@ $medium: 1250px;
             }
 
             .para {
-                margin-top: 0.8rem;
+                margin-top: 16px;
                 font-size: 1rem;
+                line-height: 1.5;
             }
         }
 
         .middle {
-            background-image: url(contribute.svg), none;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100%;
             flex: 1;
-        }
-
-        .right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-
-            .upwings {
-                height: 40px;
-                background: url(./components/button/up.svg), none;
-                background-repeat: no-repeat;
-                background-position: center;
-                width: 100%;
-                animation: wingBobUp 3s ease-in-out infinite alternate;
-            }
-
-            .downwings {
-                height: 40px;
-                background: url(./components/button/down.svg), none;
-                background-repeat: no-repeat;
-                background-position: center;
-                width: 100%;
-                animation: wingBobDown 3s ease-in-out infinite alternate;
-            }
+            min-width: 0;
+            height: 220px;
+            background: url(contribute.svg) center / contain no-repeat;
         }
     }
 
-    @media screen and (max-width: $small) {
+    @media screen and (max-width: 680px) {
         .content {
-            height: 100%;
-            justify-content: center;
-
-            .left {
-                margin: 40px 0;
-            }
+            flex-direction: column;
+            gap: 24px;
 
             .middle {
-                flex: 1;
-                background-image: url(contribute_smallscreen.svg), none;
-                height: 250px;
-                background-position: center;
-            }
-
-            .right {
-                .upwings,
-                .downwings {
-                    display: none;
-                }
+                flex: none;
+                width: 100%;
+                height: 180px;
+                background-image: url(contribute_smallscreen.svg);
             }
         }
-    }
-}
-
-#contribute-info {
-}
-
-@keyframes wingBobUp {
-    from {
-        transform: translateY(0);
-    }
-    to {
-        transform: translateY(-5px);
-    }
-}
-
-@keyframes wingBobDown {
-    from {
-        transform: translateY(0);
-    }
-    to {
-        transform: translateY(5px);
     }
 }

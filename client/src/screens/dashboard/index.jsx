@@ -14,25 +14,25 @@ import ContributionBanner from "./components/contributionbanner";
 import Footer from "../../components/footer";
 
 import ExamScheduleWidget from "./components/examschedule";
+import { useExamSchedule } from "../../queries/exams";
 
 import { useNavigate } from "react-router-dom";
 
 import formatName from "../../utils/formatName";
 import formatBranch from "../../utils/formatBranch";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getColors } from "../../utils/colors";
 
 import Contributions from "../contributions";
 import AddCourseModal from "./components/addcoursemodal";
-import { AddNewCourseAPI, GetExamDates } from "../../api/User";
+import { AddNewCourseAPI } from "../../api/User";
 import { toast } from "react-toastify";
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const user = useSession().data;
 
-    const [midSem, setMidSem] = useState(0);
-    const [endSem, setEndSem] = useState(0);
+    const examQuery = useExamSchedule();
     const [openSemesters, setOpenSemesters] = useState({});
 
     const toggleSemester = (semIndex) => {
@@ -84,32 +84,6 @@ const Dashboard = () => {
         toast.success(`Course ${removedCode.toUpperCase()} removed`);
     };
 
-    useEffect(() => {
-        let active = true;
-        async function run() {
-            try {
-                const data = await GetExamDates();
-                if (!active) return;
-                const { dates } = data;
-                const midSemDate = new Date(dates.midSem);
-                const endSemDate = new Date(dates.endSem);
-                const now = Date.now();
-                const daysTillMidsem = parseInt((midSemDate.getTime() - now) / (1000 * 3600 * 24));
-                setMidSem(daysTillMidsem);
-                const daysEndSem = parseInt((endSemDate.getTime() - now) / (1000 * 3600 * 24));
-                setEndSem(daysEndSem);
-            } catch {
-                // Keep the schedule unavailable when the date service fails
-            }
-        }
-        queueMicrotask(() => {
-            if (active) run();
-        });
-        return () => {
-            active = false;
-        };
-    }, []);
-
     const handleClick = (code) => {
         let Code = code.replaceAll(" ", "");
 
@@ -119,11 +93,10 @@ const Dashboard = () => {
     const [showPrevious, setShowPrevious] = useState(false);
 
     return (
-        <div className="App">
+        <div className="App dashboard-page">
             <div>
                 <NavBar />
-                <Container color={"dark"}>
-                    <Space amount={20} />
+                <Container color={"dark"} className="dashboard-section">
                     <div className="split">
                         <div className="welcome-container">
                             <Heading text={"Welcome,"} type={""} color={"light"} />
@@ -134,14 +107,12 @@ const Dashboard = () => {
                             />
                         </div>
 
-                        <div className="exam-card-container">
-                            {midSem >= 0 && (
-                                <ExamCard days={midSem} name={"Mid-Sem Exam"} color={"#FECF6F"} />
-                            )}
-                            {endSem >= 0 && (
-                                <ExamCard days={endSem} name={"End-Sem Exam"} color={"#FECF6F"} />
-                            )}
-                        </div>
+                        {examQuery.data?.status !== "excluded" && (
+                            <div className="exam-card-container">
+                                <ExamCard query={examQuery} type="midSem" name="Mid-Sem Exam" />
+                                <ExamCard query={examQuery} type="endSem" name="End-Sem Exam" />
+                            </div>
+                        )}
                     </div>
                     <Space amount={50} />
                     <SubHeading text={"MY COURSES"} color={"light"} type={"bold"} />
@@ -276,10 +247,8 @@ const Dashboard = () => {
                             )}
                         </>
                     )}
-                    <Space amount={50} />
                 </Container>
-                <Space amount={50} />
-                <Container color={"light"}>
+                <Container color={"light"} className="dashboard-section">
                     <section className="favourites-section" aria-labelledby="favourites-heading">
                         <h2 id="favourites-heading">Favourites</h2>
                         {user.favourites?.length ? (
@@ -293,8 +262,7 @@ const Dashboard = () => {
                         )}
                     </section>
                 </Container>
-                <ExamScheduleWidget />
-                <Space amount={50} />
+                <ExamScheduleWidget query={examQuery} />
                 <ContributionBanner contributionHandler={contributionHandler} />
             </div>
             <div>

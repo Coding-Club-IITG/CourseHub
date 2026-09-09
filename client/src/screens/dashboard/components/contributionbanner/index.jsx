@@ -1,7 +1,8 @@
 import "./styles.scss";
+import Container from "../../../../components/container";
 const ContributionBanner = () => {
     return (
-        <div className="contributionbanner">
+        <Container className="dashboard-section contributionbanner">
             <div className="content">
                 <div className="left">
                     <p className="title">Help your fellow mates!</p>
@@ -15,7 +16,7 @@ const ContributionBanner = () => {
                 </div>
                 <div className="middle"></div>
             </div>
-        </div>
+        </Container>
     );
 };
 

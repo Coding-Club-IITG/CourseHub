@@ -1,3 +1,4 @@
+import { unavailableExamResponse } from "../fixtures/exams.js";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -180,8 +181,7 @@ async function openPage(
                     "content-disposition": 'attachment; filename="Lecture notes.pdf"',
                 },
             });
-        } else if (url.pathname === "/api/event/examdates")
-            data = { dates: { midSem: "2026-09-15", endSem: "2026-11-25" } };
+        } else if (url.pathname === "/api/event/examdates") data = unavailableExamResponse;
         else if (url.pathname === "/api/search") data = { found: true, results: [course] };
         else if (url.pathname === "/api/user/favourites") data = [];
         else {

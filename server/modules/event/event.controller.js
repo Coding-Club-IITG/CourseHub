@@ -1,12 +1,8 @@
-import EventModel from "./event.model.js";
-import AppError from "../../utils/appError.js";
+import { getExamSchedule } from "../../services/examSchedule.js";
 
-async function GetExamDates(req, res, next) {
-    const semester = req.user.semester;
-    const examDates = await EventModel.findOne();
-    if (!examDates) return next(new AppError(404, "Data not available"));
-    if (semester === 1) return res.json({ dates: examDates.firstYearDates });
-    return res.json({ dates: examDates.otherDates });
+async function GetExamDates(req, res) {
+    res.set("Cache-Control", "private, no-store");
+    return res.json(await getExamSchedule(req.user));
 }
 
 export default { GetExamDates };

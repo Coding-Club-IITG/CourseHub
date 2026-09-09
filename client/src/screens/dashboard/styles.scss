@@ -176,8 +176,29 @@
     }
 }
 
-.welcome-container {
+.dashboard-page {
+    --dashboard-section-padding: 32px;
+
+    .dashboard-section > .container-content {
+        padding-block: var(--dashboard-section-padding);
+    }
+
     @media screen and (max-width: 768px) {
-        padding: 8px;
+        --dashboard-section-padding: 24px;
+    }
+
+    @media screen and (max-width: 680px) {
+        .exam-card-container {
+            width: 100%;
+            padding: 0;
+            gap: 12px;
+
+            .exam-card {
+                flex: 1;
+                min-width: 0;
+                width: auto;
+                margin: 0;
+            }
+        }
     }
 }

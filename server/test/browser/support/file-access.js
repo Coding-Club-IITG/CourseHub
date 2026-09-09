@@ -1,3 +1,4 @@
+import { unavailableExamResponse } from "../../fixtures/exams.js";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -143,7 +144,7 @@ export async function fileAccessFixture(browser, t, { width = 1440, role = "stud
         else if (url.pathname === "/api/contribution/limits")
             data = { fileBytes: 104857600, batchBytes: 1073741824, files: 40, concurrentFiles: 2 };
         else if (url.pathname === "/api/contribution/") data = [];
-        else if (url.pathname === "/api/event/examdates") data = { dates: {} };
+        else if (url.pathname === "/api/event/examdates") data = unavailableExamResponse;
         else status = 404;
         await route
             .fulfill({ status, contentType: "application/json", body: JSON.stringify(data) })

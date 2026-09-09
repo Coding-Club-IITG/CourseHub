@@ -1,21 +1,29 @@
 .exam-schedule-container {
     width: 100%;
-    padding: 10px 0px;
+    color: #fff;
 
     .schedule-header {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
+        align-items: flex-start;
+        gap: 16px;
+
+        h2 {
+            font-family: "Bold", sans-serif;
+            font-size: 1.5rem;
+            margin: 0;
+        }
 
         .schedule-toggle-group {
             display: inline-flex;
             background-color: #000;
             padding: 3px;
+            border: 1px solid #555;
             gap: 2px;
 
             .toggle-tab {
+                border: 0;
+                background: transparent;
                 padding: 6px 20px;
                 font-family: "Bold";
                 font-size: 0.9rem;
@@ -45,20 +53,59 @@
         }
     }
 
+    button:focus-visible {
+        outline: 2px solid #fecf6f;
+        outline-offset: 4px;
+    }
+    .schedule-complete {
+        text-align: left;
+        color: #ddd;
+        margin-bottom: 16px;
+    }
+    .schedule-notice {
+        padding: 16px;
+        border: 1px solid #555;
+        margin: 0 0 20px;
+        max-width: 680px;
+    }
+    .missing-courses {
+        overflow-wrap: anywhere;
+        margin-top: 8px;
+    }
+    .schedule-retry {
+        background: #fecf6f;
+        color: #000;
+        border: 0;
+        padding: 10px 16px;
+        margin-top: 12px;
+        font: inherit;
+        cursor: pointer;
+        &:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+    }
+    .exam-state {
+        font-size: 0.75rem;
+        font-family: "Bold";
+        text-align: right;
+    }
+
     .examcard-list {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 0px;
-        gap: 0;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 0;
+        gap: 20px;
     }
 
     .exam-item-card {
         width: 210px;
-        height: 165px;
+        min-height: 165px;
         padding: 12px;
-        margin: 10px;
+        margin: 0;
+        color: #000;
         position: relative;
         flex-shrink: 0;
         display: flex;
@@ -139,18 +186,18 @@
     .schedule-empty-state {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        align-items: flex-start;
+        justify-content: flex-start;
         width: 100%;
-        padding: 20px 0;
+        padding: 0;
 
         .empty-message {
             width: 100%;
-            text-align: center;
+            text-align: left;
             font-weight: 530;
             font-size: 1.3rem;
             font-family: "Bold";
-            color: #222;
+            color: #eee;
             margin-bottom: 16px;
         }
 
@@ -158,41 +205,40 @@
             width: 100%;
             height: 280px;
             background: url(../../graphic-cropped.svg);
+            max-width: 400px;
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
-            margin-bottom: 24px;
+            margin: 0 auto;
             opacity: 0.85;
         }
     }
 
     .schedule-state-box {
         width: 100%;
-        text-align: center;
-        padding: 40px 0;
+        text-align: left;
+        padding: 12px 0;
 
         .state-text {
             font-family: "Bold";
             font-size: 1.1rem;
-            color: #555;
+            color: #ddd;
 
             &.error {
-                color: #d9534f;
+                color: #ffb4a6;
             }
         }
     }
 
     @media screen and (max-width: 768px) {
         .examcard-list {
-            justify-content: center;
-            padding: 0 5px;
+            gap: 12px;
         }
 
         .exam-item-card {
-            width: calc(50% - 10px);
-            min-width: 140px;
-            height: 155px;
-            margin: 5px;
+            width: calc(50% - 6px);
+            min-width: 0;
+            min-height: 155px;
             padding: 10px;
 
             .card-middle .course-name {
@@ -214,10 +260,7 @@
 
     @media screen and (max-width: 480px) {
         .exam-item-card {
-            width: calc(50% - 8px);
-            min-width: 120px;
-            height: 145px;
-            margin: 4px;
+            min-height: 145px;
             padding: 8px;
 
             .card-top {
@@ -247,10 +290,7 @@
 
     @media screen and (max-width: 360px) {
         .exam-item-card {
-            width: calc(50% - 6px);
-            min-width: 100px;
-            height: 135px;
-            margin: 3px;
+            min-height: 135px;
         }
     }
 }
