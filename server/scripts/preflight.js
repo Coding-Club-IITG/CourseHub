@@ -1,3 +1,2 @@
 const major = Number(process.versions.node.split(".")[0]);
-if (major < 22)
-    throw new Error(`CourseHub server requires Node 22+, found ${process.versions.node}`);
+if (major !== 24) throw new Error(`CourseHub requires Node 24, found ${process.versions.node}`);

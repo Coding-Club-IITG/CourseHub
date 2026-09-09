@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { normalizeCourseCode } from "@coursehub/domain";
+import { useState, useEffect } from "react";
 import {
-    FaPen,
     FaSearch,
     FaBook,
     FaPlus,
@@ -61,18 +61,26 @@ function Courses() {
     const itemsPerPage = 10;
 
     useEffect(() => {
+        let active = true;
         const loadCourses = async () => {
             try {
                 const data = await fetchCourses();
+                if (!active) return;
                 setCourses(data);
                 setLoading(false);
             } catch (error) {
+                if (!active) return;
                 console.error("Error loading courses:", error);
                 setCourses([]);
                 setLoading(false);
             }
         };
-        loadCourses();
+        queueMicrotask(() => {
+            if (active) loadCourses();
+        });
+        return () => {
+            active = false;
+        };
     }, []);
 
     const [savingEdit, setSavingEdit] = useState(false);
@@ -80,8 +88,15 @@ function Courses() {
 
     const handleRename = async (oldCode, newName, newCode) => {
         const updated = await updateCourseName(oldCode, newName, newCode);
-        if (!updated?.code) throw new Error("The saved course could not be confirmed. Your edits are retained.");
-        setCourses((courses) => courses.map((course) => course.code === oldCode ? { ...course, code: updated.code, name: updated.name } : course));
+        if (!updated?.code)
+            throw new Error("The saved course could not be confirmed. Your edits are retained.");
+        setCourses((courses) =>
+            courses.map((course) =>
+                course.code === oldCode
+                    ? { ...course, code: updated.code, name: updated.name }
+                    : course,
+            ),
+        );
     };
 
     const startEdit = (code, currentName) => {
@@ -104,7 +119,10 @@ function Courses() {
         if (!editingCode || savingEdit) return;
         const newCode = editedCode.trim().toUpperCase();
         const newName = editedName.trim();
-        if (!newCode || !newName) { setEditError("Enter a course code and name."); return; }
+        if (!newCode || !newName) {
+            setEditError("Enter a course code and name.");
+            return;
+        }
         setSavingEdit(true);
         setEditError(null);
         try {
@@ -112,8 +130,11 @@ function Courses() {
             setEditingCode(null);
             setEditedCode("");
             setEditedName("");
-        } catch (error) { setEditError(error.message || "Could not save the course. Your edits are retained."); }
-        finally { setSavingEdit(false); }
+        } catch (error) {
+            setEditError(error.message || "Could not save the course. Your edits are retained.");
+        } finally {
+            setSavingEdit(false);
+        }
     };
 
     const handleDeleteClick = (course) => {
@@ -167,7 +188,7 @@ function Courses() {
         const duplicates = [];
 
         courses.forEach((course) => {
-            const normalizedCode = course.code.replace(/\s+/g, "").toUpperCase();
+            const normalizedCode = normalizeCourseCode(course.code);
             if (codeCount[normalizedCode]) {
                 codeCount[normalizedCode].push(course);
             } else {
@@ -219,11 +240,11 @@ function Courses() {
                     errors.push(
                         `Row ${i + 1}: Missing ${
                             !code ? "code" : "name"
-                        } - Code: "${code}", Name: "${name}"`
+                        } - Code: "${code}", Name: "${name}"`,
                     );
                 } else {
                     data.push({
-                        code: code.replace(/\s+/g, "").toUpperCase(),
+                        code: normalizeCourseCode(code),
                         name: name.trim(),
                     });
                 }
@@ -242,14 +263,14 @@ function Courses() {
     };
 
     const analyzeUpload = (uploadedCourses) => {
-        const existingCodes = new Set(courses.map((c) => c.code.replace(/\s+/g, "").toUpperCase()));
+        const existingCodes = new Set(courses.map((c) => normalizeCourseCode(c.code)));
         const missingCourses = uploadedCourses.filter((course) => !existingCodes.has(course.code));
         const existingCourses = uploadedCourses.filter((course) => existingCodes.has(course.code));
 
         // Check for name mismatches
         const nameMismatchCourses = existingCourses.filter((uploadedCourse) => {
             const existingCourse = courses.find(
-                (c) => c.code.replace(/\s+/g, "").toUpperCase() === uploadedCourse.code
+                (c) => normalizeCourseCode(c.code) === uploadedCourse.code,
             );
             return existingCourse && existingCourse.name !== uploadedCourse.name;
         });
@@ -281,9 +302,8 @@ function Courses() {
                     uploadStats.nameMismatchData?.map((course) => ({
                         code: course.code,
                         csvName: course.name,
-                        dbName: courses.find(
-                            (c) => c.code.replace(/\s+/g, "").toUpperCase() === course.code
-                        )?.name,
+                        dbName: courses.find((c) => normalizeCourseCode(c.code) === course.code)
+                            ?.name,
                     })) || [],
             };
 
@@ -331,7 +351,7 @@ function Courses() {
     const totalPages = Math.max(1, Math.ceil(filteredCourses.length / itemsPerPage));
     const paginatedCourses = filteredCourses.slice(
         (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
+        currentPage * itemsPerPage,
     );
 
     // Ensure current page stays within range when filtering
@@ -344,9 +364,17 @@ function Courses() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
             <div className="p-6 space-y-6">
-                {editError && <p role="alert" className="text-red-700 px-4 py-2">{editError}</p>}
-            {savingEdit && <p role="status" className="px-4 py-2">Saving course and its references…</p>}
-            {/* Header Section */}
+                {editError && (
+                    <p role="alert" className="text-red-700 px-4 py-2">
+                        {editError}
+                    </p>
+                )}
+                {savingEdit && (
+                    <p role="status" className="px-4 py-2">
+                        Saving course and its references…
+                    </p>
+                )}
+                {/* Header Section */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 transition-all duration-300 hover:shadow-xl">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-4">
@@ -464,7 +492,7 @@ function Courses() {
                                         Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
                                         {Math.min(
                                             currentPage * itemsPerPage,
-                                            filteredCourses.length
+                                            filteredCourses.length,
                                         )}{" "}
                                         of {filteredCourses.length} results
                                     </div>
@@ -490,7 +518,7 @@ function Courses() {
                                                 size="sm"
                                                 onClick={() =>
                                                     handlePageChange(
-                                                        Math.min(totalPages, currentPage + 1)
+                                                        Math.min(totalPages, currentPage + 1),
                                                     )
                                                 }
                                                 disabled={currentPage === totalPages}
@@ -527,7 +555,7 @@ function Courses() {
                                     {paginatedCourses.map((course, index) => {
                                         const duplicates = getDuplicateCourses();
                                         const isDuplicate = duplicates.some(
-                                            (dup) => dup._id === course._id
+                                            (dup) => dup._id === course._id,
                                         );
 
                                         return (
@@ -537,10 +565,10 @@ function Courses() {
                                                     isDuplicate
                                                         ? "bg-red-50/80 border-l-4 border-red-400"
                                                         : hoveredRow === course.code
-                                                        ? "bg-blue-50/80 shadow-sm"
-                                                        : index % 2 === 0
-                                                        ? "bg-white/60"
-                                                        : "bg-gray-50/40"
+                                                          ? "bg-blue-50/80 shadow-sm"
+                                                          : index % 2 === 0
+                                                            ? "bg-white/60"
+                                                            : "bg-gray-50/40"
                                                 } hover:bg-blue-50/80 hover:shadow-sm`}
                                                 onMouseEnter={() => setHoveredRow(course.code)}
                                                 onMouseLeave={() => setHoveredRow(null)}
@@ -555,7 +583,8 @@ function Courses() {
                                                         )}
                                                         {editingCode === course.code ? (
                                                             <Input
-                                                                disabled={savingEdit} value={editedCode}
+                                                                disabled={savingEdit}
+                                                                value={editedCode}
                                                                 onChange={(e) =>
                                                                     setEditedCode(e.target.value)
                                                                 }
@@ -576,7 +605,8 @@ function Courses() {
                                                 <TableCell className="py-4 pl-6">
                                                     {editingCode === course.code ? (
                                                         <Input
-                                                            disabled={savingEdit} value={editedName}
+                                                            disabled={savingEdit}
+                                                            value={editedName}
                                                             onChange={(e) =>
                                                                 setEditedName(e.target.value)
                                                             }
@@ -600,7 +630,12 @@ function Courses() {
                                                             variant="secondary"
                                                             className="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-medium"
                                                         >
-                                                            {course.children ? course.children.length : 0} {course.children?.length === 1 ? "folder" : "folders"}
+                                                            {course.children
+                                                                ? course.children.length
+                                                                : 0}{" "}
+                                                            {course.children?.length === 1
+                                                                ? "folder"
+                                                                : "folders"}
                                                         </Badge>
                                                     </div>
                                                 </TableCell>
@@ -608,14 +643,19 @@ function Courses() {
                                                     <div className="flex items-center space-x-2">
                                                         {editingCode === course.code ? null : (
                                                             <>
-                                                            <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 w-8 p-0 hover:bg-blue-100/80 transition-all duration-200 transform hover:scale-110"
-                                                            title="View Course Dashboard"
-                                                            onClick={() => navigate(`/admin/courses/${course.code}`)}>
-                                                            <FaEye className="h-4 w-4 text-blue-600" />
-                                                            </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0 hover:bg-blue-100/80 transition-all duration-200 transform hover:scale-110"
+                                                                    title="View Course Dashboard"
+                                                                    onClick={() =>
+                                                                        navigate(
+                                                                            `/admin/courses/${course.code}`,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <FaEye className="h-4 w-4 text-blue-600" />
+                                                                </Button>
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
@@ -624,7 +664,7 @@ function Courses() {
                                                                     onClick={() =>
                                                                         startEdit(
                                                                             course.code,
-                                                                            course.name
+                                                                            course.name,
                                                                         )
                                                                     }
                                                                 >
@@ -689,8 +729,8 @@ function Courses() {
                                                             {showOnlyDuplicates
                                                                 ? "No courses with duplicate codes were found"
                                                                 : search
-                                                                ? "Try adjusting your search terms"
-                                                                : "No courses available"}
+                                                                  ? "Try adjusting your search terms"
+                                                                  : "No courses available"}
                                                         </p>
                                                     </div>
                                                 </div>

@@ -8,7 +8,7 @@ import { createFolder } from "../../../../api/Folder";
 import { ChangeFolder } from "../../../../actions/filebrowser_actions";
 import { useDispatch, useSelector } from "react-redux";
 import { ConfirmDialog } from "./confirmDialog";
-import server from "../../../../api/server";
+
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
@@ -53,7 +53,7 @@ const FolderInfo = ({
         if (
             currentFolder?.children &&
             currentFolder.children.some(
-                (item) => item.name.toLowerCase() === folderName.toLowerCase()
+                (item) => item.name.toLowerCase() === folderName.toLowerCase(),
             )
         ) {
             toast.error(`A file or folder named "${folderName}" already exists.`);
@@ -80,11 +80,11 @@ const FolderInfo = ({
                     ChangeFolder({
                         ...currentFolder,
                         children: [...(currentFolder.children || []), newFolder],
-                    })
+                    }),
                 );
             }
             toast.success(`Folder "${folderName}" created`);
-        } catch (error) {
+        } catch {
             toast.error("Failed to create folder.");
         }
         setShowConfirm(false);
@@ -118,9 +118,9 @@ const FolderInfo = ({
                                         .catch((error) => {
                                             console.error(
                                                 `Error processing file ${relativePath}:`,
-                                                error
+                                                error,
                                             );
-                                        })
+                                        }),
                                 );
                             }
                         });
@@ -200,8 +200,13 @@ const FolderInfo = ({
                     <div className="curr-folder" key={folderId || name}>
                         <p className="folder-name">{name}</p>
                         {currentFolder && (
-                            <span className="folder-header-count-badge" title={`${totalSubtreeFiles} total files in subtree`}>
-                                {totalSubtreeFiles === 0 ? "EMPTY" : `${totalSubtreeFiles} ${totalSubtreeFiles === 1 ? "FILE" : "FILES"}`}
+                            <span
+                                className="folder-header-count-badge"
+                                title={`${totalSubtreeFiles} total files in subtree`}
+                            >
+                                {totalSubtreeFiles === 0
+                                    ? "EMPTY"
+                                    : `${totalSubtreeFiles} ${totalSubtreeFiles === 1 ? "FILE" : "FILES"}`}
                             </span>
                         )}
                         <div className="folder-actions"></div>
@@ -223,7 +228,9 @@ const FolderInfo = ({
                         {canContribute && canDownload && (
                             <button className="btn primary" onClick={contributionHandler}>
                                 <span className="icon plus-icon"></span>
-                                <span className="text">{canManage ? "Add File" : "Contribute"}</span>
+                                <span className="text">
+                                    {canManage ? "Add File" : "Contribute"}
+                                </span>
                             </button>
                         )}
 

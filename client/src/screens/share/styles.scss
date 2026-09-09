@@ -1,7 +1,7 @@
 .share-heading {
     width: 100%;
     text-align: left;
-    font-family: 'bold';
+    font-family: "bold";
     font-size: 2rem;
 }
 
@@ -27,18 +27,25 @@
     }
 
     .clip {
-        background: url('./assets/clipboard.svg');
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        background: url("./assets/clipboard.svg");
         background-repeat: no-repeat;
         background-size: contain;
         background-position: center;
         width: 6%;
         margin-left: 1rem;
 
+        &:focus-visible {
+            outline: 2px solid black;
+            outline-offset: 3px;
+        }
+
         &:hover {
             scale: 1.2;
         }
     }
-
 }
 
 .bottom-banner {

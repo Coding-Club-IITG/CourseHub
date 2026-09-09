@@ -37,7 +37,13 @@ const PrivateRoutes = () => {
         return () => controller.abort();
     }, [loggedIn, dispatch, attempt]);
 
-    if (loggedIn) return <><Outlet /><OperationNotice /></>;
+    if (loggedIn)
+        return (
+            <>
+                <Outlet />
+                <OperationNotice />
+            </>
+        );
     if (status === "signed-out") return <Navigate to={`/?returnTo=${destination}`} replace />;
     if (status === "error") {
         return (

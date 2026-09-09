@@ -11,19 +11,19 @@ import {
     addReadOnly,
     deleteReadOnly,
 } from "./user.controller.js";
-import catchAsync from "../../utils/catchAsync.js";
+
 const router = Router();
 router.use(isAuthenticated);
 
-router.get("/", catchAsync(getUser));
-router.post("/synchronize", catchAsync(synchronizeCourses));
-router.put("/update", catchAsync(updateUserController));
+router.get("/", getUser);
+router.post("/synchronize", synchronizeCourses);
+router.put("/update", updateUserController);
 
-router.get("/favourites", catchAsync(getFavouritesController));
-router.post("/favourites", catchAsync(addToFavouriteController));
+router.get("/favourites", getFavouritesController);
+router.post("/favourites", addToFavouriteController);
 
-router.delete("/favourites/:id", catchAsync(removeFromFavouritesController));
-router.post("/readonly", catchAsync(addReadOnly));
-router.delete("/readonly/:code", catchAsync(deleteReadOnly));
-router.put("/devicetoken", catchAsync(updateDeviceToken));
+router.delete("/favourites/:id", removeFromFavouritesController);
+router.post("/readonly", addReadOnly);
+router.delete("/readonly/:code", deleteReadOnly);
+router.put("/devicetoken", updateDeviceToken);
 export default router;

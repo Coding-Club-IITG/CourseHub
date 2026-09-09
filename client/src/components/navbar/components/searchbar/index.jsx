@@ -1,6 +1,5 @@
-import React from "react";
 import "./styles.scss";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { GetSearchResult } from "../../../../api/Search";
 import formatLongText from "../../../../utils/formatLongText";
 import { useEffect } from "react";
@@ -13,31 +12,34 @@ const SearchBar = ({ type }) => {
     const [loading, setLoading] = useState(false);
     const [fetched, setFetched] = useState({});
     const [error, setError] = useState(false);
-    const courses = useSelector((state) =>
-        state.user.user.courses
-            .concat(state.user.user?.previousCourses?.flatMap((sem) => sem.courses) || [])
-            .concat(state.user.user?.readOnly)
+    const user = useSelector((state) => state.user.user);
+    const courses = useMemo(
+        () =>
+            (user?.courses || [])
+                .concat(user?.previousCourses?.flatMap((sem) => sem.courses) || [])
+                .concat(user?.readOnly || []),
+        [user],
     );
     const [searchResultStyle, setSearchResultStyle] = useState({
-        "max-height": "15%",
+        maxHeight: "15%",
     });
     useEffect(() => {
-        if (!error && searched) {
+        if (!error && searched && Array.isArray(fetched?.results)) {
             if (fetched?.results.length == 1) {
                 setSearchResultStyle({
-                    "max-height": "15%",
+                    maxHeight: "15%",
                 });
             } else if (fetched?.results.length == 2) {
                 setSearchResultStyle({
-                    "max-height": "20%",
+                    maxHeight: "20%",
                 });
             } else {
                 setSearchResultStyle({
-                    "max-height": "28%",
+                    maxHeight: "28%",
                 });
             }
         }
-    }, [fetched]);
+    }, [fetched, error, searched]);
 
     const handleSubmit = async (value) => {
         if (!value) return;
@@ -50,7 +52,7 @@ const SearchBar = ({ type }) => {
                     value.replaceAll(" ", "").toLowerCase()
                 );
             });
-            const fetched = await GetSearchResult(value.split(" "));
+            await GetSearchResult(value.split(" "));
             const data = {
                 found: fetched2 ? true : false,
                 results: [
@@ -66,7 +68,7 @@ const SearchBar = ({ type }) => {
             setFetched(data);
             setError(false);
             setLoading(false);
-        } catch (error) {
+        } catch {
             setSearched(true);
             setLoading(false);
             setError(true);
@@ -103,7 +105,6 @@ const SearchBar = ({ type }) => {
                             <SmallLoader text="Searching..." />
                         ) : fetched?.found ? (
                             <>
-                                
                                 {fetched.results.map((result) => {
                                     return (
                                         <>

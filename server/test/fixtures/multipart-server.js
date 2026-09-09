@@ -6,7 +6,6 @@ import express from "express";
 import multer from "multer";
 import { multipartLimits, parseMultipart } from "../../middleware/multipart.js";
 import { requestContext, requestErrorHandler } from "../../middleware/requestErrors.js";
-import catchAsync from "../../utils/catchAsync.js";
 
 // A child process contains any parser crash or event-loop stall in hostile input tests.
 if (!process.send) throw new Error("Start this fixture through the multipart test runner");
@@ -38,7 +37,7 @@ let completed = 0;
 let errors = 0;
 const app = express();
 app.use(requestContext);
-const finish = catchAsync(async (req, res) => {
+const finish = async (req, res) => {
     completed++;
     const files = req.files || (req.file ? [req.file] : []);
     const result = [];
@@ -53,7 +52,7 @@ const finish = catchAsync(async (req, res) => {
         await fs.promises.unlink(file.path);
     }
     res.json({ files: result, fields: req.body });
-});
+};
 app.post("/multiple", parseMultipart(upload.array("file")), finish);
 app.post("/single", parseMultipart(upload.single("file")), finish);
 app.post("/interrupt", parseMultipart(interruptedUpload.array("file")), finish);

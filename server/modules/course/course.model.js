@@ -1,12 +1,13 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../../config/mongoose.js";
+import { folderChildTypes } from "@coursehub/domain";
 
 const FolderSchema = Schema({
     deletingOperation: String,
     courses: [{ type: String, required: true }],
     name: { type: String, required: true },
-    childType: { type: String, enum: ["File", "Folder"], required: true },
+    childType: { type: String, enum: folderChildTypes, required: true },
     children: [{ type: Schema.Types.ObjectId, refPath: "childType" }],
-    totalFileCount: { type: Number, default: 0 },
+    totalFileCount: { type: Number, min: 0, validate: Number.isSafeInteger, default: 0 },
 });
 
 export const FolderModel = model("Folder", FolderSchema);
@@ -15,11 +16,22 @@ const FileSchema = Schema({
     deletingOperation: String,
     uploadOperation: String,
     resourceState: { type: String, enum: ["uploading", "ready"], default: "ready" },
-    sizeBytes: { type: Number, min: 0 },
+    // Missing legacy byte counts remain unknown until a reviewed migration supplies evidence.
+    sizeBytes: {
+        type: Number,
+        min: 0,
+        max: Number.MAX_SAFE_INTEGER,
+        validate: Number.isSafeInteger,
+    },
     contributorName: String,
     name: { type: String, required: true },
     fileId: { type: String, required: true },
-    size: { type: String, required: true },
+    size: {
+        type: String,
+        required: function () {
+            return this.sizeBytes == null;
+        },
+    },
     thumbnail: {
         url: { type: String },
         fileId: { type: String },

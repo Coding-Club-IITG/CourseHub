@@ -7,7 +7,7 @@ import CourseLinking from "./pages/CourseLinking";
 import PrivateRoute from "./router_utils/PrivateRoutes";
 import Login from "./pages/Login";
 import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import CourseDashboard from "./pages/CourseDashboard";
 import Operations from "./pages/Operations";
 
@@ -19,12 +19,22 @@ function App() {
                     <Sidebar />
                     <main className="flex-1 min-h-screen">
                         <Routes>
-                            <Route path="/admin/operations" element={<PrivateRoute><Operations /></PrivateRoute>} />
-                            <Route path = "/admin/courses/:code" element = {
-                                <PrivateRoute>
-                                    <CourseDashboard/>
-                                </PrivateRoute>
-                            }/>
+                            <Route
+                                path="/admin/operations"
+                                element={
+                                    <PrivateRoute>
+                                        <Operations />
+                                    </PrivateRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/courses/:code"
+                                element={
+                                    <PrivateRoute>
+                                        <CourseDashboard />
+                                    </PrivateRoute>
+                                }
+                            />
                             <Route path="/admin/login" element={<Login />} />
                             <Route
                                 path="/admin/"
@@ -79,7 +89,7 @@ function App() {
                         </Routes>
                     </main>
                 </div>
-                <ToastContainer position="bottom-right" autoClose={5000}/>
+                <ToastContainer position="bottom-right" autoClose={5000} />
             </div>
         </Router>
     );

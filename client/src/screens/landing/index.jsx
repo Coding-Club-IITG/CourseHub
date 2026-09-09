@@ -20,9 +20,11 @@ const LandingPage = () => {
     }, []);
 
     useEffect(() => {
+        const controller = new AbortController();
         async function getAuth() {
             try {
-                const { data } = await getUser();
+                const { data } = await getUser(controller.signal);
+                if (controller.signal.aborted) return;
                 if (!data) {
                     dispatch(LogoutUser());
                     setLoading(false);
@@ -30,14 +32,19 @@ const LandingPage = () => {
                 }
                 dispatch(LoginUser(data));
                 setLoading(false);
-                navigate(loginDestination(new URLSearchParams(window.location.search).get("returnTo")), { replace: true });
-            } catch (error) {
+                navigate(
+                    loginDestination(new URLSearchParams(window.location.search).get("returnTo")),
+                    { replace: true },
+                );
+            } catch {
+                if (controller.signal.aborted) return;
                 dispatch(LogoutUser());
                 setLoading(false);
             }
         }
         getAuth();
-    }, []);
+        return () => controller.abort();
+    }, [dispatch, navigate]);
 
     return loading ? (
         <div
@@ -68,7 +75,6 @@ const LandingPage = () => {
                         </div>
                         <div className="btn-container">
                             <MicrosoftSignIn setClicked={handleLogin} />
-                            
                         </div>
                     </div>
                 </div>

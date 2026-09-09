@@ -22,16 +22,14 @@
     }
 }
 
-
 .golden-circular-loader {
-    border: 3px solid #d4af37; 
-    border-top: 3px solid transparent; 
+    border: 3px solid #d4af37;
+    border-top: 3px solid transparent;
     border-radius: 50%;
-    width: 48px; 
-    height: 48px; 
+    width: 48px;
+    height: 48px;
     animation: spin 1s linear infinite;
 }
-
 
 @keyframes spin {
     0% {

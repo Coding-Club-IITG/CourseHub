@@ -1,5 +1,4 @@
-const normalizeCourseCacheCode = (code) =>
-    code?.toString()?.replace(/\s+/g, "")?.toLowerCase() || "";
+import { normalizeCourseCode as normalizeCourseCacheCode } from "@coursehub/domain";
 
 const getTreeSize = (course) => (Array.isArray(course?.children) ? course.children.length : -1);
 
@@ -33,14 +32,13 @@ export const findCachedCourse = (courses, code) => {
     if (!normalizedCode) return null;
 
     const matches = courses.filter(
-        (course) => normalizeCourseCacheCode(course?.code) === normalizedCode
+        (course) => normalizeCourseCacheCode(course?.code) === normalizedCode,
     );
     if (matches.length === 0) return null;
 
     const bestMatch = matches.reduce((best, current) =>
-        getTreeSize(current) >= getTreeSize(best) ? current : best
+        getTreeSize(current) >= getTreeSize(best) ? current : best,
     );
 
     return hasUsableCourseTree(bestMatch) ? bestMatch : null;
 };
-

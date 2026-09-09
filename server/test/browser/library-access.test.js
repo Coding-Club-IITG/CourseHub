@@ -177,6 +177,7 @@ async function openPage(
                 headers: {
                     "access-control-allow-origin": frontend,
                     "access-control-allow-credentials": "true",
+                    "content-disposition": 'attachment; filename="Lecture notes.pdf"',
                 },
             });
         } else if (url.pathname === "/api/event/examdates")
@@ -298,11 +299,12 @@ test("individual and ZIP download requests use authorized resource IDs and crede
     const { page, requests } = await openPage(t);
     await page.goto(`${frontend}/browse/CS101/${folder._id}`);
     await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
-    const link = await page.evaluate(async () => {
-        const { getFileDownloadLink } = await import("/src/api/File.js");
-        return getFileDownloadLink("507f1f77bcf86cd799439021", "CS101");
-    });
-    assert.equal(link, `${api}/api/files/content/${libraryFile._id}?download=1`);
+    const individualDownload = page.waitForEvent("download");
+    await page.locator(".file-display").first().hover();
+    await page.locator(".file-display .download").first().click();
+    const individual = await individualDownload;
+    assert.equal(individual.url(), `${api}/api/files/content/${libraryFile._id}?download=1`);
+    assert.equal(individual.suggestedFilename(), "Lecture notes.pdf");
     const saved = page.waitForEvent("download");
     await page.getByTitle("Download entire folder as ZIP", { exact: true }).click();
     assert.match((await saved).suggestedFilename(), /\.zip$/);
@@ -461,4 +463,112 @@ test("thumbnail backgrounds send the session cookie to the resource-ID endpoint"
     await page.goto(frontend + `/browse/CS101/${folder._id}`);
     assert.equal((await loaded).status(), 200);
     assert.ok(requests.find((request) => request.path === thumbnailPath)?.hasSession);
+});
+
+for (const destination of ["/", "/profile", `/browse/CS101/${folder._id}`]) {
+    test(`mounting ${destination} performs each initial read once`, async (t) => {
+        const { page, requests } = await openPage(t);
+        await page.goto(frontend + destination, { waitUntil: "networkidle" });
+        assert.equal(requests.filter((r) => r.path === "/api/user").length, 1);
+        for (const resource of [
+            "/api/course/CS101",
+            "/api/contribution/limits",
+            "/api/contribution/",
+            "/api/event/examdates",
+        ]) {
+            assert.ok(
+                requests.filter((r) => r.path === resource).length <= 1,
+                `${resource} was loaded twice`,
+            );
+        }
+    });
+}
+
+for (const width of [1440, 390]) {
+    test(`clipboard copy confirms actual success and supports keyboard retry at ${width}px`, async (t) => {
+        const { page } = await openPage(t, { width });
+        await page.addInitScript(() => {
+            window.copiedLinks = [];
+            Object.defineProperty(navigator, "clipboard", {
+                configurable: true,
+                value: {
+                    writeText: (value) =>
+                        new Promise((resolve, reject) => {
+                            window.finishCopy = (success) => {
+                                if (success) {
+                                    window.copiedLinks.push(value);
+                                    resolve();
+                                } else reject(new Error("Clipboard denied"));
+                            };
+                        }),
+                },
+            });
+        });
+        await page.goto(`${frontend}/browse/CS101/${folder._id}`);
+        await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
+        // The existing share action is still hidden; exercise its mounted component.
+        // Restoring the public action and consolidating the dialogs belongs to Batch 20.
+        const share = page.locator(".section-share").first();
+        await share.evaluate((node) => node.classList.add("show"));
+        const input = share.getByRole("textbox", { name: "Share link" });
+        const link = await input.inputValue();
+        const copy = share.getByRole("button", { name: "Copy link", exact: true });
+        await input.focus();
+        await page.keyboard.press("Tab");
+        assert.equal(await copy.evaluate((node) => node === document.activeElement), true);
+        await page.keyboard.press("Enter");
+        await page.waitForFunction(() => typeof window.finishCopy === "function");
+        assert.equal(await page.getByText("Link Copied to Clipboard", { exact: true }).count(), 0);
+        await page.evaluate(() => window.finishCopy(false));
+        await page
+            .getByText("Could not copy the link. Select it and copy it manually.", { exact: true })
+            .waitFor();
+        assert.equal(await input.inputValue(), link);
+        await page.evaluate(() => {
+            window.finishCopy = undefined;
+        });
+        await copy.press("Enter");
+        await page.waitForFunction(() => typeof window.finishCopy === "function");
+        await page.evaluate(() => window.finishCopy(true));
+        await page.getByText("Link Copied to Clipboard", { exact: true }).waitFor();
+        assert.deepEqual(await page.evaluate(() => window.copiedLinks), [link]);
+    });
+}
+
+test("a course response arriving after navigation cannot populate the next visit's cache", async (t) => {
+    const { page } = await openPage(t);
+    let release;
+    const pending = new Promise((resolve) => {
+        release = resolve;
+    });
+    t.after(() => release());
+    let calls = 0;
+    let firstStarted;
+    const started = new Promise((resolve) => {
+        firstStarted = resolve;
+    });
+    await page.route("**/api/course/CS101", async (route) => {
+        calls++;
+        if (calls === 1) {
+            firstStarted();
+            await pending;
+        }
+        await route.fallback();
+    });
+    await page.goto(`${frontend}/profile`, { waitUntil: "networkidle" });
+    await page.getByText("Dashboard", { exact: true }).first().click();
+    await page.getByText("CS101", { exact: true }).first().click();
+    await started;
+    await page.goBack();
+    await page.waitForURL(frontend + "/dashboard");
+    const response = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/course/CS101");
+    release();
+    await response;
+    await page.waitForLoadState("networkidle");
+    const nextResponse = page.waitForResponse(
+        (r) => new URL(r.url()).pathname === "/api/course/CS101",
+    );
+    await page.getByText("CS101", { exact: true }).first().click();
+    await nextResponse;
+    assert.equal(calls, 2, "the abandoned response must not become a reusable course tree");
 });

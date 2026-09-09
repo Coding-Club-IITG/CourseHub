@@ -5,21 +5,19 @@
     transition: 200ms ease;
     &:hover {
         transform: scale(1.02);
-        .close{
+        .close {
             cursor: pointer;
             display: block;
         }
-        .content{
-            .top{
-                .path{
+        .content {
+            .top {
+                .path {
                     padding: 20px 50px 0px 15px;
                 }
-
             }
-            .bottom{
-                .subject{
+            .bottom {
+                .subject {
                     padding: 0px 15px 30px 0px;
-
                 }
             }
         }
@@ -30,8 +28,7 @@
         z-index: -1;
     }
 
-    .close{
-
+    .close {
         width: 10px;
         height: 10px;
         margin-left: auto;
@@ -40,7 +37,6 @@
         background-repeat: no-repeat;
         background-position: center;
         display: none;
-
     }
     .content {
         cursor: pointer;
@@ -55,11 +51,10 @@
             }
 
             .name {
-                font-family: 'Bold';
+                font-family: "Bold";
                 font-size: 1.05rem;
                 padding: 5px 50px 0px 15px;
             }
-
         }
 
         .bottom {
@@ -72,11 +67,10 @@
                 width: 85%;
                 text-align: right;
                 padding: 0px 15px 20px 0px;
-                font-family: 'Bold';
+                font-family: "Bold";
                 font-size: 1.2rem;
-                color: rgba(80, 80, 80, 0.5)
+                color: rgba(80, 80, 80, 0.5);
             }
         }
     }
-
 }

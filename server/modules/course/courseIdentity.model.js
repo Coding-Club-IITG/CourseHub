@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../../config/mongoose.js";
 
 // A retired code remains reserved to its resource ID, including after deletion
 const identity = new Schema(

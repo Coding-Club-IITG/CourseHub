@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function FileRename({ initialName = "", onCancel, onSave, affectedCourses = [] }) {
     const [name, setName] = useState(initialName);
@@ -43,18 +43,20 @@ export function FileRename({ initialName = "", onCancel, onSave, affectedCourses
 
     return (
         <>
-        {affectedCourses.length > 1 && <p>Renaming changes this file in {affectedCourses.join(", ")}.</p>}
-        <input
-            ref={inputRef}
-            type="text"
-            value={name}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            className="input-rename"
-            maxLength={200}
-        />
+            {affectedCourses.length > 1 && (
+                <p>Renaming changes this file in {affectedCourses.join(", ")}.</p>
+            )}
+            <input
+                ref={inputRef}
+                type="text"
+                value={name}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                className="input-rename"
+                maxLength={200}
+            />
         </>
     );
 }

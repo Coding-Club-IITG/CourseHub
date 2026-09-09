@@ -1,5 +1,5 @@
 import "./styles.scss";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { ChangeFolder, PushFolderHistory } from "../../../../actions/filebrowser_actions";
@@ -11,19 +11,13 @@ import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
 import { useNavigate } from "react-router-dom";
 
-const BrowseFolder = ({
-    name,
-    subject,
-    folderData,
-    parentFolder,
-    isMobileView = false,
-    index = 0,
-}) => {
+const BrowseFolder = ({ name, subject, folderData, isMobileView = false, index = 0 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
-    const courseCode = subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
+    const courseCode =
+        subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
     const fileCount = getSubtreeFileCount(folderData);
     const canManage = folderData?.capabilities?.canManage === true;
 
@@ -38,11 +32,13 @@ const BrowseFolder = ({
                 ChangeFolder({
                     ...currentFolder,
                     children: (currentFolder?.children || []).map((child) =>
-                        child._id === folderData._id ? { ...child, name: renamedFolder.name } : child
+                        child._id === folderData._id
+                            ? { ...child, name: renamedFolder.name }
+                            : child,
                     ),
-                })
+                }),
             );
-        } catch (err) {
+        } catch {
             toast.error("Failed to rename folder");
         }
     };
@@ -57,7 +53,7 @@ const BrowseFolder = ({
         }
     };
 
-    const handleDelete = async (e) => {
+    const handleDelete = async () => {
         if (isDeleting) return;
         try {
             setIsDeleting(true);
@@ -67,12 +63,12 @@ const BrowseFolder = ({
                 ChangeFolder({
                     ...currentFolder,
                     children: (currentFolder?.children || []).filter(
-                        (child) => child._id !== folderData._id
+                        (child) => child._id !== folderData._id,
                     ),
-                })
+                }),
             );
             setShowConfirm(false);
-        } catch (err) {
+        } catch {
             toast.error("Failed to delete folder.");
         } finally {
             setIsDeleting(false);
@@ -108,13 +104,18 @@ const BrowseFolder = ({
                                         ></div>
                                     )}
                                 </span>
-                                <span className="file-count" title={`${fileCount} files in subtree`}>
-                                    {fileCount === 0 ? "EMPTY" : `${fileCount} ${fileCount === 1 ? "FILE" : "FILES"}`}
+                                <span
+                                    className="file-count"
+                                    title={`${fileCount} files in subtree`}
+                                >
+                                    {fileCount === 0
+                                        ? "EMPTY"
+                                        : `${fileCount} ${fileCount === 1 ? "FILE" : "FILES"}`}
                                 </span>
                             </div>
                         ) : (
                             <FolderRename
-                                    affectedCourses={folderData.affectedCourses}
+                                affectedCourses={folderData.affectedCourses}
                                 initialName={name}
                                 onCancel={() => setIsEditing(false)}
                                 onSave={(newName) => {

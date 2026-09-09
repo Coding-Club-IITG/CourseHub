@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../../config/mongoose.js";
 const BRSchema = Schema({
     email: { type: String, required: true, unique: true },
 });

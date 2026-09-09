@@ -14,7 +14,7 @@ const Alert = React.forwardRef(({ className, variant, ...props }, ref) => (
                 "border-green-200 text-green-800 bg-green-50": variant === "success",
                 "border-blue-200 text-blue-800 bg-blue-50": variant === "info",
             },
-            className
+            className,
         )}
         {...props}
     />

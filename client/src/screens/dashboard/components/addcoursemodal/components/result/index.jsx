@@ -1,10 +1,8 @@
-import React from "react";
 import "./styles.scss";
 import formatLongText from "../../../../../../utils/formatLongText";
 import { capitalise } from "../../../../../../utils/capitalise";
-import { getRandomColor } from "../../../../../../utils/colors";
 
-const Result = ({ _id, code, name, handleClick, handleModalClose }) => {
+const Result = ({ code, name, handleClick, handleModalClose }) => {
     return (
         <div
             className="result"

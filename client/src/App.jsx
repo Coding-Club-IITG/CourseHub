@@ -3,7 +3,7 @@ import BrowseScreen from "./screens/browse";
 import Dashboard from "./screens/dashboard";
 import LandingPage from "./screens/landing";
 import LoadingPage from "./loading.jsx";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PrivateRoutes from "./router_utils/PrivateRoutes";
 import ProfilePage from "./screens/profile.js";
 
@@ -64,6 +64,7 @@ const App = () => {
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
+                draggable
                 rtl={false}
                 theme="light"
                 className="toast-container"
@@ -82,8 +83,8 @@ const App = () => {
                 <Routes>
                     <Route path="/loading" element={<LoadingPage />} />
                     <Route element={<PrivateRoutes />}>
-                        <Route element={<Dashboard />} path="dashboard" exact />
-                        <Route element={<ProfilePage />} path="profile" exact />
+                        <Route element={<Dashboard />} path="dashboard" />
+                        <Route element={<ProfilePage />} path="profile" />
                         <Route element={<BrowseScreen />} path="browse" />
                         <Route element={<BrowseScreen />} path="browse/:code" />
                         <Route element={<BrowseScreen />} path="browse/:code/:folderId" />

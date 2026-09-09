@@ -6,7 +6,7 @@ import path from "node:path";
 import { tmpdir } from "node:os";
 import { once } from "node:events";
 import express from "express";
-import catchAsync from "../utils/catchAsync.js";
+
 import AppError from "../utils/appError.js";
 import { requestContext, requestErrorHandler } from "../middleware/requestErrors.js";
 import { uploadCourses } from "../modules/admin/adminDashboard.controller.js";
@@ -31,25 +31,16 @@ async function serve(t, configure) {
 
 test("sync and async handler failures return one safe JSON response and the process serves the next request", async (t) => {
     const origin = await serve(t, (app) => {
-        app.get(
-            "/sync",
-            catchAsync(() => {
-                throw new Error("secret-db-host");
-            }),
-        );
-        app.get(
-            "/async",
-            catchAsync(async () => {
-                await Promise.resolve();
-                throw Object.assign(new Error("graph-provider-secret"), { isAxiosError: true });
-            }),
-        );
-        app.get(
-            "/invalid",
-            catchAsync(async () => {
-                throw new AppError(403, "Permission denied", "ACCESS_DENIED");
-            }),
-        );
+        app.get("/sync", () => {
+            throw new Error("secret-db-host");
+        });
+        app.get("/async", async () => {
+            await Promise.resolve();
+            throw Object.assign(new Error("graph-provider-secret"), { isAxiosError: true });
+        });
+        app.get("/invalid", async () => {
+            throw new AppError(403, "Permission denied", "ACCESS_DENIED");
+        });
         app.get("/health", (req, res) => res.json({ ok: true }));
     });
     for (const [route, status, code] of [
@@ -113,7 +104,7 @@ test("CSV stream and database failures finish the request and clean up the tempo
                 req.file = { path: file };
                 next();
             },
-            catchAsync(uploadCourses),
+            uploadCourses,
         );
     });
     const failed = await fetch(origin + "/csv", { method: "POST" });

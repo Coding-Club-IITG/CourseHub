@@ -32,7 +32,7 @@ async function assignBR(value, admin) {
     const br = await BR.findOneAndUpdate(
         { email },
         { $set: { email } },
-        { upsert: true, new: true, collation: { locale: "en", strength: 2 } },
+        { upsert: true, returnDocument: "after", collation: { locale: "en", strength: 2 } },
     );
     const user = await findUserByEmailInsensitive(email);
     let synchronization;

@@ -12,44 +12,37 @@ import { mutateContent } from "../../services/contentMutation.js";
 const router = express.Router();
 router.use(isLibraryAuthenticated);
 
-import catchAsync from "../../utils/catchAsync.js";
-router.post(
-    "/create/:code",
-    isAdmin,
-    catchAsync(async (req, res) => {
-        return mutateContent(req, [req.params.code], async () => {
-            const { code } = req.params;
-            const { name } = req.body;
-            const normalizedCode = validCourseCode(code);
+router.post("/create/:code", isAdmin, async (req, res) => {
+    return mutateContent(req, [req.params.code], async () => {
+        const { code } = req.params;
+        const { name } = req.body;
+        const normalizedCode = validCourseCode(code);
 
-            if (!normalizedCode) {
-                return res.status(400).json({ message: "Invalid course code" });
-            }
+        if (!normalizedCode) {
+            return res.status(400).json({ message: "Invalid course code" });
+        }
 
-            const existingCourse = await CourseModel.findOne({
-                code: codeReferenceRegex(normalizedCode),
-            });
-
-            if (existingCourse) {
-                return res.status(200).json({ message: "Course already exists" });
-            }
-
-            await assertCourseIdentityAvailable(normalizedCode);
-            const newCourse = new CourseModel({
-                code: normalizedCode,
-                name,
-                children: [],
-            });
-
-            await newCourse.save();
-
-            return res
-                .status(201)
-                .json({ message: "Course created successfully", course: newCourse });
+        const existingCourse = await CourseModel.findOne({
+            code: codeReferenceRegex(normalizedCode),
         });
-    }),
-);
-router.get("/", catchAsync(getAllCourses));
-router.get("/:code", catchAsync(getCourse));
+
+        if (existingCourse) {
+            return res.status(200).json({ message: "Course already exists" });
+        }
+
+        await assertCourseIdentityAvailable(normalizedCode);
+        const newCourse = new CourseModel({
+            code: normalizedCode,
+            name,
+            children: [],
+        });
+
+        await newCourse.save();
+
+        return res.status(201).json({ message: "Course created successfully", course: newCourse });
+    });
+});
+router.get("/", getAllCourses);
+router.get("/:code", getCourse);
 
 export default router;

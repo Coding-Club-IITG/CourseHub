@@ -2,7 +2,7 @@ import "dotenv/config";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import mongoose from "mongoose";
+import mongoose from "./config/mongoose.js";
 import cors from "cors";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -70,9 +70,10 @@ app.use("/api", (req, res) =>
     res.status(404).json({ error: true, message: "API endpoint not found" }),
 );
 
+const staticRoot = path.resolve(__dirname, "static");
+app.use(express.static(staticRoot));
+app.get("/{*path}", (req, res) => res.sendFile("index.html", { root: staticRoot }));
 app.use(requestErrorHandler);
-app.use(express.static("static"));
-app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
 async function closeServer() {
     if (!server.listening) return;
@@ -98,8 +99,8 @@ export function shutdown({ signal, error, exitCode }) {
             });
         else lifecycleLogger.info("Server shutdown started", details);
         scheduler?.stop();
-        await operationWorker?.stop();
-        await closeServer();
+        // Stop accepting requests immediately, then drain work before disconnecting MongoDB.
+        await Promise.all([closeServer(), operationWorker?.stop()]);
         await mongoose.disconnect();
         await flushLogging();
     })();

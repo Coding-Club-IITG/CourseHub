@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../../config/mongoose.js";
 
 // Cache snapshots are published atomically only after the whole response validates
 const snapshot = new Schema({

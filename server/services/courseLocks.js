@@ -15,7 +15,7 @@ export async function acquireCourseLocks(codes, owner, { durable = false } = {})
                         $or: [{ owner }, { expiresAt: { $lte: new Date() } }],
                     },
                     { $set: { owner, expiresAt: durable ? null : new Date(Date.now() + 120000) } },
-                    { upsert: true, new: true },
+                    { upsert: true, returnDocument: "after" },
                 );
                 acquired.push(code);
             } catch (error) {

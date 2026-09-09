@@ -22,8 +22,11 @@ export async function adminLogout() {
         });
         if (!res.ok && res.status !== 401) throw await responseError(res, "Logout failed");
         return res.json();
-    } catch (error) { if (error.status !== 401) throw error; }
-    finally { clearCsrfToken(); }
+    } catch (error) {
+        if (error.status !== 401) throw error;
+    } finally {
+        clearCsrfToken();
+    }
 }
 
 export async function checkAdminSession() {

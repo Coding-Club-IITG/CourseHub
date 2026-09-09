@@ -1,5 +1,3 @@
-import React from "react";
-
 const CoursesWithoutBRTable = ({ courses }) => {
     return (
         <div className="p-6 bg-white rounded-lg shadow-md">
@@ -23,11 +21,16 @@ const CoursesWithoutBRTable = ({ courses }) => {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {courses.map((course) => (
-                                <tr key={course._id || course.code} className="hover:bg-gray-50 transition">
+                                <tr
+                                    key={course._id || course.code}
+                                    className="hover:bg-gray-50 transition"
+                                >
                                     <td className="py-4 px-4 text-sm font-medium text-gray-900">
                                         {course.code}
                                     </td>
-                                    <td className="py-4 px-4 text-sm text-gray-600">{course.name}</td>
+                                    <td className="py-4 px-4 text-sm text-gray-600">
+                                        {course.name}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

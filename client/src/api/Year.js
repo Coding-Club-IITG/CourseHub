@@ -1,5 +1,5 @@
 import API from "./http";
-import serverRoot from "./server";
+
 import { waitForOperation } from "./Operation";
 
 export const addYear = async ({ name, course }) => {

@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
 import {
     FiFolder,
@@ -79,20 +79,30 @@ export default function CourseDashboard() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
 
-    useEffect(() => {
-        loadData();
-    }, [code]);
+    const loadData = useCallback(
+        async (isCurrent = () => true) => {
+            try {
+                const getDashboard = await fetchCourseDashboardData(code);
+                if (isCurrent()) setData(getDashboard);
+            } catch (error) {
+                if (isCurrent()) console.log(error);
+            } finally {
+                if (isCurrent()) setLoading(false);
+            }
+        },
+        [code],
+    );
 
-    const loadData = async () => {
-        try {
-            const getDashboard = await fetchCourseDashboardData(code);
-            setData(getDashboard);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    useEffect(() => {
+        let active = true;
+        setLoading(true);
+        queueMicrotask(() => {
+            if (active) loadData(() => active);
+        });
+        return () => {
+            active = false;
+        };
+    }, [loadData]);
 
     const handleContributionAction = async (contributionId, action) => {
         const isApprove = action === "approve";

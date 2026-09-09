@@ -1,9 +1,10 @@
 import defaultScheduleData from "../data/examScheduleData.js";
+import { normalizeCourseCode } from "@coursehub/domain";
 
 /**
  * Parses a DD-MM-YYYY date string and an optional HH:mm-HH:mm time range into a Date object.
- * @param {string} dateStr e.g. "13-09-2026"
- * @param {string} timeStr e.g. "9:00-11:00"
+ * @param {string} dateStr Eg. "13-09-2026"
+ * @param {string} timeStr Eg. "9:00-11:00"
  * @returns {Date}
  */
 export function parseExamDateTime(dateStr, timeStr = "00:00") {
@@ -23,12 +24,14 @@ export function parseExamDateTime(dateStr, timeStr = "00:00") {
 /**
  * Checks if the user is excluded from seeing the Exam Schedule widget.
  * Exclusion rule: B.Tech Semester 1 and Semester 2 users do not receive the widget.
- * @param {Object} user 
+ * @param {Object} user
  * @returns {boolean}
  */
 export function isUserExcluded(user) {
     if (!user) return false;
-    const degreeRaw = (user.degree || user.programme || user.program || "").toLowerCase().replace(/[\s.-]/g, "");
+    const degreeRaw = (user.degree || user.programme || user.program || "")
+        .toLowerCase()
+        .replace(/[\s.-]/g, "");
     const isBTech = degreeRaw === "btech";
     const semester = Number(user.semester);
     return isBTech && (semester === 1 || semester === 2);
@@ -37,13 +40,17 @@ export function isUserExcluded(user) {
 /**
  * Cross-references a list of registered courses with the exam slot and schedule database.
  * Drops courses without matching exams silently (flagged in QA comment) and sorts chronologically.
- * 
+ *
  * @param {Array<Object|string>} courses - List of courses (either { code, name } objects or code strings)
  * @param {Object} scheduleData - The slot & schedule mapping database
  * @param {"midSem"|"endSem"} examType - Which exam schedule to lookup
  * @returns {Array<Object>} Sorted list of scheduled exams
  */
-export function getExamScheduleForCourses(courses = [], scheduleData = defaultScheduleData, examType = "midSem") {
+export function getExamScheduleForCourses(
+    courses = [],
+    scheduleData = defaultScheduleData,
+    examType = "midSem",
+) {
     if (!Array.isArray(courses) || !scheduleData) return [];
 
     const { courseSlotMap = {}, slotSchedule = {} } = scheduleData;
@@ -53,7 +60,7 @@ export function getExamScheduleForCourses(courses = [], scheduleData = defaultSc
         const rawCode = typeof course === "string" ? course : course?.code;
         if (!rawCode) continue;
 
-        const normalizedCode = rawCode.trim().replace(/\s+/g, "").toUpperCase();
+        const normalizedCode = normalizeCourseCode(rawCode);
         const slot = courseSlotMap[normalizedCode];
 
         /*
@@ -67,7 +74,8 @@ export function getExamScheduleForCourses(courses = [], scheduleData = defaultSc
         }
 
         const examInfo = slotSchedule[slot][examType];
-        const courseName = (typeof course === "object" && course?.name) ? course.name : normalizedCode;
+        const courseName =
+            typeof course === "object" && course?.name ? course.name : normalizedCode;
 
         scheduledExams.push({
             code: normalizedCode,

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import fs from "node:fs/promises";
 import path from "node:path";
-import mongoose from "mongoose";
+import mongoose from "../config/mongoose.js";
 import { FileModel } from "../modules/course/course.model.js";
 import { inventoryStorage } from "../services/storageInventory.js";
 import { storageRoot } from "../config/storage.js";

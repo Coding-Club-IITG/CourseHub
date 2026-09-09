@@ -101,8 +101,8 @@ async function capture(page, name) {
 }
 async function manual(page) {
     await page.goto(origin + "/admin/course-linking");
-    await page.getByPlaceholder("e.g., CS101", { exact: true }).fill("CS101");
-    await page.getByPlaceholder("e.g., CSN101", { exact: true }).fill("CS201");
+    await page.getByPlaceholder("Eg. CS101", { exact: true }).fill("CS101");
+    await page.getByPlaceholder("Eg. CSN101", { exact: true }).fill("CS201");
     await page.getByRole("button", { name: "Link Course", exact: true }).click();
 }
 for (const width of [320, 390, 768, 1024, 1440]) {
@@ -113,10 +113,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
             .getByText("Linking is in progress. You can leave this page.", { exact: true })
             .waitFor();
         assert.equal(await page.getByText("Linking completed", { exact: true }).count(), 0);
-        assert.equal(
-            await page.getByPlaceholder("e.g., CS101", { exact: true }).isDisabled(),
-            true,
-        );
+        assert.equal(await page.getByPlaceholder("Eg. CS101", { exact: true }).isDisabled(), true);
         if ([390, 1440].includes(width)) await capture(page, `link-running-${width}`);
         state.operation = linkingOperation();
         await page.getByText("Linking completed", { exact: true }).waitFor();
@@ -168,11 +165,8 @@ test("failed linking retains the requested course codes and offers operation rec
     await page
         .getByText("Linking could not finish. Retry preserves the saved plan.", { exact: true })
         .waitFor();
-    assert.equal(await page.getByPlaceholder("e.g., CS101", { exact: true }).inputValue(), "CS101");
-    assert.equal(
-        await page.getByPlaceholder("e.g., CSN101", { exact: true }).inputValue(),
-        "CS201",
-    );
+    assert.equal(await page.getByPlaceholder("Eg. CS101", { exact: true }).inputValue(), "CS101");
+    assert.equal(await page.getByPlaceholder("Eg. CSN101", { exact: true }).inputValue(), "CS201");
     await capture(page, "manual-failed-390");
     state.operation = linkingOperation();
     await page.getByRole("button", { name: "Link Course", exact: true }).click();

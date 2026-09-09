@@ -1,4 +1,3 @@
-import React from "react";
 import cross from "./cross.svg";
 
 const styles = {
@@ -17,7 +16,6 @@ const styles = {
         width: "80px",
         height: "80px",
         margin: "1em",
-        
     },
     heading: {
         fontSize: "2em",
@@ -56,8 +54,14 @@ const styles = {
     },
 };
 
-
-const ConfirmDialog = ({ isOpen, onConfirm, onCancel, isLoading = false, affectedCourses = [], courseCode }) => {
+const ConfirmDialog = ({
+    isOpen,
+    onConfirm,
+    onCancel,
+    isLoading = false,
+    affectedCourses = [],
+    courseCode,
+}) => {
     if (!isOpen) return null;
 
     return (
@@ -71,18 +75,28 @@ const ConfirmDialog = ({ isOpen, onConfirm, onCancel, isLoading = false, affecte
                 <img src={cross} alt="Delete" style={styles.iconImage} />
                 <h3 style={styles.heading}>Are you sure?</h3>
                 <p style={styles.message}>
-                    {affectedCourses.length > 1 ? `Remove this folder from ${courseCode}? It remains available to the other linked courses: ${affectedCourses.filter(code => code !== courseCode).join(", ")}.` : "Do you want to permanently delete this folder? This action cannot be undone."}
+                    {affectedCourses.length > 1
+                        ? `Remove this folder from ${courseCode}? It remains available to the other linked courses: ${affectedCourses.filter((code) => code !== courseCode).join(", ")}.`
+                        : "Do you want to permanently delete this folder? This action cannot be undone."}
                 </p>
                 <div style={styles.buttonGroup}>
                     <button style={styles.cancelBtn} onClick={onCancel} disabled={isLoading}>
                         Cancel
                     </button>
                     <button
-                        style={{ ...styles.deleteBtn, opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                        style={{
+                            ...styles.deleteBtn,
+                            opacity: isLoading ? 0.6 : 1,
+                            cursor: isLoading ? "not-allowed" : "pointer",
+                        }}
                         onClick={onConfirm}
                         disabled={isLoading}
                     >
-                        {isLoading ? "Removing..." : affectedCourses.length > 1 ? "Remove" : "Delete"}
+                        {isLoading
+                            ? "Removing..."
+                            : affectedCourses.length > 1
+                              ? "Remove"
+                              : "Delete"}
                     </button>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import API from "./http";
-import serverRoot from "./server";
+
 import { waitForOperation } from "./Operation";
 
 export const createFolder = async ({ name, course, parentFolder, childType }) => {

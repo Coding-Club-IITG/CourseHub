@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import Container from "../../../../components/container";
 import SubHeading from "../../../../components/subheading";
@@ -10,7 +10,7 @@ import formatLongText from "../../../../utils/formatLongText";
 import "./styles.scss";
 
 /**
- * Format a DD-MM-YYYY string into a clean readable format, e.g. "14 Sep 2026"
+ * Format a DD-MM-YYYY string into a clean readable format, Eg. "14 Sep 2026"
  */
 function formatDisplayDate(dateStr) {
     if (!dateStr) return "";
@@ -46,7 +46,7 @@ const ExamScheduleWidget = () => {
         try {
             setIsLoading(false);
             setHasError(false);
-        } catch (err) {
+        } catch {
             setHasError(true);
             setIsLoading(false);
         }
@@ -105,7 +105,10 @@ const ExamScheduleWidget = () => {
                 {/* State 3: Empty state (registered courses exist, but none scheduled yet) */}
                 {!isLoading && !hasError && scheduledExams.length === 0 && (
                     <div className="schedule-empty-state">
-                        <p className="empty-message">No {activeTab === "midSem" ? "Mid-Sem" : "End-Sem"} exams scheduled for your courses.</p>
+                        <p className="empty-message">
+                            No {activeTab === "midSem" ? "Mid-Sem" : "End-Sem"} exams scheduled for
+                            your courses.
+                        </p>
                         <div className="no-exam-graphic"></div>
                     </div>
                 )}
@@ -136,7 +139,9 @@ const ExamScheduleWidget = () => {
                                 <div className="card-bottom">
                                     <div className="exam-detail-row">
                                         <span className="label">DATE</span>
-                                        <span className="value">{formatDisplayDate(exam.date)}</span>
+                                        <span className="value">
+                                            {formatDisplayDate(exam.date)}
+                                        </span>
                                     </div>
                                     <div className="exam-detail-row">
                                         <span className="label">TIME</span>

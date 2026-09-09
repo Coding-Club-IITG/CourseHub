@@ -3,6 +3,7 @@ import SectionC from "./components/sectionC";
 import { FilePond } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import { useEffect, useRef, useState } from "react";
+import { isUploadLimits, uploadLimitsLabel, uploadLimitsError } from "@coursehub/domain";
 import { useLocation } from "react-router-dom";
 import "./styles.scss";
 import { CreateNewContribution } from "../../api/Contribution";
@@ -73,12 +74,7 @@ const Contributions = () => {
         setLimitsError(false);
         API.get("/contribution/limits", { signal: controller.signal })
             .then(({ data }) => {
-                if (
-                    ![data.fileBytes, data.batchBytes, data.files, data.concurrentFiles].every(
-                        (value) => Number.isSafeInteger(value) && value > 0,
-                    )
-                )
-                    throw new Error("Invalid upload limits");
+                if (!isUploadLimits(data)) throw new Error("Invalid upload limits");
                 setLimits(data);
             })
             .catch(() => {
@@ -208,7 +204,7 @@ const Contributions = () => {
             files.some(({ file }) => file.size > limits.fileBytes) ||
             files.reduce((sum, item) => sum + item.file.size, 0) > limits.batchBytes
         ) {
-            setError("Choose up to 40 files, no more than 100 MiB each and 1 GiB in total.");
+            setError(uploadLimitsError(limits));
             return;
         }
         setBusy(true);
@@ -293,14 +289,17 @@ const Contributions = () => {
                 }
             }
         } finally {
-            if (!mounted.current) return;
-            setBusy(false);
-            try {
-                const folder = await fetchFolder(currentFolder._id, currentCourseCode);
-                dispatch(ChangeFolder(folder));
-                dispatch(RefreshCurrentFolder());
-            } catch {
-                /* The operation result is retained when the folder cannot refresh. */
+            if (mounted.current) {
+                setBusy(false);
+                try {
+                    const folder = await fetchFolder(currentFolder._id, currentCourseCode);
+                    if (mounted.current) {
+                        dispatch(ChangeFolder(folder));
+                        dispatch(RefreshCurrentFolder());
+                    }
+                } catch {
+                    /* The operation result is retained when the folder cannot refresh. */
+                }
             }
         }
     }
@@ -420,9 +419,7 @@ const Contributions = () => {
                                         pond.current = value;
                                     }}
                                 />
-                                <p className="upload-limits">
-                                    100 MiB per file · 40 files · 1 GiB per batch
-                                </p>
+                                <p className="upload-limits">{uploadLimitsLabel(limits)}</p>
                             </div>
                         )}
                         {limitsError && (

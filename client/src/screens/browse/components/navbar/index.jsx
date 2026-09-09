@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./styles.scss";
 import Logo from "./components/logo";
 import NavLink from "../../../../components/navbar/components/navlink";
-import SearchBar from "../../../../components/navbar/components/searchbar";
+
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { LogoutUser } from "../../../../actions/user_actions";
@@ -22,7 +22,9 @@ const NavBarBrowseScreen = () => {
             await logoutUser();
             dispatch(LogoutUser());
             window.location.href = "/";
-        } catch { toast.error("Could not log out. Please try again."); }
+        } catch {
+            toast.error("Could not log out. Please try again.");
+        }
     };
 
     const toggleMobileMenu = (e) => {
@@ -73,7 +75,7 @@ const NavBarBrowseScreen = () => {
                 <span onClick={() => navigate("/dashboard")}>
                     <Logo />
                 </span>
-                
+
                 <div className="navlinks desktop-nav">
                     <NavLink text={"Dashboard"} onClick={() => navigate("/dashboard")} />
                     <NavLink text={"Profile"} onClick={() => navigate("/profile")} />
@@ -92,7 +94,6 @@ const NavBarBrowseScreen = () => {
                         <span></span>
                     </div>
 
-                    
                     <div
                         className={`mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
                         ref={mobileMenuRef}

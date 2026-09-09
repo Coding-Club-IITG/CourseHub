@@ -7,68 +7,70 @@ import { useSelector } from "react-redux";
 import Loader from "../../../../components/Loader";
 
 import { useEffect, useState } from "react";
-import CourseCard from "../../../dashboard/components/coursecard";
+
 const Contrisection = () => {
-    const user = useSelector((state) => state.user);
     const [isLoading, setIsLoading] = useState(true);
     const [myContributions, setMyContributions] = useState([]);
     const isBR = useSelector((state) => state.user.user.isBR);
     const [brContributions, setBrContributions] = useState([]);
+    const [loadError, setLoadError] = useState("");
     useEffect(() => {
+        let active = true;
+        setIsLoading(true);
+        setLoadError("");
         const callBack = async () => {
-            const resp = await GetMyContributions();
-            setMyContributions((prev) => [...resp.data]);
-            setIsLoading(false);
+            try {
+                const resp = await (isBR ? GetBrContribution() : GetMyContributions());
+                if (!active) return;
+                if (isBR) setBrContributions([...resp.data.unverifiedContributions]);
+                else setMyContributions([...resp.data]);
+            } catch {
+                if (active)
+                    setLoadError("Could not load contributions. Please reload to try again.");
+            } finally {
+                if (active) setIsLoading(false);
+            }
         };
-        callBack();
-    }, []);
-    useEffect(() => {
-        const callBack = async () => {
-
-            const resp = await GetBrContribution();
-            setBrContributions((prev) => [...resp.data.unverifiedContributions]);
-            setIsLoading(false);
+        queueMicrotask(() => {
+            if (active) callBack();
+        });
+        return () => {
+            active = false;
         };
-        if (isBR)
-            callBack();
-    }, []);
+    }, [isBR]);
 
     const verifyBRContributions = (key, file) => {
         const index = brContributions.indexOf(key);
         const updatedKey = {
             ...key,
-            files: key.files.map(f =>
-                f === file ? { ...f, isVerified: true } : f
-            )
+            files: key.files.map((f) => (f === file ? { ...f, isVerified: true } : f)),
         };
         let removekey = 1;
-        for(const file of updatedKey.files)
-            if(!file.isVerified) removekey = 0;
+        for (const file of updatedKey.files) if (!file.isVerified) removekey = 0;
         const newContributions = [...brContributions];
-        if(!removekey) newContributions[index] = updatedKey;
+        if (!removekey) newContributions[index] = updatedKey;
         else newContributions.splice(index, 1);
         setBrContributions(newContributions);
-    }
+    };
     const unverifyBRContributions = (key, file) => {
         const index = brContributions.indexOf(key);
         const updatedKey = {
             ...key,
-            files: key.files.filter((f) => f !== file)
-        }
+            files: key.files.filter((f) => f !== file),
+        };
         let removekey = 1;
-        for(const file of updatedKey.files)
-            if(!file.isVerified) removekey = 0;
+        for (const file of updatedKey.files) if (!file.isVerified) removekey = 0;
         const newContributions = [...brContributions];
-        if(!removekey) newContributions[index] = updatedKey;
+        if (!removekey) newContributions[index] = updatedKey;
         else newContributions.splice(index, 1);
         setBrContributions(newContributions);
-    }
+    };
 
     let ContriCard = [];
     for (const key of isBR ? brContributions : myContributions) {
-        ContriCard.push(key.files.map((file) => (
-            (!isBR || (isBR && !file.isVerified)) ?
-                (
+        ContriCard.push(
+            key.files.map((file) =>
+                !isBR || (isBR && !file.isVerified) ? (
                     <Contribution_card
                         courseCode={key.courseCode}
                         managementCourseCode={key.managementCourseCode}
@@ -80,15 +82,22 @@ const Contrisection = () => {
                         unverify={() => unverifyBRContributions(key, file)}
                         isBR={isBR}
                     />
-                ) :
-                <></>
-
-        )))
+                ) : (
+                    <></>
+                ),
+            ),
+        );
     }
 
-    let contri_heading_text=isBR?(brContributions.length===0?"NO PENDING CONTRIBUTIONS":"PENDING CONTRIBUTIONS"): "YOUR CONTRIBUTIONS";
-    let br_contri_subheading_text=brContributions.length===0?"When someone contributes a file, it will appear here for verification":"You can view a file by clicking on its name";
-
+    let contri_heading_text = isBR
+        ? brContributions.length === 0
+            ? "NO PENDING CONTRIBUTIONS"
+            : "PENDING CONTRIBUTIONS"
+        : "YOUR CONTRIBUTIONS";
+    let br_contri_subheading_text =
+        brContributions.length === 0
+            ? "When someone contributes a file, it will appear here for verification"
+            : "You can view a file by clicking on its name";
 
     return isLoading ? (
         <Container color={"light"}>
@@ -101,7 +110,9 @@ const Contrisection = () => {
                         algn={"center"}
                     />
                 </div>
-                <Loader text={(isBR)? "Loading pending contributions":"Loading your contributions..."} />
+                <Loader
+                    text={isBR ? "Loading pending contributions" : "Loading your contributions..."}
+                />
             </div>
         </Container>
     ) : (
@@ -114,25 +125,22 @@ const Contrisection = () => {
                         color={"black"}
                         algn={"center"}
                     />
-                    {
-                        (isBR)? (
-                            
-                            <div className="br-contrib-subheading">
-                            {br_contri_subheading_text}
-                            </div>
-                            
-                            )
-                            : (<></>)
-                    }
+                    {isBR ? (
+                        <div className="br-contrib-subheading">{br_contri_subheading_text}</div>
+                    ) : (
+                        <></>
+                    )}
                 </div>
 
-                {(isBR&&brContributions.length===0)?
-                    <div className="No-BRcontri-graphic" />:
-                    (!isBR&&myContributions.length === 0) ?
-                        <div className="No-Contri-graphic" />:
-                        ContriCard
-                }
-
+                {loadError ? (
+                    <p role="alert">{loadError}</p>
+                ) : isBR && brContributions.length === 0 ? (
+                    <div className="No-BRcontri-graphic" />
+                ) : !isBR && myContributions.length === 0 ? (
+                    <div className="No-Contri-graphic" />
+                ) : (
+                    ContriCard
+                )}
             </div>
         </Container>
     );

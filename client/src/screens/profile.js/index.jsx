@@ -13,7 +13,9 @@ const ProfilePage = () => {
                 <div>
                     <NavBar />
                     <FrontBanner />
-                    <div className="profile-course-refresh"><Link to="/loading?returnTo=%2Fprofile">Refresh registered courses</Link></div>
+                    <div className="profile-course-refresh">
+                        <Link to="/loading?returnTo=%2Fprofile">Refresh registered courses</Link>
+                    </div>
                     <Contri_section />
                 </div>
                 <div>

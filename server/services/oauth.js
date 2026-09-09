@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../config/mongoose.js";
 import { cookieOptions } from "../config/security.js";
 import config from "../config/default.js";
 import AppError from "../utils/appError.js";

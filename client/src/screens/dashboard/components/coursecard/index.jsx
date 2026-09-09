@@ -14,7 +14,7 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly, onCourseR
         async function SetCourseAvailability() {
             try {
                 setIsAvailable(true);
-            } catch (error) {
+            } catch {
                 setIsAvailable(false);
             }
         }
@@ -33,7 +33,7 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly, onCourseR
             } else {
                 location.reload();
             }
-        } catch (error) {
+        } catch {
             toast.error("Something went wrong!");
             setIsRemoving(false);
             setShowConfirm(false);
@@ -54,10 +54,7 @@ const CourseCard = ({ code, color, name, type, setClicked, isReadOnly, onCourseR
         </div>
     ) : (
         <>
-            <div
-                className={`coursecard ${isAvailable}`}
-                style={{ backgroundColor: color }}
-            >
+            <div className={`coursecard ${isAvailable}`} style={{ backgroundColor: color }}>
                 {isReadOnly && (
                     <span
                         className="remove-course"

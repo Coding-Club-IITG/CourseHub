@@ -9,20 +9,20 @@ import {
     downloadFiles,
 } from "./file.controller.js";
 import { isBR } from "../../middleware/isBR.js";
-import catchAsync from "../../utils/catchAsync.js";
+
 import { fileContent, fileThumbnail, filePreview } from "../../services/fileDelivery.js";
 
 const router = express.Router();
 router.use(isLibraryAuthenticated);
 
-router.get("/all", catchAsync(getAllFiles));
-router.put("/verify/:id", isBR, catchAsync(verifyFile));
-router.delete("/unverify/:id", isBR, catchAsync(unverifyFile));
-router.post("/download", catchAsync(downloadFiles));
-router.get("/link/:id", catchAsync(getFileLink));
-router.put("/rename/:id", isBR, catchAsync(renameFile));
+router.get("/all", getAllFiles);
+router.put("/verify/:id", isBR, verifyFile);
+router.delete("/unverify/:id", isBR, unverifyFile);
+router.post("/download", downloadFiles);
+router.get("/link/:id", getFileLink);
+router.put("/rename/:id", isBR, renameFile);
 
-router.get("/content/:id", catchAsync(fileContent));
-router.get("/preview/:id", catchAsync(filePreview));
-router.get("/thumbnail/:id", catchAsync(fileThumbnail));
+router.get("/content/:id", fileContent);
+router.get("/preview/:id", filePreview);
+router.get("/thumbnail/:id", fileThumbnail);
 export default router;

@@ -29,11 +29,13 @@ An administration portal supports student, BR, course, and content management ac
 - **Microsoft sign-in** using IIT Guwahati institutional accounts
 - **Automatic course discovery** from a student's academic registration
 - **Search and custom courses** for material outside the current course list
-- **File previews, downloads, folder ZIPs, favourites, and shareable links**
+- **Authenticated file previews, downloads and folder ZIPs**
+- **Profiles, contribution history and saved favourites**
 - **Student contributions** with a review queue and approval workflow
 - **BR tools** for creating years and folders and managing course material
 - **Administration portal** for students, BRs, courses, bulk imports, and course linking
-- **Shared legacy folders** that let related course codes reuse material without duplication
+- **Shared folders** that let related course codes reuse material without duplication
+- **Recoverable background operations** for uploads, cleanup, course linking, renames and registration refresh
 
 ## Screenshots
 
@@ -116,14 +118,16 @@ An administration portal supports student, BR, course, and content management ac
 
 ```mermaid
 graph LR
-    Student["Student Web App<br/>React 18 · Vite · Redux"]
-    Admin["Admin Portal<br/>React 19 · Vite · Tailwind CSS"]
-    API["CourseHub API<br/>Node.js · Express"]
+    Student["Student Web App<br/>React 19 · Vite 8 · Redux"]
+    Admin["Admin Portal<br/>React 19 · Vite 8 · Tailwind CSS"]
+    API["CourseHub API<br/>Node 24 · Express 5 · Mongoose 9"]
     Auth["Identity<br/>Microsoft OAuth · JWT"]
     DB["MongoDB<br/>Users · Courses · Folders · Files"]
     Storage["Microsoft Graph · OneDrive<br/>Original Files"]
-    Media["ImageKit<br/>Permanent Thumbnails"]
-    Jobs["node-cron<br/>Course Cache Sync"]
+    Media["ImageKit<br/>Existing Thumbnails"]
+    Jobs["Background Workers<br/>Saved Operation Plans"]
+    Academic["IITG Academic Portal<br/>Course Registrations"]
+    Schedule["node-cron<br/>Monthly Refresh"]
 
     Student --> API
     Admin --> API
@@ -131,8 +135,11 @@ graph LR
     API --> DB
     API --> Storage
     API --> Media
+    API --> Jobs
+    Schedule --> Jobs
     Jobs --> DB
     Jobs --> Storage
+    Jobs --> Academic
 ```
 
 <p align="center">
@@ -179,78 +186,79 @@ This keeps the library useful without requiring the core team to organise every 
 
 ```text
 coursehub/
-├── client/   # Student-facing React application
-├── admin/    # Administration portal
-├── server/   # Express API, jobs, integrations, and data models
-├── docs/     # Architecture and implementation notes
-└── deploy.sh # Production deployment helper
+├── client/              # Student React app, browser requests and navigation state
+├── admin/               # Administrator React app and management screens
+├── server/              # API, models, permission services, workers and tests
+├── packages/            # Shared domain contracts and React UI package boundary
+├── docs/                # Explanations, operating procedures and implementation guides
+└── .github/workflows/   # Current CI and deployment workflows
 ```
+
+`@coursehub/domain` supplies shared course-code and upload contracts.
+`@coursehub/ui` defines the package boundary for shared primitives.
 
 ## Local Setup
 
-### Prerequisites
+### 1. Prepare the Environment
 
-- Node.js 22 or newer
-- npm
-- MongoDB
-- A Microsoft Entra application and Microsoft Graph access
-- A OneDrive folder for course material
-- ImageKit credentials for permanent thumbnails
+Use Node.js 24, npm 11 and a reachable MongoDB instance. Microsoft sign-in needs an Entra application with its registered callback. Live file operations also need the configured OneDrive storage account.
 
-### 1. Backend
+From the repository root, create private environment files if they do not already exist:
 
-The API must be running before either frontend can load live data.
+```sh
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+cp admin/.env.example admin/.env
+```
 
-```bash
-cd server
-cp .env.example .env
+Edit the files before starting the apps.
+
+### 2. Install the Workspace
+
+Run this once from the repository root. It installs all application and shared-package dependencies using the root lockfile:
+
+```sh
 npm ci
+```
+
+### 3. Start the API, Then the Frontends
+
+Use three terminals, each opened at the repository root:
+
+```sh
+# Terminal 1: API and background workers
 npm run preflight
-npm run dev
+npm run dev:server
 ```
 
-Configure the values documented in `server/.env.example`.
-
-### 2. Student Client
-
-```bash
-cd client
-cp .env.example .env
-npm ci
-npm run dev
+```sh
+# Terminal 2: student app
+npm run dev:student -- --port 5173 --strictPort
 ```
 
-Set `VITE_API_BASE_URL` to the local API origin.
-
-### 3. Administration Portal
-
-```bash
-cd admin
-cp .env.example .env
-npm ci
-npm run dev
+```sh
+# Terminal 3: administrator app
+npm run dev:admin -- --port 5174 --strictPort
 ```
 
-Set `VITE_API_BASE_URL` to the same API origin used by the student client.
+Open the student app at `http://localhost:5173` and the admin app at `http://localhost:5174/admin/`.
+Provision an administrator with `npm --prefix server run admin` after configuring its credentials.
 
 ## Verification
 
-Run the relevant checks before opening a pull request:
+Run these commands from the repository root:
 
-```bash
-# Backend
-cd server
+```sh
 npm run preflight
 npm test
-
-# Student client
-cd client
-npm run build
-
-# Administration portal
-cd admin
 npm run lint
 npm run build
+```
+
+The root test command runs shared-domain contracts and server unit tests. The server unit tests use mocked dependencies. Database integrations are a separate command and require an **empty, isolated** database in the `coursehub_test_` namespace:
+
+```sh
+TEST_MONGO_URI=mongodb://127.0.0.1:27017/coursehub_test_local_run npm --prefix server run test:db
 ```
 
 ## Workflow
@@ -260,14 +268,20 @@ npm run build
 
 ## Further Reading
 
-- [Usage Guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material)
-- [Authentication and session configuration](docs/authentication.md)
-- [Storage configuration, uploads, and operation recovery](docs/storage-operations.md)
-- [Shared course trees and linking](./docs/shared-course-trees.md)
-- [Course linking and shared-folder model](./docs/course_link_logic.md)
-- [Academic synchronization](./docs/academic-synchronization.md)
-- [Data maintenance](./docs/data-maintenance.md)
-- [Frontend caching](./docs/frontend-caching.md)
+Start with the guide that matches what you are trying to understand:
+
+| Guide                                                                     | What it explains                                                                                         |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| [Runtime and Database Models](docs/runtime-and-models.md)                 | Request errors, shutdown, validated references and compatibility with existing data.                     |
+| [Course Linking & Shared Folders](docs/course_link_logic.md)              | Why folders are shared, how populated years are preserved, and how unlinking differs from file deletion. |
+| [Shared Course Trees: Server Implementation](docs/shared-course-trees.md) | Reachable membership, linking API results, locks, recovery and tree limits.                              |
+| [Academic Synchronization](docs/academic-synchronization.md)              | Current/history registrations, ordinary versus force refresh, empty data and failure behavior.           |
+| [Course References and Data Maintenance](docs/data-maintenance.md)        | Renames, old bookmarks, inventory, staged imports and reviewed migration recovery.                       |
+| [Authentication and Sessions](docs/authentication.md)                     | Student/admin login, permissions, cookies, CSRF and environment configuration.                           |
+| [Storage, Uploads and Cleanup](docs/storage-operations.md)                | File lifecycle, partial success, cancellation, authenticated delivery and recoverable deletion.          |
+| [Frontend Caching](docs/frontend-caching.md)                              | Current browser cache behavior, its limitations and how to investigate stale views.                      |
+
+The [public usage guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material) provides a broader introduction to CourseHub.
 
 ---
 

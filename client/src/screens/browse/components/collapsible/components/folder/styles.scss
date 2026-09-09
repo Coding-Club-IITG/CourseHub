@@ -1,31 +1,32 @@
-.main-folder{
+.main-folder {
     max-width: 300px;
     overflow: hidden;
     border-left: 2px solid rgba(0, 0, 0);
     margin-left: 20px;
     display: flex;
     justify-content: flex-start;
-    .folder{
+    .folder {
         display: flex;
         align-items: center;
 
-        .horizontal-line{
+        .horizontal-line {
             width: 20px;
             height: 2px;
             background-color: rgba(0, 0, 0);
             padding-right: 10px;
         }
-        .text-content{
+        .text-content {
             width: 100%;
             background-color: #fff;
             padding: 0.3em;
             border-radius: 4px;
-            transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                        padding-left 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        transform 0.15s ease;
+            transition:
+                background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                padding-left 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.15s ease;
 
-            &.current{
-                background-color: #FECF6F;
+            &.current {
+                background-color: #fecf6f;
             }
 
             &:hover:not(.current) {
@@ -37,9 +38,9 @@
                 transform: scale(0.98);
             }
 
-            .text{
+            .text {
                 font-size: 1rem;
-                font-family: 'Bold';
+                font-family: "Bold";
                 cursor: pointer;
                 transition: color 0.15s ease;
 
@@ -47,59 +48,57 @@
                     color: #000;
                 }
 
-                &.nobold{
-                font-family: 'Regular';
+                &.nobold {
+                    font-family: "Regular";
                 }
                 .tree-file-count {
-                font-size: 0.8rem;
-                font-family: 'Regular', sans-serif;
-                color: #6b7280;
+                    font-size: 0.8rem;
+                    font-family: "Regular", sans-serif;
+                    color: #6b7280;
                     margin-left: 5px;
                     font-weight: normal;
                 }
             }
-                .triangle{
-                    cursor: pointer;
-                    display: inline-block;
-                    width: 10px;
-                    margin-left: 5px;
-                    height: 10px;
-                    margin-bottom: 1px;
-                    background: url(../../assets/triangle.svg), none;
-                    background-position: center;
-                    background-repeat: no-repeat;
-                    background-size: cover;
-
-                }
-                &.lastfolder{
-                    display: none;
-                }
+            .triangle {
+                cursor: pointer;
+                display: inline-block;
+                width: 10px;
+                margin-left: 5px;
+                height: 10px;
+                margin-bottom: 1px;
+                background: url(../../assets/triangle.svg), none;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
             }
-    }
-    .children{
-        display: none;
-    }
-    &.true{
-        .children{
-            display: block;
-            padding-left: 15px;
-        }
-
-    }
-    &.false{
-        .children{
-            display: none;
-        }
-        .text-content{
-            .triangle{
+            &.lastfolder {
                 display: none;
             }
         }
     }
-    &.selected{
-        .folder{
-            .text{
-                background-color: #FECF6F;
+    .children {
+        display: none;
+    }
+    &.true {
+        .children {
+            display: block;
+            padding-left: 15px;
+        }
+    }
+    &.false {
+        .children {
+            display: none;
+        }
+        .text-content {
+            .triangle {
+                display: none;
+            }
+        }
+    }
+    &.selected {
+        .folder {
+            .text {
+                background-color: #fecf6f;
             }
         }
     }

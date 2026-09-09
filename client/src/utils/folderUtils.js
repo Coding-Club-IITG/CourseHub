@@ -46,6 +46,6 @@ export const findFolderById = (folders, id) => {
 export const findYearIndexForFolder = (years, targetFolderId) => {
     if (!Array.isArray(years) || !targetFolderId) return -1;
     return years.findIndex(
-        (y) => y?._id === targetFolderId || findFolderById(y?.children, targetFolderId)
+        (y) => y?._id === targetFolderId || findFolderById(y?.children, targetFolderId),
     );
 };

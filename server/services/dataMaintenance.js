@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, Types } from "mongoose";
+import mongoose, { Schema, model, Types } from "../config/mongoose.js";
 import { createHash, randomUUID } from "node:crypto";
 import Course, { FolderModel, FileModel } from "../modules/course/course.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
@@ -367,9 +367,11 @@ function validatePlan(plan, database) {
             fail("Import identities must match the staged plan");
         if (step.type === "insert") {
             const allowed = [...importFields[step.collection], "aliases", "resourceState"];
-            if (Object.keys(step.document).some((key) => !allowed.includes(key)) ||
+            if (
+                Object.keys(step.document).some((key) => !allowed.includes(key)) ||
                 (step.document.aliases && step.document.aliases.length !== 0) ||
-                (step.document.resourceState && step.document.resourceState !== "ready"))
+                (step.document.resourceState && step.document.resourceState !== "ready")
+            )
                 fail("Import plans cannot introduce operation state or unreviewed aliases");
         }
     }

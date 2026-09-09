@@ -155,3 +155,15 @@ for (const width of [1440, 390]) {
         assert.equal(await page.getByTitle("Save", { exact: true }).count(), 0);
     });
 }
+
+for (const [route, resource] of [
+    ["students", "/api/student/all"],
+    ["courses", "/api/admin/dbcourses"],
+]) {
+    test(`administrator ${route} restores its session and loads the list once`, async (t) => {
+        const { page, requests, origin } = await fixture(t, 1440, true);
+        await page.goto(`${origin}/admin/${route}`, { waitUntil: "networkidle" });
+        assert.equal(requests.filter((request) => request.path === "/api/admin/").length, 1);
+        assert.equal(requests.filter((request) => request.path === resource).length, 1);
+    });
+}

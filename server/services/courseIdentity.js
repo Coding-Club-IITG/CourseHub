@@ -2,13 +2,14 @@ import Course from "../modules/course/course.model.js";
 import CourseIdentity from "../modules/course/courseIdentity.model.js";
 import { normalizeCourseCode } from "../utils/course.js";
 import AppError from "../utils/appError.js";
+import { isCourseCode } from "@coursehub/domain";
 
 export const identityLock = "!COURSE-IDENTITIES";
 export function validCourseCode(value) {
     if (typeof value !== "string")
         throw new AppError(400, "A valid course code is required", "INVALID_COURSE_CODE");
     const code = normalizeCourseCode(value);
-    if (!/^[A-Z0-9][A-Z0-9._-]{0,63}$/.test(code))
+    if (!isCourseCode(code))
         throw new AppError(
             400,
             "Use letters, numbers, dots, underscores or hyphens in the course code",

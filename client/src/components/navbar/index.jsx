@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./styles.scss";
 import Logo from "./components/logo";
 import NavLink from "./components/navlink";
@@ -23,7 +23,9 @@ const NavBar = () => {
             await logoutUser();
             dispatch(LogoutUser());
             window.location.href = "/";
-        } catch { toast.error("Could not log out. Please try again."); }
+        } catch {
+            toast.error("Could not log out. Please try again.");
+        }
     };
 
     const toggleMobileMenu = (e) => {
@@ -94,7 +96,6 @@ const NavBar = () => {
                             <span></span>
                         </div>
 
-                        
                         <div
                             className={`mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
                             ref={mobileMenuRef}

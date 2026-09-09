@@ -1,5 +1,5 @@
 import "./styles.scss";
-import React, { useState } from "react";
+import { useState } from "react";
 import { formatFileName, formatFileSize, formatFileType } from "../../../../utils/formatFile";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,7 +17,7 @@ import ConfirmDialog from "./components/ConfirmDialog.jsx";
 import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
 
-const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
+const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
     const fileSize = formatFileSize(file.sizeBytes ?? file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
@@ -43,7 +43,7 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
             _dispName = formatFileName(untruncatedDispName);
             contributor = file.contributorName || "Anonymous";
         }
-    } catch (error) {
+    } catch {
         _dispName = formatFileName(file.name);
         untruncatedDispName = file.name;
         contributor = "Anonymous";

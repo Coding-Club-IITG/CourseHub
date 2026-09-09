@@ -112,9 +112,10 @@
                 align-items: center;
                 justify-content: space-between;
                 box-shadow: 0 0 0 transparent;
-                transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                            color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                            box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                transition:
+                    background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                    color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
                 &:hover:not(.selected) {
                     background-color: rgba(254, 207, 111, 0.12);
@@ -196,7 +197,9 @@
                     font-size: 0.9rem;
                     cursor: pointer;
                     display: inline-block;
-                    transition: color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    transition:
+                        color 0.2s ease,
+                        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 
                     &:hover {
                         color: #fecf6f;
@@ -298,7 +301,8 @@
             font-size: 0.95rem; // Slightly larger text
             color: #2c3e50;
             font-weight: 600; // Bolder for better hierarchy
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; // System font
+            font-family:
+                -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; // System font
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
@@ -311,7 +315,8 @@
             &:focus {
                 outline: none;
                 border-color: #fecf6f;
-                box-shadow: 0 0 0 4px rgba(254, 207, 111, 0.12),
+                box-shadow:
+                    0 0 0 4px rgba(254, 207, 111, 0.12),
                     0 4px 12px rgba(254, 207, 111, 0.15);
                 transform: translateY(-2px); // More pronounced lift
                 background: linear-gradient(
@@ -415,7 +420,7 @@
     z-index: 100;
     box-shadow: 0 2px 8px rgba(254, 207, 111, 0.3);
     transition: all 0.2s ease;
-    font-family: 'Bold', sans-serif;
+    font-family: "Bold", sans-serif;
     font-size: 1rem;
     font-weight: 600;
 
@@ -586,8 +591,8 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -625,4 +630,3 @@
         transform: scale(1) translateY(0);
     }
 }
-

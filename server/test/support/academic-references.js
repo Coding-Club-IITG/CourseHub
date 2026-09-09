@@ -283,7 +283,7 @@ export async function exerciseAcademicReferences(t, origin) {
             const paused = await run(accepted.operationId);
             assert.equal(paused.status, "queued");
             assert.equal(paused.plan, undefined);
-            assert.deepEqual((await User.findById(user.id)).courses, before.courses);
+            assert.deepEqual((await User.findById(user.id).lean()).courses, before.courses);
             assert.equal((await User.findById(user.id)).courseSync.lastSucceededAt.getTime(), 0);
             mock.mock.restore();
             sub.mock.method(academicProvider, "fetch", async () => ({
@@ -542,7 +542,13 @@ export async function exerciseAcademicReferences(t, origin) {
             assert.equal(await Course.findById(ids[0]), null);
             const editedPlan = structuredClone(plan);
             editedPlan.steps[0].document.deletingOperation = "unreviewed-state";
-            await assert.rejects(applyMaintenancePlan(editedPlan, { database, backup: { ...backup, planSha256: planDigest(editedPlan) } }), { code: "DATA_REVIEW_REQUIRED" });
+            await assert.rejects(
+                applyMaintenancePlan(editedPlan, {
+                    database,
+                    backup: { ...backup, planSha256: planDigest(editedPlan) },
+                }),
+                { code: "DATA_REVIEW_REQUIRED" },
+            );
 
             await applyMaintenancePlan(plan, { database, backup });
             await applyMaintenancePlan(plan, { database, backup });

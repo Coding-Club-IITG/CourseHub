@@ -7,8 +7,8 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
     z-index: 999;
     display: flex;
     justify-content: center;
@@ -16,14 +16,16 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                backdrop-filter 0.25s ease;
+    transition:
+        opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        backdrop-filter 0.25s ease;
 
     .wrapper {
         transform: scale(0.93) translateY(16px);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                    box-shadow 0.3s ease;
+        transition:
+            transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.3s ease;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 

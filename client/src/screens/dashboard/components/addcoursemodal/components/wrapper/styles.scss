@@ -18,40 +18,40 @@
     max-height: 25vh;
 }
 
-@media screen and (max-width:1270px) {
+@media screen and (max-width: 1270px) {
     .wrapper {
         width: 50%;
     }
 }
 
-@media screen and (max-width:1024px) {
+@media screen and (max-width: 1024px) {
     .wrapper {
         width: 55%;
     }
 }
 
-@media screen and (max-width:960px) {
+@media screen and (max-width: 960px) {
     .wrapper {
         width: 65%;
         padding: 2rem 3rem;
     }
 }
 
-@media screen and (max-width:760px) {
+@media screen and (max-width: 760px) {
     .wrapper {
         width: 65%;
         padding: 2rem 3rem;
     }
 }
 
-@media screen and (max-width:720px) {
+@media screen and (max-width: 720px) {
     .wrapper {
         width: 70%;
         padding: 1rem 2rem;
     }
 }
 
-@media screen and (max-width:400px) {
+@media screen and (max-width: 400px) {
     .wrapper {
         width: 90%;
         padding: 1rem 2rem;

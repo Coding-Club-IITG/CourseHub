@@ -1,6 +1,6 @@
 import express from "express";
 import isLibraryAuthenticated from "../../middleware/isLibraryAuthenticated.js";
-import catchAsync from "../../utils/catchAsync.js";
+
 import {
     getOperation,
     listOperations,
@@ -9,8 +9,8 @@ import {
 } from "./operation.controller.js";
 const router = express.Router();
 router.use(isLibraryAuthenticated);
-router.get("/", catchAsync(listOperations));
-router.get("/:id", catchAsync(getOperation));
-router.post("/:id/cancel", catchAsync(cancelOperation));
-router.post("/:id/retry", catchAsync(retryOperation));
+router.get("/", listOperations);
+router.get("/:id", getOperation);
+router.post("/:id/cancel", cancelOperation);
+router.post("/:id/retry", retryOperation);
 export default router;

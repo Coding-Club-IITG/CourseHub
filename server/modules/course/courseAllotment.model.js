@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from "../../config/mongoose.js";
 
 const CourseAllotmentSchema = new mongoose.Schema(
     {

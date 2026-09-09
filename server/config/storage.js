@@ -1,13 +1,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+export { uploadLimits } from "@coursehub/domain";
 
 const serverDirectory = fileURLToPath(new URL("../", import.meta.url));
-export const uploadLimits = Object.freeze({
-    fileBytes: 100 * 1024 * 1024,
-    files: 40,
-    batchBytes: 1024 * 1024 * 1024,
-    concurrentFiles: 2,
-});
 export const graphChunkBytes = 10 * 320 * 1024;
 export const tokenDirectory = () => path.resolve(process.env.ONEDRIVE_TOKEN_DIR || serverDirectory);
 export const uploadDirectory = () =>

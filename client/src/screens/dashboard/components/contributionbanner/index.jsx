@@ -1,6 +1,5 @@
-import ContributeButton from "./components/button";
 import "./styles.scss";
-const ContributionBanner = (props) => {
+const ContributionBanner = () => {
     return (
         <div className="contributionbanner">
             <div className="content">

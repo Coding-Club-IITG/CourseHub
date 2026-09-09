@@ -1,12 +1,15 @@
 import "./styles.scss";
 import Wrapper from "../contributions/components/wrapper";
 import SectionShare from "./components/SectionShare";
-import CopyToClipboard from "react-copy-to-clipboard";
-import "./styles.scss";
 import { toast } from "react-toastify";
 const Share = (props) => {
-    const copyHandler = () => {
-        toast.success("Link Copied to Clipboard");
+    const copyHandler = async () => {
+        try {
+            await navigator.clipboard.writeText(props.link);
+            toast.success("Link Copied to Clipboard");
+        } catch {
+            toast.error("Could not copy the link. Select it and copy it manually.");
+        }
     };
     return (
         <SectionShare>
@@ -17,11 +20,15 @@ const Share = (props) => {
                         type="text"
                         value={props.link}
                         className="shareinput"
-                        readOnly={"readonly"}
+                        readOnly
+                        aria-label="Share link"
                     />{" "}
-                    <CopyToClipboard text={props.link}>
-                        <section className="clip" onClick={copyHandler}></section>
-                    </CopyToClipboard>
+                    <button
+                        type="button"
+                        className="clip"
+                        aria-label="Copy link"
+                        onClick={copyHandler}
+                    />
                 </div>
                 <div className="bottom-banner"></div>
             </Wrapper>

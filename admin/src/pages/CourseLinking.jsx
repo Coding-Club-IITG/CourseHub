@@ -1,7 +1,7 @@
 import LinkingResult from "@/components/LinkingResult";
 import { waitForOperation } from "@/apis/operations";
 import { apiFetch } from "@/apis/http";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     FaLink,
     FaUpload,
@@ -223,7 +223,7 @@ const CourseLinking = () => {
                                             disabled={manualLoading}
                                             value={manualOldCode}
                                             onChange={(e) => setManualOldCode(e.target.value)}
-                                            placeholder="e.g., CS101"
+                                            placeholder="Eg. CS101"
                                             className="uppercase border-gray-200 focus:border-blue-400 focus:ring-blue-100"
                                         />
                                     </div>
@@ -235,7 +235,7 @@ const CourseLinking = () => {
                                             disabled={manualLoading}
                                             value={manualNewCode}
                                             onChange={(e) => setManualNewCode(e.target.value)}
-                                            placeholder="e.g., CSN101"
+                                            placeholder="Eg. CSN101"
                                             className="uppercase border-gray-200 focus:border-blue-400 focus:ring-blue-100"
                                         />
                                     </div>

@@ -1,15 +1,12 @@
-import React from "react";
 import { useState } from "react";
 import Wrapper from "../../../contributions/components/wrapper";
 
-
 const ConfirmDialog = ({
     show,
-    input = false,
     inputValue = "",
-    onInputChange = () => { },
+    onInputChange = () => {},
     childType = "",
-    onChildTypeChange = () => { },
+    onChildTypeChange = () => {},
     onCancel,
     onConfirm,
 }) => {
@@ -59,14 +56,20 @@ const ConfirmDialog = ({
                     </select>
                 </div>
                 <div id="uploaded-container">
-                        <div>⚠️</div>
-                        <div>The Child Type of the folder indicates whether this new folder will have subfolders or files inside it</div>
+                    <div>⚠️</div>
+                    <div>
+                        The Child Type of the folder indicates whether this new folder will have
+                        subfolders or files inside it
                     </div>
+                </div>
                 <div className="addfolderbuttoncontainer">
                     <div className="button cancelbutton addfolderbutton" onClick={onCancel}>
                         CANCEL
                     </div>
-                    <div className={`button ${submitEnabled} submitbutton addfolderbutton`} onClick={onConfirm}>
+                    <div
+                        className={`button ${submitEnabled} submitbutton addfolderbutton`}
+                        onClick={onConfirm}
+                    >
                         CREATE
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import mongoose from "mongoose";
+import mongoose from "../config/mongoose.js";
 import {
     readMaintenanceData,
     inventoryData,

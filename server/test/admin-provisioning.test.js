@@ -81,9 +81,9 @@ test("new credentials pass through the real model hashing hook and no hash is re
     t.mock.method(Admin, "createIndexes", async () => {});
     t.mock.method(Admin, "exists", async () => null);
     let inserted;
-    t.mock.method(Admin.collection, "insertOne", (document, options, callback) => {
+    t.mock.method(Admin.collection, "insertOne", async (document) => {
         inserted = document;
-        callback(null, { acknowledged: true, insertedId: document._id });
+        return { acknowledged: true, insertedId: document._id };
     });
     const result = await provisionAdmin(credentials);
     assert.deepEqual(Object.keys(result).sort(), ["id", "userId"]);

@@ -1,4 +1,3 @@
-import React from "react";
 import cross from "./cross.svg";
 
 const styles = {
@@ -85,7 +84,11 @@ const ConfirmDialog = ({ isOpen, onConfirm, onCancel, isLoading = false }) => {
                         Cancel
                     </button>
                     <button
-                        style={{ ...styles.deleteBtn, opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                        style={{
+                            ...styles.deleteBtn,
+                            opacity: isLoading ? 0.6 : 1,
+                            cursor: isLoading ? "not-allowed" : "pointer",
+                        }}
                         onClick={onConfirm}
                         disabled={isLoading}
                     >

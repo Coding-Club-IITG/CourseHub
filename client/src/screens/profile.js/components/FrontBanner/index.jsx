@@ -38,8 +38,12 @@ const FrontBanner = () => {
             setIsNameEdit(false);
             toast.success("Profile updated");
         } catch (error) {
-            setSaveError(error.response?.data?.message || "Could not save your name. Please try again.");
-        } finally { setSaving(false); }
+            setSaveError(
+                error.response?.data?.message || "Could not save your name. Please try again.",
+            );
+        } finally {
+            setSaving(false);
+        }
     }
     return (
         <Container color={"dark"}>
@@ -59,11 +63,13 @@ const FrontBanner = () => {
                                     aria-invalid={!!saveError}
                                     maxLength={120}
                                     disabled={saving}
-                                    onKeyDown={event => { if (event.key === "Enter") submitNameHandler(); }}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter") submitNameHandler();
+                                    }}
                                     className="inputName"
                                     value={userName}
                                     onChange={(event) => {
-                                        setUserName((prev) => {
+                                        setUserName(() => {
                                             return event.target.value;
                                         });
                                     }}
@@ -73,13 +79,28 @@ const FrontBanner = () => {
                                 formatName(user?.user?.name)
                             )}
                             {isNameEdit ? (
-                                <button type="button" aria-label="Save name" className="tickDiv" disabled={saving} onClick={submitNameHandler} />
+                                <button
+                                    type="button"
+                                    aria-label="Save name"
+                                    className="tickDiv"
+                                    disabled={saving}
+                                    onClick={submitNameHandler}
+                                />
                             ) : (
-                                <button type="button" aria-label="Edit name" className="editDiv" onClick={editNameHandler} />
+                                <button
+                                    type="button"
+                                    aria-label="Edit name"
+                                    className="editDiv"
+                                    onClick={editNameHandler}
+                                />
                             )}
                         </header>
                         {saving && <p role="status">Saving…</p>}
-                        {saveError && <p id="profile-save-error" className="profile-save-error" role="alert">{saveError}</p>}
+                        {saveError && (
+                            <p id="profile-save-error" className="profile-save-error" role="alert">
+                                {saveError}
+                            </p>
+                        )}
                         <div className="branch">
                             {formatBranch(user?.user?.degree, user?.user?.department)}
                         </div>

@@ -22,7 +22,7 @@ import { refreshCourseFromServer } from "../../../../utils/refreshCourse";
 const Collapsible = ({ course, color, state = false }) => {
     const normalizedCode = useMemo(
         () => course.code?.replaceAll(" ", "").toLowerCase() || "",
-        [course.code]
+        [course.code],
     );
 
     const [open, setOpen] = useState(state);
@@ -39,8 +39,7 @@ const Collapsible = ({ course, color, state = false }) => {
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const { code, folderId } = useParams();
 
-    const isCurrentCourse =
-        currCourseCode?.replaceAll(" ", "").toLowerCase() === normalizedCode;
+    const isCurrentCourse = currCourseCode?.replaceAll(" ", "").toLowerCase() === normalizedCode;
 
     const getCachedCourse = () => {
         const cachedInStore = findCachedCourse(allCourseData, normalizedCode);
@@ -49,7 +48,7 @@ const Collapsible = ({ course, color, state = false }) => {
         try {
             const fromSession = readAllCoursesCache();
             return findCachedCourse(fromSession, normalizedCode);
-        } catch (e) {
+        } catch {
             return null;
         }
     };
@@ -61,8 +60,7 @@ const Collapsible = ({ course, color, state = false }) => {
         dispatch(ChangeCurrentCourse(courseData.children, selectedCourseCode));
 
         const hasSameCourse =
-            currCourseCode?.replaceAll(" ", "").toLowerCase() ===
-            selectedCourseCode?.toLowerCase();
+            currCourseCode?.replaceAll(" ", "").toLowerCase() === selectedCourseCode?.toLowerCase();
 
         let yearIndex = courseData.children.length - 1;
         if (hasSameCourse && currentYear !== null && courseData.children[currentYear]) {
@@ -71,7 +69,7 @@ const Collapsible = ({ course, color, state = false }) => {
 
         const yearFolder = courseData.children?.[yearIndex] || null;
         const yearChildren = Array.isArray(yearFolder?.children) ? yearFolder.children : [];
-        
+
         dispatch(ChangeCurrentYearData(yearIndex, yearChildren));
         dispatch(ClearFolderHistory());
         dispatch(ChangeFolder(yearFolder));
@@ -116,7 +114,7 @@ const Collapsible = ({ course, color, state = false }) => {
             setNotFound(false);
             setError(false);
             setActiveCourse(fetchedCourse);
-        } catch (err) {
+        } catch {
             setError(true);
             setNotFound(false);
             toast.error("Something went wrong while loading the course.");
@@ -150,12 +148,7 @@ const Collapsible = ({ course, color, state = false }) => {
         }
     }, [isCurrentCourse, code, folderId, normalizedCode, currentCourse, currentFolder, dispatch]);
 
-    const showTree =
-        !loading &&
-        !error &&
-        !notFound &&
-        isCurrentCourse &&
-        Array.isArray(yearTree);
+    const showTree = !loading && !error && !notFound && isCurrentCourse && Array.isArray(yearTree);
 
     return (
         <div className={`collapsible ${open}`}>

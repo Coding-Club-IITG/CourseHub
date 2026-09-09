@@ -3,7 +3,7 @@ const url_reducer = (
         previewUrls: [{ id: "test", url: "test" }],
         downloadUrls: [{ id: "test", url: "test" }],
     },
-    action
+    action,
 ) => {
     switch (action.type) {
         case "ADD_PREVIEW_URL":

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Types } from "mongoose";
+import { Types } from "../config/mongoose.js";
 import User from "../modules/user/user.model.js";
 import BR from "../modules/br/br.model.js";
 import Course from "../modules/course/course.model.js";
@@ -409,6 +409,7 @@ export async function runAcademicSync(operation, checkpoint) {
                         ? { $unset: { "courseSync.operationId": 1 } }
                         : {}),
                 },
+                { runValidators: true },
             );
         });
     await completeOperation(operation, checkpoint);

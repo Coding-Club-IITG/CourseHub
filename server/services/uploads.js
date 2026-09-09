@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { createReadStream, constants } from "node:fs";
 import path from "node:path";
 import { randomUUID, createHash } from "node:crypto";
-import mongoose from "mongoose";
+import mongoose from "../config/mongoose.js";
 import { OperationModel, StorageLease } from "../modules/operation/operation.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
 import { FileModel, FolderModel } from "../modules/course/course.model.js";

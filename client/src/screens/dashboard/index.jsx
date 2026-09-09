@@ -1,3 +1,4 @@
+import { normalizeCourseCode } from "@coursehub/domain";
 import "./styles.scss";
 import Container from "../../components/container";
 import ExamCard from "./components/examcard";
@@ -8,7 +9,7 @@ import SubHeading from "../../components/subheading";
 import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
 import Footer from "../../components/footer";
-import FavouriteCard from "./components/favouritecard";
+
 import ExamScheduleWidget from "./components/examschedule";
 
 import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
@@ -21,11 +22,14 @@ import { useEffect, useState } from "react";
 import { getColors } from "../../utils/colors";
 import { LoadCourses } from "../../actions/filebrowser_actions";
 import Contributions from "../contributions";
-import { AddNewCourseLocal, ClearLocalCourses, LoginUser, UpdateReadOnlyCourses } from "../../actions/user_actions";
+import { ClearLocalCourses, UpdateReadOnlyCourses } from "../../actions/user_actions";
 import AddCourseModal from "./components/addcoursemodal";
 import { AddNewCourseAPI, GetExamDates, getUser } from "../../api/User";
 import { toast } from "react-toastify";
-import { clearLegacySessionLocalCoursesCache, readAllCoursesCache } from "../../utils/frontendCache";
+import {
+    clearLegacySessionLocalCoursesCache,
+    readAllCoursesCache,
+} from "../../utils/frontendCache";
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -39,16 +43,16 @@ const Dashboard = () => {
     const toggleSemester = (semIndex) => {
         setOpenSemesters((prev) => ({
             ...prev,
-            [semIndex]: !prev[semIndex]
+            [semIndex]: !prev[semIndex],
         }));
     };
 
-    const contributionHandler = (event) => {
+    const contributionHandler = () => {
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
         if (contributionSection) contributionSection.classList.add("show");
     };
-    const addCourseModalShowHandler = (event) => {
+    const addCourseModalShowHandler = () => {
         const collection = document.getElementsByClassName("add_modal");
         const contributionSection = collection[0];
         if (contributionSection) contributionSection.classList.add("show");
@@ -57,10 +61,10 @@ const Dashboard = () => {
         try {
             const found =
                 user.user?.courses?.find(
-                    (course) => course.code.toLowerCase() === code.toLowerCase()
+                    (course) => course.code.toLowerCase() === code.toLowerCase(),
                 ) ||
                 user.user?.readOnly?.find(
-                    (course) => course.code.toLowerCase() === code.toLowerCase()
+                    (course) => course.code.toLowerCase() === code.toLowerCase(),
                 );
 
             if (found) {
@@ -81,16 +85,16 @@ const Dashboard = () => {
             const collection = document.getElementsByClassName("add_modal");
             const modal = collection[0];
             if (modal) modal.classList.remove("show");
-        } catch (error) {
+        } catch {
             toast.error("Failed to add course.");
         }
     };
 
     const handleCourseRemoved = (removedCode) => {
         if (!removedCode) return;
-        const normalizedRemoved = removedCode.replace(/\s+/g, "").toLowerCase();
+        const normalizedRemoved = normalizeCourseCode(removedCode);
         const updatedReadOnly = (user.user?.readOnly || []).filter(
-            (c) => c.code?.replace(/\s+/g, "").toLowerCase() !== normalizedRemoved
+            (c) => normalizeCourseCode(c.code) !== normalizedRemoved,
         );
         dispatch(UpdateReadOnlyCourses(updatedReadOnly));
         toast.success(`Course ${removedCode.toUpperCase()} removed`);
@@ -103,12 +107,14 @@ const Dashboard = () => {
         if (cleaned.length > 0) {
             dispatch(LoadCourses(cleaned));
         }
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
+        let active = true;
         async function run() {
             try {
                 const { data } = await GetExamDates();
+                if (!active) return;
                 const { dates } = data;
                 const midSemDate = new Date(dates.midSem);
                 const endSemDate = new Date(dates.endSem);
@@ -117,10 +123,16 @@ const Dashboard = () => {
                 setMidSem(daysTillMidsem);
                 const daysEndSem = parseInt((endSemDate.getTime() - now) / (1000 * 3600 * 24));
                 setEndSem(daysEndSem);
-            } catch (error) {
+            } catch {
+                // Keep the schedule unavailable when the date service fails
             }
         }
-        run();
+        queueMicrotask(() => {
+            if (active) run();
+        });
+        return () => {
+            active = false;
+        };
     }, []);
 
     const handleClick = (code) => {
@@ -131,7 +143,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         dispatch(ResetFileBrowserState());
-    }, []);
+    }, [dispatch]);
 
     const [showPrevious, setShowPrevious] = useState(false);
 
@@ -178,9 +190,6 @@ const Dashboard = () => {
                                 isReadOnly={false}
                             />
                         ))}
-                        
-
-                        
                     </div>
                     <Space amount={50} />
 
@@ -198,7 +207,7 @@ const Dashboard = () => {
                                 onCourseRemoved={handleCourseRemoved}
                             />
                         ))}
-                        
+
                         <CourseCard
                             type={"ADD"}
                             setClicked={() => {
@@ -213,9 +222,21 @@ const Dashboard = () => {
                         <>
                             <div
                                 onClick={() => setShowPrevious(!showPrevious)}
-                                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }}
+                                style={{
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                }}
                             >
-                                <span style={{ transition: "transform 0.2s", transform: showPrevious ? "rotate(0deg)" : "rotate(-90deg)", color: "white", fontSize: "0.85em" }}>
+                                <span
+                                    style={{
+                                        transition: "transform 0.2s",
+                                        transform: showPrevious ? "rotate(0deg)" : "rotate(-90deg)",
+                                        color: "white",
+                                        fontSize: "0.85em",
+                                    }}
+                                >
                                     ▼
                                 </span>
                                 <SubHeading
@@ -234,29 +255,51 @@ const Dashboard = () => {
                                     {user.user.previousCourses.map((semesterGroup, semIndex) => (
                                         <div key={semIndex} style={{ marginLeft: "20px" }}>
                                             <Space amount={20} />
-                                            <div style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }} onClick={() => toggleSemester(semIndex)}>
-                                                <span style={{ transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: openSemesters[semIndex] ? "rotate(0deg)" : "rotate(-90deg)", color: "white", fontSize: "0.85em" }}>
+                                            <div
+                                                style={{
+                                                    cursor: "pointer",
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    gap: "8px",
+                                                }}
+                                                onClick={() => toggleSemester(semIndex)}
+                                            >
+                                                <span
+                                                    style={{
+                                                        transition:
+                                                            "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                                                        transform: openSemesters[semIndex]
+                                                            ? "rotate(0deg)"
+                                                            : "rotate(-90deg)",
+                                                        color: "white",
+                                                        fontSize: "0.85em",
+                                                    }}
+                                                >
                                                     ▼
                                                 </span>
-                                                <SubHeading 
-                                                    text={`Semester ${semesterGroup.semester} (${semesterGroup.year})`} 
-                                                    color={"light"} 
-                                                    type={"bold"} 
+                                                <SubHeading
+                                                    text={`Semester ${semesterGroup.semester} (${semesterGroup.year})`}
+                                                    color={"light"}
+                                                    type={"bold"}
                                                 />
                                             </div>
                                             {openSemesters[semIndex] && (
                                                 <div className="previous-courses-wrapper">
                                                     <Space amount={20} />
                                                     <div className="coursecard-container">
-                                                        {semesterGroup.courses.map((course, index) => (
-                                                            <CourseCard
-                                                                key={course.name}
-                                                                code={course?.code?.toUpperCase()}
-                                                                name={course.name}
-                                                                color={getColors(index)}
-                                                                setClicked={() => handleClick(course.code)}
-                                                            />
-                                                        ))}
+                                                        {semesterGroup.courses.map(
+                                                            (course, index) => (
+                                                                <CourseCard
+                                                                    key={course.name}
+                                                                    code={course?.code?.toUpperCase()}
+                                                                    name={course.name}
+                                                                    color={getColors(index)}
+                                                                    setClicked={() =>
+                                                                        handleClick(course.code)
+                                                                    }
+                                                                />
+                                                            ),
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}

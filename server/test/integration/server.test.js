@@ -427,3 +427,58 @@ test("shared course trees and journaled linking", async (t) => exerciseSharedTre
 import { exerciseAcademicReferences } from "../support/academic-references.js";
 test("course reference maintenance and academic synchronization", async (t) =>
     exerciseAcademicReferences(t, origin));
+
+test("unknown destructive filters fail before changing any records", async () => {
+    const files = await FileModel.find().sort({ _id: 1 }).lean();
+    assert.ok(files.length > 0, "Exercise the filter guard against populated data");
+    for (const query of [
+        FileModel.deleteMany({ unrelatedCourse: "CS101" }),
+        FileModel.deleteOne({ course: "CS101" }),
+        FileModel.updateMany({ misspelledId: files[0]._id }, { $set: { name: "Must not change" } }),
+        FileModel.findOneAndDelete({ unknown: true }),
+    ])
+        await assert.rejects(query.exec(), { name: "StrictModeError" });
+    assert.deepEqual(await FileModel.find().sort({ _id: 1 }).lean(), files);
+});
+
+test("validated nested references survive persistence, population and a profile-only update", async () => {
+    const history = [
+        { semester: 1, year: 2024, courses: [{ code: "MODEL101", name: "Earlier course" }] },
+    ];
+    const person = await User.create({
+        ...student,
+        _id: new mongoose.Types.ObjectId(),
+        email: "model-boundary@example.test",
+        rollNumber: 240199987,
+        previousCourses: history,
+    });
+    await User.findByIdAndUpdate(
+        person.id,
+        { $set: { name: "Updated profile" } },
+        { runValidators: true },
+    );
+    assert.deepEqual((await User.findById(person.id).lean()).previousCourses, history);
+    await assert.rejects(
+        User.updateOne(
+            { _id: person.id },
+            { $set: { courses: [{ name: "No code" }] } },
+            { runValidators: true },
+        ),
+        { name: "ValidationError" },
+    );
+    assert.deepEqual((await User.findById(person.id).lean()).courses, student.courses);
+    await User.collection.updateOne(
+        { _id: person._id },
+        { $set: { previousCourses: [{ code: "OLD101", name: "Unconverted history" }] } },
+    );
+    const before = await User.findById(person.id).lean();
+    await User.findByIdAndUpdate(
+        person.id,
+        { $set: { name: "Profile still editable" } },
+        { runValidators: true },
+    );
+    assert.deepEqual(
+        (await User.findById(person.id).lean()).previousCourses,
+        before.previousCourses,
+    );
+});

@@ -108,7 +108,7 @@ const YearInfo = ({
             }
 
             toast.success(`Year "${yearName}" added`);
-        } catch (error) {
+        } catch {
             toast.error("Failed to add year.");
         }
         setShowConfirm(false);
@@ -119,7 +119,7 @@ const YearInfo = ({
         setShowConfirmDel(true);
     };
 
-    const handleConfirmDeleteYear = async (e) => {
+    const handleConfirmDeleteYear = async () => {
         if (isDeletingYear) return;
         try {
             setIsDeletingYear(true);
@@ -163,7 +163,7 @@ const YearInfo = ({
 
             toast.success("Year deleted successfully!");
             setShowConfirmDel(false);
-        } catch (err) {
+        } catch {
             toast.error("Failed to delete year.");
         } finally {
             setIsDeletingYear(false);
@@ -191,11 +191,16 @@ const YearInfo = ({
                                         onClick={() => {
                                             dispatch(ClearFolderHistory());
                                             dispatch(
-                                                ChangeCurrentYearData(idx, course[idx]?.children || [])
+                                                ChangeCurrentYearData(
+                                                    idx,
+                                                    course[idx]?.children || [],
+                                                ),
                                             );
                                             dispatch(ChangeFolder(course[idx]));
                                             if (courseCode && course[idx]?._id) {
-                                                navigate(`/browse/${courseCode}/${course[idx]._id}`);
+                                                navigate(
+                                                    `/browse/${courseCode}/${course[idx]._id}`,
+                                                );
                                             } else if (courseCode) {
                                                 navigate(`/browse/${courseCode}`);
                                             }
@@ -222,8 +227,8 @@ const YearInfo = ({
                                     </span>
                                     {canManage ? (
                                         <ConfirmDelDialog
-                    affectedCourses={course?.[currYear]?.affectedCourses}
-                    courseCode={courseCode}
+                                            affectedCourses={course?.[currYear]?.affectedCourses}
+                                            courseCode={courseCode}
                                             isOpen={showConfirmDel}
                                             type="delete"
                                             onConfirm={handleConfirmDeleteYear}

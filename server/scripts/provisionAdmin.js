@@ -1,5 +1,5 @@
 import "dotenv/config";
-import mongoose from "mongoose";
+import mongoose from "../config/mongoose.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {

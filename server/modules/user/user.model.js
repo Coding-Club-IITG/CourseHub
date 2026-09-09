@@ -1,22 +1,22 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../../config/mongoose.js";
 import Joi from "joi";
 import AppError from "../../utils/appError.js";
 import { graph } from "../../services/graphClient.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import { normalizeCourseCode } from "../../utils/course.js";
+import { courseReference, semesterReference } from "./courseReference.schema.js";
 
 const userSchema = Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     rollNumber: { type: Number, required: true, unique: true },
-    // branch: { type: String, required: true },
-    semester: { type: Number, reqiured: true },
+    semester: { type: Number, required: true, min: 1, validate: Number.isSafeInteger },
     degree: { type: String, required: true },
-    courses: { type: Array, default: [], required: true },
-    readOnly: { type: Array, default: [] },
+    courses: { type: [courseReference], default: [], required: true },
+    readOnly: { type: [courseReference], default: [] },
     isBR: { type: Boolean },
-    previousCourses: { type: Array, default: [] },
-    department: { type: String, required: true }, //dup
+    previousCourses: { type: [semesterReference], default: [] },
+    department: { type: String, required: true },
     favourites: [
         {
             name: { type: String },
@@ -34,7 +34,7 @@ const userSchema = Schema({
     },
 });
 
-userSchema.pre("save", function (next) {
+userSchema.pre("save", function () {
     const user = this;
     if (
         user.isModified("courses") ||
@@ -49,7 +49,6 @@ userSchema.pre("save", function (next) {
         ]);
         user.readOnly = user.readOnly.filter((c) => !courseCodes.has(normalizeCourseCode(c.code)));
     }
-    next();
 });
 
 const User = model("User", userSchema);
@@ -102,7 +101,7 @@ export const updateUserData = async (userId, userData) => {
     const saved = await User.findByIdAndUpdate(
         userId,
         { $set: updates },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
     );
     if (!saved) throw new AppError(404, "Profile not found");
     return { name: saved.name, semester: saved.semester };
@@ -179,7 +178,7 @@ export const removeFromFavourites = async (userid, fileid) => {
     const resp = await User.findOneAndUpdate(
         { _id: userid },
         { $pull: { favourites: { _id: fileid } } },
-        { new: true },
+        { returnDocument: "after" },
     );
     return resp;
 };

@@ -2,23 +2,21 @@ import "./styles.scss";
 import Container from "../../components/container";
 import Dropdown from "../../components/ui/dropdown";
 import Collapsible from "./components/collapsible";
-import Navbar from "../../components/navbar";
+
 import FolderInfo from "./components/folder-info";
-import FileDisplay from "./components/file-display";
+
 import BrowseFolder from "./components/browsefolder";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, useStore } from "react-redux";
 import NavBarBrowseScreen from "./components/navbar";
 import Contributions from "../contributions";
 import { useEffect, useState } from "react";
-import { refreshCourseFromServer } from "../../utils/refreshCourse";
-import React from "react";
+
 import {
     ChangeCurrentCourse,
     ChangeCurrentYearData,
     ChangeFolder,
     LoadCourses,
     UpdateCourses,
-    PushFolderHistory,
     PopFolderHistory,
     ClearFolderHistory,
 } from "../../actions/filebrowser_actions";
@@ -27,13 +25,17 @@ import { AddNewCourseLocal } from "../../actions/user_actions";
 import { useParams } from "react-router-dom";
 import { getCourse } from "../../api/Course";
 import { fetchFolder } from "../../api/Folder";
-import { getSubtreeFileCount, findFolderById, findYearIndexForFolder } from "../../utils/folderUtils";
+import {
+    getSubtreeFileCount,
+    findFolderById,
+    findYearIndexForFolder,
+} from "../../utils/folderUtils";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import Share from "../share";
+
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
-import { findCachedCourse, hasUsableCourseTree, sanitizeCourseCache } from "../../utils/courseCache";
+import { findCachedCourse, hasUsableCourseTree } from "../../utils/courseCache";
 import { readAllCoursesCache, clearAllCoursesCache } from "../../utils/frontendCache";
 
 function useIsMobile() {
@@ -65,28 +67,30 @@ const BrowseScreen = () => {
     };
 
     if (folderData?.childType == "File" && folderData?.children?.length > 1)
-        folderData?.children.sort(sortFile);  //sorting current folder files by name
+        folderData?.children.sort(sortFile); //sorting current folder files by name
 
-    const contributionHandler = (event) => {
+    const contributionHandler = () => {
         const collection = document.getElementsByClassName("contri");
         const contributionSection = collection[0];
         contributionSection.classList.add("show");
     };
     const dispatch = useDispatch();
+    const store = useStore();
     const { code, folderId } = useParams();
-    const fb = useSelector((state) => state.fileBrowser);
 
     useEffect(() => {
         const cleaned = readAllCoursesCache();
         if (cleaned.length > 0) {
             dispatch(LoadCourses(cleaned));
         }
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         if (!code) {
             return;
         }
+        let active = true;
+        let fetchingToast;
         const run = async () => {
             let sessionStorageCourses = null;
             let fetchedData = null;
@@ -95,13 +99,13 @@ const BrowseScreen = () => {
 
             let currCourse = null;
             try {
-                currCourse = findCachedCourse(allCourseData, code);
-            } catch (error) {
+                currCourse = findCachedCourse(store.getState().fileBrowser.allCourseData, code);
+            } catch {
                 clearAllCoursesCache();
                 location.reload();
             }
             const present = findCachedCourse(sessionStorageCourses, code);
-            let root = [];
+
             if (present || currCourse) {
                 fetchedData = present || currCourse;
                 dispatch(AddNewCourseLocal(fetchedData));
@@ -112,14 +116,16 @@ const BrowseScreen = () => {
                     fetchedData.children.length > 0
                 ) {
                     const defaultYearIndex = fetchedData.children.length - 1;
-                    const defaultYear = fetchedData.children[defaultYearIndex];
-                    let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
+
+                    let activeFolder = folderId
+                        ? findFolderById(fetchedData.children, folderId)
+                        : null;
 
                     let activeYearIndex = defaultYearIndex;
                     if (folderId && activeFolder) {
                         const matchedIdx = findYearIndexForFolder(
                             fetchedData.children,
-                            activeFolder._id
+                            activeFolder._id,
                         );
                         if (matchedIdx !== -1) {
                             activeYearIndex = matchedIdx;
@@ -128,21 +134,21 @@ const BrowseScreen = () => {
 
                     const activeYear = fetchedData.children[activeYearIndex];
                     if (activeYear && activeYear.children) {
-                        dispatch(
-                            ChangeCurrentYearData(activeYearIndex, activeYear.children || [])
-                        );
+                        dispatch(ChangeCurrentYearData(activeYearIndex, activeYear.children || []));
                         dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
                         dispatch(ChangeFolder(activeFolder || activeYear));
                     }
                 }
             } else {
-                let fetchingToast = toast.loading("Loading course data...");
+                fetchingToast = toast.loading("Loading course data...");
                 const response = await getCourse(code.toUpperCase());
+                if (!active) return;
                 if (response.data.found) {
                     toast.dismiss(fetchingToast);
                     fetchedData = response.data;
                     if (!hasUsableCourseTree(fetchedData)) {
                         const refetched = await getCourse(code.toUpperCase());
+                        if (!active) return;
                         if (refetched.data?.found) {
                             fetchedData = refetched.data;
                         }
@@ -152,8 +158,8 @@ const BrowseScreen = () => {
                     dispatch(
                         ChangeCurrentCourse(
                             fetchedData?.children || fetchedData,
-                            code.toUpperCase()
-                        )
+                            code.toUpperCase(),
+                        ),
                     );
                     if (
                         fetchedData?.children &&
@@ -161,14 +167,16 @@ const BrowseScreen = () => {
                         fetchedData.children.length > 0
                     ) {
                         const defaultYearIndex = fetchedData.children.length - 1;
-                        const defaultYear = fetchedData.children[defaultYearIndex];
-                        let activeFolder = folderId ? findFolderById(fetchedData.children, folderId) : null;
+
+                        let activeFolder = folderId
+                            ? findFolderById(fetchedData.children, folderId)
+                            : null;
 
                         let activeYearIndex = defaultYearIndex;
                         if (folderId && activeFolder) {
                             const matchedIdx = findYearIndexForFolder(
                                 fetchedData.children,
-                                activeFolder._id
+                                activeFolder._id,
                             );
                             if (matchedIdx !== -1) {
                                 activeYearIndex = matchedIdx;
@@ -178,7 +186,7 @@ const BrowseScreen = () => {
                         const activeYear = fetchedData.children[activeYearIndex];
                         if (activeYear && activeYear.children) {
                             dispatch(
-                                ChangeCurrentYearData(activeYearIndex, activeYear.children || [])
+                                ChangeCurrentYearData(activeYearIndex, activeYear.children || []),
                             );
                             dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
                             dispatch(ChangeFolder(activeFolder || activeYear));
@@ -190,13 +198,33 @@ const BrowseScreen = () => {
                 }
             }
         };
-        run();
-    }, [code]);
+        queueMicrotask(() => {
+            if (!active) return;
+            run()
+                .catch(() => {
+                    if (active) toast.error("Could not load the course. Please try again.");
+                })
+                .finally(() => {
+                    if (fetchingToast !== undefined) toast.dismiss(fetchingToast);
+                });
+        });
+        return () => {
+            active = false;
+            if (fetchingToast !== undefined) toast.dismiss(fetchingToast);
+        };
+    }, [code, folderId, dispatch, store]);
 
     useEffect(() => {
-        if (!code || !currCourse || !Array.isArray(currCourse) || currCourse.length === 0) {
+        if (
+            !code ||
+            currCourseCode?.toUpperCase() !== code.toUpperCase() ||
+            !currCourse ||
+            !Array.isArray(currCourse) ||
+            currCourse.length === 0
+        ) {
             return;
         }
+        let active = true;
 
         if (folderId) {
             if (folderData?._id === folderId) return;
@@ -208,22 +236,26 @@ const BrowseScreen = () => {
                     dispatch(
                         ChangeCurrentYearData(
                             matchedYearIndex,
-                            currCourse[matchedYearIndex]?.children || []
-                        )
+                            currCourse[matchedYearIndex]?.children || [],
+                        ),
                     );
                 }
                 dispatch(ChangeFolder(matched));
             } else {
                 fetchFolder(folderId, code)
                     .then((freshFolder) => {
+                        if (!active) return;
                         if (freshFolder && freshFolder._id) {
-                            const matchedYearIndex = findYearIndexForFolder(currCourse, freshFolder._id);
+                            const matchedYearIndex = findYearIndexForFolder(
+                                currCourse,
+                                freshFolder._id,
+                            );
                             if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
                                 dispatch(
                                     ChangeCurrentYearData(
                                         matchedYearIndex,
-                                        currCourse[matchedYearIndex]?.children || []
-                                    )
+                                        currCourse[matchedYearIndex]?.children || [],
+                                    ),
                                 );
                             }
                             dispatch(ChangeFolder(freshFolder));
@@ -233,46 +265,62 @@ const BrowseScreen = () => {
                         }
                     })
                     .catch(() => {
+                        if (!active) return;
                         toast.error("Folder not found!");
                         navigate(`/browse/${code}`, { replace: true });
                     });
             }
         } else {
-            const defaultYear = currCourse[currYear !== null && currYear !== undefined ? currYear : currCourse.length - 1];
+            const defaultYear =
+                currCourse[
+                    currYear !== null && currYear !== undefined ? currYear : currCourse.length - 1
+                ];
             if (defaultYear && folderData?._id !== defaultYear._id) {
                 dispatch(ChangeFolder(defaultYear));
             }
         }
-    }, [folderId, code, currCourse, currYear, folderData]);
+        return () => {
+            active = false;
+        };
+    }, [folderId, code, currCourseCode, currCourse, currYear, folderData, dispatch, navigate]);
 
     useEffect(() => {
+        const { currentFolder: folderData, currentCourseCode: currCourseCode } =
+            store.getState().fileBrowser;
+        let active = true;
         const refreshFolderData = async () => {
             if (!folderData?._id || !currCourseCode) return;
 
             try {
                 const res = await getCourse(currCourseCode);
+                if (!active) return;
                 if (res.data?.found) {
                     const updatedFolder = findFolderById(res.data.children, folderData._id);
                     if (updatedFolder) {
                         dispatch(ChangeFolder(updatedFolder));
                     }
                 }
-            } catch (err) {
-                toast.error("Could not refresh folder view.");
+            } catch {
+                if (active) toast.error("Could not refresh folder view.");
             }
         };
 
-        refreshFolderData();
-    }, [refreshKey]);
+        queueMicrotask(() => {
+            if (active) refreshFolderData();
+        });
+        return () => {
+            active = false;
+        };
+    }, [refreshKey, dispatch, store]);
 
     const HeaderText =
         folderData?.childType === "File"
             ? "Select a file..."
             : folderData?.childType === "Folder"
-                ? "Select a folder..."
-                : currCourse
-                    ? "No data available for this course"
-                    : "Select a course...";
+              ? "Select a folder..."
+              : currCourse
+                ? "No data available for this course"
+                : "Select a course...";
 
     const handleBackClick = async () => {
         if (folderHistory.length > 0) {
@@ -280,13 +328,12 @@ const BrowseScreen = () => {
             dispatch(PopFolderHistory());
             if (previousFolder && previousFolder._id) {
                 dispatch(ChangeFolder(previousFolder));
-                const isRootYear = currCourse.some(y => y._id === previousFolder._id);
+                const isRootYear = currCourse.some((y) => y._id === previousFolder._id);
                 if (isRootYear) {
                     navigate(`/browse/${currCourseCode}`);
                 } else {
                     navigate(`/browse/${currCourseCode}/${previousFolder._id}`);
                 }
-
             } else {
                 navigate(`/browse/${currCourseCode}`);
             }
@@ -300,7 +347,9 @@ const BrowseScreen = () => {
         ...(user.user?.courses || []),
         ...(user.localCourses || []),
         ...(user.user?.readOnly || []),
-        ...(user.user?.isBR && user.user?.previousCourses ? user.user.previousCourses.flatMap(sem => sem.courses) : []),
+        ...(user.user?.isBR && user.user?.previousCourses
+            ? user.user.previousCourses.flatMap((sem) => sem.courses)
+            : []),
     ];
     const allYears = currCourse || [];
     const handleCourseChange = async (e) => {
@@ -313,13 +362,14 @@ const BrowseScreen = () => {
                 let courseData = allCourseData?.find(
                     (course) =>
                         hasUsableCourseTree(course) &&
-                        course.code?.toLowerCase() === selectedCode?.toLowerCase()
+                        course.code?.toLowerCase() === selectedCode?.toLowerCase(),
                 );
                 if (!courseData) {
                     try {
                         const sessionStorageCourses = readAllCoursesCache();
                         courseData = findCachedCourse(sessionStorageCourses, selectedCode);
-                    } catch (error) {
+                    } catch {
+                        // Fetch below when the browser cache cannot be read.
                     }
                 }
                 if (!courseData) {
@@ -342,7 +392,7 @@ const BrowseScreen = () => {
                             toast.error("Course not found!");
                             return;
                         }
-                    } catch (error) {
+                    } catch {
                         toast.dismiss(fetchingToast);
                         toast.error("Failed to load course data!");
                         return;
@@ -433,7 +483,12 @@ const BrowseScreen = () => {
                                     <div className="empty-message">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p className="empty-message" key={folderData?._id || "empty-files"}>No files available.</p>
+                                        <p
+                                            className="empty-message"
+                                            key={folderData?._id || "empty-files"}
+                                        >
+                                            No files available.
+                                        </p>
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -442,7 +497,10 @@ const BrowseScreen = () => {
                                         />
                                     )
                                 ) : folderData?.children?.length === 0 ? (
-                                    <div className="empty-folder" key={folderData?._id || "empty-folders"}>
+                                    <div
+                                        className="empty-folder"
+                                        key={folderData?._id || "empty-folders"}
+                                    >
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
@@ -452,7 +510,10 @@ const BrowseScreen = () => {
                                             key={folder._id}
                                             path={folder.path}
                                             name={folder.name}
-                                            subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
+                                            subject={
+                                                currCourseCode ||
+                                                (folder.courses ? folder.courses[0] : folder.course)
+                                            }
                                             folderData={folder}
                                             parentFolder={folderData}
                                             isMobileView={isMobile}
@@ -508,7 +569,11 @@ const BrowseScreen = () => {
                                         Semester {semesterGroup.semester} ({semesterGroup.year})
                                     </h5>
                                     {semesterGroup.courses.map((course, idx) => (
-                                        <Collapsible color={getColors(idx)} key={idx} course={course} />
+                                        <Collapsible
+                                            color={getColors(idx)}
+                                            key={idx}
+                                            course={course}
+                                        />
                                     ))}
                                 </div>
                             ))}
@@ -525,15 +590,27 @@ const BrowseScreen = () => {
                                     canDownload={folderData?.childType === "File"}
                                     contributionHandler={contributionHandler}
                                     folderId={folderData?._id}
-                                    courseCode={currCourseCode || (folderData?.courses ? folderData.courses[0] : folderData.course)}
+                                    courseCode={
+                                        currCourseCode ||
+                                        (folderData?.courses
+                                            ? folderData.courses[0]
+                                            : folderData.course)
+                                    }
                                 />
                             )}
                             <div className="files">
                                 {!folderData ? (
-                                    <div className="empty-message" key="no-folder">{HeaderText}</div>
+                                    <div className="empty-message" key="no-folder">
+                                        {HeaderText}
+                                    </div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p className="empty-message" key={folderData?._id || "empty-files"}>No files available.</p>
+                                        <p
+                                            className="empty-message"
+                                            key={folderData?._id || "empty-files"}
+                                        >
+                                            No files available.
+                                        </p>
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -541,7 +618,10 @@ const BrowseScreen = () => {
                                         />
                                     )
                                 ) : folderData?.children?.length === 0 ? (
-                                    <div className="empty-folder" key={folderData?._id || "empty-folders"}>
+                                    <div
+                                        className="empty-folder"
+                                        key={folderData?._id || "empty-folders"}
+                                    >
                                         <p className="empty-message">No folders available.</p>
                                     </div>
                                 ) : (
@@ -551,7 +631,10 @@ const BrowseScreen = () => {
                                             key={folder._id}
                                             path={folder.path}
                                             name={folder.name}
-                                            subject={currCourseCode || (folder.courses ? folder.courses[0] : folder.course)}
+                                            subject={
+                                                currCourseCode ||
+                                                (folder.courses ? folder.courses[0] : folder.course)
+                                            }
                                             folderData={folder}
                                             parentFolder={folderData}
                                             index={idx}

@@ -1,25 +1,24 @@
-.file{
+.file {
     padding-left: 18px;
     display: flex;
     align-items: center;
-    .vertical-line{
+    .vertical-line {
         height: 26px;
         width: 1px;
         background-color: #000;
-
     }
-    .horizontal-line{
+    .horizontal-line {
         width: 20px;
         height: 1px;
         background-color: #000;
         margin-right: 10px;
     }
-    &:last-child{
+    &:last-child {
         align-items: flex-start;
-        .vertical-line{
+        .vertical-line {
             height: 13px;
         }
-        .horizontal-line{
+        .horizontal-line {
             margin-top: 12px;
         }
     }

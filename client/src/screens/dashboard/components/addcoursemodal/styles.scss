@@ -1,23 +1,19 @@
 .head {
     width: 100%;
     text-align: center;
-    font-family: 'bold';
+    font-family: "bold";
     font-size: 2rem;
-
 }
 
 .info-message {
-    font-family: 'Bold';
+    font-family: "Bold";
     font-size: 1.2rem;
-
-    
 }
 
 .info-message.secondary {
-    font-family: 'Regular';
+    font-family: "Regular";
     font-size: 1rem;
     color: grey;
-    
 }
 
 .course {
@@ -27,7 +23,7 @@
     margin-top: 2rem;
 
     .label_course {
-        font-family: 'Bold';
+        font-family: "Bold";
         font-size: 1.2rem;
     }
 
@@ -39,15 +35,13 @@
     }
 }
 
-
-
 .button {
     text-align: center;
-    background-color: #FECF6F;
+    background-color: #fecf6f;
     padding: 1rem;
-    font-family: 'bold';
+    font-family: "bold";
     cursor: pointer;
-    &.disabled{
+    &.disabled {
         background-color: grey;
         cursor: not-allowed;
     }
@@ -61,8 +55,8 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
     z-index: 999;
     display: flex;
     justify-content: center;
@@ -70,14 +64,16 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                backdrop-filter 0.25s ease;
+    transition:
+        opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        backdrop-filter 0.25s ease;
 
     .wrapper {
         transform: scale(0.93) translateY(16px);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                    box-shadow 0.3s ease;
+        transition:
+            transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.3s ease;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 

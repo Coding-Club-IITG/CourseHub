@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { checkAdminSession } from "@/apis/auth";
 import OperationNotice from "@/components/OperationNotice";
@@ -10,7 +10,8 @@ export default function PrivateRoute({ children }) {
 
     useEffect(() => {
         let mounted = true;
-        (async () => {
+        queueMicrotask(async () => {
+            if (!mounted) return;
             try {
                 const isOk = await checkAdminSession();
                 if (mounted) setOk(isOk);
@@ -19,13 +20,24 @@ export default function PrivateRoute({ children }) {
             } finally {
                 if (mounted) setLoading(false);
             }
-        })();
+        });
         return () => {
             mounted = false;
         };
     }, []);
 
     if (loading) return null;
-    if (!ok) return <Navigate to={`/admin/login?returnTo=${encodeURIComponent(location.pathname + location.search + location.hash)}`} replace />;
-    return <><OperationNotice />{children}</>;
+    if (!ok)
+        return (
+            <Navigate
+                to={`/admin/login?returnTo=${encodeURIComponent(location.pathname + location.search + location.hash)}`}
+                replace
+            />
+        );
+    return (
+        <>
+            <OperationNotice />
+            {children}
+        </>
+    );
 }

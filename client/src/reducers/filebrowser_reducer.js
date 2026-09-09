@@ -72,7 +72,7 @@ const syncFolderIntoCourseCache = (state, folder) => {
     } else if (Array.isArray(state.currentYearFolderStructure)) {
         nextCurrentYearFolderStructure = replaceFolderInTree(
             state.currentYearFolderStructure,
-            folder
+            folder,
         );
     }
 
@@ -93,23 +93,29 @@ const FileBrowserReducer = (
         allCourseData: [],
         folderHistory: [], // Add folder navigation history
     },
-    action
+    action,
 ) => {
     switch (action.type) {
         case "LOG_IN":
         case "LOG_OUT":
-            return { currentCourse: null, currentCourseCode: null, currentFolder: null,
-                currentYear: null, currentYearFolderStructure: [], allCourseData: [], folderHistory: [] };
+            return {
+                currentCourse: null,
+                currentCourseCode: null,
+                currentFolder: null,
+                currentYear: null,
+                currentYearFolderStructure: [],
+                allCourseData: [],
+                folderHistory: [],
+            };
         case "LOAD_COURSES":
             return { ...state, allCourseData: action.payload.allCourseData };
         case "CHANGE_CURRENT_COURSE":
-
             return {
                 ...state,
                 currentCourse: action.payload.currentCourse,
                 currentCourseCode: action.payload.currentCourseCode,
             };
-        case "UPDATE_COURSES":
+        case "UPDATE_COURSES": {
             let arr = Array.isArray(state.allCourseData) ? [...state.allCourseData] : [];
             const incomingCourse = action.payload.currentCourse;
             const incomingCode = incomingCourse?.code?.toLowerCase();
@@ -126,7 +132,8 @@ const FileBrowserReducer = (
                 ...state,
                 allCourseData: [...arr],
             };
-        case "CHANGE_CURRENT_FOLDER":
+        }
+        case "CHANGE_CURRENT_FOLDER": {
             if (!action.payload.currentFolder) {
                 return { ...state, currentFolder: null };
             }
@@ -143,6 +150,7 @@ const FileBrowserReducer = (
                 currentCourse: syncedState.currentCourse,
                 currentYearFolderStructure: syncedState.currentYearFolderStructure,
             };
+        }
         case "CHANGE_CURRENT_YEAR_DATA":
             return {
                 ...state,
@@ -157,13 +165,13 @@ const FileBrowserReducer = (
                 currentFolder: null,
                 currentYear: null,
             };
-        case "UPDATE_FILE_VERIFICATION_STATUS":
+        case "UPDATE_FILE_VERIFICATION_STATUS": {
             const verifiedFolder = {
                 ...state.currentFolder,
                 children: state.currentFolder.children.map((file) =>
                     file._id === action.payload.fileId
                         ? { ...file, isVerified: action.payload.status }
-                        : file
+                        : file,
                 ),
             };
             const verifiedSyncedState = syncFolderIntoCourseCache(state, verifiedFolder);
@@ -178,11 +186,12 @@ const FileBrowserReducer = (
                 currentCourse: verifiedSyncedState.currentCourse,
                 currentYearFolderStructure: verifiedSyncedState.currentYearFolderStructure,
             };
-        case "REMOVE_FILE_FROM_FOLDER":
+        }
+        case "REMOVE_FILE_FROM_FOLDER": {
             const folderAfterFileRemoval = {
                 ...state.currentFolder,
                 children: state.currentFolder.children.filter(
-                    (file) => file._id !== action.payload
+                    (file) => file._id !== action.payload,
                 ),
             };
             const fileRemovedSyncedState = syncFolderIntoCourseCache(state, folderAfterFileRemoval);
@@ -197,6 +206,7 @@ const FileBrowserReducer = (
                 currentCourse: fileRemovedSyncedState.currentCourse,
                 currentYearFolderStructure: fileRemovedSyncedState.currentYearFolderStructure,
             };
+        }
 
         case "REFRESH_CURRENT_FOLDER":
             return {
@@ -210,7 +220,7 @@ const FileBrowserReducer = (
                 folderHistory: [...state.folderHistory, action.payload],
             };
 
-        case "POP_FOLDER_HISTORY":
+        case "POP_FOLDER_HISTORY": {
             const newHistory = [...state.folderHistory];
             const previousFolder = newHistory.pop();
             return {
@@ -218,6 +228,7 @@ const FileBrowserReducer = (
                 folderHistory: newHistory,
                 currentFolder: previousFolder || null,
             };
+        }
 
         case "CLEAR_FOLDER_HISTORY":
             return {

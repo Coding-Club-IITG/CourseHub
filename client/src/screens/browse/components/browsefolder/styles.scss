@@ -4,7 +4,9 @@
     margin: 10px;
     z-index: 2;
     cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+    transition:
+        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        filter 0.2s ease;
     animation: folderItemSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
     background: url(./folder.svg), none;
     background-position: center;

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from "../config/mongoose.js";
 import config from "../config/default.js";
 import { lifecycleLogger } from "../utils/logger.js";
 

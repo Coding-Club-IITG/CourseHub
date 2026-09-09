@@ -294,8 +294,8 @@ for (const width of [1440, 390])
         await page.getByRole("button", { name: "Sign In", exact: true }).click();
         await page.getByRole("heading", { name: "Course Linking", exact: true }).waitFor();
         assert.equal(page.url(), adminOrigin + destination);
-        await page.getByPlaceholder("e.g., CS101", { exact: true }).fill("CS101");
-        await page.getByPlaceholder("e.g., CSN101", { exact: true }).fill("CSN101");
+        await page.getByPlaceholder("Eg. CS101", { exact: true }).fill("CS101");
+        await page.getByPlaceholder("Eg. CSN101", { exact: true }).fill("CSN101");
         await page.getByRole("button", { name: "Link Course", exact: true }).click();
         await page.getByText("Linking completed", { exact: true }).waitFor();
         await page.getByRole("button", { name: "Bulk Link (CSV)", exact: true }).click();

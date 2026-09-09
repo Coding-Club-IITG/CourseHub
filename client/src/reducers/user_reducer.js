@@ -1,14 +1,14 @@
-import { upsertLocalCourseCache, clearLocalCoursesCache } from "../utils/frontendCache";
+import { normalizeCourseCode } from "@coursehub/domain";
+import { upsertLocalCourseCache } from "../utils/frontendCache";
 
 const UserReducer = (
     state = {
         loggedIn: false,
         user: {},
-        localCourses: [
-        ],
+        localCourses: [],
         favourites: [],
     },
-    action
+    action,
 ) => {
     switch (action.type) {
         case "LOG_IN":
@@ -31,26 +31,35 @@ const UserReducer = (
         case "UPDATE_FAVOURITES":
             return { ...state, favourites: action.payload.favourites };
         case "ADD_COURSE_LOCAL": {
-            const incomingCode = action.payload.course?.code?.toString()?.replace(/\s+/g, "")?.toLowerCase();
+            const incomingCode = normalizeCourseCode(action.payload.course?.code);
             if (!incomingCode) return state;
 
-            const matchesIncoming = (c) => c?.code?.toString()?.replace(/\s+/g, "")?.toLowerCase() === incomingCode;
+            const matchesIncoming = (c) => normalizeCourseCode(c?.code) === incomingCode;
 
             if (state.user?.courses?.some(matchesIncoming)) return state;
-            if (state.user?.previousCourses?.flatMap((sem) => sem.courses || []).some(matchesIncoming)) return state;
+            if (
+                state.user?.previousCourses
+                    ?.flatMap((sem) => sem.courses || [])
+                    .some(matchesIncoming)
+            )
+                return state;
             if (state.user?.readOnly?.some(matchesIncoming)) return state;
             if (state.localCourses?.some(matchesIncoming)) return state;
 
-            const shortcut = { code: action.payload.course.code, name: action.payload.course.name, color: action.payload.course.color };
+            const shortcut = {
+                code: action.payload.course.code,
+                name: action.payload.course.name,
+                color: action.payload.course.color,
+            };
             upsertLocalCourseCache(shortcut);
             return { ...state, localCourses: [...state.localCourses, shortcut] };
         }
         case "LOAD_LOCAL_COURSES": {
             const existingCodes = new Set(
-                (state.localCourses || []).map((c) => c?.code?.toString()?.replace(/\s+/g, "")?.toLowerCase())
+                (state.localCourses || []).map((c) => normalizeCourseCode(c?.code)),
             );
             const newUnique = (action.payload.courses || []).filter(
-                (c) => c?.code && !existingCodes.has(c.code.toString().replace(/\s+/g, "").toLowerCase())
+                (c) => c?.code && !existingCodes.has(normalizeCourseCode(c.code)),
             );
             return { ...state, localCourses: [...state.localCourses, ...newUnique] };
         }
@@ -68,6 +77,7 @@ const UserReducer = (
                     user: { ...state.user, semester: action.payload.newUserData.newUserSem },
                 };
             }
+            return state;
         default:
             return state;
     }

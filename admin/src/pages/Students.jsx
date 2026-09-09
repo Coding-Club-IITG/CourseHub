@@ -8,7 +8,17 @@ import {
 } from "@/apis/student";
 import { deleteBR } from "@/apis/br";
 import AddBRs from "../components/AddBRs";
-import { FaRedo, FaSearch, FaSync, FaTrash, FaChevronDown, FaChevronUp, FaPlus, FaUserGraduate, FaUsers } from "react-icons/fa";
+import {
+    FaRedo,
+    FaSearch,
+    FaSync,
+    FaTrash,
+    FaChevronDown,
+    FaChevronUp,
+    FaPlus,
+    FaUserGraduate,
+    FaUsers,
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 
 const ConfirmDialog = ({ message, onConfirm, onCancel, loading }) => (
@@ -35,17 +45,18 @@ const ConfirmDialog = ({ message, onConfirm, onCancel, loading }) => (
                     disabled={loading}
                     className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                    {loading && <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />}
+                    {loading && (
+                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                    )}
                     {loading ? "Processing..." : "Confirm"}
                 </button>
             </div>
         </div>
     </div>
-)
+);
 
 export default function Students() {
     const [students, setStudents] = useState([]);
-    const [allBRs, setallBRs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
     const [error, setError] = useState(null);
@@ -63,53 +74,37 @@ export default function Students() {
     const [refreshAllSuccess, setRefreshAllSuccess] = useState(null);
     const [refreshAllError, setRefreshAllError] = useState(null);
 
-    const loadStudents = useCallback(async () => {
-        try {
-            setLoading(true);
+    const loadStudents = useCallback(
+        async (isCurrent = () => true) => {
+            const query = searchQuery.trim();
+            setLoading(!query);
+            setSearching(Boolean(query));
             setError(null);
-            const response = await fetchStudents(showBROnly);
-            const data = response.students || [];
-            setStudents(data);
-            if(showBROnly) setallBRs(data);
-        } catch (err) {
-            setError(err.message || "An error occurred while fetching students.");
-        } finally {
-            setLoading(false);
-        }
-    }, [showBROnly]);
-
-    useEffect(() => {
-        loadStudents();
-    }, [loadStudents]);
-
-    useEffect(() => {
-        if (!searchQuery.trim()) {
-            loadStudents();
-            return;
-        }
-        setSearching(true);
-        const timer = setTimeout(async () => {
             try {
-                setError(null);
-                if(showBROnly){
-                    const q = searchQuery.trim().toLowerCase();
-                    const filtered = allBRs.filter(
-                        (br) => br.email?.toLowerCase().includes(q) || br.name?.toLowerCase().includes(q) || br.rollNumber?.toString().toLowerCase().includes(q)
-                    );
-                    setStudents(filtered);
-                }
-                else{
-                    const response =  await searchStudents(searchQuery.trim(),false);
-                    setStudents(response.students || []);
-                }
-            } catch (err) {
-                setError(err.message || "Search failed.");
+                const response = query
+                    ? await searchStudents(query, showBROnly)
+                    : await fetchStudents(showBROnly);
+                if (isCurrent()) setStudents(response.students || []);
+            } catch (error) {
+                if (isCurrent()) setError(error.message || "Unable to load students.");
             } finally {
-                setSearching(false);
+                if (isCurrent()) {
+                    setLoading(false);
+                    setSearching(false);
+                }
             }
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchQuery, showBROnly, loadStudents]);
+        },
+        [showBROnly, searchQuery],
+    );
+
+    useEffect(() => {
+        let current = true;
+        const timer = setTimeout(() => loadStudents(() => current), searchQuery.trim() ? 500 : 0);
+        return () => {
+            current = false;
+            clearTimeout(timer);
+        };
+    }, [loadStudents, searchQuery]);
 
     const handleToggleExpand = (id) => setExpandedId((prev) => (prev === id ? null : id));
 
@@ -139,24 +134,21 @@ export default function Students() {
         }
     };
 
-    const handleRemoveBR = async(id) =>{
+    const handleRemoveBR = async (id) => {
         setRowLoadingId(id);
-        try{
-            const student = students.find(stud => stud._id ===id);
-            if(student){
+        try {
+            const student = students.find((stud) => stud._id === id);
+            if (student) {
                 await deleteBR(student.email);
             }
             loadStudents();
-        }
-        catch(err){
+        } catch {
             toast.error("Failed to remove BR privileges");
-        }
-        finally{
+        } finally {
             setRowLoadingId(null);
             setRowConfirm(null);
         }
     };
-
 
     const handleRefreshAll = async () => {
         setRefreshAllLoading(true);
@@ -184,7 +176,9 @@ export default function Students() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-                        <p className="text-gray-500 mt-1 text-sm">View and manage all registered students</p>
+                        <p className="text-gray-500 mt-1 text-sm">
+                            View and manage all registered students
+                        </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                         {showBROnly && (
@@ -253,13 +247,23 @@ export default function Students() {
             {refreshAllSuccess && (
                 <div className="flex items-center justify-between p-4 rounded-xl border bg-green-50 border-green-200 text-green-700 text-sm">
                     {refreshAllSuccess}
-                    <button onClick={() => setRefreshAllSuccess(null)} className="text-green-500 hover:text-green-700 ml-4">✕</button>
+                    <button
+                        onClick={() => setRefreshAllSuccess(null)}
+                        className="text-green-500 hover:text-green-700 ml-4"
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
             {refreshAllError && (
                 <div className="flex items-center justify-between p-4 rounded-xl border bg-red-50 border-red-200 text-red-700 text-sm">
                     {refreshAllError}
-                    <button onClick={() => setRefreshAllError(null)} className="text-red-400 hover:text-red-600 ml-4">✕</button>
+                    <button
+                        onClick={() => setRefreshAllError(null)}
+                        className="text-red-400 hover:text-red-600 ml-4"
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
 
@@ -283,7 +287,9 @@ export default function Students() {
                     </div>
                 )}
                 {!isLoading && error && (
-                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">{error}</p>
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">
+                        {error}
+                    </p>
                 )}
                 {!isLoading && !error && students.length === 0 && (
                     <div className="text-center py-16 text-gray-400 text-sm">
@@ -296,12 +302,24 @@ export default function Students() {
                         <table className="min-w-full divide-y divide-gray-100">
                             <thead>
                                 <tr className="bg-gray-50/80">
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll Number</th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Degree</th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Semester</th>
-                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Roll Number
+                                    </th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Name
+                                    </th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Email
+                                    </th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Degree
+                                    </th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Semester
+                                    </th>
+                                    <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Actions
+                                    </th>
                                     <th className="py-3 px-4 w-8"></th>
                                 </tr>
                             </thead>
@@ -311,67 +329,106 @@ export default function Students() {
                                     const isRowLoading = rowLoadingId === student._id;
                                     return (
                                         <React.Fragment key={student._id}>
-                                            <tr className={`transition-colors ${isExpanded ? "bg-blue-50/40" : "hover:bg-gray-50/60"}`}>
-                                                <td className="py-3.5 px-4 text-sm font-medium text-gray-900">{student.rollNumber}</td>
-                                                <td className="py-3.5 px-4 text-sm text-gray-700">{student.name}</td>
-                                                <td className="py-3.5 px-4 text-sm text-gray-500">{student.email}</td>
-                                                <td className="py-3.5 px-4 text-sm text-gray-500">{student.degree}</td>
-                                                <td className="py-3.5 px-4 text-sm text-gray-500">{student.semester}</td>
+                                            <tr
+                                                className={`transition-colors ${isExpanded ? "bg-blue-50/40" : "hover:bg-gray-50/60"}`}
+                                            >
+                                                <td className="py-3.5 px-4 text-sm font-medium text-gray-900">
+                                                    {student.rollNumber}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-sm text-gray-700">
+                                                    {student.name}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-sm text-gray-500">
+                                                    {student.email}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-sm text-gray-500">
+                                                    {student.degree}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-sm text-gray-500">
+                                                    {student.semester}
+                                                </td>
                                                 <td className="py-3.5 px-4">
                                                     <div className="flex items-center gap-2">
-
                                                         {showBROnly && student.isBR && (
                                                             <button
-                                                                onClick ={()=> setRowConfirm({type:"removeBR",id:student._id , label:student.name})}
+                                                                onClick={() =>
+                                                                    setRowConfirm({
+                                                                        type: "removeBR",
+                                                                        id: student._id,
+                                                                        label: student.name,
+                                                                    })
+                                                                }
                                                                 disabled={isRowLoading}
-                                                                title = "Remove BR privileges"
+                                                                title="Remove BR privileges"
                                                                 className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                                                >
-                                                                {isRowLoading && rowConfirm?.type ==="removeBR" 
-                                                                ? (<div  className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-red-600 border-t-transparent" />)
-                                                                :(
-                                                                     "Remove BR" 
+                                                            >
+                                                                {isRowLoading &&
+                                                                rowConfirm?.type === "removeBR" ? (
+                                                                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-red-600 border-t-transparent" />
+                                                                ) : (
+                                                                    "Remove BR"
                                                                 )}
                                                             </button>
                                                         )}
 
-                                                        {student.rollNumber!== "PENDING" && (
+                                                        {student.rollNumber !== "PENDING" && (
                                                             <>
-                                                        <button
-                                                            onClick={() => setRowConfirm({ type: "refresh", id: student._id, label: student.name })}
-                                                            disabled={isRowLoading}
-                                                            title="Refresh courses from upstream"
-                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                                        >
-                                                            {isRowLoading && rowConfirm?.type === "refresh" ? (
-                                                                <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-600 border-t-transparent" />
-                                                            ) : (
-                                                                <FaSync className="h-3.5 w-3.5" />
-                                                            )}
-                                                        </button>
-                                                        <button  
-                                                            onClick={() => setRowConfirm({ type: "delete", id: student._id, label: student.name })}
-                                                            disabled={isRowLoading}
-                                                            title="Delete student"
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                                                        
-                                                            {isRowLoading && rowConfirm?.type === "delete" ? (
-                                                                <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-red-500 border-t-transparent" />
-                                                            ) : (
-                                                                <FaTrash className="h-3.5 w-3.5" />
-                                                            )}
-                                                        </button>
-                                                        </>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setRowConfirm({
+                                                                            type: "refresh",
+                                                                            id: student._id,
+                                                                            label: student.name,
+                                                                        })
+                                                                    }
+                                                                    disabled={isRowLoading}
+                                                                    title="Refresh courses from upstream"
+                                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                >
+                                                                    {isRowLoading &&
+                                                                    rowConfirm?.type ===
+                                                                        "refresh" ? (
+                                                                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-600 border-t-transparent" />
+                                                                    ) : (
+                                                                        <FaSync className="h-3.5 w-3.5" />
+                                                                    )}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setRowConfirm({
+                                                                            type: "delete",
+                                                                            id: student._id,
+                                                                            label: student.name,
+                                                                        })
+                                                                    }
+                                                                    disabled={isRowLoading}
+                                                                    title="Delete student"
+                                                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                >
+                                                                    {isRowLoading &&
+                                                                    rowConfirm?.type ===
+                                                                        "delete" ? (
+                                                                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-red-500 border-t-transparent" />
+                                                                    ) : (
+                                                                        <FaTrash className="h-3.5 w-3.5" />
+                                                                    )}
+                                                                </button>
+                                                            </>
                                                         )}
-                                                        
                                                     </div>
                                                 </td>
                                                 <td className="py-3.5 px-4">
                                                     <button
-                                                        onClick={() => handleToggleExpand(student._id)}
+                                                        onClick={() =>
+                                                            handleToggleExpand(student._id)
+                                                        }
                                                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                                                     >
-                                                        {isExpanded ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
+                                                        {isExpanded ? (
+                                                            <FaChevronUp className="h-3 w-3" />
+                                                        ) : (
+                                                            <FaChevronDown className="h-3 w-3" />
+                                                        )}
                                                     </button>
                                                 </td>
                                             </tr>
@@ -381,33 +438,58 @@ export default function Students() {
                                                     <td colSpan={7} className="px-6 py-4">
                                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-3">
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Department</p>
-                                                                <p className="text-gray-700">{student.department}</p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                                                    Department
+                                                                </p>
+                                                                <p className="text-gray-700">
+                                                                    {student.department}
+                                                                </p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">BR Status</p>
-                                                                <span className={`inline-block text-xs px-2 py-0.5 rounded-md font-medium ${student.isBR ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"}`}>
-                                                                    {student.isBR ? "Branch Rep" : "Regular Student"}
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                                                    BR Status
+                                                                </p>
+                                                                <span
+                                                                    className={`inline-block text-xs px-2 py-0.5 rounded-md font-medium ${student.isBR ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"}`}
+                                                                >
+                                                                    {student.isBR
+                                                                        ? "Branch Rep"
+                                                                        : "Regular Student"}
                                                                 </span>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Courses Enrolled</p>
-                                                                <p className="text-gray-700">{student.courses?.length || 0}</p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                                                    Courses Enrolled
+                                                                </p>
+                                                                <p className="text-gray-700">
+                                                                    {student.courses?.length || 0}
+                                                                </p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Student ID</p>
-                                                                <p className="text-gray-700 font-mono text-xs">{student._id}</p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                                                    Student ID
+                                                                </p>
+                                                                <p className="text-gray-700 font-mono text-xs">
+                                                                    {student._id}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                         {student.courses?.length > 0 && (
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Current Courses</p>
+                                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
+                                                                    Current Courses
+                                                                </p>
                                                                 <div className="flex flex-wrap gap-1.5">
-                                                                    {student.courses.map((course, idx) => (
-                                                                        <span key={idx} className="text-xs bg-white border border-gray-200 px-2 py-1 rounded-md text-gray-600">
-                                                                            {course.code}
-                                                                        </span>
-                                                                    ))}
+                                                                    {student.courses.map(
+                                                                        (course, idx) => (
+                                                                            <span
+                                                                                key={idx}
+                                                                                className="text-xs bg-white border border-gray-200 px-2 py-1 rounded-md text-gray-600"
+                                                                            >
+                                                                                {course.code}
+                                                                            </span>
+                                                                        ),
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         )}
@@ -429,15 +511,17 @@ export default function Students() {
                         rowConfirm.type === "delete"
                             ? `Delete ${rowConfirm.label}? This will permanently remove their student record and cannot be undone.`
                             : rowConfirm.type === "removeBR"
-                            ? `Remove BR privileges from ${rowConfirm.label}? They will remain as a student but lose Branch Representative access. `
-                            : `Refresh courses for ${rowConfirm.label} from the academic portal? Their last saved courses remain available if the refresh fails.`
+                              ? `Remove BR privileges from ${rowConfirm.label}? They will remain as a student but lose Branch Representative access. `
+                              : `Refresh courses for ${rowConfirm.label} from the academic portal? Their last saved courses remain available if the refresh fails.`
                     }
                     loading={rowLoadingId === rowConfirm.id}
-                    onConfirm={() => rowConfirm.type === "delete" 
-                        ? handleRowDelete(rowConfirm.id) 
-                        : rowConfirm.type === "removeBR"
-                        ? handleRemoveBR(rowConfirm.id)
-                        : handleRowRefresh(rowConfirm.id)}
+                    onConfirm={() =>
+                        rowConfirm.type === "delete"
+                            ? handleRowDelete(rowConfirm.id)
+                            : rowConfirm.type === "removeBR"
+                              ? handleRemoveBR(rowConfirm.id)
+                              : handleRowRefresh(rowConfirm.id)
+                    }
                     onCancel={() => setRowConfirm(null)}
                 />
             )}

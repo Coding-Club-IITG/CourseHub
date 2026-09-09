@@ -1,7 +1,12 @@
-import React from "react";
 import { toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
-import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
+import {
+    FaBook,
+    FaLayerGroup,
+    FaLink,
+    FaUserGraduate,
+    FaExclamationTriangle,
+} from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
 
 const navItems = [
@@ -18,7 +23,7 @@ const Sidebar = () => {
     const handleLogout = async () => {
         try {
             await adminLogout();
-        } catch (err) {
+        } catch {
             toast.error("Could not log out. Please try again.");
             return;
         }

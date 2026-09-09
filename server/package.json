@@ -1,5 +1,5 @@
 {
-    "name": "server",
+    "name": "@coursehub/server",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -21,33 +21,31 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@coding-club-iitg/ops-logger": "^0.3.1",
-        "@imagekit/nodejs": "^7.5.0",
-        "axios": "^1.20.0",
-        "bcrypt": "^6.0.0",
-        "cheerio": "^1.0.0-rc.12",
-        "cookie-parser": "^1.4.7",
-        "cors": "^2.8.5",
-        "csv-parser": "^3.2.0",
-        "dotenv": "^16.6.1",
-        "express": "^4.22.2",
-        "express-useragent": "^1.0.15",
-        "joi": "^17.13.7",
-        "jsonwebtoken": "^9.0.3",
-        "mongoose": "^6.13.11",
-        "multer": "^2.3.0",
-        "node-cron": "^4.6.0"
+        "@coding-club-iitg/ops-logger": "0.3.1",
+        "@imagekit/nodejs": "7.11.0",
+        "axios": "1.20.0",
+        "bcrypt": "6.0.0",
+        "cheerio": "1.2.0",
+        "cookie-parser": "1.4.7",
+        "cors": "2.8.6",
+        "csv-parser": "3.2.1",
+        "dotenv": "16.6.1",
+        "express": "5.2.1",
+        "express-useragent": "1.0.15",
+        "joi": "17.13.7",
+        "jsonwebtoken": "9.0.3",
+        "mongoose": "9.9.5",
+        "multer": "2.3.0",
+        "node-cron": "4.6.0",
+        "@coursehub/domain": "1.0.0"
     },
     "devDependencies": {
-        "@coding-club-iitg/ops-contract": "^0.2.0",
-        "nodemon": "^3.1.14"
+        "@coding-club-iitg/ops-contract": "0.2.0",
+        "nodemon": "3.1.14"
     },
     "engines": {
-        "node": ">=22"
+        "node": ">=24 <25",
+        "npm": ">=11 <12"
     },
-    "overrides": {
-        "express": {
-            "qs": "6.16.0"
-        }
-    }
+    "private": true
 }

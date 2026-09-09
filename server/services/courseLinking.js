@@ -1,6 +1,6 @@
 import { identityLock, assertCourseIdentityAvailable } from "./courseIdentity.js";
 import { randomUUID } from "node:crypto";
-import { Types } from "mongoose";
+import { Types } from "../config/mongoose.js";
 import Course, { FolderModel } from "../modules/course/course.model.js";
 import { OperationModel } from "../modules/operation/operation.model.js";
 import { actorFor, courseContext, libraryGraph } from "./authorization.js";

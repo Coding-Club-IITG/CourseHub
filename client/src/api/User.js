@@ -5,7 +5,6 @@ import { clearAllCoursesCache } from "../utils/frontendCache";
 import { clearCsrfToken } from "./csrf";
 import { loginDestination } from "../utils/loginDestination";
 
-
 export const getUser = async (signal) => {
     clearAllCoursesCache();
     const resp = await axios.get(`${serverRoot}/api/user`, {
@@ -20,7 +19,9 @@ export const updateUser = async (newUserData) => {
 };
 
 export const handleLogin = () => {
-    const destination = loginDestination(new URLSearchParams(window.location.search).get("returnTo"));
+    const destination = loginDestination(
+        new URLSearchParams(window.location.search).get("returnTo"),
+    );
     window.location.href = `${serverRoot}/api/auth/login?returnTo=${encodeURIComponent(destination)}`;
 };
 export const AddNewCourseAPI = async (code, name) => {
@@ -52,7 +53,10 @@ export const GetExamDates = async () => {
 };
 
 export const logoutUser = async () => {
-    try { await axios.post(`${serverRoot}/api/auth/logout`); }
-    catch (error) { if (error.response?.status !== 401) throw error; }
+    try {
+        await axios.post(`${serverRoot}/api/auth/logout`);
+    } catch (error) {
+        if (error.response?.status !== 401) throw error;
+    }
     clearCsrfToken();
 };

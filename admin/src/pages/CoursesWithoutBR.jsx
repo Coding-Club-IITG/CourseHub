@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import CoursesWithoutBRTable from "../components/CoursesWithoutBRTable";
 import { fetchCoursesWithoutBR } from "@/apis/br";
 
@@ -7,20 +7,27 @@ export default function CoursesWithoutBR() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const loadCourses = async () => {
-        try {
-            setLoading(true);
-            const response = await fetchCoursesWithoutBR();
-            setCourses(response.coursesWithoutBR);
-            setLoading(false);
-        } catch (err) {
-            setError(err.message || "An error occurred while fetching courses without BR.");
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        loadCourses();
+        let active = true;
+        const loadCourses = async () => {
+            try {
+                setLoading(true);
+                const response = await fetchCoursesWithoutBR();
+                if (!active) return;
+                setCourses(response.coursesWithoutBR);
+                setLoading(false);
+            } catch (err) {
+                if (!active) return;
+                setError(err.message || "An error occurred while fetching courses without BR.");
+                setLoading(false);
+            }
+        };
+        queueMicrotask(() => {
+            if (active) loadCourses();
+        });
+        return () => {
+            active = false;
+        };
     }, []);
 
     return (

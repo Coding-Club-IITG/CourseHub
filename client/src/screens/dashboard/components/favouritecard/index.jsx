@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { UpdateFavourites } from "../../../../actions/user_actions";
 import { RemoveFromFavourites } from "../../../../api/User";
 
-const FavouriteCard = ({ type = "file", color, path, name, subject, code, id, _id }) => {
+const FavouriteCard = ({ type = "file", color, path, name, code, id, _id }) => {
     color = color ? color : getRandomColor();
     const dispatch = useDispatch();
 
@@ -32,7 +32,7 @@ const FavouriteCard = ({ type = "file", color, path, name, subject, code, id, _i
             } else {
                 toast.error("Something went wrong!");
             }
-        }).catch((e) => toast.error("Something went wrong!"));
+        }).catch(() => toast.error("Something went wrong!"));
     };
 
     return (

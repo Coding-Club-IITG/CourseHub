@@ -12,7 +12,7 @@ export async function acquireStorageLease(kind, owner, count, durationMs) {
                         expiresAt: durationMs ? new Date(Date.now() + durationMs) : null,
                     },
                 },
-                { upsert: true, new: true },
+                { upsert: true, returnDocument: "after" },
             );
             return lease._id;
         } catch (error) {

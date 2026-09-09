@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { fileURLToPath } from "node:url";
-import mongoose from "mongoose";
+import mongoose from "../config/mongoose.js";
 import config from "../config/default.js";
 import { scheduleAcademicRefresh } from "../services/academicSync.js";
 import { OperationModel } from "../modules/operation/operation.model.js";
@@ -16,7 +16,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         await OperationModel.createIndexes();
         console.log(JSON.stringify(await scheduleAcademicRefresh()));
     } catch (error) {
-        console.error("Academic refresh could not be queued. Check MONGO_URI and --database <explicit-target>; a worker on that database must be running.");
+        console.error(
+            "Academic refresh could not be queued. Check MONGO_URI and --database <explicit-target>; a worker on that database must be running.",
+        );
         process.exitCode = 1;
     } finally {
         await mongoose.disconnect();

@@ -1,6 +1,6 @@
+import { normalizeCourseCode } from "@coursehub/domain";
 import Wrapper from "./components/wrapper";
 import SectionC from "./components/sectionC";
-import axios from "axios";
 
 import "./styles.scss";
 import Space from "../../../../components/space";
@@ -18,11 +18,11 @@ const AddCourseModal = ({ handleAddCourse }) => {
     const [loading, setLoading] = useState(false);
     const user = useSelector((state) => state.user);
     const userCourses = user.user?.courses || [];
-    const previousCourses = user.user?.previousCourses?.flatMap(sem => sem.courses) || [];
+    const previousCourses = user.user?.previousCourses?.flatMap((sem) => sem.courses) || [];
     const readOnlyCourses = user.user?.readOnly || [];
 
     const allUserCourseCodes = [...userCourses, ...previousCourses, ...readOnlyCourses].map((c) =>
-        c.code?.replace(/\s+/g, "").toLowerCase()
+        normalizeCourseCode(c.code),
     );
 
     useEffect(() => {
@@ -31,7 +31,7 @@ const AddCourseModal = ({ handleAddCourse }) => {
         } else {
             if (btnState !== "disabled") setBtnState("disabled");
         }
-    }, [code]);
+    }, [code, btnState]);
 
     async function handleSearch() {
         if (btnState === "disabled") return;
@@ -40,7 +40,7 @@ const AddCourseModal = ({ handleAddCourse }) => {
             setErr(null);
             let searchArr;
             if (/\d/.test(code)) {
-                let codeWithoutSpace = code.replace(/\s+/g, "");
+                let codeWithoutSpace = normalizeCourseCode(code);
                 searchArr = [codeWithoutSpace];
             } else {
                 searchArr = code.split(" ");
@@ -56,12 +56,12 @@ const AddCourseModal = ({ handleAddCourse }) => {
                 setResults([]);
             }
             setCode("");
-        } catch (error) {
+        } catch {
             setCode("");
             setErr("Server Error! Please contact admin.");
         }
     }
-    const handleModalClose = (event) => {
+    const handleModalClose = () => {
         const collection = document.getElementsByClassName("add_modal");
         const contributionSection = collection[0];
         contributionSection.classList.remove("show");
@@ -75,7 +75,7 @@ const AddCourseModal = ({ handleAddCourse }) => {
                     You can either type the course code or any keyword in the name of the course
                 </div>
                 <form onSubmit={(e) => e.preventDefault()}>
-                    <div className="course" style={{marginTop: "1.5rem"}}>
+                    <div className="course" style={{ marginTop: "1.5rem" }}>
                         <label htmlFor="course" className="label_course">
                             KEY :
                         </label>
@@ -87,8 +87,8 @@ const AddCourseModal = ({ handleAddCourse }) => {
                                 setCode(e.target.value);
                                 if (results.length > 0) setResults([]);
                             }}
-                            onKeyDown={(e)=>{
-                                if (e.key == "Enter"){
+                            onKeyDown={(e) => {
+                                if (e.key == "Enter") {
                                     handleSearch();
                                 }
                             }}
@@ -103,9 +103,7 @@ const AddCourseModal = ({ handleAddCourse }) => {
                         (() => {
                             const filtered = results.filter(
                                 (course) =>
-                                    !allUserCourseCodes.includes(
-                                        course.code?.replace(/\s+/g, "").toLowerCase()
-                                    )
+                                    !allUserCourseCodes.includes(normalizeCourseCode(course.code)),
                             );
                             if (results.length > 0 && filtered.length === 0) {
                                 return "Course already exists";
@@ -113,17 +111,17 @@ const AddCourseModal = ({ handleAddCourse }) => {
                             return (
                                 <div className="add-course-scroll">
                                     {filtered.map((course) => (
-                                    <Result
-                                        key={course._id}
-                                        _id={course._id}
-                                        code={course.code}
-                                        name={course.name}
-                                        handleClick={handleAddCourse}
-                                        handleModalClose={handleModalClose}
-                                    />
+                                        <Result
+                                            key={course._id}
+                                            _id={course._id}
+                                            code={course.code}
+                                            name={course.name}
+                                            handleClick={handleAddCourse}
+                                            handleModalClose={handleModalClose}
+                                        />
                                     ))}
                                 </div>
-                            )
+                            );
                         })()
                     )
                 ) : (

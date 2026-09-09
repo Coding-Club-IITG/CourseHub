@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from "../../config/mongoose.js";
 const SearchSchema = mongoose.Schema({
     name: { type: String, required: true },
     code: { type: String, required: true, unique: true },

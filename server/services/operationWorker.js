@@ -71,7 +71,7 @@ async function processClaim(id, lane, checkWorker) {
             },
             $inc: { attempts: 1 },
         },
-        { sort: { nextRunAt: 1, createdAt: 1 }, new: true },
+        { sort: { nextRunAt: 1, createdAt: 1 }, returnDocument: "after" },
     );
     if (!operation) return false;
     let leaseError;

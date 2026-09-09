@@ -1,4 +1,3 @@
-import * as React from "react";
 import { cn } from "@/lib/utils";
 
 function Modal({ isOpen, onClose, children, className, ...props }) {
@@ -8,7 +7,7 @@ function Modal({ isOpen, onClose, children, className, ...props }) {
         <div
             className={cn(
                 "fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50",
-                className
+                className,
             )}
             onClick={onClose}
             {...props}
@@ -53,7 +52,7 @@ function ModalCloseButton({ onClose, className, ...props }) {
             onClick={onClose}
             className={cn(
                 "absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors",
-                className
+                className,
             )}
             {...props}
         >

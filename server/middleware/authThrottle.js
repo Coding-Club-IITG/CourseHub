@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../config/mongoose.js";
 import AppError from "../utils/appError.js";
-import catchAsync from "../utils/catchAsync.js";
 
 export const AuthRateLimit = model(
     "AuthRateLimit",
@@ -13,7 +12,7 @@ export const AuthRateLimit = model(
 );
 
 export function authThrottle(action) {
-    return catchAsync(async (req, res, next) => {
+    return async (req, res, next) => {
         const seconds = Number(process.env.AUTH_RATE_WINDOW_SECONDS || 900);
         const limit = Number(process.env.AUTH_RATE_LIMIT || 20);
         if (!Number.isInteger(seconds) || seconds < 1 || !Number.isInteger(limit) || limit < 1)
@@ -35,14 +34,14 @@ export function authThrottle(action) {
                         $inc: { count: 1 },
                         $setOnInsert: { expiresAt },
                     },
-                    { upsert: true, new: true },
+                    { upsert: true, returnDocument: "after" },
                 );
             } catch (error) {
                 if (error.code !== 11000) throw error;
                 entry = await AuthRateLimit.findOneAndUpdate(
                     { _id },
                     { $inc: { count: 1 } },
-                    { new: true },
+                    { returnDocument: "after" },
                 );
             }
             if (entry.count > limit) {
@@ -58,5 +57,5 @@ export function authThrottle(action) {
             }
         }
         next();
-    });
+    };
 }
