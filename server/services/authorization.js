@@ -1,11 +1,16 @@
-import Course, { FolderModel, FileModel } from "../modules/course/course.model.js";
+import { FileModel } from "../modules/course/course.model.js";
 import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import BR from "../modules/br/br.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
 import AppError from "../utils/appError.js";
 import { normalizeCourseCode } from "../utils/course.js";
 
-const idOf = (value) => String(value?._id || value);
+import {
+    loadLibraryGraph,
+    assertValidCourseTree,
+    walkFolderTree,
+    treeId as idOf,
+} from "./folderTrees.js";
 const codesOf = (values = []) => [...new Set(values.map(normalizeCourseCode).filter(Boolean))];
 export function resourceId(value) {
     if (typeof value !== "string" || !/^[a-f0-9]{24}$/i.test(value))
@@ -89,69 +94,23 @@ export async function requireCourse(req, value, action = "read") {
     if (action !== "read" && !permitted[action])
         throw new AppError(403, "You do not have permission for this course");
     const graph = await libraryGraph(req);
+    assertValidCourseTree(graph, code);
     const course = graph.courses.get(code);
     if (!course || (course.deletingOperation && course.deletingOperation !== req.operationId))
         throw new AppError(404, "Course not found");
     return { course, code, actor, capabilities: permitted };
 }
 
-// Membership requires a path from a real course root through folders still linked to that course
 export async function libraryGraph(req) {
-    if (!req.authorizationGraph)
-        req.authorizationGraph = (async () => {
-            const [courses, folders] = await Promise.all([
-                Course.find()
-                    .select("_id code name children books createdAt updatedAt deletingOperation")
-                    .lean(),
-                FolderModel.find()
-                    .select("_id name courses childType children deletingOperation")
-                    .lean(),
-            ]);
-            const graph = {
-                courses: new Map(courses.map((c) => [normalizeCourseCode(c.code), c])),
-                folders: new Map(folders.map((f) => [idOf(f), f])),
-                folderCourses: new Map(),
-                fileCourses: new Map(),
-            };
-            const add = (map, id, code) => {
-                if (!map.has(id)) map.set(id, new Set());
-                map.get(id).add(code);
-            };
-            for (const [code, course] of graph.courses) {
-                if (course.deletingOperation && course.deletingOperation !== req.operationId)
-                    continue;
-                const visited = new Set();
-                const walk = (id, ancestors = new Set()) => {
-                    id = idOf(id);
-                    if (ancestors.has(id) || ancestors.size > 64)
-                        throw new AppError(409, "Course tree requires repair");
-                    if (visited.has(id)) return;
-                    const folder = graph.folders.get(id);
-                    if (
-                        !folder ||
-                        !codesOf(folder.courses).includes(code) ||
-                        (folder.deletingOperation && folder.deletingOperation !== req.operationId)
-                    )
-                        return;
-                    visited.add(id);
-                    add(graph.folderCourses, id, code);
-                    if (folder.childType === "File")
-                        for (const file of folder.children)
-                            add(graph.fileCourses, idOf(file), code);
-                    else
-                        for (const child of folder.children)
-                            walk(child, new Set([...ancestors, id]));
-                };
-                for (const root of course.children) walk(root);
-            }
-            return graph;
-        })();
+    req.authorizationGraph ||= loadLibraryGraph({ operationId: req.operationId });
     return req.authorizationGraph;
 }
 
 export async function requireFolder(req, id, value, action = "read") {
     id = resourceId(id);
     const graph = await libraryGraph(req);
+    if (!graph.folders.has(id)) throw new AppError(404, "Folder not found");
+    if (value) assertValidCourseTree(graph, courseContext(value));
     const affectedCourses = [...(graph.folderCourses.get(id) || [])].sort();
     const code = value
         ? courseContext(value)
@@ -258,43 +217,53 @@ async function visibleFileMap(req) {
     return req.authorizationVisibleFiles;
 }
 
-export async function presentFolder(req, id, code) {
+async function presentTree(req, roots, code) {
     const [graph, files, actor] = await Promise.all([
         libraryGraph(req),
         visibleFileMap(req),
         actorFor(req),
     ]);
-    const folder = graph.folders.get(idOf(id));
-    if (!folder || folder.deletingOperation || !graph.folderCourses.get(idOf(id))?.has(code))
-        return null;
-    const children = (
-        await Promise.all(
-            folder.children.map(async (child) =>
-                folder.childType === "Folder"
-                    ? presentFolder(req, child, code)
-                    : files.has(idOf(child))
-                      ? presentFile(req, files.get(idOf(child)), code)
-                      : null,
-            ),
-        )
-    ).filter(Boolean);
-    return {
-        ...folder,
-        children,
-        totalFileCount:
-            folder.childType === "File"
-                ? children.length
-                : children.reduce((sum, child) => sum + child.totalFileCount, 0),
-        capabilities: capabilities(actor, code),
-        affectedCourses: [...graph.folderCourses.get(idOf(id))].sort(),
-    };
+    assertValidCourseTree(graph, code);
+    const tree = walkFolderTree(graph, roots, code);
+    const rendered = new Map(),
+        presentedFiles = new Map();
+    for (const id of tree.order) {
+        const folder = graph.folders.get(id),
+            children = [];
+        for (const child of new Set(folder.children.map(idOf))) {
+            if (folder.childType === "Folder") {
+                if (rendered.has(child)) {
+                    children.push(rendered.get(child));
+                }
+            } else if (files.has(child)) {
+                if (!presentedFiles.has(child))
+                    presentedFiles.set(child, await presentFile(req, files.get(child), code));
+                children.push(presentedFiles.get(child));
+            }
+        }
+        rendered.set(id, {
+            ...folder,
+            children,
+            totalFileCount:
+                folder.childType === "File"
+                    ? children.length
+                    : children.reduce((sum, child) => sum + child.totalFileCount, 0),
+            capabilities: capabilities(actor, code),
+            affectedCourses: [...graph.folderCourses.get(id)].sort(),
+        });
+    }
+    return [...new Set(roots.map(idOf))].map((id) => rendered.get(id)).filter(Boolean);
+}
+
+export async function presentFolder(req, id, code) {
+    const graph = await libraryGraph(req);
+    if (!graph.folderCourses.get(idOf(id))?.has(code)) return null;
+    return (await presentTree(req, [id], code))[0] || null;
 }
 
 export async function presentCourse(req, value) {
     const { course, code, capabilities: permitted } = await requireCourse(req, value);
-    const children = (
-        await Promise.all(course.children.map((id) => presentFolder(req, id, code)))
-    ).filter(Boolean);
+    const children = await presentTree(req, course.children, code);
     children.sort((a, b) => a.name.localeCompare(b.name));
     return { ...course, children, capabilities: permitted };
 }

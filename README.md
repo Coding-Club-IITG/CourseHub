@@ -263,6 +263,7 @@ npm run build
 - [Usage Guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material)
 - [Authentication and session configuration](docs/authentication.md)
 - [Storage configuration, uploads, and operation recovery](docs/storage-operations.md)
+- [Shared course trees and linking](./docs/shared-course-trees.md)
 - [Course linking and shared-folder model](./docs/course_link_logic.md)
 - [Frontend caching](./docs/frontend-caching.md)
 

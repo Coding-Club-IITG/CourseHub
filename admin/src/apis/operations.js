@@ -13,7 +13,11 @@ export const listOperations = (page, status, signal) =>
 export const retryOperation = (id) => request(`/${id}/retry`, { method: "POST" });
 export async function waitForOperation(accepted) {
     if (!accepted?.operationId) return accepted;
-    window.dispatchEvent(new CustomEvent(operationEvent));
+    window.dispatchEvent(
+        new CustomEvent(operationEvent, {
+            detail: { kind: accepted.kind || "delete", status: "queued" },
+        }),
+    );
     for (;;) {
         const operation = await getOperation(accepted.operationId);
         window.dispatchEvent(new CustomEvent(operationEvent, { detail: operation }));
@@ -21,7 +25,7 @@ export async function waitForOperation(accepted) {
         if (["failed", "cancelled"].includes(operation.status))
             throw new Error(
                 operation.error?.message ||
-                    "Cleanup could not finish. Open Operations to review and retry.",
+                    "The operation could not finish. Open Operations to review and retry.",
             );
         await new Promise((resolve) => setTimeout(resolve, 1000));
     }

@@ -297,6 +297,12 @@ async function publishFile(operation, entry, checkpoint) {
     const existing = await FileModel.findById(entry.fileId);
     if (existing?.resourceState === "ready" && existing.uploadOperation === operation._id) return;
     const currentRequest = await operationActor(operation);
+    await requireFolder(
+        currentRequest,
+        operation.target.folderId,
+        operation.target.code,
+        "canContribute",
+    );
     const courses = await relatedCourses(currentRequest, [operation.target.code]);
     await checkpoint();
     await OperationModel.updateOne(

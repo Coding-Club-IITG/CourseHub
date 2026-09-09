@@ -6,6 +6,7 @@ import {
     courseContext,
     libraryGraph,
 } from "../../services/authorization.js";
+import { scheduleCourseLink } from "../../services/courseLinking.js";
 import { scheduleDeletion } from "../../services/deletions.js";
 import { mutateContent } from "../../services/contentMutation.js";
 import { presentContribution } from "../contribution/contribution.controller.js";
@@ -15,15 +16,9 @@ import { processUploadedCsv } from "../../utils/uploadedCsv.js";
 import { safeError } from "../../middleware/requestErrors.js";
 import User from "../user/user.model.js";
 import UserUpdate from "../user/userUpdate.model.js";
-import SearchResults from "../search/search.model.js";
 import Contribution from "../contribution/contribution.model.js";
-import {
-    normalizeCourseCode,
-    getCourseCodeCaseInsensitiveRegex,
-    getCourseTitle,
-} from "../../utils/course.js";
+import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { runSync } from "../../scripts/syncCoursesCache.js";
-import logger from "../../utils/logger.js";
 
 // Get all courses from DB
 export async function getDBCourses(req, res, next) {
@@ -244,217 +239,8 @@ export async function deleteCourse(req, res) {
     res.status(202).json(await scheduleDeletion(req, { kind: "course", code: req.params.code }));
 }
 
-/*
- * Internal helper to link a legacy course to a target course
- */
-async function performLinkWithLock(targetCodeRaw, sourceCodeRaw, req) {
-    return mutateContent(req, [targetCodeRaw, sourceCodeRaw], () =>
-        performLink(targetCodeRaw, sourceCodeRaw),
-    );
-}
-
-async function getAllFolderIdsUnderTree(startFolderId) {
-    const folderIds = [];
-    const queue = [startFolderId];
-    const visited = new Set();
-
-    while (queue.length > 0) {
-        const currentId = queue.shift();
-        const idStr = currentId.toString();
-        if (visited.has(idStr)) continue;
-        visited.add(idStr);
-        folderIds.push(idStr);
-
-        const folder = await FolderModel.findById(currentId).select("childType children");
-        if (folder && folder.childType === "Folder" && Array.isArray(folder.children)) {
-            for (const childId of folder.children) {
-                if (childId) queue.push(childId);
-            }
-        }
-    }
-    return folderIds;
-}
-
-async function addCourseToFolderTree(startFolderId, codeToAdd) {
-    const folderIds = await getAllFolderIdsUnderTree(startFolderId);
-    if (folderIds.length > 0) {
-        await FolderModel.updateMany(
-            { _id: { $in: folderIds } },
-            { $addToSet: { courses: codeToAdd } },
-        );
-    }
-}
-
-async function removeCourseFromFolderTree(startFolderId, codeToRemove) {
-    const ids = await getAllFolderIdsUnderTree(startFolderId);
-    const populated = await FolderModel.exists({
-        _id: { $in: ids },
-        childType: "File",
-        "children.0": { $exists: true },
-    });
-    if (populated) throw new AppError(409, "A populated year cannot be replaced", "LINK_CONFLICT");
-    // Linking detaches empty structures
-    await FolderModel.updateMany({ _id: { $in: ids } }, { $pull: { courses: codeToRemove } });
-}
-
-async function performLink(targetCodeRaw, sourceCodeRaw) {
-    const targetCode = normalizeCourseCode(targetCodeRaw);
-    const sourceCode = normalizeCourseCode(sourceCodeRaw);
-
-    if (!targetCode || !sourceCode) {
-        throw new Error(`Invalid course codes: ${targetCodeRaw}, ${sourceCodeRaw}`);
-    }
-
-    if (targetCode === sourceCode) {
-        throw new Error(`Target course and legacy course cannot be the same (${targetCode})`);
-    }
-
-    let targetCourse = await CourseModel.findOne({
-        code: getCourseCodeCaseInsensitiveRegex(targetCode),
-    });
-
-    const sourceCourse = await CourseModel.findOne({
-        code: getCourseCodeCaseInsensitiveRegex(sourceCode),
-    });
-
-    if (!sourceCourse) {
-        throw new Error(`Legacy course "${sourceCode}" not found in database`);
-    }
-
-    if (!targetCourse) {
-        const targetTitle = getCourseTitle(targetCode);
-        targetCourse = await CourseModel.create({
-            code: targetCode,
-            name: targetTitle,
-            children: [],
-        });
-    }
-
-    const isFolderEmpty = async (folderId) => {
-        const folder = await FolderModel.findById(folderId).select("childType children");
-        if (!folder) return true;
-
-        if (folder.childType === "File") {
-            return !folder.children || folder.children.length === 0;
-        }
-
-        for (const childId of folder.children || []) {
-            const empty = await isFolderEmpty(childId);
-            if (!empty) return false;
-        }
-        return true;
-    };
-
-    const targetChildrenIds = (targetCourse.children || []).map((id) => (id._id || id).toString());
-    const sourceChildrenIds = (sourceCourse.children || []).map((id) => (id._id || id).toString());
-
-    const targetYearDocs = await FolderModel.find({ _id: { $in: targetChildrenIds } });
-    const sourceYearDocs = await FolderModel.find({ _id: { $in: sourceChildrenIds } });
-
-    // Step 1: Detect and clean up any pre-existing duplicate year folders in targetCourse
-    const targetYearsByName = {};
-    for (const doc of targetYearDocs) {
-        if (!doc || !doc.name) continue;
-        const normName = doc.name.trim().toLowerCase();
-        if (!targetYearsByName[normName]) {
-            targetYearsByName[normName] = [];
-        }
-        targetYearsByName[normName].push(doc);
-    }
-
-    let updatedTargetChildIds = [...targetChildrenIds];
-
-    for (const [normName, docs] of Object.entries(targetYearsByName)) {
-        if (docs.length > 1) {
-            // Find a non-empty folder, or pick the first one
-            let chosen = docs[0];
-            for (const d of docs) {
-                const empty = await isFolderEmpty(d._id);
-                if (!empty) {
-                    chosen = d;
-                    break;
-                }
-            }
-            // Delete and un-link all other duplicate empty folders
-            for (const d of docs) {
-                if (d._id.toString() !== chosen._id.toString() && (await isFolderEmpty(d._id))) {
-                    await removeCourseFromFolderTree(d._id, targetCode);
-                    updatedTargetChildIds = updatedTargetChildIds.filter(
-                        (id) => id !== d._id.toString(),
-                    );
-                }
-            }
-        }
-    }
-
-    // Step 2: Merge source year folders into target
-    for (const sourceYearDoc of sourceYearDocs) {
-        if (!sourceYearDoc || !sourceYearDoc.name) continue;
-
-        const normName = sourceYearDoc.name.trim().toLowerCase();
-
-        const matchingTargetDoc = (targetYearsByName[normName] || []).find((d) =>
-            updatedTargetChildIds.includes(d._id.toString()),
-        );
-
-        if (matchingTargetDoc) {
-            if (matchingTargetDoc._id.toString() === sourceYearDoc._id.toString()) {
-                // Already pointing to the exact same year folder! Ensure tag is present.
-                await addCourseToFolderTree(sourceYearDoc._id, targetCode);
-                continue;
-            }
-
-            const targetIsEmpty = await isFolderEmpty(matchingTargetDoc._id);
-
-            if (targetIsEmpty) {
-                // Target year folder is empty. Replace it with source year folder.
-                updatedTargetChildIds = updatedTargetChildIds.filter(
-                    (id) => id !== matchingTargetDoc._id.toString(),
-                );
-                if (!updatedTargetChildIds.includes(sourceYearDoc._id.toString())) {
-                    updatedTargetChildIds.push(sourceYearDoc._id.toString());
-                }
-
-                // Remove empty target folder tree
-                await removeCourseFromFolderTree(matchingTargetDoc._id, targetCode);
-
-                // Add target code to source folder tree
-                await addCourseToFolderTree(sourceYearDoc._id, targetCode);
-            } else {
-                logger.info("Existing target year retained", {
-                    attributes: { operation: "merge-year", outcome: "retained" },
-                });
-            }
-        } else {
-            // Year folder only exists in source. Add to target.
-            if (!updatedTargetChildIds.includes(sourceYearDoc._id.toString())) {
-                updatedTargetChildIds.push(sourceYearDoc._id.toString());
-            }
-            await addCourseToFolderTree(sourceYearDoc._id, targetCode);
-        }
-    }
-
-    const finalChildIds = Array.from(new Set(updatedTargetChildIds));
-    targetCourse.children = finalChildIds;
-    await targetCourse.save();
-
-    return targetCourse;
-}
-
-export async function linkLegacyCourse(req, res, next) {
-    const { code } = req.params;
-    const { legacyCode } = req.body;
-
-    if (!legacyCode) {
-        return next(new AppError(400, "Legacy course code required"));
-    }
-
-    try {
-        const course = await performLinkWithLock(code, legacyCode, req);
-        res.json({ message: "Legacy course linked successfully", course });
-    } catch (error) {
-        return next(error);
-    }
+export async function linkLegacyCourse(req, res) {
+    res.status(202).json(await scheduleCourseLink(req, req.params.code, req.body.legacyCode));
 }
 
 export async function bulkLinkCourses(req, res) {
@@ -487,7 +273,7 @@ export async function bulkLinkCourses(req, res) {
     };
 
     const summary = await processUploadedCsv(req.file, { headers: false }, async (results) => {
-        const summary = { success: 0, failed: 0, errors: [] };
+        const summary = { scheduled: 0, failed: 0, errors: [], operations: [] };
         for (const row of results) {
             const keys = Object.keys(row);
             if (keys.length === 0) continue;
@@ -521,8 +307,9 @@ export async function bulkLinkCourses(req, res) {
             if (!oldCode || !newCode) continue;
 
             try {
-                await performLinkWithLock(newCode, oldCode, req);
-                summary.success++;
+                const operation = await scheduleCourseLink(req, newCode, oldCode);
+                summary.operations.push({ oldCode, newCode, ...operation });
+                summary.scheduled++;
             } catch (err) {
                 summary.failed++;
                 summary.errors.push({ oldCode, newCode, error: safeError(err).message });
@@ -531,7 +318,7 @@ export async function bulkLinkCourses(req, res) {
 
         return summary;
     });
-    res.json({ message: "Bulk linking completed", summary });
+    res.status(202).json({ message: "Link operations scheduled", summary });
 }
 
 export async function syncCoursesCacheController(req, res, next) {

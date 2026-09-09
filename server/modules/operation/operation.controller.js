@@ -13,8 +13,13 @@ export function presentOperation(operation, actor) {
         folderId: operation.target.folderId,
         name:
             operation.plan?.name ||
-            (operation.kind === "upload" ? "File upload" : "Content deletion"),
+            (operation.kind === "upload"
+                ? "File upload"
+                : operation.kind === "link"
+                  ? "Course linking"
+                  : "Content deletion"),
         affectedCourses: operation.plan?.affectedCourses || [operation.target.code],
+        linking: operation.kind === "link" ? operation.plan?.result : undefined,
         createdAt: operation.createdAt,
         updatedAt: operation.updatedAt,
         nextRunAt: operation.nextRunAt,
@@ -52,7 +57,8 @@ async function permittedOperation(req) {
         !operation ||
         (!actor.admin &&
             String(operation.actorId) !== actor.id &&
-            !actor.managed.includes(operation.target.code))
+            !actor.managed.includes(operation.target.code) &&
+            !(operation.kind === "link" && actor.managed.includes(operation.target.sourceCode)))
     )
         throw new AppError(404, "Operation not found");
     return { actor, operation };
@@ -77,7 +83,13 @@ export async function listOperations(req, res) {
         throw new AppError(400, "Invalid operation page");
     const filter = actor.admin
         ? {}
-        : { $or: [{ actorId: actor.id }, { "target.code": { $in: actor.managed } }] };
+        : {
+              $or: [
+                  { actorId: actor.id },
+                  { "target.code": { $in: actor.managed } },
+                  { kind: "link", "target.sourceCode": { $in: actor.managed } },
+              ],
+          };
     if (req.query.status) {
         if (
             ![
@@ -126,12 +138,12 @@ export async function cancelOperation(req, res) {
 export async function retryOperation(req, res) {
     const { actor, operation } = await permittedOperation(req);
     if (!actor.admin && (operation.kind !== "upload" || String(operation.actorId) !== actor.id))
-        throw new AppError(403, "Administrator access is required to retry deletion");
+        throw new AppError(403, "Administrator access is required to retry this operation");
     if (!["failed", "partial"].includes(operation.status))
         throw new AppError(409, "This operation is not waiting for retry");
     const fields = {
         status:
-            operation.kind === "delete"
+            operation.kind !== "upload"
                 ? "queued"
                 : operation.cancelRequested
                   ? "cancelling"

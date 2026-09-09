@@ -60,8 +60,8 @@ test("display filenames cannot escape storage or masquerade as path identities",
     ])
         assert.throws(() => validateManifest([{ name, size: 1 }]), { code: "INVALID_FILENAME" });
     assert.equal(
-        validateManifest([{ name: "Lecture १ — résumé.pdf", size: 1 }])[0].name,
-        "Lecture १ — résumé.pdf",
+        validateManifest([{ name: "Lecture १ - résumé.pdf", size: 1 }])[0].name,
+        "Lecture १ - résumé.pdf",
     );
     for (const name of ["../example.upload", "/tmp/example.upload", "example.pdf", null])
         assert.throws(() => temporaryPath(name), { status: 400 });

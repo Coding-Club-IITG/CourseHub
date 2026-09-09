@@ -1,3 +1,4 @@
+import LinkingResult from "@/components/LinkingResult";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listOperations, retryOperation } from "@/apis/operations";
@@ -56,7 +57,7 @@ export default function Operations() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Operations</h1>
                     <p className="mt-1 text-sm text-gray-600">
-                        Upload results and recoverable content cleanup.
+                        Uploads, course linking and recoverable content cleanup.
                     </p>
                 </div>
                 <Link className="text-sm text-blue-700 underline" to="/admin/courses">
@@ -136,10 +137,18 @@ export default function Operations() {
                             </span>
                         </div>
                         <p className="mt-2 text-sm text-gray-600">
-                            {item.kind === "delete"
-                                ? `Cleanup · ${item.completedSteps} ${item.completedSteps === 1 ? "step" : "steps"} completed`
-                                : `${item.entries.filter((entry) => entry.state === "completed").length} of ${item.entries.length} files uploaded`}
+                            {item.kind === "link"
+                                ? `Linking · ${item.completedSteps} steps completed`
+                                : item.kind === "delete"
+                                  ? `Cleanup · ${item.completedSteps} ${item.completedSteps === 1 ? "step" : "steps"} completed`
+                                  : `${item.entries.filter((entry) => entry.state === "completed").length} of ${item.entries.length} files uploaded`}
                         </p>
+                        {item.kind === "link" && (
+                            <LinkingResult
+                                result={item.linking}
+                                completed={item.status === "completed"}
+                            />
+                        )}
                         {item.affectedCourses?.length > 1 && (
                             <p className="mt-2 text-sm text-gray-700">
                                 Affected courses: {item.affectedCourses.join(", ")}
@@ -162,7 +171,7 @@ export default function Operations() {
                                         className="break-words border-t border-gray-100 pt-2 text-sm"
                                     >
                                         <span>{entry.name}</span>
-                                        <span className="ml-2 text-gray-600">— {entry.state}</span>
+                                        <span className="ml-2 text-gray-600">- {entry.state}</span>
                                         {entry.error?.message && (
                                             <p className="text-red-800">{entry.error.message}</p>
                                         )}

@@ -14,6 +14,8 @@ import {
     libraryGraph,
     courseContext,
 } from "./authorization.js";
+import { journalStep, completeOperation } from "./operationJournal.js";
+import { walkFolderTree } from "./folderTrees.js";
 import { relatedCourses } from "./contentMutation.js";
 import { acquireCourseLocks, releaseCourseLocks } from "./courseLocks.js";
 import { storage, storageId } from "./storage.js";
@@ -75,26 +77,17 @@ async function deletionPlan(req, target) {
     const foldersToDelete = [];
     const foldersToUnlink = [];
     const contributionIds = [];
-    const collect = (id) => {
-        id = String(id);
-        if (folderIds.has(id) || !graph.folderCourses.get(id)?.has(context.code)) return;
-        if (folderIds.size >= 10000)
-            throw new AppError(
-                409,
-                "This deletion requires a smaller selection",
-                "OPERATION_TOO_LARGE",
-            );
-        folderIds.add(id);
-        const folder = graph.folders.get(id);
-        if (folder.childType === "Folder") folder.children.forEach(collect);
+    const collect = (roots) => {
+        const tree = walkFolderTree(graph, roots, context.code, { operationId: req.operationId });
+        for (const id of tree.folders) folderIds.add(id);
     };
     if (target.kind === "file") fileIds.add(String(context.file._id));
     if (target.kind === "contribution") {
         context.contribution.files.forEach((id) => fileIds.add(String(id)));
         contributionIds.push(String(context.contribution._id));
     }
-    if (target.kind === "folder") collect(target.id);
-    if (target.kind === "course") context.course.children.forEach(collect);
+    if (target.kind === "folder") collect([target.id]);
+    if (target.kind === "course") collect(context.course.children);
     for (const id of folderIds) {
         const folder = graph.folders.get(id);
         const remaining = folder.courses.filter(
@@ -353,19 +346,7 @@ export async function prepareDeletion(operation, req) {
 export async function runDeletion(operation, checkpoint) {
     const plan = operation.plan || (await prepareDeletion(operation));
     await acquireCourseLocks(operation.courses, operation._id, { durable: true });
-    const step = async (key, action) => {
-        await checkpoint();
-        const current = await OperationModel.findById(operation._id)
-            .select("completedSteps")
-            .lean();
-        if (current.completedSteps.includes(key)) return;
-        await action();
-        await checkpoint();
-        await OperationModel.updateOne(
-            { _id: operation._id, leaseToken: operation.leaseToken },
-            { $addToSet: { completedSteps: key } },
-        );
-    };
+    const step = journalStep(operation, checkpoint);
     // Marks are replayed even if the process stopped between journaling and marking.
     await step("mark", () => prepareDeletion({ ...(operation.toObject?.() || operation), plan }));
     for (const file of plan.files) {
@@ -436,11 +417,5 @@ export async function runDeletion(operation, checkpoint) {
             await SearchResults.updateMany({ code }, { $set: { isAvailable: false } });
             await Course.deleteOne({ _id: plan.courseId, deletingOperation: operation._id });
         });
-    await checkpoint();
-    const finished = await OperationModel.updateOne(
-        { _id: operation._id, leaseToken: operation.leaseToken },
-        { $set: { status: "completed" }, $unset: { error: 1, leaseUntil: 1, leaseToken: 1 } },
-    );
-    if (!finished.modifiedCount) throw new AppError(409, "Operation lease was lost", "LEASE_LOST");
-    await releaseCourseLocks(operation._id);
+    await completeOperation(operation, checkpoint);
 }

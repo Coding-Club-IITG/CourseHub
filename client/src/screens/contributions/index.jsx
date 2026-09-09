@@ -28,7 +28,7 @@ const stateLabels = {
     publishing: "Saving",
     cleanup: "Cleaning up unpublished file",
     completed: "Uploaded",
-    failed: "Failed — retry this file",
+    failed: "Failed - retry this file",
     cancelled: "Cancelled",
 };
 const Contributions = () => {

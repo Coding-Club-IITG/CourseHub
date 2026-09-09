@@ -1,3 +1,4 @@
+import { linkingOperation } from "../fixtures/linking.js";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
 import { createRequire } from "node:module";
@@ -259,10 +260,23 @@ for (const width of [1440, 390])
                 assert.ok(headers.cookie?.includes("adminToken=synthetic-admin"));
                 assert.equal(headers["x-csrf-token"], csrf);
                 assert.equal(headers.authorization, undefined);
-                data = { summary: { success: 1, failed: 0, errors: [] } };
+                const operation = linkingOperation();
+                status = 202;
+                const accepted = { operationId: operation.id, kind: "link", status: "queued" };
+                data = url.pathname.endsWith("/bulk-link")
+                    ? {
+                          summary: {
+                              scheduled: 1,
+                              failed: 0,
+                              errors: [],
+                              operations: [{ oldCode: "CS101", newCode: "CSN101", ...accepted }],
+                          },
+                      }
+                    : accepted;
                 if (url.pathname.endsWith("/bulk-link"))
                     assert.match(headers["content-type"], /^multipart\/form-data; boundary=/);
-            } else {
+            } else if (url.pathname.startsWith("/api/operations/")) data = linkingOperation();
+            else {
                 status = 404;
             }
             return route.fulfill({
@@ -283,7 +297,7 @@ for (const width of [1440, 390])
         await page.getByPlaceholder("e.g., CS101", { exact: true }).fill("CS101");
         await page.getByPlaceholder("e.g., CSN101", { exact: true }).fill("CSN101");
         await page.getByRole("button", { name: "Link Course", exact: true }).click();
-        await page.getByText("Successfully linked CS101 to CSN101", { exact: true }).waitFor();
+        await page.getByText("Linking completed", { exact: true }).waitFor();
         await page.getByRole("button", { name: "Bulk Link (CSV)", exact: true }).click();
         await page.locator("#csv-upload").setInputFiles({
             name: "links.csv",

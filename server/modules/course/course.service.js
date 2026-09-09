@@ -1,80 +1,71 @@
-import { FolderModel } from "./course.model.js";
-import CourseModel from "./course.model.js";
+import CourseModel, { FolderModel } from "./course.model.js";
+import { loadLibraryGraph, validateTreeChange, treeId } from "../../services/folderTrees.js";
+import { mutateContent } from "../../services/contentMutation.js";
+import { normalizeCourseCode } from "../../utils/course.js";
+import AppError from "../../utils/appError.js";
 
 export const createYearFolderWithDefaultStructure = async (yearName, courseCode) => {
-    // 1. Create Exam Sub-folders
-    const examSubFolders = ["Quiz-1", "MidSem", "Quiz-2", "EndSem"];
-    const examSubFolderDocs = await Promise.all(
-        examSubFolders.map((name) =>
-            FolderModel.create({
-                name,
-                courses: [courseCode],
-                childType: "File",
-                children: [],
-            }),
-        ),
+    if (typeof yearName !== "string" || !yearName.trim() || yearName.length > 200)
+        throw new AppError(400, "A valid year name is required");
+    const code = normalizeCourseCode(courseCode),
+        folders = [];
+    const create = (name, childType, children = []) => {
+        const folder = new FolderModel({
+            name,
+            childType,
+            children: children.map((item) => item._id),
+            courses: [code],
+        });
+        folders.push(folder);
+        return folder;
+    };
+    const exams = create(
+        "Exams",
+        "Folder",
+        ["Quiz-1", "MidSem", "Quiz-2", "EndSem"].map((name) => create(name, "File")),
     );
-
-    // 2. Create Exams Folder with sub-folders
-    const examsFolder = await FolderModel.create({
-        name: "Exams",
-        courses: [courseCode],
-        childType: "Folder",
-        children: examSubFolderDocs.map((doc) => doc._id),
-    });
-
-    // 3. Create other top-level folders for the year
-    const otherFolders = ["Lectures", "Assignments", "Resources"];
-    const otherFolderDocs = await Promise.all(
-        otherFolders.map((name) =>
-            FolderModel.create({
-                name,
-                courses: [courseCode],
-                childType: "File",
-                children: [],
-            }),
-        ),
+    const year = create(yearName.trim(), "Folder", [
+        exams,
+        ...["Lectures", "Assignments", "Resources"].map((name) => create(name, "File")),
+    ]);
+    const graph = await loadLibraryGraph(),
+        course = graph.courses.get(code);
+    if (!course) throw new AppError(404, "Course not found");
+    validateTreeChange(
+        graph,
+        {
+            folders: folders.map((folder) => folder.toObject()),
+            courses: [{ ...course, children: [...course.children, year._id] }],
+        },
+        [code],
     );
-
-    // 4. Create Year Folder
-    const yearFolder = await FolderModel.create({
-        name: yearName,
-        courses: [courseCode],
-        childType: "Folder",
-        children: [examsFolder._id, ...otherFolderDocs.map((doc) => doc._id)],
-    });
-
-    return yearFolder;
+    await FolderModel.insertMany(folders);
+    return year;
 };
 
 export const bootstrapCourseFolders = async (courseCode) => {
-    const currentYear = new Date().getFullYear();
-    const targetYears = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
-
-    // Fetch existing course with children names to avoid duplicates (case-insensitive)
-    const course = await CourseModel.findOne({
-        code: new RegExp("^" + courseCode + "$", "i"),
-    }).populate("children", "name");
-    if (!course) return [];
-
-    const actualCourseCode = course.code;
-    const existingYearNames = course.children.map((child) => child.name);
-    const missingYears = targetYears.filter((year) => !existingYearNames.includes(year));
-
-    if (missingYears.length === 0) return [];
-
-    const newYearFolderIds = [];
-
-    for (const year of missingYears) {
-        const yearFolder = await createYearFolderWithDefaultStructure(year, actualCourseCode);
-        newYearFolderIds.push(yearFolder._id);
-    }
-
-    // Update Course with ONLY the newly created year folders
-    await CourseModel.findOneAndUpdate(
-        { _id: course._id },
-        { $push: { children: { $each: newYearFolderIds } } },
-    );
-
-    return newYearFolderIds;
+    const code = normalizeCourseCode(courseCode);
+    return mutateContent({}, [code], async () => {
+        const graph = await loadLibraryGraph(),
+            course = graph.courses.get(code);
+        if (!course) return [];
+        const existing = new Set(
+            course.children
+                .filter((id) => graph.folderCourses.get(treeId(id))?.has(code))
+                .map((id) => graph.folders.get(treeId(id)).name.trim()),
+        );
+        const year = new Date().getFullYear(),
+            created = [];
+        for (const name of Array.from({ length: 5 }, (_, i) => String(year - i))) {
+            if (existing.has(name)) continue;
+            const folder = await createYearFolderWithDefaultStructure(name, code);
+            // Append each validated structure atomically
+            await CourseModel.updateOne(
+                { _id: course._id },
+                { $addToSet: { children: folder._id } },
+            );
+            created.push(folder._id);
+        }
+        return created;
+    });
 };

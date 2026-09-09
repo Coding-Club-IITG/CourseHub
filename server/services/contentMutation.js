@@ -1,4 +1,5 @@
 import { libraryGraph } from "./authorization.js";
+import { assertValidCourseTree, treeCodes } from "./folderTrees.js";
 import { withCourseLocks } from "./courseLocks.js";
 import { normalizeCourseCode } from "../utils/course.js";
 import AppError from "../utils/appError.js";
@@ -6,7 +7,11 @@ import AppError from "../utils/appError.js";
 export async function relatedCourses(req, codes) {
     const graph = await libraryGraph(req);
     const related = new Set(codes.filter(Boolean).map(normalizeCourseCode));
-    const memberships = [...graph.folderCourses.values(), ...graph.fileCourses.values()];
+    const memberships = [
+        ...graph.folderCourses.values(),
+        ...graph.fileCourses.values(),
+        ...[...graph.folders.values()].map((folder) => new Set(treeCodes(folder.courses))),
+    ];
     let changed = true;
     while (changed) {
         changed = false;
@@ -19,6 +24,7 @@ export async function relatedCourses(req, codes) {
                 }
         }
     }
+    for (const code of related) assertValidCourseTree(graph, code);
     return [...related].sort();
 }
 

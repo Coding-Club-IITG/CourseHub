@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { OperationModel, CourseLock, StorageLease } from "../modules/operation/operation.model.js";
 import { acquireStorageLease, releaseStorageLease } from "./storageLeases.js";
+import { runCourseLink } from "./courseLinking.js";
 import { runDeletion } from "./deletions.js";
 import { runUploads, recoverReceiving, removeTemporary } from "./uploads.js";
 import { releaseCourseLocks } from "./courseLocks.js";
@@ -89,6 +90,7 @@ async function processClaim(id, checkWorker) {
     };
     try {
         if (operation.kind === "delete") await runDeletion(operation, checkpoint);
+        else if (operation.kind === "link") await runCourseLink(operation, checkpoint);
         else await runUploads(operation, checkpoint);
     } catch (error) {
         if (error.code === "LEASE_LOST") return true;
@@ -117,7 +119,7 @@ async function processClaim(id, checkWorker) {
                 ...(busy ? { $inc: { attempts: -1 } } : {}),
             },
         );
-        if (operation.kind === "delete" && !current.plan && !retry) {
+        if (operation.kind !== "upload" && !current.plan && !retry) {
             await releaseCourseLocks(operation._id);
             await OperationModel.updateOne({ _id: operation._id }, { $unset: { requestKey: 1 } });
         }
@@ -147,7 +149,7 @@ export async function recoverLocks() {
                 status: { $in: ["failed", "partial", "awaiting"] },
                 leaseUntil: { $exists: false },
             },
-            { kind: "delete", status: "failed", plan: { $exists: false } },
+            { kind: { $in: ["delete", "link"] }, status: "failed", plan: { $exists: false } },
         ],
     })
         .select("_id")

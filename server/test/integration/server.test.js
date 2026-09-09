@@ -421,3 +421,6 @@ test("session, OAuth, CSRF and profile boundaries", async (t) =>
 
 import { exerciseOperations } from "../support/operations.js";
 test("upload and deletion journal recovery", async (t) => exerciseOperations(t, origin));
+
+import { exerciseSharedTrees } from "../support/shared-trees.js";
+test("shared course trees and journaled linking", async (t) => exerciseSharedTrees(t, origin));

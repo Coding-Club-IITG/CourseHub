@@ -1,3 +1,5 @@
+import LinkingResult from "@/components/LinkingResult";
+import { waitForOperation } from "@/apis/operations";
 import { apiFetch } from "@/apis/http";
 import React, { useState } from "react";
 import {
@@ -42,7 +44,7 @@ const CourseLinking = () => {
         setUploading(true);
         setError(null);
         setResults(null);
-        
+
         const formData = new FormData();
         formData.append("file", file);
 
@@ -58,17 +60,38 @@ const CourseLinking = () => {
             try {
                 data = JSON.parse(text);
             } catch {
-                throw new Error(`Server error (${response.status}): ${text.slice(0, 100)}`);
+                throw new Error(`Linking is unavailable (${response.status}). Please retry.`);
             }
 
             if (!response.ok) {
                 throw new Error(data.message || "Bulk linking failed");
             }
 
-            setResults(data.summary);
+            const summary = {
+                success: 0,
+                failed: data.summary.failed,
+                errors: [...data.summary.errors],
+                items: [],
+            };
+            setResults({ ...summary });
+            for (const accepted of data.summary.operations) {
+                try {
+                    const operation = await waitForOperation(accepted);
+                    summary.success++;
+                    summary.items.push(operation.linking);
+                } catch (failure) {
+                    summary.failed++;
+                    summary.errors.push({
+                        oldCode: accepted.oldCode,
+                        newCode: accepted.newCode,
+                        error: failure.message,
+                    });
+                }
+                setResults({ ...summary, items: [...summary.items], errors: [...summary.errors] });
+            }
             setFile(null); // Reset file input after success
-            
-            if (data.summary.success > 0 && data.summary.failed === 0) {
+
+            if (summary.success > 0 && summary.failed === 0) {
                 setError(null);
             }
         } catch (err) {
@@ -87,21 +110,25 @@ const CourseLinking = () => {
         setManualSuccess(null);
 
         try {
-            const response = await apiFetch(`${API_BASE_URL}api/admin/course/${manualNewCode.toLowerCase().trim()}/link`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
+            const response = await apiFetch(
+                `${API_BASE_URL}api/admin/course/${manualNewCode.toLowerCase().trim()}/link`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ legacyCode: manualOldCode.toUpperCase().trim() }),
+                    credentials: "include",
                 },
-                body: JSON.stringify({ legacyCode: manualOldCode.toUpperCase().trim() }),
-                credentials: "include",
-            });
+            );
 
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || "Manual linking failed");
             }
 
-            setManualSuccess(`Successfully linked ${manualOldCode.toUpperCase()} to ${manualNewCode.toUpperCase()}`);
+            const operation = await waitForOperation(await response.json());
+            setManualSuccess(operation.linking);
             setManualOldCode("");
             setManualNewCode("");
         } catch (err) {
@@ -115,7 +142,6 @@ const CourseLinking = () => {
     return (
         <div className="min-h-screen bg-transparent p-6 md:p-10">
             <div className="max-w-5xl mx-auto space-y-6">
-                
                 {/* Header */}
                 <div className="flex items-center gap-4 pb-4">
                     <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
@@ -134,12 +160,23 @@ const CourseLinking = () => {
                 {/* Instructions Alert */}
                 <Alert className="bg-white/80 backdrop-blur-sm border border-blue-100 shadow-sm rounded-xl">
                     <FaInfoCircle className="h-4 w-4 text-blue-600" />
-                    <AlertTitle className="text-blue-900 font-semibold">What happens when you link courses?</AlertTitle>
+                    <AlertTitle className="text-blue-900 font-semibold">
+                        What happens when you link courses?
+                    </AlertTitle>
                     <AlertDescription className="text-sm text-blue-800/80 mt-2">
                         <ul className="list-disc list-inside space-y-1">
-                            <li>The new course code will display folders from the legacy course.</li>
-                            <li>If the new course already has files in a specific year, those files are kept. The legacy folders for that year will not overwrite them.</li>
-                            <li>Folders are shared. Deleting a shared folder from one course only removes the link for that course; the folder is kept for the other course.</li>
+                            <li>
+                                The new course code will display folders from the legacy course.
+                            </li>
+                            <li>
+                                If the new course already has files in a specific year, those files
+                                are kept. The legacy folders for that year will not overwrite them.
+                            </li>
+                            <li>
+                                Folders are shared. Deleting a shared folder from one course only
+                                removes the link for that course; the folder is kept for the other
+                                course.
+                            </li>
                         </ul>
                     </AlertDescription>
                 </Alert>
@@ -169,7 +206,6 @@ const CourseLinking = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
-                    
                     {/* Left Column: Input Forms */}
                     <div>
                         {activeTab === "manual" && (
@@ -180,8 +216,11 @@ const CourseLinking = () => {
                                 </h2>
                                 <div className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-sm font-medium text-gray-700">Legacy Course Code</label>
+                                        <label className="text-sm font-medium text-gray-700">
+                                            Legacy Course Code
+                                        </label>
                                         <Input
+                                            disabled={manualLoading}
                                             value={manualOldCode}
                                             onChange={(e) => setManualOldCode(e.target.value)}
                                             placeholder="e.g., CS101"
@@ -189,8 +228,11 @@ const CourseLinking = () => {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-sm font-medium text-gray-700">New Course Code</label>
+                                        <label className="text-sm font-medium text-gray-700">
+                                            New Course Code
+                                        </label>
                                         <Input
+                                            disabled={manualLoading}
                                             value={manualNewCode}
                                             onChange={(e) => setManualNewCode(e.target.value)}
                                             placeholder="e.g., CSN101"
@@ -215,19 +257,26 @@ const CourseLinking = () => {
                                     Upload CSV
                                 </h2>
                                 <p className="text-sm text-gray-600 mb-5">
-                                    Upload a CSV file containing exactly two columns. The first column is the <strong>legacy course code</strong>, and the second column is the <strong>new course code</strong>. No column headers are required.
+                                    Upload a CSV file containing exactly two columns. The first
+                                    column is the <strong>legacy course code</strong>, and the
+                                    second column is the <strong>new course code</strong>. No column
+                                    headers are required.
                                 </p>
-                                
+
                                 <div className="space-y-5">
                                     <div className="border-2 border-dashed border-blue-200 rounded-xl p-6 text-center bg-blue-50/50 hover:bg-blue-50 transition-colors">
                                         <input
                                             type="file"
                                             id="csv-upload"
+                                            disabled={uploading}
                                             accept=".csv"
                                             onChange={handleFileChange}
                                             className="hidden"
                                         />
-                                        <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center">
+                                        <label
+                                            htmlFor="csv-upload"
+                                            className="cursor-pointer flex flex-col items-center"
+                                        >
                                             <FaFileCsv className="h-8 w-8 text-blue-400 mb-2" />
                                             <span className="text-sm font-medium text-blue-700">
                                                 {file ? file.name : "Click to select a CSV file"}
@@ -249,19 +298,21 @@ const CourseLinking = () => {
 
                     {/* Right Column: Status & Results */}
                     <div className="space-y-4">
-                        
                         {/* Manual Success Status */}
                         {activeTab === "manual" && manualSuccess && (
                             <Alert className="bg-green-50 border border-green-200 text-green-800 shadow-sm rounded-xl">
                                 <FaCheckCircle className="h-4 w-4 text-green-600" />
-                                <AlertTitle>Success</AlertTitle>
-                                <AlertDescription>{manualSuccess}</AlertDescription>
+                                <AlertTitle>Linking completed</AlertTitle>
+                                <LinkingResult result={manualSuccess} />
                             </Alert>
                         )}
 
                         {/* Manual Error Status */}
                         {activeTab === "manual" && manualError && (
-                            <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800 shadow-sm rounded-xl">
+                            <Alert
+                                variant="destructive"
+                                className="bg-red-50 border-red-200 text-red-800 shadow-sm rounded-xl"
+                            >
                                 <FaExclamationTriangle className="h-4 w-4 text-red-600" />
                                 <AlertTitle>Error</AlertTitle>
                                 <AlertDescription>{manualError}</AlertDescription>
@@ -270,7 +321,10 @@ const CourseLinking = () => {
 
                         {/* Bulk Error Status */}
                         {activeTab === "bulk" && error && (
-                            <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800 shadow-sm rounded-xl">
+                            <Alert
+                                variant="destructive"
+                                className="bg-red-50 border-red-200 text-red-800 shadow-sm rounded-xl"
+                            >
                                 <FaExclamationTriangle className="h-4 w-4 text-red-600" />
                                 <AlertTitle>Upload Error</AlertTitle>
                                 <AlertDescription>{error}</AlertDescription>
@@ -282,29 +336,50 @@ const CourseLinking = () => {
                             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 flex flex-col transition-all hover:shadow-xl">
                                 <div className="flex items-center gap-2 mb-4">
                                     <FaCheckCircle className="h-5 w-5 text-green-600" />
-                                    <h3 className="text-lg font-semibold text-gray-800">Linking Summary</h3>
+                                    <h3 className="text-lg font-semibold text-gray-800">
+                                        Linking Summary
+                                    </h3>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div className="bg-green-50/80 rounded-xl p-4 border border-green-100 text-center">
-                                        <div className="text-sm font-medium text-green-600 uppercase tracking-wide">Successful</div>
-                                        <div className="text-3xl font-bold text-green-700 mt-1">{results.success}</div>
+                                        <div className="text-sm font-medium text-green-600 uppercase tracking-wide">
+                                            Completed
+                                        </div>
+                                        <div className="text-3xl font-bold text-green-700 mt-1">
+                                            {results.success}
+                                        </div>
                                     </div>
                                     <div className="bg-red-50/80 rounded-xl p-4 border border-red-100 text-center">
-                                        <div className="text-sm font-medium text-red-600 uppercase tracking-wide">Failed</div>
-                                        <div className={`text-3xl font-bold mt-1 ${results.failed > 0 ? 'text-red-700' : 'text-red-400'}`}>
+                                        <div className="text-sm font-medium text-red-600 uppercase tracking-wide">
+                                            Failed
+                                        </div>
+                                        <div
+                                            className={`text-3xl font-bold mt-1 ${results.failed > 0 ? "text-red-700" : "text-red-400"}`}
+                                        >
                                             {results.failed}
                                         </div>
                                     </div>
                                 </div>
-                                
+
+                                {results.items?.map((result, index) => (
+                                    <LinkingResult key={index} result={result} />
+                                ))}
                                 {results.errors && results.errors.length > 0 && (
                                     <div className="mt-2">
-                                        <h4 className="text-sm font-semibold text-gray-800 mb-2">Errors:</h4>
+                                        <h4 className="text-sm font-semibold text-gray-800 mb-2">
+                                            Errors:
+                                        </h4>
                                         <div className="max-h-48 overflow-y-auto space-y-2 pr-2 border border-gray-200/60 rounded-lg p-3 bg-gray-50/50">
                                             {results.errors.map((err, i) => (
-                                                <div key={i} className="text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                                                    <span className="font-semibold text-gray-900">{err.oldCode} ➔ {err.newCode}:</span> {err.error}
+                                                <div
+                                                    key={i}
+                                                    className="text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm"
+                                                >
+                                                    <span className="font-semibold text-gray-900">
+                                                        {err.oldCode} ➔ {err.newCode}:
+                                                    </span>{" "}
+                                                    {err.error}
                                                 </div>
                                             ))}
                                         </div>

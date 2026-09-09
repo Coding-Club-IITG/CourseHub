@@ -25,7 +25,7 @@ const Entry = new Schema(
 const Operation = new Schema(
     {
         _id: { type: String, required: true },
-        kind: { type: String, enum: ["upload", "delete"], required: true },
+        kind: { type: String, enum: ["upload", "delete", "link"], required: true },
         actorId: { type: Schema.Types.ObjectId, required: true },
         actorRole: { type: String, enum: ["student", "admin"], required: true },
         requestKey: String,

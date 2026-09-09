@@ -9,15 +9,21 @@ export default function OperationNotice() {
         window.addEventListener(operationEvent, update);
         return () => window.removeEventListener(operationEvent, update);
     }, []);
+    const activity =
+        operation?.kind === "link"
+            ? "Linking"
+            : operation?.kind === "upload"
+              ? "Upload"
+              : "Cleanup";
     return (
         <div className="flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 bg-white px-4 py-2 text-sm">
             {operation && (
                 <span role="status">
                     {operation.status === "completed"
-                        ? "Cleanup completed."
+                        ? `${activity} completed.`
                         : operation.status === "failed"
-                          ? "Cleanup needs attention."
-                          : "Cleanup is in progress. You can leave this page."}
+                          ? `${activity} needs attention.`
+                          : `${activity} is in progress. You can leave this page.`}
                 </span>
             )}
             <Link

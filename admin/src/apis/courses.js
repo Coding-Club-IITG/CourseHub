@@ -127,30 +127,6 @@ export const bulkSyncCourses = async (courses, analysis, onProgress = null) => {
     return results;
 };
 
-export const linkLegacyCourse = async (targetCode, legacyCode) => {
-    try {
-        const safeCode = targetCode.toLowerCase().trim();
-        const response = await apiFetch(`${API_BASE_URL}api/admin/course/${safeCode}/link`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ legacyCode }),
-            credentials: "include",
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Failed to link legacy course");
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error("Error linking legacy course:", error);
-        throw error;
-    }
-};
-
 // Delete a course
 export const deleteCourse = async (code) => {
     try {

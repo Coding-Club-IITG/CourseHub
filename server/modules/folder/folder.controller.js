@@ -1,5 +1,6 @@
 import { FolderModel } from "../course/course.model.js";
-import { requireFolder, presentFolder } from "../../services/authorization.js";
+import { requireFolder, presentFolder, libraryGraph } from "../../services/authorization.js";
+import { validateTreeChange } from "../../services/folderTrees.js";
 import { scheduleDeletion } from "../../services/deletions.js";
 import { mutateContent } from "../../services/contentMutation.js";
 import AppError from "../../utils/appError.js";
@@ -11,15 +12,27 @@ async function createFolderAction(req, res) {
         context.folder.childType !== "Folder" ||
         !["File", "Folder"].includes(childType) ||
         typeof name !== "string" ||
-        !name.trim()
+        !name.trim() ||
+        name.length > 200
     )
         throw new AppError(400, "A name and a valid parent folder are required");
-    const folder = await FolderModel.create({
+    const folder = new FolderModel({
         name: name.trim(),
         courses: context.affectedCourses,
         childType,
         children: [],
     });
+    validateTreeChange(
+        await libraryGraph(req),
+        {
+            folders: [
+                folder.toObject(),
+                { ...context.folder, children: [...context.folder.children, folder._id] },
+            ],
+        },
+        context.affectedCourses,
+    );
+    await folder.save();
     await FolderModel.updateOne({ _id: parentFolder }, { $addToSet: { children: folder._id } });
     req.authorizationGraph = undefined;
     res.json(await presentFolder(req, folder._id, context.code));
