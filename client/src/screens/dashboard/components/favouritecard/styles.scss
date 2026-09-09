@@ -1,76 +1,54 @@
-.fav-card {
-    width: 200px;
-    height: 175px;
-    margin: 10px;
-    transition: 200ms ease;
-    &:hover {
-        transform: scale(1.02);
-        .close {
-            cursor: pointer;
-            display: block;
-        }
-        .content {
-            .top {
-                .path {
-                    padding: 20px 50px 0px 15px;
-                }
-            }
-            .bottom {
-                .subject {
-                    padding: 0px 15px 30px 0px;
-                }
-            }
-        }
+.favourites-section {
+    padding: 28px 0;
+    color: #181818;
+    h2 {
+        font-family: "bold", sans-serif;
+        font-size: 1.5rem;
+        margin-bottom: 16px;
     }
-
-    svg {
-        position: absolute;
-        z-index: -1;
+    .favourites-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 200px));
+        gap: 20px;
     }
-
-    .close {
-        width: 10px;
-        height: 10px;
-        margin-left: auto;
-        background: url(./close.png);
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        display: none;
+    .favourite-card .file-display {
+        width: 100%;
+        margin: 0;
     }
-    .content {
-        cursor: pointer;
+    .favourite-location {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        height: 100%;
-        .top {
-            .path {
-                padding: 30px 50px 0px 15px;
-                font-size: 0.9rem;
-            }
-
-            .name {
-                font-family: "Bold";
-                font-size: 1.05rem;
-                padding: 5px 50px 0px 15px;
-            }
-        }
-
-        .bottom {
-            width: 100%;
-            text-align: right;
-            display: flex;
-            justify-content: right;
-
-            .subject {
-                width: 85%;
-                text-align: right;
-                padding: 0px 15px 20px 0px;
-                font-family: "Bold";
-                font-size: 1.2rem;
-                color: rgba(80, 80, 80, 0.5);
-            }
-        }
+        gap: 4px;
+        color: #181818;
+        margin-bottom: 8px;
+        overflow-wrap: anywhere;
+    }
+    .favourite-location span {
+        font-size: 0.9rem;
+        color: #555;
+    }
+    .favourite-unavailable {
+        border: 1px solid #bbb;
+        background: white;
+        border-radius: 4px;
+        padding: 16px;
+    }
+    .favourite-unavailable p {
+        margin: 12px 0;
+    }
+    .favourite-unavailable button {
+        background: transparent;
+        border: 0;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        padding: 8px;
+        min-height: 44px;
+        border-radius: 4px;
+        font: inherit;
+        cursor: pointer;
+    }
+    :focus-visible {
+        outline: 2px solid #181818;
+        outline-offset: 3px;
     }
 }

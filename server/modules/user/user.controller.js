@@ -1,3 +1,4 @@
+import { resolveFileLocation } from "../../services/fileLocation.js";
 import { mutateContent } from "../../services/contentMutation.js";
 import AppError from "../../utils/appError.js";
 import logger from "../../utils/logger.js";
@@ -10,22 +11,26 @@ import {
 } from "./user.model.js";
 import { updateUserData } from "./user.model.js";
 import { synchronizationStatus, scheduleStudentSync } from "../../services/academicSync.js";
-import {
-    actorFor,
-    requireFile,
-    requireCourse,
-    libraryGraph,
-} from "../../services/authorization.js";
+import { actorFor, requireCourse, libraryGraph } from "../../services/authorization.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
 async function visibleFavourites(req, user) {
     const favourites = [];
     for (const favourite of user.favourites || []) {
         try {
-            const { file } = await requireFile(req, favourite.id, favourite.code);
-            favourites.push({ ...(favourite.toObject?.() || favourite), name: file.name });
+            const location = await resolveFileLocation(req, favourite.id, favourite.code, {
+                allowOtherCourse: true,
+            });
+            favourites.push({
+                _id: favourite._id,
+                id: favourite.id,
+                available: true,
+                ...location,
+                name: location.file.name,
+            });
         } catch (error) {
             if (error.status !== 404) throw error;
+            favourites.push({ _id: favourite._id, id: favourite.id, available: false });
         }
     }
     return favourites;
@@ -129,19 +134,21 @@ export const updateUserController = async (req, res) => {
 };
 export const addToFavouriteController = async (req, res) => {
     const data = req.body;
-    if (!data.id || !data.path || !data.code) throw new AppError(400, "File context is required");
+    if (!data?.id || !data.code || Object.keys(data).some((key) => !["id", "code"].includes(key)))
+        throw new AppError(400, "Supply the file ID and course code", "VALIDATION_FAILED");
     return mutateContent(req, [data.code], async () => {
-        const context = await requireFile(req, data.id, data.code);
+        const location = await resolveFileLocation(req, data.id, data.code);
         const user = await addToFavourites(
             req.user._id,
-            context.file.name,
-            data.id,
-            data.path,
-            context.code,
+            location.file.name,
+            location.file._id,
+            location.path,
+            location.code,
         );
-        res.json(await userResult(req, user));
+        res.json({ favourites: await visibleFavourites(req, user) });
     });
 };
+
 export const addReadOnly = async (req, res) => {
     return mutateContent(req, [req.body.code], async () => {
         const context = await requireCourse(req, req.body.code);

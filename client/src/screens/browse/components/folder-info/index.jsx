@@ -3,8 +3,8 @@ import { transport } from "../../../../api/http";
 import { getFileDownloadLink } from "../../../../api/File";
 import "./styles.scss";
 import { toast } from "react-toastify";
-import clientRoot from "../../../../api/server";
-import Share from "../../../share";
+import { useShare } from "../../../share/context";
+import { resourceLink } from "../../../../utils/resourceLink";
 import { useState } from "react";
 import { createFolder } from "../../../../api/Folder";
 
@@ -24,6 +24,7 @@ const FolderInfo = ({
     courseCode,
     isMobileView = false, // New prop for mobile view
 }) => {
+    const share = useShare();
     const currentFolder = useCourseBrowser().currentFolder;
     const totalSubtreeFiles = getSubtreeFileCount(currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -200,12 +201,26 @@ const FolderInfo = ({
                                     : `${totalSubtreeFiles} ${totalSubtreeFiles === 1 ? "FILE" : "FILES"}`}
                             </span>
                         )}
-                        <div className="folder-actions"></div>
                     </div>
                 </div>
 
                 {!isMobileView && (
                     <div className="main-actions">
+                        <button
+                            type="button"
+                            className="btn share"
+                            aria-label="Share folder"
+                            onClick={() =>
+                                share({
+                                    kind: "folder",
+                                    name,
+                                    link: resourceLink(courseCode, folderId),
+                                })
+                            }
+                        >
+                            <span className="icon share-icon" aria-hidden="true" />
+                            <span className="text">Share</span>
+                        </button>
                         <button
                             className="btn download"
                             onClick={() => downloadAndSaveFolder(folderId, name)}
@@ -241,7 +256,6 @@ const FolderInfo = ({
                 )}
             </div>
 
-            <Share link={`${clientRoot}/browse/${courseCode}/${folderId}`} />
             {!isMobileView && (
                 <ConfirmDialog
                     show={showConfirm}

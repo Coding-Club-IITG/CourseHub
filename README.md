@@ -281,6 +281,7 @@ Start with the guide that matches what you are trying to understand:
 | [Storage, Uploads and Cleanup](docs/storage-operations.md)                | File lifecycle, partial success, cancellation, authenticated delivery and recoverable deletion.          |
 | [Frontend Sessions](docs/frontend-sessions.md)                            | Session restoration, sign-in destinations, request errors and retries.                                   |
 | [Frontend Caching](docs/frontend-caching.md)                              | Query caches, URL selection, shared invalidation and freshness checks.                                   |
+| [Favourites and Sharing](docs/favourites-and-sharing.md)                  | Saving files, current paths, shared destinations, access checks and unavailable resources.               |
 
 The [public usage guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material) provides a broader introduction to CourseHub.
 

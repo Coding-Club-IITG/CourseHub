@@ -121,19 +121,14 @@ export const findUserWithEmail = async function (email) {
 };
 
 export const addToFavourites = async (userid, name, id, path, code) => {
-    const UserData = await User.findById(userid);
-    const favs = UserData.favourites;
-    const found = favs.find((item) => item.id === id);
-    if (found) return UserData;
-    UserData.favourites.push({
-        name: name,
-        id: id,
-        path: path,
-        code: code,
-    });
-    const updatedUser = await UserData.save();
-    return updatedUser;
+    const updated = await User.findOneAndUpdate(
+        { _id: userid, "favourites.id": { $ne: id } },
+        { $push: { favourites: { id, name, path, code } } },
+        { returnDocument: "after", runValidators: true },
+    );
+    return updated || User.findById(userid);
 };
+
 export const AddReadOnlyCourse = async (userid, code, name) => {
     const UserData = await User.findById(userid);
     const normalizedCode = normalizeCourseCode(code);

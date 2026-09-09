@@ -275,3 +275,31 @@
         transform: translateX(0);
     }
 }
+
+.folder-info {
+    min-height: 80px;
+    height: auto;
+    gap: 12px;
+    flex-wrap: wrap;
+    .info {
+        min-width: 0;
+    }
+    .curr-folder {
+        flex-wrap: wrap;
+    }
+    .folder-name {
+        overflow-wrap: anywhere;
+    }
+    .main-actions {
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+    .main-actions .share-icon {
+        background: url(./assets/Share.svg) center/contain no-repeat;
+        filter: invert(1);
+    }
+    .main-actions .btn:focus-visible {
+        outline: 2px solid #000;
+        outline-offset: 3px;
+    }
+}

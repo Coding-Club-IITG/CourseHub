@@ -23,6 +23,7 @@ export function createLibraryCache(session, transport, role) {
     ];
     const invalidate = (codes = [], broadcast = true) => {
         const normalized = codes.filter((value) => typeof value === "string").map(normalize);
+        if (role === "student") client.invalidateQueries({ queryKey: session.options.queryKey });
         if (broadcast) channel?.postMessage({ type: "changed", codes: normalized });
         return client.invalidateQueries({
             predicate: (query) => {

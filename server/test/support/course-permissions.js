@@ -1,3 +1,4 @@
+import User from "../../modules/user/user.model.js";
 import getImageKit from "../../services/imagekit.js";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -73,6 +74,123 @@ export async function exerciseCoursePermissions(t, origin) {
             providerCalls.push("delete/" + id);
         });
     });
+
+    await t.test(
+        "favourites use live names and paths, preserve saved IDs and survive shared-course unlinking",
+        async () => {
+            const actor = f.actors.student.person;
+            try {
+                await request(
+                    "student",
+                    "POST",
+                    "/api/user/favourites",
+                    { id: f.approved.id, code: "AUTH201" },
+                    404,
+                );
+                await request(
+                    "student",
+                    "POST",
+                    "/api/user/favourites",
+                    { id: f.approved.id, code: "AUTH101", name: "Forged", path: "Forged" },
+                    400,
+                );
+                const added = await (
+                    await request("student", "POST", "/api/user/favourites", {
+                        id: f.approved.id,
+                        code: "AUTH101",
+                    })
+                ).json();
+                const savedId = added.favourites[0]._id;
+                assert.equal(added.favourites[0].folderId, f.leaf.id);
+                assert.equal(added.favourites[0].path, "2026 / Shared notes");
+                await request("student", "POST", "/api/user/favourites", {
+                    id: f.approved.id,
+                    code: "AUTH101",
+                });
+                assert.equal((await User.findById(actor.id)).favourites.length, 1);
+                await FileModel.updateOne(
+                    { _id: f.approved.id },
+                    { $set: { name: "Renamed.pdf" } },
+                );
+                await FolderModel.updateOne(
+                    { _id: f.leaf.id },
+                    { $set: { name: "Renamed notes" } },
+                );
+                await Course.updateOne({ code: "AUTH101" }, { $set: { children: [] } });
+                const current = await (await request("student", "GET", "/api/user")).json();
+                assert.equal(current.favourites[0]._id, savedId);
+                assert.equal(current.favourites[0].name, "Renamed.pdf");
+                assert.equal(current.favourites[0].path, "2026 / Renamed notes");
+                assert.equal(current.favourites[0].code, "AUTH301");
+                const link = await (
+                    await request(
+                        "student",
+                        "GET",
+                        "/api/files/link/" + f.approved.id + "?courseCode=AUTH301",
+                    )
+                ).json();
+                assert.equal(link.folderId, f.leaf.id);
+                assert.equal(link.path, current.favourites[0].path);
+            } finally {
+                await User.updateOne({ _id: actor.id }, { $set: { favourites: [] } });
+                await FileModel.updateOne(
+                    { _id: f.approved.id },
+                    { $set: { name: f.approved.name } },
+                );
+                await FolderModel.updateOne({ _id: f.leaf.id }, { $set: { name: f.leaf.name } });
+                await Course.updateOne({ code: "AUTH101" }, { $set: { children: [f.root._id] } });
+            }
+        },
+    );
+    await t.test(
+        "inaccessible favourites expose no file metadata and remain removable only by their owner",
+        async () => {
+            try {
+                await request(
+                    "student",
+                    "POST",
+                    "/api/user/favourites",
+                    { id: f.pending.id, code: "AUTH101" },
+                    404,
+                );
+                const own = await (
+                    await request("owner", "POST", "/api/user/favourites", {
+                        id: f.pending.id,
+                        code: "AUTH101",
+                    })
+                ).json();
+                assert.equal(own.favourites[0].file.isVerified, false);
+                const added = await (
+                    await request("student", "POST", "/api/user/favourites", {
+                        id: f.approved.id,
+                        code: "AUTH101",
+                    })
+                ).json();
+                const saved = added.favourites[0];
+                await FileModel.updateOne({ _id: f.approved.id }, { $set: { isVerified: false } });
+                const result = await (await request("student", "GET", "/api/user")).json();
+                assert.deepEqual(result.favourites, [
+                    { _id: saved._id, id: f.approved.id, available: false },
+                ]);
+                await request("student", "GET", "/api/files/link/" + f.approved.id, undefined, 404);
+                await request("owner", "DELETE", "/api/user/favourites/" + saved._id);
+                assert.equal(
+                    (await User.findById(f.actors.student.person.id)).favourites.length,
+                    1,
+                );
+                const removed = await (
+                    await request("student", "DELETE", "/api/user/favourites/" + saved._id)
+                ).json();
+                assert.deepEqual(removed.favourites, []);
+            } finally {
+                await FileModel.updateOne({ _id: f.approved.id }, { $set: { isVerified: true } });
+                await User.updateMany(
+                    { _id: { $in: [f.actors.owner.person.id, f.actors.student.person.id] } },
+                    { $set: { favourites: [] } },
+                );
+            }
+        },
+    );
 
     await t.test(
         "course revisions change for visible nested changes, while a hidden pending rename leaves a student's revision unchanged",

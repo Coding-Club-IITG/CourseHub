@@ -1,3 +1,4 @@
+import { resolveFileLocation } from "../../services/fileLocation.js";
 import Contribution from "../contribution/contribution.model.js";
 import { requireFile, presentFile, visibleFiles } from "../../services/authorization.js";
 import { scheduleDeletion } from "../../services/deletions.js";
@@ -30,8 +31,7 @@ export async function getAllFiles(req, res) {
     res.json(await visibleFiles(req));
 }
 export async function getFileLink(req, res) {
-    const { file } = await requireFile(req, req.params.id, req.query.courseCode);
-    res.json({ file: await presentFile(req, file, req.query.courseCode) });
+    res.json(await resolveFileLocation(req, req.params.id, req.query.courseCode));
 }
 export async function downloadFiles(req, res) {
     const { file } = await requireFile(req, req.body.fileId, req.body.courseCode);

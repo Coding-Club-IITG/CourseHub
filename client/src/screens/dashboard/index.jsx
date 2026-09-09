@@ -1,3 +1,4 @@
+import FavouriteCard from "./components/favouritecard";
 import { session } from "../../session/runtime";
 import { useSession } from "../../session/context";
 import { normalizeCourseCode } from "@coursehub/domain";
@@ -278,6 +279,20 @@ const Dashboard = () => {
                     <Space amount={50} />
                 </Container>
                 <Space amount={50} />
+                <Container color={"light"}>
+                    <section className="favourites-section" aria-labelledby="favourites-heading">
+                        <h2 id="favourites-heading">Favourites</h2>
+                        {user.favourites?.length ? (
+                            <div className="favourites-grid">
+                                {user.favourites.map((favourite) => (
+                                    <FavouriteCard key={favourite._id} favourite={favourite} />
+                                ))}
+                            </div>
+                        ) : (
+                            <p>No favourites yet. Use the star on a file to save it here.</p>
+                        )}
+                    </section>
+                </Container>
                 <ExamScheduleWidget />
                 <Space amount={50} />
                 <ContributionBanner contributionHandler={contributionHandler} />

@@ -1,21 +1,22 @@
-import { useSession } from "../../../../session/context";
 import { useCourseBrowser } from "../../../../queries/browserContext";
 import "./styles.scss";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useShare } from "../../../share/context";
+import { resourceLink } from "../../../../utils/resourceLink";
+import { useFavourite } from "../../../../queries/favourites";
+import { useFileActions } from "../../../../components/file-actions/useFileActions";
+import FileThumbnail from "../../../../components/file-actions/FileThumbnail";
 import { formatFileName, formatFileSize, formatFileType } from "../../../../utils/formatFile";
 import { toast } from "react-toastify";
 
-import clientRoot from "../../../../api/server";
 import capitalise from "../../../../utils/capitalise.js";
-import Share from "../../../share";
-import API_BASE_URL from "../../../../api/server";
 import { verifyFile, unverifyFile, renameFile } from "../../../../api/File";
 
 import ConfirmDialog from "./components/ConfirmDialog.jsx";
 import FileRename from "./components/FileRename.jsx";
-import { getFileDownloadLink } from "../../../../api/File";
 
-const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
+const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index = 0 }) => {
     const fileSize = formatFileSize(file.sizeBytes ?? file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
@@ -46,16 +47,28 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
         untruncatedDispName = file.name;
         contributor = "Anonymous";
     }
-    const isLoggedIn = !!useSession().data;
-    const currCourseCode = useCourseBrowser().currentCourseCode;
-    const currFolderId = useCourseBrowser().currentFolder?._id;
+    const browser = useCourseBrowser();
+    const currCourseCode = courseCode || browser.currentCourseCode;
+    const currFolderId = folderId || browser.currentFolder?._id;
+    const share = useShare();
+    useEffect(
+        () => () => share((current) => (current?.fileId === file._id ? null : current)),
+        [share, file._id],
+    );
+    const { favourite, saving, toggle } = useFavourite(file._id, currCourseCode);
+    const { preview, download, busy } = useFileActions(file, currCourseCode);
+    const [params, setParams] = useSearchParams();
+    const selected = params.get("file") === file._id;
+    const card = useRef(null);
+    useEffect(() => {
+        if (selected) {
+            card.current?.focus({ preventScroll: true });
+            card.current?.scrollIntoView({ block: "center" });
+        }
+    }, [selected]);
     const canManage = file.capabilities?.canManage === true;
 
     const [isEditing, setIsEditing] = useState(false);
-
-    const thumbnailUrl = file.thumbnail?.url
-        ? new URL(file.thumbnail.url, API_BASE_URL).href
-        : undefined;
 
     const handleRename = async (newName) => {
         const trimmed = newName?.trim();
@@ -82,37 +95,6 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
             console.error("Error renaming file:", err);
             toast.error(err.message || "Failed to rename file");
         }
-    };
-
-    const handleDownload = async () => {
-        if (!isLoggedIn) {
-            toast.error("Please login to download.");
-            return;
-        }
-
-        const downloadLink = await getFileDownloadLink(file._id, currCourseCode);
-
-        if (!downloadLink) {
-            toast.error("Failed to generate download link.");
-            return;
-        }
-
-        const a = document.createElement("a");
-        a.href = downloadLink;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast.success("Downloading file...");
-    };
-
-    const handlePreview = async () => {
-        if (!isLoggedIn) {
-            toast.error("Please login to preview file.");
-            return;
-        }
-
-        window.open(`${API_BASE_URL}/api/files/preview/${file._id}`, "_blank", "noopener");
     };
 
     const handleVerify = async () => {
@@ -157,17 +139,30 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
 
     return (
         <div
-            className={`file-display ${
+            ref={card}
+            tabIndex={selected ? 0 : -1}
+            aria-label={selected ? `Selected file: ${file.name}` : undefined}
+            className={`file-display ${selected ? "selected" : ""} ${
                 !file.isVerified || canManage ? (file.isVerified ? "verified" : "unverified") : ""
             }`}
             style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
         >
-            <div
-                className="img-preview"
-                style={{
-                    background: `url(${thumbnailUrl}) center/cover no-repeat`,
-                }}
-            >
+            <div className="img-preview">
+                <FileThumbnail file={file} />
+                {selected && (
+                    <button
+                        type="button"
+                        className="selected-file-label"
+                        aria-label="Clear selection"
+                        onClick={() => {
+                            const next = new URLSearchParams(params);
+                            next.delete("file");
+                            setParams(next, { replace: true });
+                        }}
+                    >
+                        Selected <span aria-hidden="true">×</span>
+                    </button>
+                )}
                 <div className="top">
                     {!isMobileView && canManage && (
                         <>
@@ -187,12 +182,17 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
                             ></span>
                         </>
                     )}
-
-                    <span className="download" onClick={handleDownload}></span>
                 </div>
-                <div className="view" onClick={handlePreview} title={file.name}>
-                    View
-                </div>
+                <button
+                    type="button"
+                    className="view"
+                    onClick={preview}
+                    disabled={!!busy}
+                    title={file.name}
+                    aria-label={`Preview ${file.name}`}
+                >
+                    {busy === "preview" ? "Opening…" : "View"}
+                </button>
             </div>
             <div className="content">
                 {isEditing ? (
@@ -228,7 +228,39 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
                     <p className="contributor">{capitalise(contributor)}</p>
                 </div>
             </div>
-            <Share link={`${clientRoot}/browse/${currCourseCode.toLowerCase()}/${currFolderId}`} />
+            <div className="file-actions">
+                <button
+                    type="button"
+                    className="star"
+                    aria-label={favourite ? "Remove from favourites" : "Add to favourites"}
+                    title={favourite ? "Remove from favourites" : "Add to favourites"}
+                    aria-pressed={!!favourite}
+                    disabled={saving}
+                    onClick={toggle}
+                />
+                <button
+                    type="button"
+                    className="share"
+                    aria-label="Share file"
+                    title="Share file"
+                    onClick={() =>
+                        share({
+                            fileId: file._id,
+                            name: file.name,
+                            pending: !file.isVerified,
+                            link: resourceLink(currCourseCode, currFolderId, file._id),
+                        })
+                    }
+                />
+                <button
+                    type="button"
+                    className="download"
+                    aria-label={busy === "download" ? "Downloading file" : "Download file"}
+                    title="Download file"
+                    disabled={!!busy}
+                    onClick={download}
+                />
+            </div>
             {!isMobileView && (
                 <ConfirmDialog
                     affectedCourses={file.affectedCourses}

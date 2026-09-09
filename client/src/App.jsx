@@ -1,3 +1,4 @@
+import ShareProvider from "./screens/share/ShareProvider";
 import RouteBoundary from "./router_utils/RouteBoundary";
 import { useState, useEffect } from "react";
 import BrowseScreen from "./screens/browse";
@@ -48,20 +49,22 @@ const App = () => {
                 }
             />
             <Router>
-                <RouteBoundary>
-                    <Routes>
-                        <Route path="/loading" element={<LoadingPage />} />
-                        <Route element={<PrivateRoutes />}>
-                            <Route element={<Dashboard />} path="dashboard" />
-                            <Route element={<ProfilePage />} path="profile" />
-                            <Route element={<BrowseScreen />} path="browse" />
-                            <Route element={<BrowseScreen />} path="browse/:code" />
-                            <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
-                        </Route>
-                        <Route element={<LandingPage />} path="/" />
-                        <Route element={<ErrorScreen />} path="*" />
-                    </Routes>
-                </RouteBoundary>
+                <ShareProvider>
+                    <RouteBoundary>
+                        <Routes>
+                            <Route path="/loading" element={<LoadingPage />} />
+                            <Route element={<PrivateRoutes />}>
+                                <Route element={<Dashboard />} path="dashboard" />
+                                <Route element={<ProfilePage />} path="profile" />
+                                <Route element={<BrowseScreen />} path="browse" />
+                                <Route element={<BrowseScreen />} path="browse/:code" />
+                                <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
+                            </Route>
+                            <Route element={<LandingPage />} path="/" />
+                            <Route element={<ErrorScreen />} path="*" />
+                        </Routes>
+                    </RouteBoundary>
+                </ShareProvider>
             </Router>
         </div>
     );

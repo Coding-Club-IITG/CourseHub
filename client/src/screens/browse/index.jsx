@@ -1,3 +1,4 @@
+import FileSelectionNotice from "./components/file-display/FileSelectionNotice";
 import { useSession } from "../../session/context";
 import "./styles.scss";
 import Container from "../../components/container";
@@ -12,7 +13,7 @@ import Contributions from "../contributions";
 import { useEffect, useState } from "react";
 import { getColors } from "../../utils/colors";
 import { getSubtreeFileCount } from "../../utils/folderUtils";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
 import CourseBrowserProvider from "../../queries/CourseBrowserProvider";
@@ -35,6 +36,8 @@ const BrowseScreen = () => (
 );
 function BrowseContent() {
     const navigate = useNavigate();
+    const [params] = useSearchParams();
+    const requestedFile = params.get("file");
     const isMobile = useIsMobile();
     const user = useSession().data;
     const {
@@ -152,6 +155,7 @@ function BrowseContent() {
                                 </div>
                             </div>
                             <div className="files">
+                                <FileSelectionNotice />
                                 {canGoBack && (
                                     <button
                                         className="mobile-back-btn-circular"
@@ -165,12 +169,14 @@ function BrowseContent() {
                                     <div className="empty-message">{HeaderText}</div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p
-                                            className="empty-message"
-                                            key={folderData?._id || "empty-files"}
-                                        >
-                                            No files available.
-                                        </p>
+                                        !requestedFile && (
+                                            <p
+                                                className="empty-message"
+                                                key={folderData?._id || "empty-files"}
+                                            >
+                                                No files available.
+                                            </p>
+                                        )
                                     ) : (
                                         <FileController
                                             files={folderData?.children}
@@ -281,18 +287,21 @@ function BrowseContent() {
                                 />
                             )}
                             <div className="files">
+                                <FileSelectionNotice />
                                 {!folderData ? (
                                     <div className="empty-message" key="no-folder">
                                         {HeaderText}
                                     </div>
                                 ) : folderData?.childType === "File" ? (
                                     folderData?.children?.length === 0 ? (
-                                        <p
-                                            className="empty-message"
-                                            key={folderData?._id || "empty-files"}
-                                        >
-                                            No files available.
-                                        </p>
+                                        !requestedFile && (
+                                            <p
+                                                className="empty-message"
+                                                key={folderData?._id || "empty-files"}
+                                            >
+                                                No files available.
+                                            </p>
+                                        )
                                     ) : (
                                         <FileController
                                             files={folderData?.children}

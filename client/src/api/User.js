@@ -34,11 +34,11 @@ export const AddNewCourseAPI = (code, name) =>
 export const DeleteCourseAPI = (code) =>
     transport.json(`user/readonly/${code}`, { method: "DELETE" });
 
-export const AddToFavourites = (id, name, path, code) =>
+export const AddToFavourites = (id, code) =>
     transport.json("user/favourites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, name, path, code }),
+        body: JSON.stringify({ id, code }),
     });
 export const RemoveFromFavourites = (id) =>
     transport.json(`user/favourites/${id}`, { method: "DELETE" });

@@ -2,9 +2,12 @@ import { transport } from "./http";
 import serverRoot from "./server";
 import { waitForOperation } from "./Operation";
 
-export const previewFile = async (fileId) => {
-    const data = await transport.json(`files/link/${fileId}`);
-    return { url: new URL(data.file.webUrl, serverRoot).href };
+export const previewFile = async (fileId, courseCode) => {
+    const query = courseCode ? `?courseCode=${encodeURIComponent(courseCode)}` : "";
+    await transport.json(`files/link/${encodeURIComponent(fileId)}${query}`);
+    return {
+        url: new URL(`/api/files/preview/${encodeURIComponent(fileId)}${query}`, serverRoot).href,
+    };
 };
 export const verifyFile = (fileId, courseCode) =>
     transport.json(`files/verify/${fileId}`, {

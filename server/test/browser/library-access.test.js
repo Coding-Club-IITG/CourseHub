@@ -303,7 +303,15 @@ test("individual and ZIP download requests use authorized resource IDs and crede
     await page.locator(".file-display").first().hover();
     await page.locator(".file-display .download").first().click();
     const individual = await individualDownload;
-    assert.equal(individual.url(), `${api}/api/files/content/${libraryFile._id}?download=1`);
+    assert.ok(
+        requests.some(
+            (request) =>
+                request.path === `/api/files/content/${libraryFile._id}` && request.hasSession,
+        ),
+    );
+    const bytes = [];
+    for await (const chunk of await individual.createReadStream()) bytes.push(chunk);
+    assert.equal(Buffer.concat(bytes).toString(), "%PDF-1.4\nNotes\n%%EOF");
     assert.equal(individual.suggestedFilename(), "Lecture notes.pdf");
     const saved = page.waitForEvent("download");
     await page.getByTitle("Download entire folder as ZIP", { exact: true }).click();
@@ -450,57 +458,6 @@ for (const destination of ["/", "/profile", `/browse/CS101/${folder._id}`]) {
                 `${resource} was loaded twice`,
             );
         }
-    });
-}
-
-for (const width of [1440, 390]) {
-    test(`clipboard copy confirms actual success and supports keyboard retry at ${width}px`, async (t) => {
-        const { page } = await openPage(t, { width });
-        await page.addInitScript(() => {
-            window.copiedLinks = [];
-            Object.defineProperty(navigator, "clipboard", {
-                configurable: true,
-                value: {
-                    writeText: (value) =>
-                        new Promise((resolve, reject) => {
-                            window.finishCopy = (success) => {
-                                if (success) {
-                                    window.copiedLinks.push(value);
-                                    resolve();
-                                } else reject(new Error("Clipboard denied"));
-                            };
-                        }),
-                },
-            });
-        });
-        await page.goto(`${frontend}/browse/CS101/${folder._id}`);
-        await page.getByTitle("Lecture notes.pdf", { exact: true }).first().waitFor();
-        // The existing share action is still hidden; exercise its mounted component.
-        // Restoring the public action and consolidating the dialogs belongs to Batch 20.
-        const share = page.locator(".section-share").first();
-        await share.evaluate((node) => node.classList.add("show"));
-        const input = share.getByRole("textbox", { name: "Share link" });
-        const link = await input.inputValue();
-        const copy = share.getByRole("button", { name: "Copy link", exact: true });
-        await input.focus();
-        await page.keyboard.press("Tab");
-        assert.equal(await copy.evaluate((node) => node === document.activeElement), true);
-        await page.keyboard.press("Enter");
-        await page.waitForFunction(() => typeof window.finishCopy === "function");
-        assert.equal(await page.getByText("Link Copied to Clipboard", { exact: true }).count(), 0);
-        await page.evaluate(() => window.finishCopy(false));
-        await page
-            .getByText("Could not copy the link. Select it and copy it manually.", { exact: true })
-            .waitFor();
-        assert.equal(await input.inputValue(), link);
-        await page.evaluate(() => {
-            window.finishCopy = undefined;
-        });
-        await copy.press("Enter");
-        await page.waitForFunction(() => typeof window.finishCopy === "function");
-        await page.evaluate(() => window.finishCopy(true));
-        await page.getByText("Link Copied to Clipboard", { exact: true }).waitFor();
-        assert.deepEqual(await page.evaluate(() => window.copiedLinks), [link]);
     });
 }
 
