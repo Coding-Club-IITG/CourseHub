@@ -270,8 +270,8 @@ test("FilePond sends credentials and the contribution association across origins
         mimeType: "application/pdf",
         buffer: Buffer.from("%PDF-1.4\nTest notes\n%%EOF"),
     });
-    await page.locator(".contri .button").click();
-    await page.getByText("Files uploaded successfully!", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Upload files", exact: true }).click();
+    await page.getByText("1 of 1 files uploaded", { exact: true }).waitFor();
     const created = requests.find(
         (request) => request.path === "/api/contribution/" && request.method === "POST",
     );

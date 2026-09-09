@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { operationEvent, listOperations, getOperation, cancelOperation } from "../../api/Operation";
+import { operationEvent, listOperations, getOperation } from "../../api/Operation";
 import "./styles.scss";
 
 const active = ["planning", "queued", "running", "cancelling"];
@@ -77,66 +77,43 @@ export default function OperationNotice() {
                 </p>
             )}
             {items.slice(0, 3).map((item) => (
-                <div key={item.id}>
+                <div className="operation-notice-item" key={item.id}>
                     <span role="status">
                         {item.name}: {labels[item.status] || item.status}
                     </span>
-                    {item.error?.message && <p>{item.error.message}</p>}
                     {item.kind === "upload" && item.entries?.length > 0 && (
-                        <details>
-                            <summary>File results</summary>
-                            <ul>
-                                {item.entries.map((entry) => (
-                                    <li key={entry.id}>
-                                        {entry.name}: {entry.state}
-                                        {entry.error?.message && <p>{entry.error.message}</p>}
-                                    </li>
-                                ))}
-                            </ul>
-                        </details>
+                        <p>
+                            {item.entries.filter((entry) => entry.state === "completed").length} /{" "}
+                            {item.entries.length} uploaded
+                        </p>
                     )}
-                    {item.canCancel && (
-                        <button
-                            type="button"
-                            onClick={async () => {
-                                try {
-                                    const updated = await cancelOperation(item.id);
+                    {item.kind !== "upload" && item.error?.message && <p>{item.error.message}</p>}
+                    <div className="operation-notice-actions">
+                        {item.kind === "upload" && item.folderId && (
+                            <Link
+                                to={`/browse/${item.courseCode}/${item.folderId}?upload=${item.id}`}
+                            >
+                                View upload
+                            </Link>
+                        )}
+                        {item.kind === "delete" && item.status === "failed" && (
+                            <p>
+                                An administrator can retry cleanup. Completed steps are preserved.
+                            </p>
+                        )}
+                        {!active.includes(item.status) && (
+                            <button
+                                type="button"
+                                onClick={() =>
                                     setItems((current) =>
-                                        current.map((operation) =>
-                                            operation.id === item.id ? updated : operation,
-                                        ),
-                                    );
-                                    setError("");
-                                } catch {
-                                    setError(
-                                        "Cancellation could not be confirmed. Try again or refresh status.",
-                                    );
+                                        current.filter((other) => other.id !== item.id),
+                                    )
                                 }
-                            }}
-                        >
-                            Cancel this batch
-                        </button>
-                    )}
-                    {item.kind === "upload" && item.folderId && (
-                        <Link to={`/browse/${item.courseCode}/${item.folderId}?upload=${item.id}`}>
-                            View upload
-                        </Link>
-                    )}
-                    {item.kind === "delete" && item.status === "failed" && (
-                        <p>An administrator can retry cleanup. Completed steps are preserved.</p>
-                    )}
-                    {!active.includes(item.status) && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setItems((current) =>
-                                    current.filter((other) => other.id !== item.id),
-                                )
-                            }
-                        >
-                            Dismiss
-                        </button>
-                    )}
+                            >
+                                Dismiss
+                            </button>
+                        )}
+                    </div>
                 </div>
             ))}
         </aside>

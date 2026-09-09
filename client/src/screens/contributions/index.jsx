@@ -7,7 +7,6 @@ import { useLocation } from "react-router-dom";
 import "./styles.scss";
 import { CreateNewContribution } from "../../api/Contribution";
 import { useSelector, useDispatch } from "react-redux";
-import { toast } from "react-toastify";
 import server from "../../api/server";
 import API from "../../api/http";
 import { ChangeFolder, RefreshCurrentFolder } from "../../actions/filebrowser_actions";
@@ -28,7 +27,7 @@ const stateLabels = {
     publishing: "Saving",
     cleanup: "Cleaning up unpublished file",
     completed: "Uploaded",
-    failed: "Failed - retry this file",
+    failed: "Failed",
     cancelled: "Cancelled",
 };
 const Contributions = () => {
@@ -59,15 +58,19 @@ const Contributions = () => {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [limitsAttempt, setLimitsAttempt] = useState(0);
+    const [limitsError, setLimitsError] = useState(false);
+    const [statusError, setStatusError] = useState("");
     const showOperation = (value) => {
         if (!mounted.current) return;
         operationRef.current = value;
         setOperation(value);
+        setStatusError("");
         announceOperation(value);
     };
 
     useEffect(() => {
         const controller = new AbortController();
+        setLimitsError(false);
         API.get("/contribution/limits", { signal: controller.signal })
             .then(({ data }) => {
                 if (
@@ -77,11 +80,9 @@ const Contributions = () => {
                 )
                     throw new Error("Invalid upload limits");
                 setLimits(data);
-                setError("");
             })
             .catch(() => {
-                if (!controller.signal.aborted)
-                    setError("Upload limits are unavailable. Please retry.");
+                if (!controller.signal.aborted) setLimitsError(true);
             });
         return () => controller.abort();
     }, [limitsAttempt]);
@@ -104,7 +105,7 @@ const Contributions = () => {
                 if (!controller.signal.aborted) setError("This upload could not be loaded.");
             });
         return () => controller.abort();
-    }, [location.search, currentFolder?._id, currentCourseCode]);
+    }, [location.key, location.search, currentFolder?._id, currentCourseCode]);
     useEffect(() => {
         if (
             !operation ||
@@ -117,8 +118,7 @@ const Contributions = () => {
                 getOperation(operation.id, controller.signal)
                     .then(showOperation)
                     .catch(() => {
-                        if (!controller.signal.aborted)
-                            setError("Status refresh failed. Completed uploads are preserved.");
+                        if (!controller.signal.aborted) setStatusError("Status could not refresh.");
                     }),
             1500,
         );
@@ -276,7 +276,6 @@ const Contributions = () => {
                 result = await getOperation(current.id);
             }
             showOperation(result);
-            if (result.status === "completed") toast.success("Files uploaded successfully!");
         } catch (failure) {
             setError(
                 failure.response?.data?.message ||
@@ -285,7 +284,10 @@ const Contributions = () => {
             );
             if (operationRef.current) {
                 try {
-                    showOperation(await getOperation(operationRef.current.id));
+                    const result = await getOperation(operationRef.current.id);
+                    showOperation(result);
+                    if (result.entries.some((entry) => entry.error?.message === failure.message))
+                        setError("");
                 } catch {
                     /* Status retry remains available. */
                 }
@@ -318,6 +320,8 @@ const Contributions = () => {
         requestKey.current = undefined;
         fileIds.current.clear();
         setSentBytes({});
+        setFileCount(0);
+        setStatusError("");
         setOperation(undefined);
         setError("");
     };
@@ -325,145 +329,181 @@ const Contributions = () => {
     const canSend =
         currentFolder?.capabilities?.canContribute === true &&
         (!operation || operation.canCancel === true);
+    const serverBusy =
+        operation && ["planning", "queued", "running", "cancelling"].includes(operation.status);
+    const canSelect = canSend && !closed && !busy && !serverBusy;
+    const close = () => document.querySelector(".contri")?.classList.remove("show");
     return (
         <SectionC busy={busy}>
             <Wrapper>
                 <div className="upload-content">
-                    <div className="head">{isBR ? "Upload Files" : "Share Your Files"}</div>
-                    <p className="disclaimer">Upload to {currentFolder?.name || "this folder"}.</p>
-                    <p className="upload-limits">100 MiB per file · 40 files · 1 GiB per batch</p>
-                    {!limits && (
-                        <button
-                            type="button"
-                            onClick={() => setLimitsAttempt((value) => value + 1)}
-                        >
-                            Retry upload limits
-                        </button>
-                    )}
-                    {canSend && (!closed || busy) && (
-                        <div className="file_pond">
-                            <FilePond
-                                name="file"
-                                allowMultiple
-                                maxFiles={limits?.files || 40}
-                                disabled={!limits || operation?.cancelRequested}
-                                onupdatefiles={(files) => setFileCount(files.length)}
-                                allowDrop={!busy}
-                                allowBrowse={!busy}
-                                allowRemove={!busy}
-                                instantUpload={false}
-                                allowProcess={false}
-                                allowRevert={false}
-                                ref={(value) => {
-                                    pond.current = value;
-                                }}
-                            />
-                        </div>
-                    )}
-                    {operation && (
-                        <div
-                            className="upload-results"
-                            aria-label="Upload results"
-                            aria-live="polite"
-                        >
-                            <p>
-                                {
-                                    operation.entries.filter((entry) => entry.state === "completed")
-                                        .length
-                                }{" "}
-                                of {operation.entries.length} files uploaded
-                            </p>
-                            <ul>
-                                {operation.entries.map((entry) => (
-                                    <li key={entry.id}>
-                                        <span>{entry.name}</span>
-                                        <strong>
-                                            {busy &&
-                                            entry.state === "pending" &&
-                                            sentBytes[entry.id] !== undefined
-                                                ? "Sending"
-                                                : stateLabels[entry.state] || entry.state}
-                                        </strong>
-                                        {["failed", "cleanup"].includes(entry.state) &&
-                                            entry.error?.message && (
-                                                <span className="upload-error">
-                                                    {entry.error.message}
-                                                </span>
+                    <header className="upload-header">
+                        <h2>{isBR ? "Upload Files" : "Share Your Files"}</h2>
+                        <p>To {currentFolder?.name || "this folder"}</p>
+                    </header>
+                    <div className="upload-body">
+                        {operation && (
+                            <div
+                                className="upload-results"
+                                aria-label="Upload results"
+                                aria-live="polite"
+                            >
+                                <p className="upload-summary">
+                                    {
+                                        operation.entries.filter(
+                                            (entry) => entry.state === "completed",
+                                        ).length
+                                    }{" "}
+                                    of {operation.entries.length} files uploaded
+                                </p>
+                                <ul>
+                                    {operation.entries.map((entry) => (
+                                        <li key={entry.id} data-state={entry.state}>
+                                            <span className="upload-file-name">{entry.name}</span>
+                                            <strong>
+                                                {busy &&
+                                                entry.state === "pending" &&
+                                                sentBytes[entry.id] !== undefined
+                                                    ? "Sending"
+                                                    : stateLabels[entry.state] || entry.state}
+                                            </strong>
+                                            {["failed", "cleanup"].includes(entry.state) &&
+                                                entry.error?.message && (
+                                                    <span className="upload-error">
+                                                        {entry.error.message}
+                                                    </span>
+                                                )}
+                                            {((busy &&
+                                                sentBytes[entry.id] !== undefined &&
+                                                entry.state !== "completed") ||
+                                                ["receiving", "uploading", "publishing"].includes(
+                                                    entry.state,
+                                                )) && (
+                                                <progress
+                                                    max={entry.size}
+                                                    value={
+                                                        entry.state === "pending" ||
+                                                        entry.state === "receiving"
+                                                            ? (sentBytes[entry.id] || 0) / 2
+                                                            : entry.size / 2 +
+                                                              (entry.uploadedBytes || 0) / 2
+                                                    }
+                                                    aria-label={entry.name + " storage progress"}
+                                                />
                                             )}
-                                        {((busy && sentBytes[entry.id] !== undefined) ||
-                                            ["receiving", "uploading", "publishing"].includes(
-                                                entry.state,
-                                            )) && (
-                                            <progress
-                                                max={entry.size}
-                                                value={
-                                                    entry.state === "pending" ||
-                                                    entry.state === "receiving"
-                                                        ? (sentBytes[entry.id] || 0) / 2
-                                                        : entry.size / 2 +
-                                                          (entry.uploadedBytes || 0) / 2
-                                                }
-                                                aria-label={`${entry.name} storage progress`}
-                                            />
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                    {error && (
-                        <p className="upload-error" role="alert">
-                            {error}
-                        </p>
-                    )}
-                    {operation && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                getOperation(operation.id)
-                                    .then(showOperation)
-                                    .catch(() => setError("Status is unavailable. Try again."))
-                            }
-                        >
-                            Refresh status
-                        </button>
-                    )}
-                    <p className="upload-hint">
-                        Completed files are kept when another file fails or the batch is cancelled.
-                    </p>
-                    {operation && canSend && !closed && !fileCount && (
-                        <p className="upload-hint">
-                            To retry after leaving this page, choose the original failed files
-                            again.
-                        </p>
-                    )}
-                    {!isBR && (
-                        <p className="upload-hint">
-                            Your files need approval before other students can see them.
-                        </p>
-                    )}
-                    <div className="upload-actions">
-                        {!closed && canSend && (
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {/* Keep the picker mounted so retained File objects can be retried. */}
+                        {canSend && !closed && (
+                            <div className="upload-picker" hidden={!canSelect}>
+                                {operation && (
+                                    <p className="upload-hint">
+                                        Choose the original failed files to resume.
+                                    </p>
+                                )}
+                                <FilePond
+                                    name="file"
+                                    allowMultiple
+                                    maxFiles={limits?.files || 40}
+                                    disabled={!limits || Boolean(operation?.cancelRequested)}
+                                    onupdatefiles={(files) => setFileCount(files.length)}
+                                    allowDrop={!busy}
+                                    allowBrowse={!busy}
+                                    allowRemove={!busy}
+                                    instantUpload={false}
+                                    allowProcess={false}
+                                    allowRevert={false}
+                                    ref={(value) => {
+                                        pond.current = value;
+                                    }}
+                                />
+                                <p className="upload-limits">
+                                    100 MiB per file · 40 files · 1 GiB per batch
+                                </p>
+                            </div>
+                        )}
+                        {limitsError && (
+                            <p className="upload-error" role="alert">
+                                Upload limits are unavailable.{" "}
+                                <button
+                                    className="upload-text-button"
+                                    type="button"
+                                    onClick={() => setLimitsAttempt((value) => value + 1)}
+                                >
+                                    Retry upload limits
+                                </button>
+                            </p>
+                        )}
+                        {!limits && !limitsError && (
+                            <p className="upload-hint" role="status">
+                                Loading upload settings…
+                            </p>
+                        )}
+                        {error && (
+                            <p className="upload-error" role="alert">
+                                {error}
+                            </p>
+                        )}
+                        {statusError && (
+                            <p className="upload-error" role="alert">
+                                {statusError}{" "}
+                                <button
+                                    className="upload-text-button"
+                                    type="button"
+                                    onClick={() =>
+                                        getOperation(operation.id)
+                                            .then(showOperation)
+                                            .catch(() =>
+                                                setStatusError("Status could not refresh."),
+                                            )
+                                    }
+                                >
+                                    Refresh status
+                                </button>
+                            </p>
+                        )}
+                        {operation && ["partial", "cancelled"].includes(operation.status) && (
+                            <p className="upload-hint">Uploaded files are kept.</p>
+                        )}
+                        {!isBR && (!operation || operation.status === "completed") && (
+                            <p className="upload-hint">
+                                Your files need approval before other students can see them.
+                            </p>
+                        )}
+                    </div>
+                    <footer className="upload-actions">
+                        {!closed && canSend && !serverBusy && (
                             <button
                                 type="button"
-                                className={`button ${fileCount > 0 && !busy}`}
+                                className="upload-button upload-primary"
                                 disabled={
                                     !fileCount || busy || !limits || operation?.cancelRequested
                                 }
                                 onClick={handleSubmit}
                             >
-                                {busy ? "UPLOADING…" : operation ? "RETRY FAILED FILES" : "SUBMIT"}
+                                {busy
+                                    ? "Uploading…"
+                                    : operation
+                                      ? "Retry failed files"
+                                      : "Upload files"}
                             </button>
                         )}
                         {operation?.canCancel && (
-                            <button type="button" onClick={handleCancel}>
+                            <button
+                                type="button"
+                                className="upload-button upload-secondary"
+                                onClick={handleCancel}
+                            >
                                 Cancel remaining uploads
                             </button>
                         )}
                         {closed && currentFolder?.capabilities?.canContribute === true && (
                             <button
                                 type="button"
-                                className="button true"
+                                className="upload-button upload-primary"
                                 onClick={reset}
                                 disabled={busy}
                             >
@@ -473,14 +513,13 @@ const Contributions = () => {
                         {!busy && (
                             <button
                                 type="button"
-                                onClick={() =>
-                                    document.querySelector(".contri")?.classList.remove("show")
-                                }
+                                className="upload-text-button upload-close"
+                                onClick={close}
                             >
                                 Close
                             </button>
                         )}
-                    </div>
+                    </footer>
                 </div>
             </Wrapper>
         </SectionC>

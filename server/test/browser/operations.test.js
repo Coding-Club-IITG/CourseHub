@@ -39,7 +39,7 @@ async function pageFor(t, width, { admin = false, resumed = true, manager = fals
         },
     ]);
     const page = await context.newPage();
-    await page.clock.setFixedTime(new Date("2026-09-08T06:30:00Z"));
+    await page.clock.install({ time: new Date("2026-09-08T06:30:00Z") });
     const errors = [],
         requests = [];
     const state = {
@@ -122,6 +122,7 @@ async function pageFor(t, width, { admin = false, resumed = true, manager = fals
             data = { operationId: state.operation.id };
         } else if (url.pathname.startsWith("/api/folder/content/")) data = presentedFolder;
         else if (url.pathname === "/api/contribution/limits") {
+            if (state.holdLimits) await state.holdLimits;
             status = state.limitsFail ? 503 : 200;
             data = state.limitsFail
                 ? { message: "Upload limits are unavailable" }
@@ -173,8 +174,12 @@ async function pageFor(t, width, { admin = false, resumed = true, manager = fals
                 if (entry.state !== "completed") entry.state = "cancelled";
             });
             data = state.operation;
-        } else if (url.pathname.startsWith("/api/operations/")) data = state.operation;
-        else if (url.pathname === "/api/contribution/upload") {
+        } else if (url.pathname.startsWith("/api/operations/")) {
+            status = state.failPoll ? 503 : 200;
+            data = state.failPoll
+                ? { message: "Status is temporarily unavailable" }
+                : state.operation;
+        } else if (url.pathname === "/api/contribution/upload") {
             assert.ok(headers.cookie?.includes("token=synthetic-session"));
             assert.equal(headers["x-csrf-token"], csrf);
             const entry = state.operation.entries.find(
@@ -240,9 +245,11 @@ for (const width of [320, 390, 768, 1024, 1440]) {
             mimeType: "application/pdf",
             buffer: Buffer.from("12345"),
         });
-        const button = page.getByRole("button", { name: "RETRY FAILED FILES", exact: true });
+        const button = page.getByRole("button", { name: "Retry failed files", exact: true });
         await page.waitForFunction(
-            () => document.querySelector(".contri .upload-actions .button")?.disabled === false,
+            () =>
+                document.querySelector(".contri .upload-actions .upload-primary")?.disabled ===
+                false,
         );
         await button.focus();
         await page.keyboard.press("Enter");
@@ -300,7 +307,8 @@ for (const width of [390, 1440]) {
         state.limitsFail = true;
         await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
         await page
-            .getByText("Upload limits are unavailable. Please retry.", { exact: true })
+            .getByRole("alert")
+            .filter({ hasText: "Upload limits are unavailable." })
             .waitFor();
         await capture(page, `upload-limits-error-${width}`);
         state.limitsFail = false;
@@ -330,7 +338,7 @@ test("a course manager can inspect another uploader's results without resuming o
     await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
     await page.getByText("1 of 2 files uploaded", { exact: true }).waitFor();
     assert.equal(
-        await page.getByRole("button", { name: "RETRY FAILED FILES", exact: true }).count(),
+        await page.getByRole("button", { name: "Retry failed files", exact: true }).count(),
         0,
     );
     assert.equal(
@@ -383,4 +391,117 @@ test("administrator status failure preserves the last results and offers an expl
     state.failStatus = false;
     await page.getByRole("button", { name: "Refresh", exact: true }).click();
     await page.getByRole("alert").waitFor({ state: "hidden" });
+});
+
+for (const width of [320, 390, 768, 1024, 1440]) {
+    test(`a 40-file upload scrolls its results while keeping actions reachable at ${width}px`, async (t) => {
+        const { page, state } = await pageFor(t, width);
+        state.operation.entries = Array.from({ length: 40 }, (_, index) => ({
+            ...state.operation.entries[index % 2],
+            id: `entry-${index}`,
+            name: `Lecture ${index + 1} - Detailed worked examples and revision notes.pdf`,
+        }));
+        await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
+        await page.getByText("20 of 40 files uploaded", { exact: true }).waitFor();
+        const bounds = await page.locator(".upload-actions").evaluate((footer) => ({
+            footer: footer.getBoundingClientRect().toJSON(),
+            width: innerWidth,
+            height: innerHeight,
+            buttons: [...footer.querySelectorAll("button")].map((button) =>
+                button.getBoundingClientRect().toJSON(),
+            ),
+        }));
+        for (const rect of [bounds.footer, ...bounds.buttons]) {
+            assert.ok(rect.left >= 0 && rect.right <= bounds.width, JSON.stringify(bounds));
+            assert.ok(rect.top >= 0 && rect.bottom <= bounds.height, JSON.stringify(bounds));
+        }
+        assert.equal(
+            await page.getByRole("complementary", { name: "Content operations" }).isVisible(),
+            false,
+        );
+        await capture(page, `upload-large-${width}`);
+        await page.locator(".upload-body").evaluate((body) => {
+            body.scrollTop = body.scrollHeight;
+        });
+        await page.getByRole("button", { name: "Cancel remaining uploads" }).click();
+        await page.getByRole("button", { name: "Start another batch" }).waitFor();
+        assert.equal(state.operation.status, "cancelled");
+        assert.equal(
+            state.operation.entries.filter((entry) => entry.state === "completed").length,
+            20,
+        );
+    });
+}
+
+for (const width of [390, 1440]) {
+    test(`a compact notice reopens the same upload without duplicating its controls at ${width}px`, async (t) => {
+        const { page, state } = await pageFor(t, width);
+        await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
+        await page.getByText("1 of 2 files uploaded", { exact: true }).waitFor();
+        const notice = page.getByRole("complementary", { name: "Content operations" });
+        assert.equal(await notice.isVisible(), false);
+        await page.getByRole("button", { name: "Close", exact: true }).click();
+        await notice.waitFor();
+        assert.equal(await notice.locator("li").count(), 0);
+        assert.equal(await notice.getByRole("button", { name: /cancel/i }).count(), 0);
+        await capture(page, `notice-partial-${width}`);
+        await notice.getByRole("link", { name: "View upload" }).click();
+        await page.locator(".contri.show").waitFor();
+        assert.equal(await notice.isVisible(), false);
+        await page.getByRole("button", { name: "Cancel remaining uploads" }).click();
+        await page.getByRole("button", { name: "Start another batch" }).waitFor();
+        assert.equal(state.operation.status, "cancelled");
+    });
+}
+
+test("upload settings enable the picker after loading without showing a premature retry", async (t) => {
+    const { page, state } = await pageFor(t, 390);
+    state.operation = uploadOperation("completed");
+    let release;
+    state.holdLimits = new Promise((resolve) => {
+        release = resolve;
+    });
+    await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
+    await page.getByRole("button", { name: "Start another batch" }).click();
+    await page.getByText("Loading upload settings…", { exact: true }).waitFor();
+    assert.equal(await page.getByRole("button", { name: "Retry upload limits" }).count(), 0);
+    assert.equal(
+        await page.getByRole("button", { name: "Upload files", exact: true }).isDisabled(),
+        true,
+    );
+    await capture(page, "upload-settings-loading-390");
+    release();
+    await page.getByText("Loading upload settings…", { exact: true }).waitFor({ state: "hidden" });
+    assert.equal(await page.locator(".filepond--browser").isDisabled(), false);
+    await page.locator(".filepond--browser").setInputFiles({
+        name: "Fresh notes.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("12345"),
+    });
+    await page.getByRole("button", { name: "Upload files", exact: true }).click();
+    await page.getByText("1 of 1 files uploaded", { exact: true }).waitFor();
+    assert.equal(state.uploadCalls.length, 1);
+    assert.equal(await page.locator(".Toastify__toast").count(), 0);
+});
+
+test("upload status can recover without repeating an error or losing successful files", async (t) => {
+    const { page, state } = await pageFor(t, 390);
+    state.operation.status = "running";
+    state.operation.entries[1].state = "uploading";
+    delete state.operation.entries[1].error;
+    await page.goto(frontend + "/browse/CS101/" + folder._id + "?upload=" + state.operation.id);
+    await page.getByText("1 of 2 files uploaded", { exact: true }).waitFor();
+    assert.equal(
+        await page.getByRole("button", { name: "Refresh status", exact: true }).count(),
+        0,
+    );
+    state.failPoll = true;
+    await page.getByRole("alert").filter({ hasText: "Status could not refresh." }).waitFor();
+    assert.ok(await page.getByText("1 of 2 files uploaded", { exact: true }).isVisible());
+    state.failPoll = false;
+    await page.getByRole("button", { name: "Refresh status", exact: true }).click();
+    await page
+        .getByRole("button", { name: "Refresh status", exact: true })
+        .waitFor({ state: "hidden" });
+    assert.ok(await page.getByText("1 of 2 files uploaded", { exact: true }).isVisible());
 });
