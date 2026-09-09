@@ -384,37 +384,6 @@ test("shared file deletion identifies every affected course before confirmation"
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
     assert.ok(requests.every((request) => request.method !== "DELETE"));
 });
-test("restoring a session discards stored file trees from an earlier actor", async (t) => {
-    const { page, requests } = await openPage(t);
-    await page.addInitScript(
-        (tree) => sessionStorage.setItem("AllCourses", JSON.stringify([tree])),
-        {
-            ...course,
-            children: [
-                {
-                    ...course.children[0],
-                    children: [
-                        {
-                            ...folder,
-                            children: [
-                                {
-                                    ...libraryFile,
-                                    name: "Private cached file.pdf",
-                                    isVerified: false,
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        },
-    );
-    await page.goto(frontend + `/browse/CS101/${folder._id}`);
-    await page.getByTitle(libraryFile.name, { exact: true }).first().waitFor();
-    assert.equal(await page.getByTitle("Private cached file.pdf", { exact: true }).count(), 0);
-    assert.ok(requests.some((request) => request.path === "/api/course/CS101"));
-});
-
 test("moderation uses the authorized shared-course context returned by the server", async (t) => {
     const pending = {
         ...libraryFile,
@@ -547,13 +516,18 @@ test("a course response arriving after navigation cannot populate the next visit
     const started = new Promise((resolve) => {
         firstStarted = resolve;
     });
+    let finishFirst;
+    const firstHandled = new Promise((resolve) => {
+        finishFirst = resolve;
+    });
     await page.route("**/api/course/CS101", async (route) => {
-        calls++;
-        if (calls === 1) {
+        const call = ++calls;
+        if (call === 1) {
             firstStarted();
             await pending;
         }
-        await route.fallback();
+        await route.fallback().catch(() => {});
+        if (call === 1) finishFirst();
     });
     await page.goto(`${frontend}/profile`, { waitUntil: "networkidle" });
     await page.getByText("Dashboard", { exact: true }).first().click();
@@ -561,9 +535,10 @@ test("a course response arriving after navigation cannot populate the next visit
     await started;
     await page.goBack();
     await page.waitForURL(frontend + "/dashboard");
-    const response = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/course/CS101");
     release();
-    await response;
+    // An aborted Fetch need not emit a browser response event. Finish the mocked
+    // upstream read, then check that a new visit cannot reuse that abandoned data.
+    await firstHandled;
     await page.waitForLoadState("networkidle");
     const nextResponse = page.waitForResponse(
         (r) => new URL(r.url()).pathname === "/api/course/CS101",

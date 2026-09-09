@@ -1,8 +1,6 @@
 import "./styles.scss";
 import { useState } from "react";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { ChangeFolder, PushFolderHistory } from "../../../../actions/filebrowser_actions";
+
 import { deleteFolder, renameFolder } from "../../../../api/Folder";
 import { toast } from "react-toastify";
 import { ConfirmDialog } from "./confirmDialog";
@@ -12,9 +10,7 @@ import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 import { useNavigate } from "react-router-dom";
 
 const BrowseFolder = ({ name, subject, folderData, isMobileView = false, index = 0 }) => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
     const courseCode =
         subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
@@ -26,28 +22,14 @@ const BrowseFolder = ({ name, subject, folderData, isMobileView = false, index =
 
     const setFolderName = async (newName) => {
         try {
-            const renamedFolder = await renameFolder(folderData._id, newName, courseCode);
+            await renameFolder(folderData._id, newName, courseCode);
             toast.success("Folder renamed successfully!");
-            dispatch(
-                ChangeFolder({
-                    ...currentFolder,
-                    children: (currentFolder?.children || []).map((child) =>
-                        child._id === folderData._id
-                            ? { ...child, name: renamedFolder.name }
-                            : child,
-                    ),
-                }),
-            );
         } catch {
             toast.error("Failed to rename folder");
         }
     };
 
     const onClick = (folderData) => {
-        if (currentFolder) {
-            dispatch(PushFolderHistory(currentFolder));
-        }
-        dispatch(ChangeFolder(folderData));
         if (courseCode && folderData?._id) {
             navigate(`/browse/${courseCode}/${folderData._id}`);
         }
@@ -59,14 +41,7 @@ const BrowseFolder = ({ name, subject, folderData, isMobileView = false, index =
             setIsDeleting(true);
             await deleteFolder({ folderId: folderData._id, courseCode });
             toast.success("Folder deleted successfully!");
-            dispatch(
-                ChangeFolder({
-                    ...currentFolder,
-                    children: (currentFolder?.children || []).filter(
-                        (child) => child._id !== folderData._id,
-                    ),
-                }),
-            );
+
             setShowConfirm(false);
         } catch {
             toast.error("Failed to delete folder.");

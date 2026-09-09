@@ -1,34 +1,21 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@coursehub/browser";
+import { RequestError } from "@coursehub/browser/react";
+import { library } from "../session";
 import CoursesWithoutBRTable from "../components/CoursesWithoutBRTable";
 import { fetchCoursesWithoutBR } from "@/apis/br";
 
 export default function CoursesWithoutBR() {
-    const [courses, setCourses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        let active = true;
-        const loadCourses = async () => {
-            try {
-                setLoading(true);
-                const response = await fetchCoursesWithoutBR();
-                if (!active) return;
-                setCourses(response.coursesWithoutBR);
-                setLoading(false);
-            } catch (err) {
-                if (!active) return;
-                setError(err.message || "An error occurred while fetching courses without BR.");
-                setLoading(false);
-            }
-        };
-        queueMicrotask(() => {
-            if (active) loadCourses();
-        });
-        return () => {
-            active = false;
-        };
-    }, []);
+    const query = useQuery(
+        library.options("without-br", "", async ({ signal }) => {
+            const data = await fetchCoursesWithoutBR(signal);
+            if (!Array.isArray(data.coursesWithoutBR))
+                throw new Error("The course list could not be read. Please try again.");
+            return data.coursesWithoutBR;
+        }),
+    );
+    const courses = query.data || [],
+        loading = query.isPending,
+        error = query.error;
 
     return (
         <div className="p-6 space-y-6">
@@ -43,7 +30,7 @@ export default function CoursesWithoutBR() {
 
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6">
                 {loading && <p>Loading...</p>}
-                {error && <p className="text-red-500">{error}</p>}
+                {error && <RequestError error={error} onRetry={query.refetch} />}
                 {!loading && !error && <CoursesWithoutBRTable courses={courses} />}
             </div>
         </div>

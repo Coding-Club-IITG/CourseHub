@@ -74,6 +74,38 @@ export async function exerciseCoursePermissions(t, origin) {
         });
     });
 
+    await t.test(
+        "course revisions change for visible nested changes, while a hidden pending rename leaves a student's revision unchanged",
+        async () => {
+            const read = async (role) => (await request(role, "GET", "/api/course/AUTH101")).json();
+            const before = await read("student");
+            const owner = await read("owner");
+            assert.match(before.revision, /^[a-f0-9]{64}$/);
+            try {
+                await FileModel.updateOne(
+                    { _id: f.pending.id },
+                    { $set: { name: "Private renamed.pdf" } },
+                );
+                assert.equal((await read("student")).revision, before.revision);
+                assert.notEqual((await read("owner")).revision, owner.revision);
+                await FileModel.updateOne(
+                    { _id: f.approved.id },
+                    { $set: { name: "Public renamed.pdf" } },
+                );
+                assert.notEqual((await read("student")).revision, before.revision);
+            } finally {
+                await FileModel.updateOne(
+                    { _id: f.pending.id },
+                    { $set: { name: f.pending.name } },
+                );
+                await FileModel.updateOne(
+                    { _id: f.approved.id },
+                    { $set: { name: f.approved.name } },
+                );
+            }
+        },
+    );
+
     for (const role of Object.keys(f.actors))
         await t.test(
             `${role}: pending visibility across trees, counts, metadata, content, thumbnails and archive inputs`,

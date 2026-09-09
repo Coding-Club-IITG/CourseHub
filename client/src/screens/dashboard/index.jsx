@@ -1,3 +1,5 @@
+import { session } from "../../session/runtime";
+import { useSession } from "../../session/context";
 import { normalizeCourseCode } from "@coursehub/domain";
 import "./styles.scss";
 import Container from "../../components/container";
@@ -12,29 +14,21 @@ import Footer from "../../components/footer";
 
 import ExamScheduleWidget from "./components/examschedule";
 
-import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import formatName from "../../utils/formatName";
 import formatBranch from "../../utils/formatBranch";
 import { useEffect, useState } from "react";
 import { getColors } from "../../utils/colors";
-import { LoadCourses } from "../../actions/filebrowser_actions";
+
 import Contributions from "../contributions";
-import { ClearLocalCourses, UpdateReadOnlyCourses } from "../../actions/user_actions";
 import AddCourseModal from "./components/addcoursemodal";
-import { AddNewCourseAPI, GetExamDates, getUser } from "../../api/User";
+import { AddNewCourseAPI, GetExamDates } from "../../api/User";
 import { toast } from "react-toastify";
-import {
-    clearLegacySessionLocalCoursesCache,
-    readAllCoursesCache,
-} from "../../utils/frontendCache";
 
 const Dashboard = () => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const user = useSelector((state) => state.user);
+    const user = useSession().data;
 
     const [midSem, setMidSem] = useState(0);
     const [endSem, setEndSem] = useState(0);
@@ -60,26 +54,15 @@ const Dashboard = () => {
     const handleAddCourse = async ({ code, name }) => {
         try {
             const found =
-                user.user?.courses?.find(
-                    (course) => course.code.toLowerCase() === code.toLowerCase(),
-                ) ||
-                user.user?.readOnly?.find(
-                    (course) => course.code.toLowerCase() === code.toLowerCase(),
-                );
+                user?.courses?.find((course) => course.code.toLowerCase() === code.toLowerCase()) ||
+                user?.readOnly?.find((course) => course.code.toLowerCase() === code.toLowerCase());
 
             if (found) {
                 toast.info("Course already exists.");
                 return;
             }
             const res = await AddNewCourseAPI(code, name);
-            if (res?.data?.readOnly) {
-                dispatch(UpdateReadOnlyCourses(res.data.readOnly));
-            } else {
-                const fresh = await getUser();
-                if (fresh?.data?.readOnly) {
-                    dispatch(UpdateReadOnlyCourses(fresh.data.readOnly));
-                }
-            }
+            session.setActor((current) => ({ ...current, readOnly: res.readOnly }));
             toast.success(`Course ${code.toUpperCase()} added to Others!`);
 
             const collection = document.getElementsByClassName("add_modal");
@@ -93,27 +76,18 @@ const Dashboard = () => {
     const handleCourseRemoved = (removedCode) => {
         if (!removedCode) return;
         const normalizedRemoved = normalizeCourseCode(removedCode);
-        const updatedReadOnly = (user.user?.readOnly || []).filter(
+        const updatedReadOnly = (user?.readOnly || []).filter(
             (c) => normalizeCourseCode(c.code) !== normalizedRemoved,
         );
-        dispatch(UpdateReadOnlyCourses(updatedReadOnly));
+        session.setActor((current) => ({ ...current, readOnly: updatedReadOnly }));
         toast.success(`Course ${removedCode.toUpperCase()} removed`);
     };
-
-    useEffect(() => {
-        clearLegacySessionLocalCoursesCache();
-        dispatch(ClearLocalCourses());
-        const cleaned = readAllCoursesCache();
-        if (cleaned.length > 0) {
-            dispatch(LoadCourses(cleaned));
-        }
-    }, [dispatch]);
 
     useEffect(() => {
         let active = true;
         async function run() {
             try {
-                const { data } = await GetExamDates();
+                const data = await GetExamDates();
                 if (!active) return;
                 const { dates } = data;
                 const midSemDate = new Date(dates.midSem);
@@ -137,13 +111,9 @@ const Dashboard = () => {
 
     const handleClick = (code) => {
         let Code = code.replaceAll(" ", "");
-        dispatch(ChangeCurrentCourse(null, Code.toUpperCase()));
+
         navigate(`/browse/${Code.toUpperCase()}`);
     };
-
-    useEffect(() => {
-        dispatch(ResetFileBrowserState());
-    }, [dispatch]);
 
     const [showPrevious, setShowPrevious] = useState(false);
 
@@ -156,13 +126,9 @@ const Dashboard = () => {
                     <div className="split">
                         <div className="welcome-container">
                             <Heading text={"Welcome,"} type={""} color={"light"} />
-                            <Heading
-                                text={formatName(user?.user?.name)}
-                                type={"bold"}
-                                color={"light"}
-                            />
+                            <Heading text={formatName(user?.name)} type={"bold"} color={"light"} />
                             <SubHeading
-                                text={formatBranch(user?.user?.degree, user?.user?.department)}
+                                text={formatBranch(user?.degree, user?.department)}
                                 color={"light"}
                             />
                         </div>
@@ -180,7 +146,7 @@ const Dashboard = () => {
                     <SubHeading text={"MY COURSES"} color={"light"} type={"bold"} />
                     <Space amount={20} />
                     <div className="coursecard-container">
-                        {user.user.courses.map((course, index) => (
+                        {user.courses.map((course, index) => (
                             <CourseCard
                                 key={course.name}
                                 code={course?.code?.toUpperCase()}
@@ -196,7 +162,7 @@ const Dashboard = () => {
                     <SubHeading text={"OTHERS"} color={"light"} type={"bold"} />
                     <Space amount={20} />
                     <div className="coursecard-container">
-                        {(user.user?.readOnly || []).map((course, index) => (
+                        {(user?.readOnly || []).map((course, index) => (
                             <CourseCard
                                 key={course.code || course.name}
                                 code={course?.code?.toUpperCase()}
@@ -218,7 +184,7 @@ const Dashboard = () => {
 
                     <Space amount={50} />
 
-                    {user.user.isBR && user.user.previousCourses?.length > 0 && (
+                    {user.isBR && user.previousCourses?.length > 0 && (
                         <>
                             <div
                                 onClick={() => setShowPrevious(!showPrevious)}
@@ -252,7 +218,7 @@ const Dashboard = () => {
 
                             {showPrevious && (
                                 <div className="previous-courses-wrapper">
-                                    {user.user.previousCourses.map((semesterGroup, semIndex) => (
+                                    {user.previousCourses.map((semesterGroup, semIndex) => (
                                         <div key={semIndex} style={{ marginLeft: "20px" }}>
                                             <Space amount={20} />
                                             <div

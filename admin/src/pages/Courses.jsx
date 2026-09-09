@@ -1,3 +1,6 @@
+import { useQuery } from "@coursehub/browser";
+import { library } from "../session";
+import { RequestError } from "@coursehub/browser/react";
 import { normalizeCourseCode } from "@coursehub/domain";
 import { useState, useEffect } from "react";
 import {
@@ -28,13 +31,15 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/moda
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { fetchCourses, updateCourseName, bulkSyncCourses, deleteCourse } from "@/apis/courses";
 import { useNavigate } from "react-router-dom";
-import { FaEye } from "react-icons/fa"; // Add FaEye to your react-icons import
+import { FaEye } from "react-icons/fa";
 
 function Courses() {
     const navigate = useNavigate();
-    const [courses, setCourses] = useState([]);
+    const query = useQuery(library.options("courses", "", ({ signal }) => fetchCourses(signal)));
+    const courses = query.data || [];
+    const loading = query.isPending;
+    const loadError = query.error;
     const [search, setSearch] = useState("");
-    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showOnlyNameless, setShowOnlyNameless] = useState(false);
@@ -60,29 +65,6 @@ function Courses() {
 
     const itemsPerPage = 10;
 
-    useEffect(() => {
-        let active = true;
-        const loadCourses = async () => {
-            try {
-                const data = await fetchCourses();
-                if (!active) return;
-                setCourses(data);
-                setLoading(false);
-            } catch (error) {
-                if (!active) return;
-                console.error("Error loading courses:", error);
-                setCourses([]);
-                setLoading(false);
-            }
-        };
-        queueMicrotask(() => {
-            if (active) loadCourses();
-        });
-        return () => {
-            active = false;
-        };
-    }, []);
-
     const [savingEdit, setSavingEdit] = useState(false);
     const [editError, setEditError] = useState(null);
 
@@ -90,13 +72,7 @@ function Courses() {
         const updated = await updateCourseName(oldCode, newName, newCode);
         if (!updated?.code)
             throw new Error("The saved course could not be confirmed. Your edits are retained.");
-        setCourses((courses) =>
-            courses.map((course) =>
-                course.code === oldCode
-                    ? { ...course, code: updated.code, name: updated.name }
-                    : course,
-            ),
-        );
+        await library.invalidate();
     };
 
     const startEdit = (code, currentName) => {
@@ -150,7 +126,7 @@ function Courses() {
             const result = await deleteCourse(courseToDelete.code);
 
             // Remove the course from the local state
-            setCourses((prevCourses) => prevCourses.filter((c) => c.code !== courseToDelete.code));
+            await library.invalidate();
 
             // Show success message with affected users count
             const successMessage = `Course "${courseToDelete.code}" deleted successfully.`;
@@ -162,8 +138,7 @@ function Courses() {
             alert(successMessage + affectedUsersMessage);
         } catch (error) {
             // Show detailed error message
-            const errorMessage =
-                error.response?.data?.message || error.message || "Unknown error occurred";
+            const errorMessage = error.message || "Unknown error occurred";
             alert(`Failed to delete course: ${errorMessage}`);
             console.error("Delete course error:", error);
         } finally {
@@ -313,8 +288,7 @@ function Courses() {
             setSyncResults(results);
 
             // Refresh courses list
-            const data = await fetchCourses();
-            setCourses(data);
+            await library.invalidate();
 
             setShowConfirmDialog(false);
             setShowUploadModal(false);
@@ -396,7 +370,11 @@ function Courses() {
                                     variant="secondary"
                                     className="text-sm px-3 py-1 bg-blue-100 text-blue-800 border border-blue-200"
                                 >
-                                    {filteredCourses.length} courses
+                                    {loadError
+                                        ? "Unavailable"
+                                        : loading
+                                          ? "Loading…"
+                                          : `${filteredCourses.length} courses`}
                                 </Badge>
                                 {(() => {
                                     const duplicates = getDuplicateCourses();
@@ -414,6 +392,7 @@ function Courses() {
                             </div>
                             <Button
                                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-105"
+                                disabled={loading || !!loadError}
                                 onClick={() => setShowUploadModal(true)}
                             >
                                 <FaPlus className="mr-2 h-4 w-4" />
@@ -461,7 +440,13 @@ function Courses() {
                 </div>
 
                 {/* Content Section */}
-                {loading ? (
+                {loadError ? (
+                    <RequestError
+                        error={loadError}
+                        title="We couldn’t load courses."
+                        onRetry={query.refetch}
+                    />
+                ) : loading ? (
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-12">
                         <div className="flex items-center justify-center">
                             <div className="text-center space-y-6">

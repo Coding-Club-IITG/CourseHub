@@ -1,5 +1,5 @@
+import { useSession } from "../../../../session/context";
 import { useState, useEffect, useMemo } from "react";
-import { useSelector } from "react-redux";
 import Container from "../../../../components/container";
 import SubHeading from "../../../../components/subheading";
 import Space from "../../../../components/space";
@@ -27,8 +27,8 @@ function formatDisplayDate(dateStr) {
 }
 
 const ExamScheduleWidget = () => {
-    const userState = useSelector((state) => state.user);
-    const currentUser = userState?.user;
+    const userState = useSession().data;
+    const currentUser = userState;
 
     const [activeTab, setActiveTab] = useState("midSem"); // "midSem" | "endSem"
     const [isLoading, setIsLoading] = useState(true);

@@ -1,9 +1,8 @@
-import { apiFetch, responseError } from "./http";
+import { apiFetch } from "./http";
 import { API_BASE_URL } from "./server";
 
 async function request(path = "", options) {
     const response = await apiFetch(`${API_BASE_URL}api/operations${path}`, options);
-    if (!response.ok) throw await responseError(response, "Could not load operation status");
     return response.json();
 }
 export const operationEvent = "coursehub-operation";

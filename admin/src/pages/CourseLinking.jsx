@@ -63,10 +63,6 @@ const CourseLinking = () => {
                 throw new Error(`Linking is unavailable (${response.status}). Please retry.`);
             }
 
-            if (!response.ok) {
-                throw new Error(data.message || "Bulk linking failed");
-            }
-
             const summary = {
                 success: 0,
                 failed: data.summary.failed,
@@ -121,11 +117,6 @@ const CourseLinking = () => {
                     credentials: "include",
                 },
             );
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Manual linking failed");
-            }
 
             const operation = await waitForOperation(await response.json());
             setManualSuccess(operation.linking);

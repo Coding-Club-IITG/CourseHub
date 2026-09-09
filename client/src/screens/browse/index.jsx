@@ -1,3 +1,4 @@
+import { useSession } from "../../session/context";
 import "./styles.scss";
 import Container from "../../components/container";
 import Dropdown from "../../components/ui/dropdown";
@@ -6,313 +7,75 @@ import Collapsible from "./components/collapsible";
 import FolderInfo from "./components/folder-info";
 
 import BrowseFolder from "./components/browsefolder";
-import { useSelector, useDispatch, useStore } from "react-redux";
 import NavBarBrowseScreen from "./components/navbar";
 import Contributions from "../contributions";
 import { useEffect, useState } from "react";
-
-import {
-    ChangeCurrentCourse,
-    ChangeCurrentYearData,
-    ChangeFolder,
-    LoadCourses,
-    UpdateCourses,
-    PopFolderHistory,
-    ClearFolderHistory,
-} from "../../actions/filebrowser_actions";
 import { getColors } from "../../utils/colors";
-import { AddNewCourseLocal } from "../../actions/user_actions";
-import { useParams } from "react-router-dom";
-import { getCourse } from "../../api/Course";
-import { fetchFolder } from "../../api/Folder";
-import {
-    getSubtreeFileCount,
-    findFolderById,
-    findYearIndexForFolder,
-} from "../../utils/folderUtils";
-import { toast } from "react-toastify";
+import { getSubtreeFileCount } from "../../utils/folderUtils";
 import { useNavigate } from "react-router-dom";
-
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
-import { findCachedCourse, hasUsableCourseTree } from "../../utils/courseCache";
-import { readAllCoursesCache, clearAllCoursesCache } from "../../utils/frontendCache";
-
+import CourseBrowserProvider from "../../queries/CourseBrowserProvider";
+import { useCourseBrowser } from "../../queries/browserContext";
+import { normalizeCourseCode } from "@coursehub/domain";
+import { library, session } from "../../session/runtime";
 function useIsMobile() {
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [mobile, setMobile] = useState(window.innerWidth <= 768);
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
+        const resize = () => setMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", resize);
+        return () => window.removeEventListener("resize", resize);
     }, []);
-    return isMobile;
+    return mobile;
 }
-
-const BrowseScreen = () => {
+const BrowseScreen = () => (
+    <CourseBrowserProvider>
+        <BrowseContent />
+    </CourseBrowserProvider>
+);
+function BrowseContent() {
     const navigate = useNavigate();
     const isMobile = useIsMobile();
-    const user = useSelector((state) => state.user);
-    const folderData = useSelector((state) => state.fileBrowser.currentFolder);
-    const folderHistory = useSelector((state) => state.fileBrowser.folderHistory);
-    const refreshKey = useSelector((state) => state.fileBrowser.refreshKey);
-    const currCourse = useSelector((state) => state.fileBrowser.currentCourse);
-    const currCourseCode = useSelector((state) => state.fileBrowser.currentCourseCode);
-    const currYear = useSelector((state) => state.fileBrowser.currentYear);
-    const allCourseData = useSelector((state) => state.fileBrowser.allCourseData);
-
-    const sortFile = (a, b) => {
-        if (a?.name > b?.name) return 1;
-        else if (a?.name < b?.name) return -1;
-        else return 1;
-    };
-
-    if (folderData?.childType == "File" && folderData?.children?.length > 1)
-        folderData?.children.sort(sortFile); //sorting current folder files by name
-
-    const contributionHandler = () => {
-        const collection = document.getElementsByClassName("contri");
-        const contributionSection = collection[0];
-        contributionSection.classList.add("show");
-    };
-    const dispatch = useDispatch();
-    const store = useStore();
-    const { code, folderId } = useParams();
-
-    useEffect(() => {
-        const cleaned = readAllCoursesCache();
-        if (cleaned.length > 0) {
-            dispatch(LoadCourses(cleaned));
-        }
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (!code) {
-            return;
-        }
-        let active = true;
-        let fetchingToast;
-        const run = async () => {
-            let sessionStorageCourses = null;
-            let fetchedData = null;
-
-            sessionStorageCourses = readAllCoursesCache();
-
-            let currCourse = null;
-            try {
-                currCourse = findCachedCourse(store.getState().fileBrowser.allCourseData, code);
-            } catch {
-                clearAllCoursesCache();
-                location.reload();
-            }
-            const present = findCachedCourse(sessionStorageCourses, code);
-
-            if (present || currCourse) {
-                fetchedData = present || currCourse;
-                dispatch(AddNewCourseLocal(fetchedData));
-                dispatch(ChangeCurrentCourse(fetchedData?.children || fetchedData, code));
-                if (
-                    fetchedData?.children &&
-                    Array.isArray(fetchedData.children) &&
-                    fetchedData.children.length > 0
-                ) {
-                    const defaultYearIndex = fetchedData.children.length - 1;
-
-                    let activeFolder = folderId
-                        ? findFolderById(fetchedData.children, folderId)
-                        : null;
-
-                    let activeYearIndex = defaultYearIndex;
-                    if (folderId && activeFolder) {
-                        const matchedIdx = findYearIndexForFolder(
-                            fetchedData.children,
-                            activeFolder._id,
-                        );
-                        if (matchedIdx !== -1) {
-                            activeYearIndex = matchedIdx;
-                        }
-                    }
-
-                    const activeYear = fetchedData.children[activeYearIndex];
-                    if (activeYear && activeYear.children) {
-                        dispatch(ChangeCurrentYearData(activeYearIndex, activeYear.children || []));
-                        dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                        dispatch(ChangeFolder(activeFolder || activeYear));
-                    }
-                }
-            } else {
-                fetchingToast = toast.loading("Loading course data...");
-                const response = await getCourse(code.toUpperCase());
-                if (!active) return;
-                if (response.data.found) {
-                    toast.dismiss(fetchingToast);
-                    fetchedData = response.data;
-                    if (!hasUsableCourseTree(fetchedData)) {
-                        const refetched = await getCourse(code.toUpperCase());
-                        if (!active) return;
-                        if (refetched.data?.found) {
-                            fetchedData = refetched.data;
-                        }
-                    }
-                    dispatch(UpdateCourses(fetchedData));
-                    dispatch(AddNewCourseLocal(fetchedData));
-                    dispatch(
-                        ChangeCurrentCourse(
-                            fetchedData?.children || fetchedData,
-                            code.toUpperCase(),
+    const user = useSession().data;
+    const {
+        currentFolder: folderData,
+        currentCourse: currCourse,
+        currentCourseCode: currCourseCode,
+        currentYear: currYear,
+        course,
+    } = useCourseBrowser();
+    const registered = [
+        ...(user?.courses || []),
+        ...(user?.readOnly || []),
+        ...(user?.isBR
+            ? (user?.previousCourses || []).flatMap((semester) => semester.courses || [])
+            : []),
+    ];
+    const visited = session.queryClient
+        .getQueriesData({ queryKey: library.key("course").slice(0, 5) })
+        .map(([, value]) => value)
+        .filter(Boolean);
+    const localCourses = [
+        ...new Map(
+            [...visited, ...(course ? [course] : [])]
+                .filter(
+                    (item) =>
+                        !registered.some(
+                            (registeredCourse) =>
+                                normalizeCourseCode(registeredCourse.code) ===
+                                normalizeCourseCode(item.code),
                         ),
-                    );
-                    if (
-                        fetchedData?.children &&
-                        Array.isArray(fetchedData.children) &&
-                        fetchedData.children.length > 0
-                    ) {
-                        const defaultYearIndex = fetchedData.children.length - 1;
-
-                        let activeFolder = folderId
-                            ? findFolderById(fetchedData.children, folderId)
-                            : null;
-
-                        let activeYearIndex = defaultYearIndex;
-                        if (folderId && activeFolder) {
-                            const matchedIdx = findYearIndexForFolder(
-                                fetchedData.children,
-                                activeFolder._id,
-                            );
-                            if (matchedIdx !== -1) {
-                                activeYearIndex = matchedIdx;
-                            }
-                        }
-
-                        const activeYear = fetchedData.children[activeYearIndex];
-                        if (activeYear && activeYear.children) {
-                            dispatch(
-                                ChangeCurrentYearData(activeYearIndex, activeYear.children || []),
-                            );
-                            dispatch(ClearFolderHistory()); // Clear history when starting with a new course/year
-                            dispatch(ChangeFolder(activeFolder || activeYear));
-                        }
-                    }
-                } else {
-                    toast.dismiss(fetchingToast);
-                    toast.error("Course not found!");
-                }
-            }
-        };
-        queueMicrotask(() => {
-            if (!active) return;
-            run()
-                .catch(() => {
-                    if (active) toast.error("Could not load the course. Please try again.");
-                })
-                .finally(() => {
-                    if (fetchingToast !== undefined) toast.dismiss(fetchingToast);
-                });
-        });
-        return () => {
-            active = false;
-            if (fetchingToast !== undefined) toast.dismiss(fetchingToast);
-        };
-    }, [code, folderId, dispatch, store]);
-
-    useEffect(() => {
-        if (
-            !code ||
-            currCourseCode?.toUpperCase() !== code.toUpperCase() ||
-            !currCourse ||
-            !Array.isArray(currCourse) ||
-            currCourse.length === 0
-        ) {
-            return;
-        }
-        let active = true;
-
-        if (folderId) {
-            if (folderData?._id === folderId) return;
-
-            const matched = findFolderById(currCourse, folderId);
-            if (matched) {
-                const matchedYearIndex = findYearIndexForFolder(currCourse, matched._id);
-                if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
-                    dispatch(
-                        ChangeCurrentYearData(
-                            matchedYearIndex,
-                            currCourse[matchedYearIndex]?.children || [],
-                        ),
-                    );
-                }
-                dispatch(ChangeFolder(matched));
-            } else {
-                fetchFolder(folderId, code)
-                    .then((freshFolder) => {
-                        if (!active) return;
-                        if (freshFolder && freshFolder._id) {
-                            const matchedYearIndex = findYearIndexForFolder(
-                                currCourse,
-                                freshFolder._id,
-                            );
-                            if (matchedYearIndex !== -1 && matchedYearIndex !== currYear) {
-                                dispatch(
-                                    ChangeCurrentYearData(
-                                        matchedYearIndex,
-                                        currCourse[matchedYearIndex]?.children || [],
-                                    ),
-                                );
-                            }
-                            dispatch(ChangeFolder(freshFolder));
-                        } else {
-                            toast.error("Folder not found!");
-                            navigate(`/browse/${code}`, { replace: true });
-                        }
-                    })
-                    .catch(() => {
-                        if (!active) return;
-                        toast.error("Folder not found!");
-                        navigate(`/browse/${code}`, { replace: true });
-                    });
-            }
-        } else {
-            const defaultYear =
-                currCourse[
-                    currYear !== null && currYear !== undefined ? currYear : currCourse.length - 1
-                ];
-            if (defaultYear && folderData?._id !== defaultYear._id) {
-                dispatch(ChangeFolder(defaultYear));
-            }
-        }
-        return () => {
-            active = false;
-        };
-    }, [folderId, code, currCourseCode, currCourse, currYear, folderData, dispatch, navigate]);
-
-    useEffect(() => {
-        const { currentFolder: folderData, currentCourseCode: currCourseCode } =
-            store.getState().fileBrowser;
-        let active = true;
-        const refreshFolderData = async () => {
-            if (!folderData?._id || !currCourseCode) return;
-
-            try {
-                const res = await getCourse(currCourseCode);
-                if (!active) return;
-                if (res.data?.found) {
-                    const updatedFolder = findFolderById(res.data.children, folderData._id);
-                    if (updatedFolder) {
-                        dispatch(ChangeFolder(updatedFolder));
-                    }
-                }
-            } catch {
-                if (active) toast.error("Could not refresh folder view.");
-            }
-        };
-
-        queueMicrotask(() => {
-            if (active) refreshFolderData();
-        });
-        return () => {
-            active = false;
-        };
-    }, [refreshKey, dispatch, store]);
-
+                )
+                .map((item) => [normalizeCourseCode(item.code), item]),
+        ).values(),
+    ];
+    const allCourses = [
+        ...new Map(
+            [...registered, ...localCourses].map((item) => [normalizeCourseCode(item.code), item]),
+        ).values(),
+    ];
+    const allYears = currCourse || [];
+    const contributionHandler = () => document.querySelector(".contri")?.classList.add("show");
     const HeaderText =
         folderData?.childType === "File"
             ? "Select a file..."
@@ -321,108 +84,27 @@ const BrowseScreen = () => {
               : currCourse
                 ? "No data available for this course"
                 : "Select a course...";
-
-    const handleBackClick = async () => {
-        if (folderHistory.length > 0) {
-            const previousFolder = folderHistory[folderHistory.length - 1];
-            dispatch(PopFolderHistory());
-            if (previousFolder && previousFolder._id) {
-                dispatch(ChangeFolder(previousFolder));
-                const isRootYear = currCourse.some((y) => y._id === previousFolder._id);
-                if (isRootYear) {
-                    navigate(`/browse/${currCourseCode}`);
-                } else {
-                    navigate(`/browse/${currCourseCode}/${previousFolder._id}`);
-                }
-            } else {
-                navigate(`/browse/${currCourseCode}`);
-            }
-        } else {
-            navigate(`/browse/${currCourseCode}`);
+    const findParent = (nodes) => {
+        for (const node of nodes) {
+            if (node.childType !== "Folder") continue;
+            if (node.children?.some((child) => child._id === folderData?._id)) return node;
+            const parent = findParent(node.children || []);
+            if (parent) return parent;
         }
     };
-
-    const canGoBack = folderHistory.length > 0 || !!(folderId && folderData?._id);
-    const allCourses = [
-        ...(user.user?.courses || []),
-        ...(user.localCourses || []),
-        ...(user.user?.readOnly || []),
-        ...(user.user?.isBR && user.user?.previousCourses
-            ? user.user.previousCourses.flatMap((sem) => sem.courses)
-            : []),
-    ];
-    const allYears = currCourse || [];
-    const handleCourseChange = async (e) => {
-        const selectedCode = e.target.value;
-        if (selectedCode && selectedCode !== currCourseCode) {
-            try {
-                dispatch(ChangeCurrentYearData(null, []));
-                dispatch(ChangeFolder(null));
-                dispatch(ClearFolderHistory());
-                let courseData = allCourseData?.find(
-                    (course) =>
-                        hasUsableCourseTree(course) &&
-                        course.code?.toLowerCase() === selectedCode?.toLowerCase(),
-                );
-                if (!courseData) {
-                    try {
-                        const sessionStorageCourses = readAllCoursesCache();
-                        courseData = findCachedCourse(sessionStorageCourses, selectedCode);
-                    } catch {
-                        // Fetch below when the browser cache cannot be read.
-                    }
-                }
-                if (!courseData) {
-                    const fetchingToast = toast.loading("Loading course data...");
-                    try {
-                        const response = await getCourse(selectedCode.toUpperCase());
-                        if (response.data?.found) {
-                            courseData = response.data;
-                            if (!hasUsableCourseTree(courseData)) {
-                                const refetched = await getCourse(selectedCode.toUpperCase());
-                                if (refetched.data?.found) {
-                                    courseData = refetched.data;
-                                }
-                            }
-                            dispatch(UpdateCourses(courseData));
-                            dispatch(AddNewCourseLocal(courseData));
-                            toast.dismiss(fetchingToast);
-                        } else {
-                            toast.dismiss(fetchingToast);
-                            toast.error("Course not found!");
-                            return;
-                        }
-                    } catch {
-                        toast.dismiss(fetchingToast);
-                        toast.error("Failed to load course data!");
-                        return;
-                    }
-                }
-                dispatch(ChangeCurrentCourse(courseData?.children || courseData, selectedCode));
-                navigate(`/browse/${selectedCode}`);
-            } catch (error) {
-                console.error("Error loading course:", error);
-                toast.error("Failed to load course!");
-            }
-        }
+    const parent = findParent(allYears);
+    const canGoBack = !!parent;
+    const handleBackClick = () =>
+        navigate(
+            parent ? "/browse/" + currCourseCode + "/" + parent._id : "/browse/" + currCourseCode,
+        );
+    const handleCourseChange = (event) => {
+        if (event.target.value) navigate("/browse/" + normalizeCourseCode(event.target.value));
     };
-    const handleYearChange = (e) => {
-        const selectedYearIndex = parseInt(e.target.value);
-        if (selectedYearIndex !== currYear && !isNaN(selectedYearIndex)) {
-            const selectedYear = allYears[selectedYearIndex];
-            if (selectedYear) {
-                dispatch(ClearFolderHistory()); // Clear folder history when changing years
-                dispatch(ChangeCurrentYearData(selectedYearIndex, selectedYear.children));
-                dispatch(ChangeFolder(selectedYear));
-                if (selectedYear._id) {
-                    navigate(`/browse/${currCourseCode}/${selectedYear._id}`);
-                } else {
-                    navigate(`/browse/${currCourseCode}`);
-                }
-            }
-        }
+    const handleYearChange = (event) => {
+        const year = allYears[Number(event.target.value)];
+        if (year) navigate("/browse/" + currCourseCode + "/" + year._id);
     };
-
     return (
         <Container color={"light"} type={"fluid"}>
             <div className="navbar-browse-screen">
@@ -527,7 +209,7 @@ const BrowseScreen = () => {
                 ) : (
                     <div className="left">
                         <h4 className="heading">MY COURSES</h4>
-                        {user.user?.courses?.map((course, idx) => {
+                        {user?.courses?.map((course, idx) => {
                             return (
                                 <Collapsible
                                     color={getColors(idx)}
@@ -537,7 +219,7 @@ const BrowseScreen = () => {
                                 />
                             );
                         })}
-                        {user.localCourses?.map((course, idx) => {
+                        {localCourses?.map((course, idx) => {
                             return (
                                 <Collapsible
                                     color={course.color}
@@ -547,9 +229,9 @@ const BrowseScreen = () => {
                             );
                         })}
 
-                        {user.user?.readOnly?.length > 0 && <h4 className="heading">OTHERS</h4>}
+                        {user?.readOnly?.length > 0 && <h4 className="heading">OTHERS</h4>}
 
-                        {user.user?.readOnly?.map((course, idx) => (
+                        {user?.readOnly?.map((course, idx) => (
                             <Collapsible
                                 color={course.color}
                                 key={`readonly-${idx}`}
@@ -558,12 +240,12 @@ const BrowseScreen = () => {
                             />
                         ))}
 
-                        {user.user?.isBR && user.user?.previousCourses?.length > 0 && (
+                        {user?.isBR && user?.previousCourses?.length > 0 && (
                             <h4 className="heading">PREVIOUS COURSES</h4>
                         )}
-                        {user.user?.isBR &&
-                            user.user?.previousCourses?.length > 0 &&
-                            user.user?.previousCourses?.map((semesterGroup, semIdx) => (
+                        {user?.isBR &&
+                            user?.previousCourses?.length > 0 &&
+                            user?.previousCourses?.map((semesterGroup, semIdx) => (
                                 <div key={semIdx}>
                                     <h5 className="semester-subheading">
                                         Semester {semesterGroup.semester} ({semesterGroup.year})
@@ -584,7 +266,7 @@ const BrowseScreen = () => {
                         <div className="middle">
                             {folderData && (
                                 <FolderInfo
-                                    isBR={user.user.isBR}
+                                    isBR={user.isBR}
                                     path={folderData?.path ? folderData.path : ""}
                                     name={folderData?.name ? folderData.name : HeaderText}
                                     canDownload={folderData?.childType === "File"}
@@ -645,7 +327,7 @@ const BrowseScreen = () => {
                         </div>
                         <div className="right">
                             <YearInfo
-                                isBR={user.user.isBR}
+                                isBR={user.isBR}
                                 courseCode={currCourseCode}
                                 course={currCourse}
                                 currYear={currYear}
@@ -655,9 +337,9 @@ const BrowseScreen = () => {
                 )}
             </div>
 
-            <Contributions key={`${code}/${folderId || ""}`} />
+            <Contributions key={`${currCourseCode}/${folderData?._id || ""}`} />
         </Container>
     );
-};
+}
 
 export default BrowseScreen;

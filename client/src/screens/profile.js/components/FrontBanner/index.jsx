@@ -1,8 +1,7 @@
+import { session } from "../../../../session/runtime";
+import { useSession } from "../../../../session/context";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
 import { updateUser } from "../../../../api/User";
-import { UpdateUserAction } from "../../../../actions/user_actions";
 import { useState } from "react";
 import Container from "../../../../components/container";
 import formatName from "../../../../utils/formatName";
@@ -12,15 +11,14 @@ import "react-toastify/dist/ReactToastify.css";
 import "./styles.scss";
 
 const FrontBanner = () => {
-    const dispatch = useDispatch();
     const [isNameEdit, setIsNameEdit] = useState(false);
-    const user = useSelector((state) => state.user);
-    const [userName, setUserName] = useState(formatName(user?.user?.name));
+    const user = useSession().data;
+    const [userName, setUserName] = useState(formatName(user?.name));
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState("");
 
     function editNameHandler() {
-        setUserName(user.user.name);
+        setUserName(user.name);
         setSaveError("");
         setIsNameEdit(true);
     }
@@ -33,14 +31,12 @@ const FrontBanner = () => {
         setSaving(true);
         setSaveError("");
         try {
-            const { data } = await updateUser({ newUserName: userName.trim() });
-            dispatch(UpdateUserAction({ newUserName: data.name }));
+            const data = await updateUser({ newUserName: userName.trim() });
+            session.setActor((current) => ({ ...current, name: data.name }));
             setIsNameEdit(false);
             toast.success("Profile updated");
         } catch (error) {
-            setSaveError(
-                error.response?.data?.message || "Could not save your name. Please try again.",
-            );
+            setSaveError(error.message || "Could not save your name. Please try again.");
         } finally {
             setSaving(false);
         }
@@ -76,7 +72,7 @@ const FrontBanner = () => {
                                     type="text"
                                 />
                             ) : (
-                                formatName(user?.user?.name)
+                                formatName(user?.name)
                             )}
                             {isNameEdit ? (
                                 <button
@@ -101,12 +97,10 @@ const FrontBanner = () => {
                                 {saveError}
                             </p>
                         )}
-                        <div className="branch">
-                            {formatBranch(user?.user?.degree, user?.user?.department)}
-                        </div>
+                        <div className="branch">{formatBranch(user?.degree, user?.department)}</div>
                     </div>
 
-                    <SemCard sem={user.user.semester} />
+                    <SemCard sem={user.semester} />
                 </div>
             </div>
         </Container>

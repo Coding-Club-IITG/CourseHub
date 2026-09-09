@@ -1,3 +1,4 @@
+import { withRevision } from "../../utils/resourceRevision.js";
 import {
     assertCourseIdentityAvailable,
     validCourseCode,
@@ -75,7 +76,7 @@ export async function getCourseDashboardData(req, res) {
     const contributions = await Promise.all(
         records.map((c) => presentContribution(req, c, normalizeCourseCode(course.code))),
     );
-    res.json({ course, studentCount, contributions });
+    res.json(withRevision({ course, studentCount, contributions }));
 }
 export async function deleteNode(req, res) {
     if (!["file", "folder"].includes(req.params.type)) throw new AppError(400, "Invalid node type");

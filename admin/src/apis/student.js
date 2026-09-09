@@ -1,4 +1,4 @@
-import { apiFetch, responseError } from "./http";
+import { apiFetch } from "./http";
 import { waitForOperation } from "./operations";
 import { API_BASE_URL } from "./server.js";
 
@@ -9,7 +9,10 @@ export const fetchStudents = async (brOnly = false) => {
         const url = brOnly ? `${API_BASE_URL}api/br/allBRs` : `${API_BASE_URL}api/student/all`;
         const response = await apiFetch(url, { credentials: "include" });
         const data = await response.json();
-        return { students: data.students || data.brs || [] };
+        const students = data.students ?? data.brs;
+        if (!Array.isArray(students))
+            throw new Error("The student list could not be read. Please try again.");
+        return { students };
     } catch (error) {
         console.error("Error fetching students :", error);
         throw error;
@@ -40,8 +43,6 @@ export const refreshStudentCourses = async (id) => {
             credentials: "include",
         });
         const result = await response.json();
-        if (!response.ok)
-            throw new Error(result.error || result.message || "Failed to refresh courses");
         const operation = await waitForOperation(result);
         return operation.synchronization || operation;
     } catch (error) {
@@ -58,8 +59,6 @@ export const deleteStudent = async (id) => {
             credentials: "include",
         });
         const result = await response.json();
-        if (!response.ok)
-            throw new Error(result.error || result.message || "Failed to delete student");
         return result;
     } catch (error) {
         console.error("Error deleting student:", error);
@@ -71,7 +70,6 @@ export const refreshAllStudentCourses = async () => {
     const response = await apiFetch(`${API_BASE_URL}api/admin/sync-courses-cache`, {
         method: "POST",
     });
-    if (!response.ok) throw await responseError(response, "Course refresh failed");
     const operation = await waitForOperation(await response.json());
     return operation.synchronization || operation;
 };

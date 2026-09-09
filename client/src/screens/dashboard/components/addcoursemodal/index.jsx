@@ -1,3 +1,4 @@
+import { useSession } from "../../../../session/context";
 import { normalizeCourseCode } from "@coursehub/domain";
 import Wrapper from "./components/wrapper";
 import SectionC from "./components/sectionC";
@@ -6,7 +7,6 @@ import "./styles.scss";
 import Space from "../../../../components/space";
 import { useState } from "react";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
 import { GetSearchResult } from "../../../../api/Search";
 import Result from "./components/result";
 import SmallLoader from "../../../../components/SmallLoader";
@@ -16,10 +16,10 @@ const AddCourseModal = ({ handleAddCourse }) => {
     const [err, setErr] = useState(null);
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
-    const user = useSelector((state) => state.user);
-    const userCourses = user.user?.courses || [];
-    const previousCourses = user.user?.previousCourses?.flatMap((sem) => sem.courses) || [];
-    const readOnlyCourses = user.user?.readOnly || [];
+    const user = useSession().data;
+    const userCourses = user?.courses || [];
+    const previousCourses = user?.previousCourses?.flatMap((sem) => sem.courses) || [];
+    const readOnlyCourses = user?.readOnly || [];
 
     const allUserCourseCodes = [...userCourses, ...previousCourses, ...readOnlyCourses].map((c) =>
         normalizeCourseCode(c.code),
@@ -45,7 +45,7 @@ const AddCourseModal = ({ handleAddCourse }) => {
             } else {
                 searchArr = code.split(" ");
             }
-            const { data } = await GetSearchResult(searchArr);
+            const data = await GetSearchResult(searchArr);
             if (data?.found === true) {
                 setResults(data.results);
                 setLoading(false);

@@ -1,11 +1,20 @@
-import API from "./http";
+import { transport } from "./http";
 
 export const operationEvent = "coursehub-operation";
-export const getOperation = async (id, signal) =>
-    (await API.get(`/operations/${id}`, { signal })).data;
-export const listOperations = async (signal) => (await API.get("/operations", { signal })).data;
-export const retryOperation = async (id) => (await API.post(`/operations/${id}/retry`, {})).data;
-export const cancelOperation = async (id) => (await API.post(`/operations/${id}/cancel`, {})).data;
+export const getOperation = (id, signal) => transport.json(`operations/${id}`, { signal });
+export const listOperations = (signal) => transport.json("operations", { signal });
+export const retryOperation = (id) =>
+    transport.json(`operations/${id}/retry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+    });
+export const cancelOperation = (id) =>
+    transport.json(`operations/${id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+    });
 export const announceOperation = (operation) =>
     window.dispatchEvent(new CustomEvent(operationEvent, { detail: operation }));
 

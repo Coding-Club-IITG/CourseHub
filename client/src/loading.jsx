@@ -1,16 +1,14 @@
+import { session } from "./session/runtime";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { getUser } from "./api/User";
 import { synchronizeCourses } from "./api/Course";
 import { getOperation } from "./api/Operation";
-import { LoginUser } from "./actions/user_actions";
 import { loginDestination } from "./utils/loginDestination";
 import "./loading.css";
 
 export default function LoadingPage() {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
     const [error, setError] = useState(null);
     const [attempt, setAttempt] = useState(0);
     const [saved, setSaved] = useState(null);
@@ -24,21 +22,15 @@ export default function LoadingPage() {
         const signal = controller.signal;
         setError(null);
         const finish = async () => {
-            const { data } = await getUser(signal);
+            await getUser(signal);
             if (signal.aborted) return;
-            dispatch(LoginUser(data));
             navigate(destination, { replace: true });
         };
         const fail = (failure) => {
             if (signal.aborted) return;
-            if (failure.response?.status === 401)
+            if (failure.status === 401)
                 navigate(`/?returnTo=${encodeURIComponent(destination)}`, { replace: true });
-            else
-                setError(
-                    failure.response?.data?.message ||
-                        failure.message ||
-                        "Courses could not be refreshed. Please try again.",
-                );
+            else setError(failure.message || "Courses could not be refreshed. Please try again.");
         };
         const poll = async (id) => {
             try {
@@ -56,7 +48,7 @@ export default function LoadingPage() {
         };
         (async () => {
             try {
-                const { data } = await getUser(signal);
+                const data = await getUser(signal);
                 if (signal.aborted) return;
                 setSaved(data);
                 const operation = await synchronizeCourses(signal);
@@ -69,7 +61,7 @@ export default function LoadingPage() {
             controller.abort();
             clearTimeout(timer);
         };
-    }, [attempt, destination, dispatch, navigate]);
+    }, [attempt, destination, navigate]);
 
     return (
         <main className="loading-page" aria-busy={!error}>
@@ -85,7 +77,7 @@ export default function LoadingPage() {
                     </button>
                 )}
                 {saved && (
-                    <Link to={destination} onClick={() => dispatch(LoginUser(saved))}>
+                    <Link to={destination} onClick={() => session.setActor(saved)}>
                         Continue with saved courses
                     </Link>
                 )}

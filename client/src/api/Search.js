@@ -1,9 +1,8 @@
-import axios from "./http";
-import serverRoot from "./server";
+import { transport } from "./http";
 
-export const GetSearchResult = async (wordArr) => {
-    const fetched = await axios.post(`${serverRoot}/api/search`, {
-        words: wordArr,
+export const GetSearchResult = (words) =>
+    transport.json("search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ words }),
     });
-    return fetched;
-};

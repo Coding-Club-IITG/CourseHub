@@ -1,5 +1,8 @@
+import { useQuery } from "@coursehub/browser";
+import { RequestError } from "@coursehub/browser/react";
+import { library } from "../session";
 import { useParams } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
 import {
     FiFolder,
@@ -76,33 +79,12 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
 export default function CourseDashboard() {
     const { code } = useParams();
 
-    const [loading, setLoading] = useState(true);
-    const [data, setData] = useState(null);
-
-    const loadData = useCallback(
-        async (isCurrent = () => true) => {
-            try {
-                const getDashboard = await fetchCourseDashboardData(code);
-                if (isCurrent()) setData(getDashboard);
-            } catch (error) {
-                if (isCurrent()) console.log(error);
-            } finally {
-                if (isCurrent()) setLoading(false);
-            }
-        },
-        [code],
+    const query = useQuery(
+        library.options("dashboard", code, ({ signal }) => fetchCourseDashboardData(code, signal)),
     );
-
-    useEffect(() => {
-        let active = true;
-        setLoading(true);
-        queueMicrotask(() => {
-            if (active) loadData(() => active);
-        });
-        return () => {
-            active = false;
-        };
-    }, [loadData]);
+    const data = query.data;
+    const loading = query.isPending;
+    const loadData = () => library.invalidate();
 
     const handleContributionAction = async (contributionId, action) => {
         const isApprove = action === "approve";
@@ -156,6 +138,7 @@ export default function CourseDashboard() {
         }
     };
 
+    if (query.isError) return <RequestError error={query.error} onRetry={query.refetch} />;
     if (loading) {
         return (
             <div className="flex min-h-[60vh] items-center justify-center gap-3 text-sm text-slate-600">

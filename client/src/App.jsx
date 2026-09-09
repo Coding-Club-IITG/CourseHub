@@ -1,3 +1,4 @@
+import RouteBoundary from "./router_utils/RouteBoundary";
 import { useState, useEffect } from "react";
 import BrowseScreen from "./screens/browse";
 import Dashboard from "./screens/dashboard";
@@ -9,15 +10,9 @@ import ProfilePage from "./screens/profile.js";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useSelector, useDispatch } from "react-redux";
 import ErrorScreen from "./screens/error";
-import { LoadLocalCourses } from "./actions/user_actions";
-import { migrateLegacyLocalCoursesFromSession, readLocalCoursesCache } from "./utils/frontendCache";
 
 const App = () => {
-    const [initial, setInitial] = useState(true);
-    const isLoggedIn = useSelector((state) => state.user.loggedIn);
-    const dispatch = useDispatch();
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     useEffect(() => {
@@ -28,33 +23,6 @@ const App = () => {
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
-
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get("fresh")) {
-            window.location.href = "/loading";
-            return;
-        }
-
-        if (!initial) return;
-
-        try {
-            const cleanedCourses = migrateLegacyLocalCoursesFromSession();
-            const fromLocal = readLocalCoursesCache();
-            const bootstrapCourses = cleanedCourses.length > 0 ? cleanedCourses : fromLocal;
-            if (bootstrapCourses.length > 0) {
-                dispatch(LoadLocalCourses(bootstrapCourses));
-            }
-        } catch (error) {
-            console.error("Error loading local courses:", error);
-        }
-    }, [initial, dispatch]);
-
-    useEffect(() => {
-        if (initial && isLoggedIn) {
-            setInitial(false);
-        }
-    }, [isLoggedIn, initial]);
 
     return (
         <div className="App">
@@ -80,18 +48,20 @@ const App = () => {
                 }
             />
             <Router>
-                <Routes>
-                    <Route path="/loading" element={<LoadingPage />} />
-                    <Route element={<PrivateRoutes />}>
-                        <Route element={<Dashboard />} path="dashboard" />
-                        <Route element={<ProfilePage />} path="profile" />
-                        <Route element={<BrowseScreen />} path="browse" />
-                        <Route element={<BrowseScreen />} path="browse/:code" />
-                        <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
-                    </Route>
-                    <Route element={<LandingPage />} path="/" />
-                    <Route element={<ErrorScreen />} path="*" />
-                </Routes>
+                <RouteBoundary>
+                    <Routes>
+                        <Route path="/loading" element={<LoadingPage />} />
+                        <Route element={<PrivateRoutes />}>
+                            <Route element={<Dashboard />} path="dashboard" />
+                            <Route element={<ProfilePage />} path="profile" />
+                            <Route element={<BrowseScreen />} path="browse" />
+                            <Route element={<BrowseScreen />} path="browse/:code" />
+                            <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
+                        </Route>
+                        <Route element={<LandingPage />} path="/" />
+                        <Route element={<ErrorScreen />} path="*" />
+                    </Routes>
+                </RouteBoundary>
             </Router>
         </div>
     );

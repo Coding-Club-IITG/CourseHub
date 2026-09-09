@@ -15,9 +15,10 @@ export const fetchBRs = async () => {
 };
 
 // Fetch all courses that don't have a branch representative
-export const fetchCoursesWithoutBR = async () => {
+export const fetchCoursesWithoutBR = async (signal) => {
     try {
         const response = await apiFetch(`${API_BASE_URL}api/br/coursesWithoutBR`, {
+            signal,
             credentials: "include",
         });
         return await response.json();
@@ -40,10 +41,6 @@ export const createBR = async (email) => {
         });
 
         const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || result.message || "Failed to create BR");
-        }
 
         return result;
     } catch (error) {
@@ -85,10 +82,6 @@ export const uploadBRs = async (file) => {
 
         const result = await response.json();
 
-        if (!response.ok) {
-            throw result;
-        }
-
         return result;
     } catch (error) {
         console.error("Error uploading BRs:", error);
@@ -107,9 +100,6 @@ export const deleteBR = async (email) => {
             body: JSON.stringify({ email: email }),
         });
         const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.error || result.message || "Failed to delete BR");
-        }
         return result;
     } catch (error) {
         console.error("Error deleting single BR:", error);

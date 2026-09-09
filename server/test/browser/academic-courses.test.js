@@ -54,8 +54,8 @@ async function fixture(t, width, administrator = false) {
             data = [
                 {
                     _id: "507f1f77bcf86cd799439051",
-                    code: "CS101",
-                    name: "Original course",
+                    code: state.saved ? "CS102" : "CS101",
+                    name: state.saved ? "Saved name" : "Original course",
                     children: [],
                 },
             ];

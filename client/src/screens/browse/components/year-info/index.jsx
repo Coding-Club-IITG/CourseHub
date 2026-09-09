@@ -1,18 +1,9 @@
+import { useSession } from "../../../../session/context";
+import { library } from "../../../../session/runtime";
 import { canManageCourse } from "../../../../utils/capabilities";
 import { toast } from "react-toastify";
 import { useState } from "react";
-import { useSelector } from "react-redux";
 import { addYear, deleteYear } from "../../../../api/Year";
-import { getCourse } from "../../../../api/Course";
-import { useDispatch } from "react-redux";
-import {
-    ChangeCurrentYearData,
-    ChangeCurrentCourse,
-    ChangeFolder,
-    UpdateCourses,
-    ClearFolderHistory,
-    RefreshCurrentFolder,
-} from "../../../../actions/filebrowser_actions";
 
 import { ConfirmDialog } from "./confirmDialog";
 import { ConfirmDelDialog } from "./confirmDelDialog";
@@ -24,14 +15,13 @@ const YearInfo = ({
     course, // years list
     currYear,
 }) => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
     const [showConfirm, setShowConfirm] = useState(false);
     const [showConfirmDel, setShowConfirmDel] = useState(false);
     const [newYearName, setNewYearName] = useState("");
     const [isAddingYear, setIsAddingYear] = useState(false);
     const [isDeletingYear, setIsDeletingYear] = useState(false);
-    const user = useSelector((state) => state.user.user);
+    const user = useSession().data;
     const canManage = canManageCourse(user, courseCode);
 
     const handleAddYear = () => {
@@ -60,53 +50,14 @@ const YearInfo = ({
         }
 
         try {
-            const res = await getCourse(courseCode);
-            if (!res.data?.found) {
-                toast.error("Course not found. Cannot add year.");
-                setIsAddingYear(false);
-                return;
-            }
             const selectedYearId = course?.[currYear]?._id;
-
-            await addYear({
-                name: yearName.trim(),
-                course: courseCode,
-            });
-
-            const refreshed = await getCourse(courseCode);
-            if (!refreshed.data?.found) {
-                toast.error("Course not found after creating year.");
-                setIsAddingYear(false);
-                return;
-            }
-
-            const latestCourse = refreshed.data;
-            const latestYears = Array.isArray(latestCourse.children) ? latestCourse.children : [];
-
-            let nextYearIndex = 0;
-            if (selectedYearId) {
-                const existingYearIndex = latestYears.findIndex((y) => y._id === selectedYearId);
-                if (existingYearIndex >= 0) {
-                    nextYearIndex = existingYearIndex;
-                }
-            }
-
-            const nextYearFolder = latestYears[nextYearIndex] || null;
-            const nextYearChildren = Array.isArray(nextYearFolder?.children)
-                ? nextYearFolder.children
-                : [];
-
-            dispatch(UpdateCourses(latestCourse));
-            dispatch(ChangeCurrentCourse(latestYears, latestCourse.code));
-            dispatch(ChangeCurrentYearData(nextYearIndex, nextYearChildren));
-            dispatch(ChangeFolder(nextYearFolder));
-            dispatch(ClearFolderHistory());
-            dispatch(RefreshCurrentFolder());
-
-            if (courseCode && nextYearFolder?._id) {
-                navigate(`/browse/${courseCode}/${nextYearFolder._id}`);
-            }
-
+            const created = await addYear({ name: yearName, course: courseCode });
+            await library.invalidate([courseCode]);
+            navigate(
+                "/browse/" +
+                    courseCode +
+                    (selectedYearId || created?._id ? "/" + (selectedYearId || created._id) : ""),
+            );
             toast.success(`Year "${yearName}" added`);
         } catch {
             toast.error("Failed to add year.");
@@ -128,39 +79,8 @@ const YearInfo = ({
                 courseCode: courseCode,
             });
 
-            const refreshed = await getCourse(courseCode);
-            if (!refreshed.data?.found) {
-                toast.error("Course not found after deleting year.");
-                setShowConfirmDel(false);
-                setIsDeletingYear(false);
-                return;
-            }
-
-            const latestCourse = refreshed.data;
-            const latestYears = Array.isArray(latestCourse.children) ? latestCourse.children : [];
-
-            const nextYearIndex = latestYears.length
-                ? Math.min(currYear, latestYears.length - 1)
-                : null;
-            const nextYearFolder =
-                nextYearIndex !== null && nextYearIndex >= 0 ? latestYears[nextYearIndex] : null;
-            const nextYearChildren = Array.isArray(nextYearFolder?.children)
-                ? nextYearFolder.children
-                : [];
-
-            dispatch(UpdateCourses(latestCourse));
-            dispatch(ChangeCurrentCourse(latestYears, latestCourse.code));
-            dispatch(ChangeCurrentYearData(nextYearIndex, nextYearChildren));
-            dispatch(ChangeFolder(nextYearFolder));
-            dispatch(ClearFolderHistory());
-            dispatch(RefreshCurrentFolder());
-
-            if (courseCode && nextYearFolder?._id) {
-                navigate(`/browse/${courseCode}/${nextYearFolder._id}`);
-            } else if (courseCode) {
-                navigate(`/browse/${courseCode}`);
-            }
-
+            await library.invalidate([courseCode]);
+            navigate("/browse/" + courseCode);
             toast.success("Year deleted successfully!");
             setShowConfirmDel(false);
         } catch {
@@ -189,14 +109,6 @@ const YearInfo = ({
                                     <span
                                         className={`year ${currYear === idx ? "selected" : ""}`}
                                         onClick={() => {
-                                            dispatch(ClearFolderHistory());
-                                            dispatch(
-                                                ChangeCurrentYearData(
-                                                    idx,
-                                                    course[idx]?.children || [],
-                                                ),
-                                            );
-                                            dispatch(ChangeFolder(course[idx]));
                                             if (courseCode && course[idx]?._id) {
                                                 navigate(
                                                     `/browse/${courseCode}/${course[idx]._id}`,

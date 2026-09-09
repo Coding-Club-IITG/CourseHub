@@ -1,3 +1,4 @@
+import RouteBoundary from "./router_utils/RouteBoundary";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import CoursesWithoutBR from "./pages/CoursesWithoutBR";
@@ -18,75 +19,77 @@ function App() {
                 <div className="mx-auto flex">
                     <Sidebar />
                     <main className="flex-1 min-h-screen">
-                        <Routes>
-                            <Route
-                                path="/admin/operations"
-                                element={
-                                    <PrivateRoute>
-                                        <Operations />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/courses/:code"
-                                element={
-                                    <PrivateRoute>
-                                        <CourseDashboard />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route path="/admin/login" element={<Login />} />
-                            <Route
-                                path="/admin/"
-                                element={
-                                    <PrivateRoute>
-                                        <Students />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/students"
-                                element={
-                                    <PrivateRoute>
-                                        <Students />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/courses"
-                                element={
-                                    <PrivateRoute>
-                                        <Courses />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/course-linking"
-                                element={
-                                    <PrivateRoute>
-                                        <CourseLinking />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/courses-without-br"
-                                element={
-                                    <PrivateRoute>
-                                        <CoursesWithoutBR />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="*"
-                                element={
-                                    <div className="p-10">
-                                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-10">
-                                            Page Not Found
+                        <RouteBoundary>
+                            <Routes>
+                                <Route
+                                    path="/admin/operations"
+                                    element={
+                                        <PrivateRoute>
+                                            <Operations />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/admin/courses/:code"
+                                    element={
+                                        <PrivateRoute>
+                                            <CourseDashboard />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route path="/admin/login" element={<Login />} />
+                                <Route
+                                    path="/admin/"
+                                    element={
+                                        <PrivateRoute>
+                                            <Students />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/admin/students"
+                                    element={
+                                        <PrivateRoute>
+                                            <Students />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/admin/courses"
+                                    element={
+                                        <PrivateRoute>
+                                            <Courses />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/admin/course-linking"
+                                    element={
+                                        <PrivateRoute>
+                                            <CourseLinking />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/admin/courses-without-br"
+                                    element={
+                                        <PrivateRoute>
+                                            <CoursesWithoutBR />
+                                        </PrivateRoute>
+                                    }
+                                />
+                                <Route
+                                    path="*"
+                                    element={
+                                        <div className="p-10">
+                                            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-10">
+                                                Page Not Found
+                                            </div>
                                         </div>
-                                    </div>
-                                }
-                            />
-                        </Routes>
+                                    }
+                                />
+                            </Routes>
+                        </RouteBoundary>
                     </main>
                 </div>
                 <ToastContainer position="bottom-right" autoClose={5000} />

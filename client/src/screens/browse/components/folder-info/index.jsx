@@ -1,3 +1,5 @@
+import { useCourseBrowser } from "../../../../queries/browserContext";
+import { transport } from "../../../../api/http";
 import { getFileDownloadLink } from "../../../../api/File";
 import "./styles.scss";
 import { toast } from "react-toastify";
@@ -5,8 +7,7 @@ import clientRoot from "../../../../api/server";
 import Share from "../../../share";
 import { useState } from "react";
 import { createFolder } from "../../../../api/Folder";
-import { ChangeFolder } from "../../../../actions/filebrowser_actions";
-import { useDispatch, useSelector } from "react-redux";
+
 import { ConfirmDialog } from "./confirmDialog";
 
 import JSZip from "jszip";
@@ -23,8 +24,7 @@ const FolderInfo = ({
     courseCode,
     isMobileView = false, // New prop for mobile view
 }) => {
-    const dispatch = useDispatch();
-    const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
+    const currentFolder = useCourseBrowser().currentFolder;
     const totalSubtreeFiles = getSubtreeFileCount(currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
@@ -68,21 +68,13 @@ const FolderInfo = ({
         }
 
         try {
-            const newFolder = await createFolder({
+            await createFolder({
                 name: folderName.trim(),
                 course: courseCode,
                 parentFolder: folderId,
                 childType: childType,
             });
 
-            if (currentFolder) {
-                dispatch(
-                    ChangeFolder({
-                        ...currentFolder,
-                        children: [...(currentFolder.children || []), newFolder],
-                    }),
-                );
-            }
             toast.success(`Folder "${folderName}" created`);
         } catch {
             toast.error("Failed to create folder.");
@@ -130,8 +122,7 @@ const FolderInfo = ({
                     try {
                         const downloadLink = await getFileDownloadLink(child._id, courseCode);
 
-                        const curfile = await fetch(downloadLink, { credentials: "include" });
-                        if (!curfile.ok) throw new Error("File is no longer accessible");
+                        const curfile = await transport.request(downloadLink);
                         const fileBlob = await curfile.blob();
 
                         const filePath = folderPath ? `${folderPath}/${child.name}` : child.name;

@@ -1,10 +1,10 @@
+import { useSession } from "../../../../session/context";
 import "./styles.scss";
 import { useMemo, useState } from "react";
 import { GetSearchResult } from "../../../../api/Search";
 import formatLongText from "../../../../utils/formatLongText";
 import { useEffect } from "react";
 import { capitalise } from "../../../../utils/capitalise";
-import { useSelector } from "react-redux";
 import SmallLoader from "../../../SmallLoader";
 const SearchBar = ({ type }) => {
     const [open, setOpen] = useState(false);
@@ -12,7 +12,7 @@ const SearchBar = ({ type }) => {
     const [loading, setLoading] = useState(false);
     const [fetched, setFetched] = useState({});
     const [error, setError] = useState(false);
-    const user = useSelector((state) => state.user.user);
+    const user = useSession().data;
     const courses = useMemo(
         () =>
             (user?.courses || [])

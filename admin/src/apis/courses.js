@@ -1,14 +1,18 @@
-import { apiFetch, responseError } from "./http";
+import { apiFetch } from "./http";
 import { API_BASE_URL } from "./server.js";
 import { waitForOperation } from "./operations";
 
 // Fetch all courses
-export const fetchCourses = async () => {
+export const fetchCourses = async (signal) => {
     try {
         const response = await apiFetch(`${API_BASE_URL}api/admin/dbcourses`, {
+            signal,
             credentials: "include",
         });
-        return await response.json();
+        const data = await response.json();
+        if (!Array.isArray(data))
+            throw new Error("The course list could not be read. Please try again.");
+        return data;
     } catch (error) {
         console.error("Error fetching courses:", error);
         throw error;
@@ -27,7 +31,6 @@ export const updateCourseName = async (code, newName, newCode) => {
             body: JSON.stringify({ name: newName, newCode }),
             credentials: "include",
         });
-        if (!response.ok) throw await responseError(response, "Could not save the course");
         const completed = await waitForOperation(await response.json());
         return completed.course || completed;
     } catch (error) {
@@ -141,11 +144,6 @@ export const deleteCourse = async (code) => {
             credentials: "include",
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Failed to delete course");
-        }
-
         return await waitForOperation(await response.json());
     } catch (error) {
         console.error("Error deleting course:", error);
@@ -153,16 +151,13 @@ export const deleteCourse = async (code) => {
     }
 };
 
-export const fetchCourseDashboardData = async (code) => {
+export const fetchCourseDashboardData = async (code, signal) => {
     try {
         const safeCode = code.toLowerCase().trim();
         const response = await apiFetch(`${API_BASE_URL}api/admin/course/${safeCode}/dashboard`, {
+            signal,
             credentials: "include",
         });
-
-        if (!response.ok) {
-            throw new Error("Failed to get dashboard data");
-        }
         return await response.json();
     } catch (error) {
         console.error("Error fetching dashboard:", error);
@@ -180,10 +175,6 @@ export const handleContribution = async (contributionId, action, courseCode, aff
             body: JSON.stringify({ contributionId, action, courseCode, affectedCourses }),
             credentials: "include",
         });
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.message || `Failed to ${action} contribution`);
-        }
         return await waitForOperation(await response.json());
     } catch (error) {
         console.error("Error handling contribution:", error);
@@ -201,10 +192,6 @@ export const deleteNode = async (type, id, courseCode, affectedCourses) => {
             body: JSON.stringify({ courseCode, affectedCourses }),
             credentials: "include",
         });
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || "Failed to delete Item");
-        }
         return await waitForOperation(await response.json());
     } catch (error) {
         console.error("Error deleting node:", error);

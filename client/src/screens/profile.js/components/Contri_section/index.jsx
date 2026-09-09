@@ -1,9 +1,9 @@
+import { useSession } from "../../../../session/context";
 import Container from "../../../../components/container";
 import Contribution_card from "./ContributionCard";
 import "./styles.scss";
 import SubHeading from "../../../../components/subheading";
 import { GetMyContributions, GetBrContribution } from "../../../../api/Contribution";
-import { useSelector } from "react-redux";
 import Loader from "../../../../components/Loader";
 
 import { useEffect, useState } from "react";
@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 const Contrisection = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [myContributions, setMyContributions] = useState([]);
-    const isBR = useSelector((state) => state.user.user.isBR);
+    const isBR = useSession().data?.isBR;
     const [brContributions, setBrContributions] = useState([]);
     const [loadError, setLoadError] = useState("");
     useEffect(() => {
@@ -22,8 +22,8 @@ const Contrisection = () => {
             try {
                 const resp = await (isBR ? GetBrContribution() : GetMyContributions());
                 if (!active) return;
-                if (isBR) setBrContributions([...resp.data.unverifiedContributions]);
-                else setMyContributions([...resp.data]);
+                if (isBR) setBrContributions([...resp.unverifiedContributions]);
+                else setMyContributions([...resp]);
             } catch {
                 if (active)
                     setLoadError("Could not load contributions. Please reload to try again.");

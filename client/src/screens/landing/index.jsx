@@ -1,51 +1,28 @@
 import { loginDestination } from "../../utils/loginDestination";
 import MicrosoftSignIn from "./components/microsoftbutton";
 import "./styles.scss";
-import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { LoginUser, LogoutUser } from "../../actions/user_actions";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { getUser, handleLogin } from "../../api/User";
+import { Navigate } from "react-router-dom";
+import { handleLogin } from "../../api/User";
+import { useSession } from "../../session/context";
 import Loader from "../../components/Loader";
-import { clearLegacySessionLocalCoursesCache } from "../../utils/frontendCache";
-
+import { RequestError } from "@coursehub/browser/react";
 const LandingPage = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        clearLegacySessionLocalCoursesCache();
-    }, []);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        async function getAuth() {
-            try {
-                const { data } = await getUser(controller.signal);
-                if (controller.signal.aborted) return;
-                if (!data) {
-                    dispatch(LogoutUser());
-                    setLoading(false);
-                    return;
-                }
-                dispatch(LoginUser(data));
-                setLoading(false);
-                navigate(
-                    loginDestination(new URLSearchParams(window.location.search).get("returnTo")),
-                    { replace: true },
-                );
-            } catch {
-                if (controller.signal.aborted) return;
-                dispatch(LogoutUser());
-                setLoading(false);
-            }
-        }
-        getAuth();
-        return () => controller.abort();
-    }, [dispatch, navigate]);
-
+    const result = useSession();
+    if (result.data)
+        return (
+            <Navigate
+                to={loginDestination(new URLSearchParams(window.location.search).get("returnTo"))}
+                replace
+            />
+        );
+    if (result.isError)
+        return (
+            <RequestError
+                title="We couldn’t check your session. Please try again."
+                onRetry={result.refetch}
+            />
+        );
+    const loading = result.isPending;
     return loading ? (
         <div
             style={{

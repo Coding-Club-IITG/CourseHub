@@ -1,3 +1,4 @@
+import { withRevision } from "../utils/resourceRevision.js";
 import { FileModel } from "../modules/course/course.model.js";
 import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import BR from "../modules/br/br.model.js";
@@ -247,14 +248,14 @@ async function presentTree(req, roots, code) {
 export async function presentFolder(req, id, code) {
     const graph = await libraryGraph(req);
     if (!graph.folderCourses.get(idOf(id))?.has(code)) return null;
-    return (await presentTree(req, [id], code))[0] || null;
+    return withRevision((await presentTree(req, [id], code))[0] || null);
 }
 
 export async function presentCourse(req, value) {
     const { course, code, capabilities: permitted } = await requireCourse(req, value);
     const children = await presentTree(req, course.children, code);
     children.sort((a, b) => a.name.localeCompare(b.name));
-    return { ...course, children, capabilities: permitted };
+    return withRevision({ ...course, children, capabilities: permitted });
 }
 
 export async function visibleFiles(req) {

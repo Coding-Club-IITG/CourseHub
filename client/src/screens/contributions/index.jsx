@@ -7,12 +7,11 @@ import { isUploadLimits, uploadLimitsLabel, uploadLimitsError } from "@coursehub
 import { useLocation } from "react-router-dom";
 import "./styles.scss";
 import { CreateNewContribution } from "../../api/Contribution";
-import { useSelector, useDispatch } from "react-redux";
+import { useCourseBrowser } from "../../queries/browserContext";
+import { library } from "../../session/runtime";
 import server from "../../api/server";
-import API from "../../api/http";
-import { ChangeFolder, RefreshCurrentFolder } from "../../actions/filebrowser_actions";
-import { fetchFolder } from "../../api/Folder";
-import { getCsrfToken } from "../../api/csrf";
+
+import { transport } from "../../api/http";
 import {
     getOperation,
     retryOperation,
@@ -32,15 +31,14 @@ const stateLabels = {
     cancelled: "Cancelled",
 };
 const Contributions = () => {
-    const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
-    const currentCourseCode = useSelector((state) => state.fileBrowser.currentCourseCode);
+    const currentFolder = useCourseBrowser().currentFolder;
+    const currentCourseCode = useCourseBrowser().currentCourseCode;
     const isBR = currentFolder?.capabilities?.canManage === true;
-    const dispatch = useDispatch();
     const location = useLocation();
     const pond = useRef();
     const operationRef = useRef();
     const requestKey = useRef();
-    const csrfToken = useRef("");
+    const uploadHeaders = useRef("");
     const fileIds = useRef(new Map());
     const transfers = useRef(new Map());
     const mounted = useRef(true);
@@ -72,8 +70,9 @@ const Contributions = () => {
     useEffect(() => {
         const controller = new AbortController();
         setLimitsError(false);
-        API.get("/contribution/limits", { signal: controller.signal })
-            .then(({ data }) => {
+        transport
+            .json("contribution/limits", { signal: controller.signal })
+            .then((data) => {
                 if (!isUploadLimits(data)) throw new Error("Invalid upload limits");
                 setLimits(data);
             })
@@ -148,8 +147,7 @@ const Contributions = () => {
             for (const [name, value] of Object.entries({
                 "contribution-id": op.id,
                 "upload-file-id": id,
-                "X-CSRF-Token": csrfToken.current,
-                "X-Session-Role": "student",
+                ...uploadHeaders.current,
             }))
                 xhr.setRequestHeader(name, value);
             xhr.upload.onprogress = (event) =>
@@ -163,6 +161,7 @@ const Contributions = () => {
             xhr.onload = async () => {
                 try {
                     const data = JSON.parse(xhr.responseText);
+                    transport.checkResponse(xhr.status, data);
                     if (xhr.status !== 202)
                         throw new Error(data.message || "This file was not accepted");
                     for (;;) {
@@ -213,7 +212,7 @@ const Contributions = () => {
             let current = operationRef.current;
             if (!current) {
                 requestKey.current ||= crypto.randomUUID();
-                const { data } = await CreateNewContribution(
+                const data = await CreateNewContribution(
                     {
                         parentFolder: currentFolder._id,
                         courseCode: currentCourseCode || currentFolder.courses?.[0],
@@ -243,7 +242,8 @@ const Contributions = () => {
                     throw new Error("Choose the original failed files to retry this batch.");
                 fileIds.current.set(item.file, available.splice(index, 1)[0].id);
             }
-            csrfToken.current = await getCsrfToken(true);
+            transport.clearCsrfToken();
+            uploadHeaders.current = await transport.uploadHeaders();
             const queue = files.filter(
                 (item) =>
                     current.entries.find((entry) => entry.id === fileIds.current.get(item.file))
@@ -274,8 +274,7 @@ const Contributions = () => {
             showOperation(result);
         } catch (failure) {
             setError(
-                failure.response?.data?.message ||
-                    failure.message ||
+                failure.message ||
                     "Some files failed. Successful uploads are preserved; retry the failed files.",
             );
             if (operationRef.current) {
@@ -292,11 +291,7 @@ const Contributions = () => {
             if (mounted.current) {
                 setBusy(false);
                 try {
-                    const folder = await fetchFolder(currentFolder._id, currentCourseCode);
-                    if (mounted.current) {
-                        dispatch(ChangeFolder(folder));
-                        dispatch(RefreshCurrentFolder());
-                    }
+                    await library.invalidate([currentCourseCode]);
                 } catch {
                     /* The operation result is retained when the folder cannot refresh. */
                 }

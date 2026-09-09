@@ -25,7 +25,8 @@
         "react-toastify": "11.1.0",
         "tailwind-merge": "3.6.0",
         "@coursehub/domain": "1.0.0",
-        "@coursehub/ui": "1.0.0"
+        "@coursehub/ui": "1.0.0",
+        "@coursehub/browser": "1.0.0"
     },
     "devDependencies": {
         "@vitejs/plugin-react": "6.1.1",

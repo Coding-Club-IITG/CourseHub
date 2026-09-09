@@ -1,10 +1,10 @@
-import axios from "./http";
-import root from "./server";
+import { transport } from "./http";
 
-export const getCourse = async (code) => {
-    const resp = await axios.get(`${root}/api/course/${code}`);
-    return resp;
-};
-
-export const synchronizeCourses = async (signal) =>
-    (await axios.post(`${root}/api/user/synchronize`, {}, { signal })).data;
+export const getCourse = (code, signal) => transport.json(`course/${code}`, { signal });
+export const synchronizeCourses = (signal) =>
+    transport.json("user/synchronize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+        signal,
+    });

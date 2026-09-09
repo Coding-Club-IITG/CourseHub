@@ -3,17 +3,13 @@ import "./styles.scss";
 import Logo from "./components/logo";
 import NavLink from "./components/navlink";
 import SearchBar from "./components/searchbar";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { logoutUser } from "../../api/User";
 import { toast } from "react-toastify";
 
-import { LogoutUser } from "../../actions/user_actions";
-
 const NavBar = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const mobileMenuRef = useRef(null);
     const toggleButtonRef = useRef(null);
@@ -21,7 +17,6 @@ const NavBar = () => {
     const handleLogout = async () => {
         try {
             await logoutUser();
-            dispatch(LogoutUser());
             window.location.href = "/";
         } catch {
             toast.error("Could not log out. Please try again.");

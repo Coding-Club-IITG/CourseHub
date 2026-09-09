@@ -17,6 +17,7 @@ export default defineConfig([
             "client/src/**/*.{js,jsx}",
             "admin/src/**/*.{js,jsx}",
             "packages/ui/src/**/*.{js,jsx}",
+            "packages/browser/src/**/*.{js,jsx}",
         ],
         languageOptions: {
             globals: globals.browser,

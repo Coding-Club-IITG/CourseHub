@@ -1,0 +1,24 @@
+{
+    "name": "@coursehub/browser",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./src/index.js",
+        "./react": "./src/react.jsx"
+    },
+    "dependencies": {
+        "@tanstack/react-query": "5.102.8",
+        "@coursehub/domain": "1.0.0"
+    },
+    "peerDependencies": {
+        "react": "^19.2.8"
+    },
+    "scripts": {
+        "test": "node --test test/*.test.js"
+    },
+    "engines": {
+        "node": ">=24 <25",
+        "npm": ">=11 <12"
+    }
+}

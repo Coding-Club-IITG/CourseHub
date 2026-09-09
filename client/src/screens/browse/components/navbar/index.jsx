@@ -4,8 +4,6 @@ import Logo from "./components/logo";
 import NavLink from "../../../../components/navbar/components/navlink";
 
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { LogoutUser } from "../../../../actions/user_actions";
 import { logoutUser } from "../../../../api/User";
 import { toast } from "react-toastify";
 
@@ -15,12 +13,10 @@ const NavBarBrowseScreen = () => {
     const toggleButtonRef = useRef(null);
 
     const navigate = useNavigate();
-    const dispatch = useDispatch();
 
     const handleLogout = async () => {
         try {
             await logoutUser();
-            dispatch(LogoutUser());
             window.location.href = "/";
         } catch {
             toast.error("Could not log out. Please try again.");

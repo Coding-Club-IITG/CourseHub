@@ -1,18 +1,16 @@
+import { useSession } from "../../../../session/context";
+import { useCourseBrowser } from "../../../../queries/browserContext";
 import "./styles.scss";
 import { useState } from "react";
 import { formatFileName, formatFileSize, formatFileType } from "../../../../utils/formatFile";
 import { toast } from "react-toastify";
-import { useDispatch, useSelector } from "react-redux";
-import { ChangeFolder } from "../../../../actions/filebrowser_actions.js";
+
 import clientRoot from "../../../../api/server";
 import capitalise from "../../../../utils/capitalise.js";
 import Share from "../../../share";
 import API_BASE_URL from "../../../../api/server";
 import { verifyFile, unverifyFile, renameFile } from "../../../../api/File";
-import {
-    RemoveFileFromFolder,
-    UpdateFileVerificationStatus,
-} from "../../../../actions/filebrowser_actions.js";
+
 import ConfirmDialog from "./components/ConfirmDialog.jsx";
 import FileRename from "./components/FileRename.jsx";
 import { getFileDownloadLink } from "../../../../api/File";
@@ -48,14 +46,12 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
         untruncatedDispName = file.name;
         contributor = "Anonymous";
     }
-    const isLoggedIn = useSelector((state) => state.user?.loggedIn);
-    const currCourseCode = useSelector((state) => state.fileBrowser?.currentCourseCode);
-    const currFolderId = useSelector((state) => state.fileBrowser?.currentFolder?._id);
+    const isLoggedIn = !!useSession().data;
+    const currCourseCode = useCourseBrowser().currentCourseCode;
+    const currFolderId = useCourseBrowser().currentFolder?._id;
     const canManage = file.capabilities?.canManage === true;
 
-    const currentFolder = useSelector((state) => state.fileBrowser?.currentFolder);
     const [isEditing, setIsEditing] = useState(false);
-    const dispatch = useDispatch();
 
     const thumbnailUrl = file.thumbnail?.url
         ? new URL(file.thumbnail.url, API_BASE_URL).href
@@ -80,19 +76,11 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
         }
 
         try {
-            const responseData = await renameFile(file._id, trimmed, currCourseCode);
+            await renameFile(file._id, trimmed, currCourseCode);
             toast.success("File renamed successfully!");
-            dispatch(
-                ChangeFolder({
-                    ...currentFolder,
-                    children: (currentFolder?.children || []).map((child) =>
-                        child._id === file._id ? { ...child, name: responseData.file.name } : child,
-                    ),
-                }),
-            );
         } catch (err) {
             console.error("Error renaming file:", err);
-            toast.error(err.response?.data?.message || "Failed to rename file");
+            toast.error(err.message || "Failed to rename file");
         }
     };
 
@@ -136,7 +124,6 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
                 setIsProcessing(true);
                 await verifyFile(file._id, currCourseCode);
                 toast.success("File verified!");
-                dispatch(UpdateFileVerificationStatus(file._id, true));
             } catch (err) {
                 console.error("Error verifying:", err);
                 toast.error("Failed to verify file.");
@@ -157,7 +144,6 @@ const FileDisplay = ({ file, isMobileView = false, index = 0 }) => {
                 setIsProcessing(true);
                 await unverifyFile(file._id, currCourseCode, file.affectedCourses);
                 toast.success("File deleted!");
-                dispatch(RemoveFileFromFolder(file._id));
             } catch (err) {
                 console.error("Error deleting:", err);
                 toast.error("Failed to delete file.");

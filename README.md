@@ -118,7 +118,7 @@ An administration portal supports student, BR, course, and content management ac
 
 ```mermaid
 graph LR
-    Student["Student Web App<br/>React 19 · Vite 8 · Redux"]
+    Student["Student Web App<br/>React 19 · Vite 8 · TanStack Query"]
     Admin["Admin Portal<br/>React 19 · Vite 8 · Tailwind CSS"]
     API["CourseHub API<br/>Node 24 · Express 5 · Mongoose 9"]
     Auth["Identity<br/>Microsoft OAuth · JWT"]
@@ -145,7 +145,6 @@ graph LR
 <p align="center">
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Redux-593D88?style=for-the-badge&logo=redux&logoColor=white" alt="Redux" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/Express-404D59?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
@@ -155,9 +154,9 @@ graph LR
 
 ### Student Client
 
-The student-facing application is built with React, Vite, Redux, React Router, and SCSS.
+The student-facing application is built with React, Vite, TanStack Query, React Router, and SCSS.
 It provides the course dashboard, nested file browser, search, favourites, profile, and contribution workflows.
-Course trees are cached in the browser to make repeated navigation faster and reduce redundant API requests.
+Course trees use an actor-scoped query cache in memory. URLs select courses and folders, and revalidation keeps shared content current.
 
 ### Administration Portal
 
@@ -189,12 +188,13 @@ coursehub/
 ├── client/              # Student React app, browser requests and navigation state
 ├── admin/               # Administrator React app and management screens
 ├── server/              # API, models, permission services, workers and tests
-├── packages/            # Shared domain contracts and React UI package boundary
+├── packages/            # Shared domain, browser/session code and React UI boundary
 ├── docs/                # Explanations, operating procedures and implementation guides
 └── .github/workflows/   # Current CI and deployment workflows
 ```
 
 `@coursehub/domain` supplies shared course-code and upload contracts.
+`@coursehub/browser` supplies the common HTTP transport, session queries and course cache behavior.
 `@coursehub/ui` defines the package boundary for shared primitives.
 
 ## Local Setup
@@ -255,7 +255,7 @@ npm run lint
 npm run build
 ```
 
-The root test command runs shared-domain contracts and server unit tests. The server unit tests use mocked dependencies. Database integrations are a separate command and require an **empty, isolated** database in the `coursehub_test_` namespace:
+The root test command runs shared-domain, browser transport/cache contracts and server unit tests. The server unit tests use mocked dependencies. Database integrations are a separate command and require an **empty, isolated** database in the `coursehub_test_` namespace:
 
 ```sh
 TEST_MONGO_URI=mongodb://127.0.0.1:27017/coursehub_test_local_run npm --prefix server run test:db
@@ -279,7 +279,8 @@ Start with the guide that matches what you are trying to understand:
 | [Course References and Data Maintenance](docs/data-maintenance.md)        | Renames, old bookmarks, inventory, staged imports and reviewed migration recovery.                       |
 | [Authentication and Sessions](docs/authentication.md)                     | Student/admin login, permissions, cookies, CSRF and environment configuration.                           |
 | [Storage, Uploads and Cleanup](docs/storage-operations.md)                | File lifecycle, partial success, cancellation, authenticated delivery and recoverable deletion.          |
-| [Frontend Caching](docs/frontend-caching.md)                              | Current browser cache behavior, its limitations and how to investigate stale views.                      |
+| [Frontend Sessions](docs/frontend-sessions.md)                            | Session restoration, sign-in destinations, request errors and retries.                                   |
+| [Frontend Caching](docs/frontend-caching.md)                              | Query caches, URL selection, shared invalidation and freshness checks.                                   |
 
 The [public usage guide](https://codingclub.in/blog/meet-coursehub-find-share-and-organise-course-material) provides a broader introduction to CourseHub.
 

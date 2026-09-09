@@ -1,18 +1,15 @@
-import axios from "./http";
-import root from "./server";
+import { transport } from "./http";
 
-export const CreateNewContribution = async (data, key) => {
-    const resp = await axios.post(`${root}/api/contribution/`, data, {
-        headers: { "Idempotency-Key": key },
+export const CreateNewContribution = (data, key) =>
+    transport.json("contribution/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+        body: JSON.stringify(data),
     });
-    return resp;
-};
-export const GetMyContributions = async () => {
-    const resp = await axios.get(`${root}/api/contribution/`);
-    return resp;
-};
-
-export const GetBrContribution = async () => {
-    const resp = await axios.post(`${root}/api/contribution/br`, {});
-    return resp;
-};
+export const GetMyContributions = () => transport.json("contribution/");
+export const GetBrContribution = () =>
+    transport.json("contribution/br", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+    });

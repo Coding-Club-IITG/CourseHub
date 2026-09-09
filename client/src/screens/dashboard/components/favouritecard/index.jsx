@@ -1,15 +1,13 @@
+import { session } from "../../../../session/runtime";
 import "./styles.scss";
 import { previewFile } from "../../../../api/File";
 import { toast } from "react-toastify";
 import { formatFileName } from "../../../../utils/formatFile";
 import { getRandomColor } from "../../../../utils/colors";
-import { useDispatch } from "react-redux";
-import { UpdateFavourites } from "../../../../actions/user_actions";
 import { RemoveFromFavourites } from "../../../../api/User";
 
 const FavouriteCard = ({ type = "file", color, path, name, code, id, _id }) => {
     color = color ? color : getRandomColor();
-    const dispatch = useDispatch();
 
     const handlePreview = async () => {
         const response = await toast.promise(previewFile(id), {
@@ -26,8 +24,8 @@ const FavouriteCard = ({ type = "file", color, path, name, code, id, _id }) => {
             pending: "Removing from favourites.",
         });
         resp.then((data) => {
-            if (data?.data?.favourites) {
-                dispatch(UpdateFavourites(data.data.favourites));
+            if (data?.favourites) {
+                session.setActor((current) => ({ ...current, favourites: data.favourites }));
                 toast.success("Removed.");
             } else {
                 toast.error("Something went wrong!");

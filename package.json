@@ -18,7 +18,7 @@
         "dev:student": "npm run dev --workspace @coursehub/student --",
         "dev:admin": "npm run dev --workspace @coursehub/admin --",
         "preflight": "npm run preflight --workspace @coursehub/server",
-        "test": "npm run test --workspace @coursehub/domain && npm run test --workspace @coursehub/server",
+        "test": "npm run test --workspace @coursehub/domain && npm run test --workspace @coursehub/browser && npm run test --workspace @coursehub/server",
         "test:db": "npm run test:db --workspace @coursehub/server",
         "test:browser": "npm run test:browser --workspace @coursehub/server",
         "build:student": "npm run build --workspace @coursehub/student",
