@@ -1,0 +1,37 @@
+@use "../src/styles/mixins" as *;
+.gallery {
+    @include typography;
+    color: var(--ch-ink);
+    max-width: 1200px;
+    margin: auto;
+    padding: 2rem;
+    h1 {
+        font-size: clamp(2rem, 5vw, 3.25rem);
+        line-height: 1.1;
+        margin: 0.5rem 0 1rem;
+    }
+    h2 {
+        font-size: 1.5rem;
+    }
+    header {
+        border-bottom: 4px solid var(--ch-yellow);
+        padding-bottom: 2rem;
+    }
+    section {
+        padding-block: 1rem;
+    }
+    @include below(small) {
+        padding: 1rem;
+    }
+}
+.row {
+    @include actions;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 1.5rem;
+    > div {
+        margin: 0;
+    }
+}

@@ -134,8 +134,10 @@ async function openPage(
             });
         } else if (url.pathname === "/api/contribution/br")
             data = { unverifiedContributions: moderationQueue };
-        else if (url.pathname.startsWith("/api/files/verify/"))
+        else if (url.pathname.startsWith("/api/files/verify/")) {
+            for (const submission of moderationQueue) for (const file of submission.files) if (url.pathname.endsWith(file._id)) file.isVerified = true;
             data = { file: { ...libraryFile, isVerified: true } };
+        }
         else if (url.pathname === "/api/contribution/limits")
             data = { fileBytes: 104857600, batchBytes: 1073741824, files: 40, concurrentFiles: 2 };
         else if (url.pathname === "/api/operations")
@@ -417,7 +419,7 @@ test("moderation uses the authorized shared-course context returned by the serve
         ],
     });
     await page.goto(frontend + "/profile");
-    await page.getByText("APPROVE", { exact: true }).click();
+    await page.getByRole("button", { name: "Approve", exact: true }).click();
     await page.getByRole("button", { name: "Verify", exact: true }).click();
     await page.getByText("NO PENDING CONTRIBUTIONS", { exact: true }).waitFor();
     const action = requests.find((request) => request.path.startsWith("/api/files/verify/"));

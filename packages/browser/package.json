@@ -9,7 +9,8 @@
     },
     "dependencies": {
         "@tanstack/react-query": "5.102.8",
-        "@coursehub/domain": "1.0.0"
+        "@coursehub/domain": "1.0.0",
+        "@coursehub/ui": "1.0.0"
     },
     "peerDependencies": {
         "react": "^19.2.8"

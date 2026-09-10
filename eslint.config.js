@@ -17,6 +17,7 @@ export default defineConfig([
             "client/src/**/*.{js,jsx}",
             "admin/src/**/*.{js,jsx}",
             "packages/ui/src/**/*.{js,jsx}",
+            "packages/ui/gallery/**/*.{js,jsx}",
             "packages/browser/src/**/*.{js,jsx}",
         ],
         languageOptions: {
@@ -30,6 +31,10 @@ export default defineConfig([
             "react-hooks/exhaustive-deps": "error",
             "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
         },
+    },
+    {
+        files: ["packages/ui/test/**/*.browser.test.js"],
+        languageOptions: { globals: globals.browser },
     },
     {
         files: ["**/*.config.js", "packages/*/test/**/*.js"],

@@ -6,9 +6,10 @@ export const CreateNewContribution = (data, key) =>
         headers: { "Content-Type": "application/json", "Idempotency-Key": key },
         body: JSON.stringify(data),
     });
-export const GetMyContributions = () => transport.json("contribution/");
-export const GetBrContribution = () =>
+export const GetMyContributions = (signal) => transport.json("contribution/", { signal });
+export const GetBrContribution = (signal) =>
     transport.json("contribution/br", {
+        signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "{}",

@@ -12,7 +12,11 @@ export default function ShareProvider({ children }) {
     return (
         <ShareContext value={setSelection}>
             {children}
-            <Share selection={actor ? selection : null} onClose={() => setSelection(null)} />
+            <Share
+                key={selection?.link || "closed"}
+                selection={actor ? selection : null}
+                onClose={() => setSelection(null)}
+            />
         </ShareContext>
     );
 }

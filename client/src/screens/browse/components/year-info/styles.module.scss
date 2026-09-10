@@ -1,0 +1,74 @@
+@use "@coursehub/ui/mixins" as ui;
+.root {
+    @include ui.typography;
+}
+.yearList {
+    display: flex;
+    flex-direction: column-reverse;
+}
+.yearRow {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    > button:not(.year) {
+        color: inherit;
+        &:hover {
+            color: var(--ch-ink);
+        }
+    }
+}
+.year {
+    @include ui.control;
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0.75rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-weight: 700;
+    small {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 400;
+    }
+    &[aria-current] {
+        background: var(--ch-paper);
+        color: var(--ch-ink);
+        box-shadow: inset 4px 0 var(--ch-yellow);
+    }
+}
+.actions {
+    @include ui.actions;
+    padding: 0.75rem;
+}
+.mobileDelete {
+    display: none;
+}
+@include ui.below(mobile) {
+    .yearList {
+        display: none;
+    }
+    .actions {
+        padding: 0 var(--ch-gutter) 1rem;
+    }
+    .mobileDelete {
+        display: inline-flex;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .yearRow {
+        > button:not(.year) {
+            opacity: 0;
+        }
+        &:hover > button,
+        &:focus-within > button {
+            opacity: 1;
+        }
+    }
+}

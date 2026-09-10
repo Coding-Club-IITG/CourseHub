@@ -1,23 +1,10 @@
-import "./styles.scss";
+import { useRef, useState } from "react";
+import { Button, Dialog, FormField } from "@coursehub/ui";
 import shareIllustration from "./assets/banner.svg";
-import { useEffect, useId, useRef, useState } from "react";
-const Share = ({ selection, onClose }) => {
-    const dialog = useRef(null);
+import styles from "./styles.module.scss";
+export default function Share({ selection, onClose }) {
     const input = useRef(null);
-    const titleId = useId();
     const [status, setStatus] = useState("");
-    useEffect(() => {
-        setStatus("");
-        if (!selection) return;
-        const element = dialog.current;
-        const overflow = document.documentElement.style.overflow;
-        document.documentElement.style.overflow = "hidden";
-        element.showModal();
-        return () => {
-            element.close();
-            document.documentElement.style.overflow = overflow;
-        };
-    }, [selection]);
     const copy = async () => {
         try {
             await navigator.clipboard.writeText(selection.link);
@@ -29,70 +16,56 @@ const Share = ({ selection, onClose }) => {
         }
     };
     return (
-        <dialog
-            ref={dialog}
-            className="coursehub-share"
-            aria-labelledby={titleId}
-            onCancel={(event) => {
-                event.preventDefault();
-                onClose();
+        <Dialog
+            open={!!selection}
+            onOpenChange={(open) => {
+                if (!open) onClose();
             }}
-            onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                    const r = event.currentTarget.getBoundingClientRect();
-                    if (
-                        event.clientX < r.left ||
-                        event.clientX > r.right ||
-                        event.clientY < r.top ||
-                        event.clientY > r.bottom
-                    )
-                        onClose();
-                }
-            }}
+            title={`Share ${selection?.kind || "file"}`}
+            initialFocusRef={input}
+            className={styles.share}
+            footer={
+                <>
+                    <Button onClick={copy}>Copy link</Button>
+                    <Button variant="link" className={styles.close} onClick={onClose}>
+                        Close
+                    </Button>
+                </>
+            }
         >
             {selection && (
                 <>
-                    <h2 id={titleId}>Share {selection.kind || "file"}</h2>
-                    <p className="share-name">{selection.name}</p>
-                    <p className="share-help">
+                    <p className={styles.name}>{selection.name}</p>
+                    <p className={styles.help}>
                         Sign-in is required to open this link.
                         {selection.pending
                             ? " This file is pending approval. Only its uploader and course BRs can open it."
                             : ""}
                     </p>
-                    <label htmlFor={titleId + "-link"}>CourseHub link</label>
-                    <input
-                        ref={input}
-                        id={titleId + "-link"}
-                        aria-label="Share link"
-                        value={selection.link}
-                        readOnly
-                        onFocus={(event) => {
-                            event.target.select();
-                            event.target.scrollLeft = 0;
-                        }}
-                    />
-                    <p className="share-status" role="status">
+                    <FormField label="CourseHub link">
+                        <input
+                            ref={input}
+                            aria-label="Share link"
+                            readOnly
+                            value={selection.link}
+                            onFocus={(event) => {
+                                event.target.select();
+                                event.target.scrollLeft = 0;
+                            }}
+                        />
+                    </FormField>
+                    <p className={styles.status} role="status">
                         {status}
                     </p>
                     <img
-                        className="share-illustration"
+                        className={styles.illustration}
                         src={shareIllustration}
                         width="560"
                         height="253"
                         alt=""
                     />
-                    <div className="share-actions">
-                        <button type="button" className="primary" onClick={copy}>
-                            Copy link
-                        </button>
-                        <button type="button" className="close" onClick={onClose}>
-                            Close
-                        </button>
-                    </div>
                 </>
             )}
-        </dialog>
+        </Dialog>
     );
-};
-export default Share;
+}

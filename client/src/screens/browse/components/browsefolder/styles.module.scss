@@ -1,0 +1,73 @@
+@use "@coursehub/ui/mixins" as ui;
+.folder {
+    @include ui.typography;
+    @include ui.stack(0.25rem);
+    align-items: flex-start;
+    width: 200px;
+    min-width: 0;
+    min-height: 190px;
+    padding: 1.5rem 0.75rem 0.5rem;
+    background: url(./folder.svg) top center / 100% 100% no-repeat;
+    color: var(--ch-ink);
+}
+.open {
+    @include ui.control;
+    @include ui.stack(0.5rem);
+    text-align: left;
+    width: 100%;
+    min-height: 76px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-weight: 700;
+    font-size: 1.125rem;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+.count {
+    font-weight: 400;
+    color: var(--ch-muted);
+    font-size: 0.875rem;
+}
+.actions {
+    @include ui.actions;
+    gap: 0;
+    width: 100%;
+    button {
+        padding-inline: 0.4rem;
+        font-size: 0.875rem;
+    }
+}
+@include ui.below(mobile) {
+    .folder {
+        width: calc(50% - 0.25rem);
+    }
+}
+
+.folder {
+    height: 210px;
+}
+.open :global(.name) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: 2.5em;
+}
+.actions {
+    margin-top: auto;
+}
+.folder:has(form) {
+    height: auto;
+    min-height: 210px;
+}
+@media (hover: hover) and (pointer: fine) {
+    .folder:hover,
+    .folder:focus-within {
+        height: auto;
+        min-height: 210px;
+        .open :global(.name) {
+            -webkit-line-clamp: unset;
+        }
+    }
+}

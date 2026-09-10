@@ -35,7 +35,7 @@ An administration portal supports student, BR, course, and content management ac
 - **BR tools** for creating years and folders and managing course material
 - **Administration portal** for students, BRs, courses, bulk imports, and course linking
 - **Shared folders** that let related course codes reuse material without duplication
-- **Recoverable background operations** for uploads, cleanup, course linking, renames and registration refresh
+- **Recoverable background operations** for uploads, cleanup, course linking, renames, CSV imports and registration refresh
 
 ## Screenshots
 
@@ -119,7 +119,7 @@ An administration portal supports student, BR, course, and content management ac
 ```mermaid
 graph LR
     Student["Student Web App<br/>React 19 · Vite 8 · TanStack Query"]
-    Admin["Admin Portal<br/>React 19 · Vite 8 · Tailwind CSS"]
+    Admin["Admin Portal<br/>React 19 · Vite 8 · SCSS Modules"]
     API["CourseHub API<br/>Node 24 · Express 5 · Mongoose 9"]
     Auth["Identity<br/>Microsoft OAuth · JWT"]
     DB["MongoDB<br/>Users · Courses · Folders · Files"]
@@ -145,7 +145,6 @@ graph LR
 <p align="center">
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/Express-404D59?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
   <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
@@ -160,7 +159,7 @@ Course trees use an actor-scoped query cache in memory. URLs select courses and 
 
 ### Administration Portal
 
-The separate administration portal uses React, Vite, and Tailwind CSS.
+The separate administration portal uses React, Vite and SCSS modules. Both frontends share CourseHub typography, tokens and accessible controls through `@coursehub/ui`; their routes, sessions and deployment boundaries remain independent.
 It supports student and BR management, course dashboards, bulk course imports, course linking, contribution moderation, and course-cache synchronization.
 
 ### Backend
@@ -193,9 +192,10 @@ coursehub/
 └── .github/workflows/   # Current CI and deployment workflows
 ```
 
-`@coursehub/domain` supplies shared course-code and upload contracts.
+`@coursehub/domain` supplies shared course-code, upload and CSV validation contracts.
 `@coursehub/browser` supplies the common HTTP transport, session queries and course cache behavior.
-`@coursehub/ui` defines the package boundary for shared primitives.
+`@coursehub/ui` supplies shared tokens, fonts, accessible controls and controlled dialogs.
+See [Shared UI](docs/shared-ui.md) for component examples and the local gallery.
 
 ## Local Setup
 
@@ -277,6 +277,7 @@ Start with the guide that matches what you are trying to understand:
 | [Shared Course Trees: Server Implementation](docs/shared-course-trees.md) | Reachable membership, linking API results, locks, recovery and tree limits.                              |
 | [Data Sources and Maintenance](docs/data-sources.md)                      | What is scraped, what needs manual input, refresh triggers, and the semester checklist.                  |
 | [Academic Synchronization](docs/academic-synchronization.md)              | Current/history registrations, ordinary versus force refresh, empty data and failure behavior.           |
+| [Course and BR CSV Imports](docs/csv-imports.md)                          | Preview, shared parsing, row results and recoverable retries.                                            |
 | [Course References and Data Maintenance](docs/data-maintenance.md)        | Renames, old bookmarks, inventory, staged imports and reviewed migration recovery.                       |
 | [Authentication and Sessions](docs/authentication.md)                     | Student/admin login, permissions, cookies, CSRF and environment configuration.                           |
 | [Storage, Uploads and Cleanup](docs/storage-operations.md)                | File lifecycle, partial success, cancellation, authenticated delivery and recoverable deletion.          |

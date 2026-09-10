@@ -1,40 +1,8 @@
 import { Component } from "react";
+import { ErrorState } from "@coursehub/ui";
 
-export function RequestError({ error, onRetry, title = "We couldn’t load this page." }) {
-    return (
-        <div
-            role="alert"
-            style={{
-                margin: "24px",
-                padding: "24px",
-                background: "#fff",
-                color: "#222",
-                border: "1px solid #ddd",
-                borderRadius: "12px",
-            }}
-        >
-            <p>{title}</p>
-            {error?.message && <p>{error.message}</p>}
-            {error?.requestId && <p>Reference: {error.requestId}</p>}
-            {onRetry && (
-                <button
-                    type="button"
-                    onClick={onRetry}
-                    style={{
-                        marginTop: "12px",
-                        padding: "10px 18px",
-                        background: "#ffdf00",
-                        color: "#111",
-                        border: "1px solid #111",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                    }}
-                >
-                    Try again
-                </button>
-            )}
-        </div>
-    );
+export function RequestError(props) {
+    return <ErrorState {...props} />;
 }
 
 export class RouteBoundary extends Component {

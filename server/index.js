@@ -32,6 +32,8 @@ import operationRoutes from "./modules/operation/operation.routes.js";
 import { OperationModel, CourseLock, StorageLease } from "./modules/operation/operation.model.js";
 import { startOperationWorker } from "./services/operationWorker.js";
 
+import importRoutes from "./modules/import/import.routes.js";
+
 const app = express();
 const server = http.createServer(app);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,9 +51,10 @@ app.use(
         exposedHeaders: ["X-Request-Id"],
     }),
 );
-app.use(express.json());
 app.use(cookieParser());
 app.use(ua.express());
+app.use("/api/admin/imports", importRoutes);
+app.use(express.json());
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

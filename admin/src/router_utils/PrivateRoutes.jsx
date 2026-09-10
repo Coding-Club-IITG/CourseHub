@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useSession } from "../session";
-import OperationNotice from "@/components/OperationNotice";
+import { LoadingState } from "@coursehub/ui";
 import { RequestError } from "@coursehub/browser/react";
 export default function PrivateRoute({ children }) {
     const location = useLocation();
@@ -22,16 +22,6 @@ export default function PrivateRoute({ children }) {
                 replace
             />
         );
-    if (!result.data)
-        return (
-            <p role="status" className="p-6">
-                Checking your session...
-            </p>
-        );
-    return (
-        <>
-            <OperationNotice />
-            {children}
-        </>
-    );
+    if (!result.data) return <LoadingState title="Checking your session..." />;
+    return children;
 }

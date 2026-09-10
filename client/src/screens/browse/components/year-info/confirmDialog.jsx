@@ -1,65 +1,56 @@
+import { useId } from "react";
+import { Button, Dialog, FormField } from "@coursehub/ui";
 import Yroptions from "./year-options";
-import { useState } from "react";
-import Wrapper from "../../../contributions/components/wrapper";
-
-const ConfirmDialog = ({
+export function ConfirmDialog({
     show,
     yearName = "",
-    onYearNameChange = () => {},
+    onYearNameChange,
     onCancel,
     onConfirm,
     course,
-}) => {
-    const [submitEnabled, setSubmitEnabled] = useState(false);
-    if (!show) return null;
-
+    isLoading,
+    error,
+}) {
+    const id = useId();
     return (
-        <div
-            className="confirm-dialog-overlay"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onCancel();
+        <Dialog
+            open={show}
+            onOpenChange={(open) => {
+                if (!open) onCancel();
             }}
+            title="Add Year"
+            description="The year will be added to the current course."
+            busy={isLoading}
+            footer={
+                <>
+                    <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" form={id} busy={isLoading} disabled={!yearName}>
+                        Add
+                    </Button>
+                </>
+            }
         >
-            <Wrapper>
-                <div className="head">📁 Add Year</div>
-                <div className="disclaimer">The year will be added in the current course</div>
-
-                <div className="section" id="bottommarginneeded">
-                    <label htmlFor="section" className="label_section">
-                        YEAR:
-                    </label>
+            <form
+                id={id}
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    onConfirm();
+                }}
+            >
+                <FormField label="Year" error={error} required>
                     <select
-                        name="section"
-                        className="select_section"
                         value={yearName}
-                        onChange={(e) => {
-                            if (e.target.value) setSubmitEnabled(true);
-                            else setSubmitEnabled(false);
-                            onYearNameChange(e.target.value);
-                        }}
+                        onChange={(event) => onYearNameChange(event.target.value)}
                     >
                         <option value="" disabled>
                             Select year
                         </option>
-
                         <Yroptions course={course} />
                     </select>
-                </div>
-
-                <div className="addfolderbuttoncontainer">
-                    <div className="button cancelbutton addfolderbutton" onClick={onCancel}>
-                        CANCEL
-                    </div>
-                    <div
-                        className={`button ${submitEnabled} submitbutton addfolderbutton`}
-                        onClick={onConfirm}
-                    >
-                        ADD
-                    </div>
-                </div>
-            </Wrapper>
-        </div>
+                </FormField>
+            </form>
+        </Dialog>
     );
-};
-
-export { ConfirmDialog };
+}

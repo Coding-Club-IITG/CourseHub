@@ -1,0 +1,28 @@
+@font-face {
+    font-family: "Light";
+    src: url("../fonts/ProximaNovaThin.otf") format("opentype");
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Regular";
+    src: url("../fonts/ProximaNovaRegular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Bold";
+    src: url("../fonts/ProximaNovaBold.otf") format("opentype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Black";
+    src: url("../fonts/ProximaNovaBlack.otf") format("opentype");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}

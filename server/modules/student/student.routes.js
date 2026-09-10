@@ -3,6 +3,7 @@ import express from "express";
 
 import {
     getAllStudents,
+    getStudent,
     searchStudents,
     refreshStudentCourses,
     deleteStudent,
@@ -13,6 +14,7 @@ router.use(isAdmin);
 
 router.get("/all", getAllStudents);
 router.get("/search", searchStudents);
+router.get("/:id", getStudent);
 router.put("/refresh/:id", refreshStudentCourses);
 router.delete("/:id", deleteStudent);
 

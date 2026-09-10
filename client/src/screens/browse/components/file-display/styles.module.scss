@@ -1,0 +1,262 @@
+@use "@coursehub/ui/mixins" as ui;
+.card {
+    @include ui.typography;
+    position: relative;
+    box-sizing: border-box;
+    width: 200px;
+    min-width: 0;
+    align-self: flex-start;
+    background: var(--ch-paper);
+    color: var(--ch-ink);
+    border: 2px solid #aaa;
+    border-radius: 4px;
+    overflow: hidden;
+    &:global(.verified) {
+        border-color: #4caf50;
+    }
+    &:global(.unverified) {
+        border-color: #f44336;
+    }
+    &:global(.selected) {
+        border-color: var(--ch-ink);
+        box-shadow: 0 0 0 2px var(--ch-yellow);
+    }
+    &:focus-visible,
+    :focus-visible {
+        @include ui.focus-ring;
+    }
+    :global(.img-preview) {
+        height: 140px;
+        position: relative;
+        border-bottom: 1px solid #ddd;
+        :global(.file-thumbnail) {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: #f2eee5;
+            color: #73644a;
+            font-size: 1.5rem;
+            img {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                background: white;
+            }
+        }
+        :global(.view) {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 8px;
+            border: 0;
+            width: 100%;
+            cursor: pointer;
+            background: linear-gradient(transparent 60%, #0009);
+            color: white;
+            font: inherit;
+        }
+        :global(.verify) {
+            @include ui.control;
+            position: absolute;
+            z-index: 2;
+            right: 4px;
+            top: 4px;
+            width: 44px;
+            background: #e4f6ea;
+            border: 1px solid #17693c;
+            border-radius: 4px;
+            color: #17693c;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    }
+    :global(.content) {
+        padding: 8px;
+        box-sizing: border-box;
+        height: 126px;
+        text-align: center;
+    }
+    :global(.title) {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        gap: 2px;
+    }
+    :global(.title-text) {
+        flex: 1;
+        min-width: 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+    :global(.title-text[hidden]) {
+        display: none;
+    }
+    :global(.rename-tick) {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        background: url(./assets/edit.svg) center/20px no-repeat;
+    }
+    :global(.file-metadata) {
+        margin-top: 4px;
+        height: 54px;
+        font-size: 0.8rem;
+        color: #555;
+        p {
+            line-height: 18px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+    :global(.file-actions) {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: center;
+        gap: 0;
+        padding: 4px 0;
+        border-top: 1px solid #eee;
+        min-height: 52px;
+        box-sizing: border-box;
+        button {
+            @include ui.control;
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            background: white center/21px no-repeat;
+            cursor: pointer;
+        }
+        :global(.star) {
+            background-image: url(./assets/Favorites.svg);
+        }
+        :global(.share) {
+            background-image: url(./assets/Share.svg);
+        }
+        :global(.download) {
+            background-image: url(./assets/Download.svg);
+        }
+        :global(.unverify) {
+            background-image: url(./assets/Unverify.svg);
+        }
+        button:hover {
+            background-color: #fff2d4;
+        }
+        button[aria-pressed="true"] {
+            background-color: var(--ch-yellow);
+            border-color: #9b711c;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+    }
+    :global(.selected-file-label) {
+        position: absolute;
+        z-index: 3;
+        top: 4px;
+        left: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 4px 8px;
+        border: 0;
+        background: var(--ch-ink);
+        color: var(--ch-yellow);
+        font: 700 0.75rem var(--ch-font-body);
+        cursor: pointer;
+        span {
+            font: 1rem/1 sans-serif;
+        }
+    }
+    &:has(form) :global(.content) {
+        height: auto;
+        min-height: 126px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+        &:hover,
+        &:focus-within {
+            box-shadow: 0 8px 16px #0002;
+            :global(.content) {
+                height: auto;
+                min-height: 126px;
+            }
+            :global(.title-text) {
+                -webkit-line-clamp: unset;
+            }
+        }
+    }
+    @include ui.below(mobile) {
+        width: calc(50% - 0.25rem);
+        :global(.file-actions) {
+            min-height: 52px;
+        }
+    }
+}
+.notice {
+    flex: 1 0 100%;
+    min-width: 0;
+    padding: 4px 0 20px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e8e8e8;
+    color: #181818;
+    h3 {
+        font:
+            1.1rem "bold",
+            sans-serif;
+        margin: 0 0 6px;
+    }
+    p {
+        color: #666;
+        font-size: 0.95rem;
+        margin: 0 0 12px;
+    }
+    :global(.file-state-actions) {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    button {
+        min-height: 36px;
+        border: 0;
+        cursor: pointer;
+        padding: 8px 12px;
+        font:
+            0.85rem "bold",
+            sans-serif;
+    }
+    :global(.retry) {
+        background: #000;
+        color: white;
+    }
+    :global(.dismiss) {
+        background: transparent;
+        color: #555;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        padding-inline: 0;
+    }
+    :focus-visible {
+        outline: 2px solid #181818;
+        outline-offset: 3px;
+    }
+}
+
+.notice button {
+    min-height: 44px;
+}
+
+@media(max-width:360px){.card{width:100%;}}

@@ -52,16 +52,23 @@ async function fixture(t, width, administrator = false) {
         else if (url.pathname === "/api/admin/")
             data = { user: { userId: "Fixture admin" }, csrfToken: "c".repeat(43) };
         else if (url.pathname === "/api/admin/dbcourses")
-            data = [
-                {
-                    _id: "507f1f77bcf86cd799439051",
-                    code: state.saved ? "CS102" : "CS101",
-                    name: state.saved ? "Saved name" : "Original course",
-                    children: [],
-                },
-            ];
-        else if (url.pathname === "/api/student/all") data = { students: [student] };
-        else if (url.pathname === "/api/br/allBRs") data = { brs: [] };
+            data = {
+                items: [
+                    {
+                        _id: "507f1f77bcf86cd799439051",
+                        code: state.saved ? "CS102" : "CS101",
+                        name: state.saved ? "Saved name" : "Original course",
+                        children: [],
+                    },
+                ],
+                page: 1,
+                pageSize: 20,
+                total: 1,
+            };
+        else if (url.pathname === "/api/student/all")
+            data = { items: [{ ...student, isRegistered: true }], page: 1, pageSize: 20, total: 1 };
+        else if (url.pathname === "/api/br/allBRs")
+            data = { items: [], page: 1, pageSize: 20, total: 0 };
         else if (url.pathname === "/api/operations") data = { items: [], total: 0 };
         else if (url.pathname === "/api/contribution/") data = [];
         else if (url.pathname === "/api/event/examdates") data = unavailableExamResponse;
@@ -105,7 +112,7 @@ for (const width of [1440, 390]) {
     test(`a valid session with missing sync metadata keeps a direct profile destination at ${width}px`, async (t) => {
         const { page, requests } = await fixture(t, width);
         await page.goto(client + "/profile?tab=courses#history");
-        await page.getByRole("link", { name: "Refresh registered courses" }).waitFor();
+        await page.getByRole("button", { name: "Refresh registered courses" }).waitFor();
         assert.equal(
             new URL(page.url()).pathname + new URL(page.url()).search + new URL(page.url()).hash,
             "/profile?tab=courses#history",

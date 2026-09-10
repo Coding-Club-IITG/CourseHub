@@ -26,6 +26,7 @@ for (const width of [1440, 390]) {
                 .getAttribute("aria-pressed"),
             "false",
         );
+        await page.getByRole("button", { name: "close", exact: true }).click();
         state.saveStatus = 200;
         await card.getByRole("button", { name: "Add to favourites" }).click();
         await card.getByRole("button", { name: "Remove from favourites" }).waitFor();
@@ -70,8 +71,8 @@ for (const width of [1440, 390]) {
         const trigger = page.getByRole("button", { name: "Share file", exact: true }).first();
         await trigger.click();
         const dialog = page.getByRole("dialog", { name: "Share file", exact: true });
-        assert.equal(await page.locator("dialog").count(), 1);
-        assert.equal(await page.evaluate(() => document.documentElement.style.overflow), "hidden");
+        assert.equal(await page.getByRole("dialog").count(), 1);
+        assert.equal(await page.evaluate(() => getComputedStyle(document.body).overflow), "hidden");
         assert.deepEqual(
             await page.locator("[id]").evaluateAll((els) => {
                 const ids = els.map((el) => el.id);
@@ -92,6 +93,7 @@ for (const width of [1440, 390]) {
         assert.equal(await page.evaluate(() => window.copiedLink), link);
         await page.keyboard.press("Escape");
         assert.equal(await dialog.count(), 0);
+        await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Share file");
         assert.equal(await trigger.evaluate((el) => document.activeElement === el), true);
     });
     test(`missing file selection and unavailable favourites are explicit at ${width}px`, async (t) => {

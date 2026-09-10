@@ -144,7 +144,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
         await page.getByText("1 year conflict - content preserved", { exact: true }).waitFor();
         await capture(page, `link-failed-${width}`);
         await page.getByRole("button", { name: "Retry unfinished work", exact: true }).click();
-        await page.locator("li span").getByText("completed", { exact: true }).waitFor();
+        await page.getByRole("article").getByText("completed", { exact: true }).waitFor();
         await capture(page, `link-completed-${width}`);
         assert.ok(
             requests.some(
@@ -169,6 +169,6 @@ test("failed linking retains the requested course codes and offers operation rec
     assert.equal(await page.getByPlaceholder("Eg. CSN101", { exact: true }).inputValue(), "CS201");
     await capture(page, "manual-failed-390");
     state.operation = linkingOperation();
-    await page.getByRole("button", { name: "Link Course", exact: true }).click();
+    await page.getByRole("button", { name: "Retry unfinished work", exact: true }).click();
     await page.getByText("Linking completed", { exact: true }).waitFor();
 });

@@ -164,7 +164,12 @@ export async function removeCourseReferences(plan) {
         });
 }
 
-export async function scheduleCourseRename(req, value, { name, newCode } = {}) {
+export async function scheduleCourseRename(
+    req,
+    value,
+    { name, newCode } = {},
+    { operationId } = {},
+) {
     const actor = await actorFor(req);
     if (!actor.admin) throw new AppError(403, "Administrator access is required");
     if (typeof name !== "string" || !name.trim() || name.trim().length > 200)
@@ -173,6 +178,23 @@ export async function scheduleCourseRename(req, value, { name, newCode } = {}) {
             "A course name of up to 200 characters is required",
             "VALIDATION_FAILED",
         );
+    if (operationId) {
+        const existing = await OperationModel.findById(operationId);
+        if (existing) {
+            if (existing.kind !== "rename" || String(existing.actorId) !== actor.id)
+                throw new AppError(
+                    409,
+                    "Import row operation does not match",
+                    "IMPORT_OPERATION_CONFLICT",
+                );
+            return {
+                operationId: existing._id,
+                kind: "rename",
+                status: existing.status,
+                statusUrl: "/api/operations/" + existing._id,
+            };
+        }
+    }
     const context = await requireCourse(req, value, "canManage");
     newCode = newCode === undefined ? context.code : validCourseCode(newCode);
     await assertCourseIdentityAvailable(newCode, context.course._id);
@@ -183,10 +205,11 @@ export async function scheduleCourseRename(req, value, { name, newCode } = {}) {
         newCode,
         name: name.trim(),
     };
-    const requestKey =
-        "rename:" + createHash("sha256").update(JSON.stringify(target)).digest("hex");
+    const requestKey = operationId
+        ? "import-rename:" + operationId
+        : "rename:" + createHash("sha256").update(JSON.stringify(target)).digest("hex");
     const fields = {
-        _id: randomUUID(),
+        _id: operationId || randomUUID(),
         kind: "rename",
         actorId: actor.id,
         actorRole: "admin",

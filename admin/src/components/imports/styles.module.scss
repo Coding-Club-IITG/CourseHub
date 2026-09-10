@@ -1,0 +1,64 @@
+@use "@coursehub/ui/mixins" as ui;
+.input,
+.results {
+    @include ui.stack(1rem);
+    p {
+        margin: 0;
+    }
+}
+.results progress {
+    width: 100%;
+    accent-color: var(--ch-ink);
+    height: 0.75rem;
+}
+.rows {
+    @include ui.focus-ring;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 22rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--ch-border);
+    border-radius: var(--ch-radius-control);
+    li {
+        padding: 1rem;
+        overflow-wrap: anywhere;
+        & + li {
+            border-top: 1px solid var(--ch-border);
+        }
+        p {
+            margin: 0.5rem 0;
+        }
+        small {
+            color: var(--ch-muted);
+        }
+    }
+}
+.rowHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    justify-content: space-between;
+    strong {
+        min-width: 0;
+    }
+}
+.name {
+    white-space: pre-wrap;
+}
+.error {
+    color: var(--ch-danger);
+    overflow-wrap: anywhere;
+    ul {
+        padding-left: 1.25rem;
+        max-height: 16rem;
+        overflow: auto;
+    }
+}
+.body {
+    @include ui.stack(1rem);
+    > p {
+        margin: 0;
+    }
+}

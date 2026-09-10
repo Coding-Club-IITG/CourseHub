@@ -9,7 +9,7 @@ import express from "express";
 
 import AppError from "../utils/appError.js";
 import { requestContext, requestErrorHandler } from "../middleware/requestErrors.js";
-import { uploadCourses } from "../modules/admin/adminDashboard.controller.js";
+import { processUploadedCsv } from "../utils/uploadedCsv.js";
 import Course from "../modules/course/course.model.js";
 import { cookieOptions, validateSecuritySettings } from "../config/security.js";
 import { setSessionCookie, clearSessionCookie } from "../services/sessions.js";
@@ -104,7 +104,12 @@ test("CSV stream and database failures finish the request and clean up the tempo
                 req.file = { path: file };
                 next();
             },
-            uploadCourses,
+            async (req, res) =>
+                res.json(
+                    await processUploadedCsv(req.file, ["code", "name"], async (rows) =>
+                        Course.findOne({ code: rows[0].code }),
+                    ),
+                ),
         );
     });
     const failed = await fetch(origin + "/csv", { method: "POST" });

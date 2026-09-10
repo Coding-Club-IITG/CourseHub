@@ -1,0 +1,25 @@
+@use "@coursehub/ui/mixins" as ui;
+.actions {
+    @include ui.actions;
+    min-width: 15rem;
+    flex-wrap: nowrap;
+    a {
+        @include ui.focus-ring;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 0.75rem;
+        font-weight: 700;
+        color: inherit;
+    }
+}
+.status {
+    @include ui.surface;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    color: var(--ch-success);
+    border-color: var(--ch-success);
+}

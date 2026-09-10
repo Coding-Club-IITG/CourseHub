@@ -1,0 +1,10 @@
+import express from "express";
+import isAdmin from "../../middleware/isAdmin.js";
+import { importLimits } from "@coursehub/domain";
+import { previewImport, scheduleImport } from "../../services/imports.js";
+const router = express.Router();
+router.use(isAdmin);
+router.use(express.json({ limit: importLimits.fileBytes }));
+router.post("/preview", async (req, res) => res.json(await previewImport(req, req.body)));
+router.post("/", async (req, res) => res.status(202).json(await scheduleImport(req, req.body)));
+export default router;

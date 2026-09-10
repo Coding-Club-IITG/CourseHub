@@ -67,7 +67,7 @@ See [Exam Schedules](exam-schedules.md) for more info.
 
 Individual BR synchronization obtains historical registrations from the same academic source for applicable periods since admission. Ordinary historical refreshes can reuse saved allotments. The all-student monthly refresh updates the current period and retains existing history.
 
-The current period and semester number are calculated from the admission year encoded in the roll number. The configured boundaries are January 1–July 23 for `Jan-May`, and July 24–December 31 for `July-Nov`. These are application rules in [`academicPeriod.js`](../server/services/academicPeriod.js). Changed institutional rules or roll-number conventions require a reviewed code/rule update.
+The current period and semester number are calculated from the admission year encoded in the roll number. The configured boundaries are January 1-July 23 for `Jan-May`, and July 24-December 31 for `July-Nov`. These are application rules in [`academicPeriod.js`](../server/services/academicPeriod.js). Changed institutional rules or roll-number conventions require a reviewed code/rule update.
 
 A student's manually edited display semester does not supply registered-course permissions.
 

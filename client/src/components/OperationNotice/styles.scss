@@ -54,8 +54,3 @@
         outline-offset: 2px;
     }
 }
-
-// The open upload dialog already presents these results and actions
-body:has(.contri.show) .operation-notice {
-    display: none;
-}

@@ -1,13 +1,9 @@
-import "./styles.scss";
-function SemCard(props) {
+import styles from "./styles.module.scss";
+export default function SemCard({ sem }) {
     return (
-        <div className="semCard">
-            <div className="inner1">
-                <div className="inputDiv">{props.sem}</div>
-            </div>
-            <div className="inner2">Semester</div>
+        <div className={styles.card}>
+            <strong>{sem}</strong>
+            <span>Semester</span>
         </div>
     );
 }
-
-export default SemCard;

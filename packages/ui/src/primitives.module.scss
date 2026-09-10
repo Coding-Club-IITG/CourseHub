@@ -1,0 +1,225 @@
+@use "styles/mixins" as *;
+.button {
+    @include typography;
+    @include control;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--ch-space-2);
+    padding: 0.65rem 1rem;
+    border: 1px solid transparent;
+    background: var(--ch-yellow);
+    color: var(--ch-ink);
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    &:hover:not(:disabled) {
+        background: var(--ch-yellow-hover);
+    }
+    &[data-variant="secondary"],
+    &[data-variant="outline"] {
+        border-color: var(--ch-control-border);
+        background: var(--ch-paper);
+        color: var(--ch-ink);
+        &:hover:not(:disabled) {
+            background: var(--ch-surface);
+        }
+    }
+    &[data-variant="dark"] {
+        background: var(--ch-black);
+        color: var(--ch-paper);
+        &:hover:not(:disabled) {
+            background: var(--ch-ink);
+        }
+    }
+    &[data-variant="danger"],
+    &[data-variant="destructive"] {
+        background: var(--ch-danger);
+        color: var(--ch-paper);
+        &:hover:not(:disabled) {
+            background: #801616;
+        }
+    }
+    &[data-variant="ghost"],
+    &[data-variant="link"] {
+        background: transparent;
+        color: var(--ch-ink);
+        &:hover:not(:disabled) {
+            background: var(--ch-surface);
+        }
+    }
+    &[data-variant="link"] {
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+    }
+    &:disabled {
+        background: #eee;
+        color: #676767;
+        border-color: #d2d2d2;
+    }
+    &[data-size="sm"] {
+        font-size: var(--ch-text-small);
+        padding-inline: 0.75rem;
+    }
+    svg {
+        flex-shrink: 0;
+    }
+}
+.iconButton {
+    width: var(--ch-target);
+    flex-shrink: 0;
+    padding: 0.5rem;
+}
+.field {
+    @include typography;
+    @include stack(var(--ch-space-2));
+    color: var(--ch-ink);
+    label {
+        font-weight: 700;
+    }
+}
+.input {
+    @include field-control;
+}
+.hint {
+    margin: 0;
+    color: var(--ch-muted);
+    font-size: var(--ch-text-small);
+    overflow-wrap: anywhere;
+}
+.fieldError {
+    margin: 0;
+    color: var(--ch-danger);
+    overflow-wrap: anywhere;
+}
+.badge {
+    @include typography;
+    display: inline-flex;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--ch-radius-pill);
+    background: var(--ch-surface);
+    color: var(--ch-ink);
+    font-size: var(--ch-text-small);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    @each $tone in success, danger, warning, info {
+        &[data-tone="#{$tone}"] {
+            background: var(--ch-#{$tone}-surface);
+            color: var(--ch-#{$tone});
+        }
+    }
+}
+.state {
+    @include typography;
+    @include surface;
+    @include stack(var(--ch-space-3));
+    align-items: flex-start;
+    margin: var(--ch-space-6);
+    padding: var(--ch-space-6);
+    overflow-wrap: anywhere;
+    p {
+        margin: 0;
+    }
+}
+.stateTitle {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+.illustration {
+    align-self: center;
+    img,
+    svg {
+        max-width: 100%;
+        height: auto;
+    }
+}
+.spinner {
+    display: inline-block;
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    @include reduced-motion {
+        animation: none;
+    }
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    overflow-y: auto;
+    background: #0009;
+}
+.dialog {
+    @include typography;
+    @include surface;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 36rem);
+    max-height: calc(100dvh - 2rem);
+    box-shadow: var(--ch-shadow-dialog);
+    min-height: 0;
+    outline: none;
+    @include below(small) {
+        width: 100%;
+    }
+}
+.dialogHeader {
+    flex: none;
+    padding: var(--ch-space-6);
+    padding-bottom: var(--ch-space-4);
+    position: relative;
+}
+.dialogTitle {
+    margin: 0;
+    padding-right: 2.5rem;
+    font-size: var(--ch-text-title);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.dialogDescription {
+    margin: 0.5rem 0 0;
+    color: var(--ch-muted);
+    overflow-wrap: anywhere;
+}
+.dialogClose {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+}
+.dialogBody {
+    padding: 0 var(--ch-space-6) var(--ch-space-5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+    overflow-wrap: anywhere;
+}
+.dialogFooter {
+    @include actions;
+    justify-content: flex-end;
+    flex: none;
+    padding: var(--ch-space-4) var(--ch-space-6);
+    border-top: 1px solid var(--ch-border);
+}
+.brand {
+    font-family: var(--ch-font-body);
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1.2;
+    white-space: nowrap;
+}

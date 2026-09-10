@@ -7,6 +7,9 @@ import AppError from "./appError.js";
 export async function processUploadedCsv(file, options, processRows) {
     if (!file) throw new AppError(400, "No file uploaded");
     try {
+        const info = await fs.promises.stat(file.path);
+        if (info.size > 1024 * 1024)
+            throw new AppError(413, "Choose a CSV file no larger than 1 MiB");
         const rows = [];
         await pipeline(
             fs.createReadStream(file.path),

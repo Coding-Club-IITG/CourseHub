@@ -1,81 +1,64 @@
-import { useState } from "react";
-import Wrapper from "../../../contributions/components/wrapper";
-
-const ConfirmDialog = ({
+import { useId } from "react";
+import { Button, Dialog, FormField } from "@coursehub/ui";
+export function ConfirmDialog({
     show,
     inputValue = "",
-    onInputChange = () => {},
-    childType = "",
-    onChildTypeChange = () => {},
+    onInputChange,
+    childType = "File",
+    onChildTypeChange,
     onCancel,
     onConfirm,
-}) => {
-    const [submitEnabled, setSubmitEnabled] = useState(false);
-    if (!show) return null;
-
+    isLoading,
+    error,
+}) {
+    const id = useId();
     return (
-        <div
-            className="confirm-dialog-overlay"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onCancel();
+        <Dialog
+            open={show}
+            onOpenChange={(open) => {
+                if (!open) onCancel();
             }}
+            title="Add Folder"
+            description="The new folder will be a subfolder of the current folder."
+            busy={isLoading}
+            footer={
+                <>
+                    <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" form={id} busy={isLoading} disabled={!inputValue.trim()}>
+                        Create
+                    </Button>
+                </>
+            }
         >
-            <Wrapper>
-                <div className="head">📁 Add Folder</div>
-                <div className="disclaimer">
-                    The new folder will be a subfolder of the current folder
-                </div>
-                <div className="course">
-                    <label className="label_course" htmlFor="folder">
-                        NAME :
-                    </label>
+            <form
+                id={id}
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    onConfirm();
+                }}
+            >
+                <FormField label="Folder name" error={error} required>
                     <input
                         placeholder="Name of Folder"
-                        name="folder"
-                        className="input_course"
                         value={inputValue}
-                        onChange={(e) => {
-                            if (e.target.value.length > 0) setSubmitEnabled(true);
-                            else setSubmitEnabled(false);
-                            onInputChange(e);
-                        }}
+                        onChange={onInputChange}
                     />
-                </div>
-                <div className="section" id="bottommarginneeded">
-                    <label htmlFor="section" className="label_section">
-                        CHILD TYPE :
-                    </label>
+                </FormField>
+                <FormField
+                    label="Contains"
+                    hint="Choose whether this folder holds files or subfolders."
+                >
                     <select
-                        name="section"
-                        className="select_section"
                         value={childType}
-                        onChange={(e) => onChildTypeChange(e.target.value)}
+                        onChange={(event) => onChildTypeChange(event.target.value)}
                     >
-                        <option value="File">File</option>
-                        <option value="Folder">Folder</option>
+                        <option value="File">Files</option>
+                        <option value="Folder">Folders</option>
                     </select>
-                </div>
-                <div id="uploaded-container">
-                    <div>⚠️</div>
-                    <div>
-                        The Child Type of the folder indicates whether this new folder will have
-                        subfolders or files inside it
-                    </div>
-                </div>
-                <div className="addfolderbuttoncontainer">
-                    <div className="button cancelbutton addfolderbutton" onClick={onCancel}>
-                        CANCEL
-                    </div>
-                    <div
-                        className={`button ${submitEnabled} submitbutton addfolderbutton`}
-                        onClick={onConfirm}
-                    >
-                        CREATE
-                    </div>
-                </div>
-            </Wrapper>
-        </div>
+                </FormField>
+            </form>
+        </Dialog>
     );
-};
-
-export { ConfirmDialog };
+}

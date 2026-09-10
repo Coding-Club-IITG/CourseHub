@@ -34,7 +34,7 @@ export function parseExamWindow(info, period) {
         return null;
     return {
         date: dateText,
-        time: `${startTime}–${endTime}`,
+        time: `${startTime}-${endTime}`,
         startsAt: startsAt.toISOString(),
         endsAt: endsAt.toISOString(),
     };

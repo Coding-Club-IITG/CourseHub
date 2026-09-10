@@ -4,7 +4,7 @@ import { RequestError } from "@coursehub/browser/react";
 import { useCourse } from "./course";
 import { BrowserContext } from "./browserContext";
 import { findFolderById, findYearIndexForFolder } from "../utils/folderUtils";
-import NavBarBrowseScreen from "../screens/browse/components/navbar";
+import NavBar from "../components/navbar";
 import Loader from "../components/Loader";
 export default function CourseBrowserProvider({ children }) {
     const { code, folderId } = useParams();
@@ -22,7 +22,7 @@ export default function CourseBrowserProvider({ children }) {
     if (code && (query.isPending || query.isError || (folderId && !selected)))
         return (
             <>
-                <NavBarBrowseScreen />
+                <NavBar compact />
                 {query.isError ? (
                     <RequestError error={query.error} onRetry={query.refetch} />
                 ) : query.isPending ? (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import FolderController from "./components/folder-controller";
-import "./styles.scss";
+import styles from "./styles.module.scss";
 import { useNavigate } from "react-router-dom";
 import { capitalise } from "../../../../utils/capitalise";
 import { normalizeCourseCode } from "@coursehub/domain";
@@ -21,7 +21,7 @@ const Collapsible = ({ course, color }) => {
     };
     const showTree = open && Array.isArray(yearTree);
     return (
-        <div className={`collapsible ${open}`}>
+        <div className={`${styles.root} collapsible ${open}`}>
             <div
                 className="main"
                 onClick={onClick}

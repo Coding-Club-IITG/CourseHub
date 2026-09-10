@@ -1,16 +1,16 @@
+import { useUploadDialog } from "../contributions/dialogContext";
 import FileSelectionNotice from "./components/file-display/FileSelectionNotice";
 import { useSession } from "../../session/context";
-import "./styles.scss";
+import styles from "./styles.module.scss";
+import { Button, FormField } from "@coursehub/ui";
 import Container from "../../components/container";
-import Dropdown from "../../components/ui/dropdown";
 import Collapsible from "./components/collapsible";
 
 import FolderInfo from "./components/folder-info";
 
 import BrowseFolder from "./components/browsefolder";
-import NavBarBrowseScreen from "./components/navbar";
+import NavBar from "../../components/navbar";
 import Contributions from "../contributions";
-import { useEffect, useState } from "react";
 import { getColors } from "../../utils/colors";
 import { getSubtreeFileCount } from "../../utils/folderUtils";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -20,15 +20,6 @@ import CourseBrowserProvider from "../../queries/CourseBrowserProvider";
 import { useCourseBrowser } from "../../queries/browserContext";
 import { normalizeCourseCode } from "@coursehub/domain";
 import { library, session } from "../../session/runtime";
-function useIsMobile() {
-    const [mobile, setMobile] = useState(window.innerWidth <= 768);
-    useEffect(() => {
-        const resize = () => setMobile(window.innerWidth <= 768);
-        window.addEventListener("resize", resize);
-        return () => window.removeEventListener("resize", resize);
-    }, []);
-    return mobile;
-}
 const BrowseScreen = () => (
     <CourseBrowserProvider>
         <BrowseContent />
@@ -38,7 +29,6 @@ function BrowseContent() {
     const navigate = useNavigate();
     const [params] = useSearchParams();
     const requestedFile = params.get("file");
-    const isMobile = useIsMobile();
     const user = useSession().data;
     const {
         currentFolder: folderData,
@@ -78,7 +68,8 @@ function BrowseContent() {
         ).values(),
     ];
     const allYears = currCourse || [];
-    const contributionHandler = () => document.querySelector(".contri")?.classList.add("show");
+    const { setOpen: setUploadOpen } = useUploadDialog();
+    const contributionHandler = () => setUploadOpen(true);
     const HeaderText =
         folderData?.childType === "File"
             ? "Select a file..."
@@ -109,246 +100,120 @@ function BrowseContent() {
         if (year) navigate("/browse/" + currCourseCode + "/" + year._id);
     };
     return (
-        <Container color={"light"} type={"fluid"}>
-            <div className="navbar-browse-screen">
-                <NavBarBrowseScreen />
-            </div>
-            <div className="controller">
-                {isMobile ? (
-                    <>
-                        <div className="mobile-content">
-                            <div className="mobile-dropdowns-compact">
-                                <div className="dropdown-group-compact">
-                                    <Dropdown
-                                        placeholder="Select Course"
-                                        value={currCourseCode || ""}
-                                        onValueChange={(value) =>
-                                            handleCourseChange({ target: { value } })
-                                        }
-                                        options={allCourses.map((course) => ({
-                                            value: course.code,
-                                            label: `${course.code}: ${course.name || course.code}`,
-                                        }))}
-                                    />
-                                </div>
-                                <div className="dropdown-group-compact">
-                                    <Dropdown
-                                        placeholder="Select Year"
-                                        value={
-                                            currYear !== null && currYear !== undefined
-                                                ? currYear.toString()
-                                                : ""
-                                        }
-                                        onValueChange={(value) =>
-                                            handleYearChange({ target: { value } })
-                                        }
-                                        disabled={!currCourse || !allYears.length}
-                                        options={allYears.map((year, idx) => {
-                                            const count = getSubtreeFileCount(year);
-                                            const isYearEmpty = count === 0;
-                                            return {
-                                                value: idx.toString(),
-                                                label: `${year?.name || `Year ${idx + 1}`}${isYearEmpty ? " (Empty)" : ""}`,
-                                            };
-                                        })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="files">
-                                <FileSelectionNotice />
-                                {canGoBack && (
-                                    <button
-                                        className="mobile-back-btn-circular"
-                                        onClick={handleBackClick}
-                                    >
-                                        <i className="fa fa-arrow-left" aria-hidden="true"></i>
-                                        <span>Back</span>
-                                    </button>
-                                )}
-                                {!folderData ? (
-                                    <div className="empty-message">{HeaderText}</div>
-                                ) : folderData?.childType === "File" ? (
-                                    folderData?.children?.length === 0 ? (
-                                        !requestedFile && (
-                                            <p
-                                                className="empty-message"
-                                                key={folderData?._id || "empty-files"}
-                                            >
-                                                No files available.
-                                            </p>
-                                        )
-                                    ) : (
-                                        <FileController
-                                            files={folderData?.children}
-                                            code={currCourseCode}
-                                            isMobileView={isMobile}
-                                        />
-                                    )
-                                ) : folderData?.children?.length === 0 ? (
-                                    <div
-                                        className="empty-folder"
-                                        key={folderData?._id || "empty-folders"}
-                                    >
-                                        <p className="empty-message">No folders available.</p>
-                                    </div>
-                                ) : (
-                                    folderData?.children.map((folder, idx) => (
-                                        <BrowseFolder
-                                            type="folder"
-                                            key={folder._id}
-                                            path={folder.path}
-                                            name={folder.name}
-                                            subject={
-                                                currCourseCode ||
-                                                (folder.courses ? folder.courses[0] : folder.course)
-                                            }
-                                            folderData={folder}
-                                            parentFolder={folderData}
-                                            isMobileView={isMobile}
-                                            index={idx}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <div className="left">
-                        <h4 className="heading">MY COURSES</h4>
-                        {user?.courses?.map((course, idx) => {
-                            return (
-                                <Collapsible
-                                    color={getColors(idx)}
-                                    key={`user-course-${idx}`}
-                                    course={course}
-                                    isReadOnly={false}
-                                />
-                            );
-                        })}
-                        {localCourses?.map((course, idx) => {
-                            return (
-                                <Collapsible
-                                    color={course.color}
-                                    key={`local-course-${idx}`}
-                                    course={course}
-                                />
-                            );
-                        })}
-
-                        {user?.readOnly?.length > 0 && <h4 className="heading">OTHERS</h4>}
-
-                        {user?.readOnly?.map((course, idx) => (
-                            <Collapsible
-                                color={course.color}
-                                key={`readonly-${idx}`}
-                                course={course}
-                                isReadOnly={true}
-                            />
-                        ))}
-
-                        {user?.isBR && user?.previousCourses?.length > 0 && (
-                            <h4 className="heading">PREVIOUS COURSES</h4>
-                        )}
-                        {user?.isBR &&
-                            user?.previousCourses?.length > 0 &&
-                            user?.previousCourses?.map((semesterGroup, semIdx) => (
-                                <div key={semIdx}>
-                                    <h5 className="semester-subheading">
-                                        Semester {semesterGroup.semester} ({semesterGroup.year})
-                                    </h5>
-                                    {semesterGroup.courses.map((course, idx) => (
-                                        <Collapsible
-                                            color={getColors(idx)}
-                                            key={idx}
-                                            course={course}
-                                        />
-                                    ))}
-                                </div>
+        <Container color="light" type="fluid">
+            <NavBar compact />
+            <div className={styles.layout}>
+                <div className={styles.mobileSelection}>
+                    <FormField label="Course">
+                        <select value={currCourseCode || ""} onChange={handleCourseChange}>
+                            <option value="" disabled>
+                                Select Course
+                            </option>
+                            {allCourses.map((item) => (
+                                <option key={item.code} value={item.code}>
+                                    {item.code}: {item.name || item.code}
+                                </option>
                             ))}
-                    </div>
-                )}
-                {!isMobile && (
-                    <>
-                        <div className="middle">
-                            {folderData && (
-                                <FolderInfo
-                                    isBR={user.isBR}
-                                    path={folderData?.path ? folderData.path : ""}
-                                    name={folderData?.name ? folderData.name : HeaderText}
-                                    canDownload={folderData?.childType === "File"}
-                                    contributionHandler={contributionHandler}
-                                    folderId={folderData?._id}
-                                    courseCode={
-                                        currCourseCode ||
-                                        (folderData?.courses
-                                            ? folderData.courses[0]
-                                            : folderData.course)
-                                    }
-                                />
-                            )}
-                            <div className="files">
-                                <FileSelectionNotice />
-                                {!folderData ? (
-                                    <div className="empty-message" key="no-folder">
-                                        {HeaderText}
-                                    </div>
-                                ) : folderData?.childType === "File" ? (
-                                    folderData?.children?.length === 0 ? (
-                                        !requestedFile && (
-                                            <p
-                                                className="empty-message"
-                                                key={folderData?._id || "empty-files"}
-                                            >
-                                                No files available.
-                                            </p>
-                                        )
-                                    ) : (
-                                        <FileController
-                                            files={folderData?.children}
-                                            code={currCourseCode}
-                                        />
-                                    )
-                                ) : folderData?.children?.length === 0 ? (
-                                    <div
-                                        className="empty-folder"
-                                        key={folderData?._id || "empty-folders"}
-                                    >
-                                        <p className="empty-message">No folders available.</p>
-                                    </div>
-                                ) : (
-                                    folderData?.children.map((folder, idx) => (
-                                        <BrowseFolder
-                                            type="folder"
-                                            key={folder._id}
-                                            path={folder.path}
-                                            name={folder.name}
-                                            subject={
-                                                currCourseCode ||
-                                                (folder.courses ? folder.courses[0] : folder.course)
-                                            }
-                                            folderData={folder}
-                                            parentFolder={folderData}
-                                            index={idx}
-                                        />
-                                    ))
-                                )}
+                        </select>
+                    </FormField>
+                    <FormField label="Year">
+                        <select
+                            value={currYear ?? ""}
+                            onChange={handleYearChange}
+                            disabled={!allYears.length}
+                        >
+                            <option value="" disabled>
+                                Select Year
+                            </option>
+                            {allYears.map((year, index) => (
+                                <option key={year._id} value={index}>
+                                    {year.name}
+                                    {getSubtreeFileCount(year) === 0 ? " (Empty)" : ""}
+                                </option>
+                            ))}
+                        </select>
+                    </FormField>
+                </div>
+                <aside className={styles.sidebar} aria-label="Course navigation">
+                    <h2>MY COURSES</h2>
+                    {(user?.courses || []).map((item, index) => (
+                        <Collapsible key={item.code} course={item} color={getColors(index)} />
+                    ))}
+                    {localCourses.map((item) => (
+                        <Collapsible key={item.code} course={item} color={item.color} />
+                    ))}
+                    {!!user?.readOnly?.length && <h2>OTHERS</h2>}
+                    {(user?.readOnly || []).map((item) => (
+                        <Collapsible key={item.code} course={item} color={item.color} />
+                    ))}
+                    {user?.isBR && !!user.previousCourses?.length && <h2>PREVIOUS COURSES</h2>}
+                    {user?.isBR &&
+                        (user.previousCourses || []).map((semester, index) => (
+                            <div key={index}>
+                                <h3>
+                                    Semester {semester.semester} ({semester.year})
+                                </h3>
+                                {semester.courses.map((item, i) => (
+                                    <Collapsible
+                                        key={item.code}
+                                        course={item}
+                                        color={getColors(i)}
+                                    />
+                                ))}
                             </div>
+                        ))}
+                </aside>
+                <aside className={styles.years} aria-label="Year navigation">
+                    <YearInfo courseCode={currCourseCode} course={currCourse} currYear={currYear} />
+                </aside>
+                <main className={styles.main} aria-label="Course resources">
+                    {folderData && (
+                        <FolderInfo
+                            path={folderData.path || ""}
+                            name={folderData.name || HeaderText}
+                            canDownload={folderData.childType === "File"}
+                            contributionHandler={contributionHandler}
+                            folderId={folderData._id}
+                            courseCode={currCourseCode}
+                        />
+                    )}
+                    {canGoBack && (
+                        <div className={styles.back}>
+                            <Button variant="link" onClick={handleBackClick}>
+                                ← Back to {parent.name}
+                            </Button>
                         </div>
-                        <div className="right">
-                            <YearInfo
-                                isBR={user.isBR}
-                                courseCode={currCourseCode}
-                                course={currCourse}
-                                currYear={currYear}
-                            />
-                        </div>
-                    </>
-                )}
+                    )}
+                    <div className={styles.files}>
+                        <FileSelectionNotice />
+                        {!folderData ? (
+                            <p>{HeaderText}</p>
+                        ) : !folderData.children?.length ? (
+                            !requestedFile && (
+                                <p>
+                                    {folderData.childType === "File"
+                                        ? "No files available."
+                                        : "No folders available."}
+                                </p>
+                            )
+                        ) : folderData.childType === "File" ? (
+                            <FileController files={folderData.children} code={currCourseCode} />
+                        ) : (
+                            folderData.children.map((item, index) => (
+                                <BrowseFolder
+                                    key={item._id}
+                                    name={item.name}
+                                    subject={currCourseCode}
+                                    folderData={item}
+                                    index={index}
+                                />
+                            ))
+                        )}
+                    </div>
+                </main>
             </div>
-
-            <Contributions key={`${currCourseCode}/${folderData?._id || ""}`} />
+            <Contributions key={currCourseCode + "/" + (folderData?._id || "")} />
         </Container>
     );
 }
-
 export default BrowseScreen;

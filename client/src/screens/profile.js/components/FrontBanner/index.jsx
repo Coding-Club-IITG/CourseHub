@@ -1,109 +1,109 @@
+import { useRef, useState } from "react";
+import { Button, FormField, IconButton } from "@coursehub/ui";
 import { session } from "../../../../session/runtime";
 import { useSession } from "../../../../session/context";
-import { toast } from "react-toastify";
 import { updateUser } from "../../../../api/User";
-import { useState } from "react";
 import Container from "../../../../components/container";
 import formatName from "../../../../utils/formatName";
 import formatBranch from "../../../../utils/formatBranch";
-import SemCard from "./SemCard/index";
-import "react-toastify/dist/ReactToastify.css";
-import "./styles.scss";
-
-const FrontBanner = () => {
-    const [isNameEdit, setIsNameEdit] = useState(false);
-    const user = useSession().data;
-    const [userName, setUserName] = useState(formatName(user?.name));
-    const [saving, setSaving] = useState(false);
-    const [saveError, setSaveError] = useState("");
-
-    function editNameHandler() {
-        setUserName(user.name);
-        setSaveError("");
-        setIsNameEdit(true);
-    }
-    async function submitNameHandler() {
-        if (saving) return;
-        if (!userName.trim()) {
-            setSaveError("Name cannot be empty.");
+import SemCard from "./SemCard";
+import styles from "./styles.module.scss";
+export default function FrontBanner() {
+    const user = useSession().data,
+        trigger = useRef(null);
+    const [editing, setEditing] = useState(false),
+        [name, setName] = useState(""),
+        [busy, setBusy] = useState(false),
+        [error, setError] = useState(""),
+        [saved, setSaved] = useState(false);
+    const cancel = () => {
+        setEditing(false);
+        requestAnimationFrame(() => trigger.current?.focus());
+    };
+    const save = async (event) => {
+        event.preventDefault();
+        if (busy) return;
+        if (!name.trim()) {
+            setError("Name cannot be empty.");
             return;
         }
-        setSaving(true);
-        setSaveError("");
+        setBusy(true);
+        setError("");
         try {
-            const data = await updateUser({ newUserName: userName.trim() });
-            session.setActor((current) => ({ ...current, name: data.name }));
-            setIsNameEdit(false);
-            toast.success("Profile updated");
-        } catch (error) {
-            setSaveError(error.message || "Could not save your name. Please try again.");
+            const result = await updateUser({ newUserName: name.trim() });
+            session.setActor((current) => ({ ...current, name: result.name }));
+            cancel();
+            setSaved(true);
+        } catch (failure) {
+            setError(failure.message || "Could not save your name. Please try again.");
         } finally {
-            setSaving(false);
+            setBusy(false);
         }
-    }
+    };
     return (
-        <Container color={"dark"}>
-            <div className="front_banner">
-                <div className="banner_text">
-                    <div className="texts">
-                        <div className="sub_head">
-                            <span>MY PROFILE</span>
-                        </div>
-                        <header>
-                            {isNameEdit ? (
+        <Container color="dark" className={styles.section}>
+            <div className={styles.banner}>
+                <div className={styles.text}>
+                    <h1>MY PROFILE</h1>
+                    {editing ? (
+                        <form
+                            className={styles.form}
+                            onSubmit={save}
+                            onKeyDown={(event) => {
+                                if (event.key === "Escape" && !busy) cancel();
+                            }}
+                        >
+                            <FormField label="Name" error={error}>
                                 <input
                                     autoFocus
-                                    id="nameField"
-                                    aria-label="Name"
-                                    aria-describedby={saveError ? "profile-save-error" : undefined}
-                                    aria-invalid={!!saveError}
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
                                     maxLength={120}
-                                    disabled={saving}
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Enter") submitNameHandler();
-                                    }}
-                                    className="inputName"
-                                    value={userName}
-                                    onChange={(event) => {
-                                        setUserName(() => {
-                                            return event.target.value;
-                                        });
-                                    }}
-                                    type="text"
+                                    disabled={busy}
                                 />
-                            ) : (
-                                formatName(user?.name)
-                            )}
-                            {isNameEdit ? (
-                                <button
-                                    type="button"
+                            </FormField>
+                            <div className={styles.actions}>
+                                <Button
+                                    type="submit"
                                     aria-label="Save name"
-                                    className="tickDiv"
-                                    disabled={saving}
-                                    onClick={submitNameHandler}
+                                    busy={busy}
+                                    busyLabel="Saving…"
+                                >
+                                    Save name
+                                </Button>
+                                <Button variant="ghost" disabled={busy} onClick={cancel}>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className={styles.name}>
+                            <h2>{formatName(user.name)}</h2>
+                            <IconButton
+                                ref={trigger}
+                                label="Edit name"
+                                variant="ghost"
+                                onClick={() => {
+                                    setName(user.name);
+                                    setError("");
+                                    setSaved(false);
+                                    setEditing(true);
+                                }}
+                            >
+                                <img
+                                    src={new URL("./Assets/editL.svg", import.meta.url).href}
+                                    alt=""
+                                    width="24"
+                                    height="24"
                                 />
-                            ) : (
-                                <button
-                                    type="button"
-                                    aria-label="Edit name"
-                                    className="editDiv"
-                                    onClick={editNameHandler}
-                                />
-                            )}
-                        </header>
-                        {saving && <p role="status">Saving…</p>}
-                        {saveError && (
-                            <p id="profile-save-error" className="profile-save-error" role="alert">
-                                {saveError}
-                            </p>
-                        )}
-                        <div className="branch">{formatBranch(user?.degree, user?.department)}</div>
-                    </div>
-
-                    <SemCard sem={user.semester} />
+                            </IconButton>
+                        </div>
+                    )}
+                    {saved && <p role="status">Profile updated</p>}
+                    <p className={styles.branch}>{formatBranch(user.degree, user.department)}</p>
                 </div>
+                <SemCard sem={user.semester} />
             </div>
         </Container>
     );
-};
-export default FrontBanner;
+}

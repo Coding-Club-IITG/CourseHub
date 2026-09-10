@@ -1,3 +1,4 @@
+import styles from "@/styles/layout.module.scss";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { operationEvent } from "@/apis/operations";
@@ -20,7 +21,7 @@ export default function OperationNotice() {
                   ? "Upload"
                   : "Cleanup";
     return (
-        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 bg-white px-4 py-2 text-sm">
+        <div className={styles.operationNotice}>
             {operation && (
                 <span role="status">
                     {operation.status === "completed"
@@ -30,10 +31,7 @@ export default function OperationNotice() {
                           : `${activity} is in progress. You can leave this page.`}
                 </span>
             )}
-            <Link
-                className="rounded px-2 py-1 font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2"
-                to="/admin/operations"
-            >
+            <Link className={styles.link} to="/admin/operations">
                 Operations
             </Link>
         </div>

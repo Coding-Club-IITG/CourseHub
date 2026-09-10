@@ -39,13 +39,21 @@ async function fixture(t, width = 1440) {
             status = state.listStatus;
             data =
                 status === 200
-                    ? state.courses
+                    ? Array.isArray(state.courses)
+                        ? {
+                              items: state.courses,
+                              page: 1,
+                              pageSize: 20,
+                              total: state.courses.length,
+                          }
+                        : state.courses
                     : {
                           code: "TEST_ERROR",
                           message: "Course service unavailable",
                           requestId: "test-request",
                       };
-        } else if (url.pathname === "/api/student/all") data = { students: [] };
+        } else if (url.pathname === "/api/student/all")
+            data = { items: [], page: 1, pageSize: 20, total: 0 };
         else if (url.pathname === "/api/operations") data = { items: [] };
         await route
             .fulfill({ status, contentType: "application/json", body: JSON.stringify(data) })
@@ -116,6 +124,6 @@ test("admin navigation reuses its confirmed session", async (t) => {
     await page.goto(origin + "/admin/courses");
     await page.getByText("Test course", { exact: true }).waitFor();
     await page.getByRole("link", { name: "Students", exact: true }).click();
-    await page.getByPlaceholder("Search by name or roll number...").waitFor();
+    await page.getByRole("textbox", { name: "Search students" }).waitFor();
     assert.equal(requests.filter((item) => item === "/api/admin/").length, 1);
 });

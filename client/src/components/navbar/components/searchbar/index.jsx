@@ -1,183 +1,89 @@
-import { useSession } from "../../../../session/context";
-import "./styles.scss";
-import { useMemo, useState } from "react";
+import { useId, useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@coursehub/browser";
+import { Button, FormField } from "@coursehub/ui";
 import { GetSearchResult } from "../../../../api/Search";
-import formatLongText from "../../../../utils/formatLongText";
-import { useEffect } from "react";
-import { capitalise } from "../../../../utils/capitalise";
-import SmallLoader from "../../../SmallLoader";
-const SearchBar = ({ type }) => {
-    const [open, setOpen] = useState(false);
-    const [searched, setSearched] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [fetched, setFetched] = useState({});
-    const [error, setError] = useState(false);
-    const user = useSession().data;
-    const courses = useMemo(
-        () =>
-            (user?.courses || [])
-                .concat(user?.previousCourses?.flatMap((sem) => sem.courses) || [])
-                .concat(user?.readOnly || []),
-        [user],
-    );
-    const [searchResultStyle, setSearchResultStyle] = useState({
-        maxHeight: "15%",
+import { library } from "../../../../session/runtime";
+import { normalizeCourseCode } from "@coursehub/domain";
+import styles from "./styles.module.scss";
+export default function SearchBar() {
+    const [value, setValue] = useState(""),
+        [submitted, setSubmitted] = useState(""),
+        [open, setOpen] = useState(false),
+        id = useId();
+    const query = useQuery({
+        queryKey: library.key("search", submitted),
+        enabled: !!submitted && open,
+        queryFn: ({ signal }) =>
+            GetSearchResult(
+                /\d/.test(submitted) ? [normalizeCourseCode(submitted)] : submitted.split(/\s+/),
+                signal,
+            ),
+        retry: false,
     });
-    useEffect(() => {
-        if (!error && searched && Array.isArray(fetched?.results)) {
-            if (fetched?.results.length == 1) {
-                setSearchResultStyle({
-                    maxHeight: "15%",
-                });
-            } else if (fetched?.results.length == 2) {
-                setSearchResultStyle({
-                    maxHeight: "20%",
-                });
-            } else {
-                setSearchResultStyle({
-                    maxHeight: "28%",
-                });
-            }
-        }
-    }, [fetched, error, searched]);
-
-    const handleSubmit = async (value) => {
-        if (!value) return;
-        try {
-            setSearched(true);
-            setLoading(true);
-            const fetched2 = courses.find((course) => {
-                return (
-                    course.code.replaceAll(" ", "").toLowerCase() ===
-                    value.replaceAll(" ", "").toLowerCase()
-                );
-            });
-            await GetSearchResult(value.split(" "));
-            const data = {
-                found: fetched2 ? true : false,
-                results: [
-                    {
-                        code: fetched2.code.replaceAll(" ", "").toLowerCase(),
-                        name: fetched2.name,
-                        isAvailable: true,
-                        numberOfWordsMatched: 0,
-                        _id: "null",
-                    },
-                ],
-            };
-            setFetched(data);
-            setError(false);
-            setLoading(false);
-        } catch {
-            setSearched(true);
-            setLoading(false);
-            setError(true);
-        }
-    };
+    const results = query.data?.results || [];
     return (
-        <div className={`wrap ${type}`}>
+        <div
+            className={styles.search}
+            onKeyDown={(event) => {
+                if (event.key === "Escape") setOpen(false);
+            }}
+            onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+            }}
+        >
             <form
-                className="search"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSubmit(e.target[0].value);
-                }}
-                onChange={() => {
-                    setSearched(false);
-                    setError(false);
-                    setLoading(false);
-                    setFetched({});
-                }}
-                onFocus={() => {
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    setSubmitted(value.trim());
                     setOpen(true);
                 }}
-                onBlur={() => {
-                    if (!fetched?.found) setOpen(false);
-                }}
             >
-                <input type="text" className="searchTerm" placeholder="Search Courses" />
-                <button className="search-img"></button>
+                <FormField label="Search courses">
+                    <input
+                        value={value}
+                        placeholder="Search Courses"
+                        aria-controls={open ? id : undefined}
+                        onChange={(event) => {
+                            setValue(event.target.value);
+                            setSubmitted("");
+                            setOpen(false);
+                        }}
+                    />
+                </FormField>
+                <Button type="submit" aria-label="Search courses" disabled={!value.trim()}>
+                    Search
+                </Button>
             </form>
-            {open && (
-                <div className={`search-results`} style={searchResultStyle}>
-                    {searched ? (
-                        loading ? (
-                            <SmallLoader text="Searching..." />
-                        ) : fetched?.found ? (
-                            <>
-                                {fetched.results.map((result) => {
-                                    return (
-                                        <>
-                                            <p
-                                                style={{
-                                                    color: "#fff",
-                                                    backgroundColor: result.isAvailable
-                                                        ? "#000"
-                                                        : "#636363",
-                                                    padding: "15px",
-                                                    cursor: result.isAvailable
-                                                        ? "pointer"
-                                                        : "not-allowed",
-                                                }}
-                                                onClick={() => {
-                                                    if (result.isAvailable) {
-                                                        window.location = "/browse/" + result.code;
-                                                    }
-                                                }}
-                                            >
-                                                <span className="code">
-                                                    {result.code.toUpperCase()}
-                                                </span>
-                                                <span className="name">
-                                                    {capitalise(formatLongText(result.name, 40))}
-                                                </span>
-                                                <span className="extra-info">
-                                                    {!result?.isAvailable && "UNAVAILABLE"}
-                                                </span>
-                                            </p>
-                                            <hr />
-                                        </>
-                                    );
-                                })}
-                                <span
-                                    onClick={() => setOpen(false)}
-                                    style={{
-                                        cursor: "pointer",
-                                        display: "block",
-                                        marginTop: "12px",
-                                        textDecoration: "underline",
-                                    }}
-                                >
-                                    Close
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                Not found! <br />
-                                <br /> Please enter the full code like cs101 and you can only view
-                                your own courses{" "}
-                                <span
-                                    onClick={() => setOpen(false)}
-                                    style={{
-                                        cursor: "pointer",
-                                        display: "block",
-                                        marginTop: "12px",
-                                        textDecoration: "underline",
-                                    }}
-                                >
-                                    Close
-                                </span>
-                            </>
-                        )
-                    ) : error ? (
-                        "error"
+            {open && submitted && (
+                <div className={styles.results} id={id}>
+                    {query.isPending ? (
+                        <p role="status">Searching…</p>
+                    ) : query.isError ? (
+                        <p role="alert">
+                            Courses could not be loaded.{" "}
+                            <Button variant="link" onClick={() => query.refetch()}>
+                                Try again
+                            </Button>
+                        </p>
+                    ) : results.length ? (
+                        results.map((item) => (
+                            <Link
+                                key={item._id || item.code}
+                                onClick={() => setOpen(false)}
+                                to={"/browse/" + normalizeCourseCode(item.code)}
+                            >
+                                <strong>{item.code}</strong> {item.name}
+                            </Link>
+                        ))
                     ) : (
-                        "Press Enter to search"
+                        <p>No courses found.</p>
                     )}
+                    <Button variant="link" onClick={() => setOpen(false)}>
+                        Close search
+                    </Button>
                 </div>
             )}
         </div>
     );
-};
-
-export default SearchBar;
+}

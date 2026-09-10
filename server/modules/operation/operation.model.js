@@ -27,7 +27,7 @@ const Operation = new Schema(
         _id: { type: String, required: true },
         kind: {
             type: String,
-            enum: ["upload", "delete", "link", "rename", "academic-sync"],
+            enum: ["upload", "delete", "link", "rename", "academic-sync", "import"],
             required: true,
         },
         actorId: {

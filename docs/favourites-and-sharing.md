@@ -45,7 +45,7 @@ This matters for moderation. A student cannot open another student's pending fil
 https://coursehub.example/browse/CS101/folder-id?file=file-id
 ```
 
-**Share folder**, in the desktop folder header, uses the same dialog with a folder destination.
+**Share folder**, in the responsive folder toolbar, uses the same dialog with a folder destination.
 
 Copying reports success only after the browser confirms the clipboard write. If clipboard access is denied, the dialog selects the link for manual copying and leaves the copy action available. Escape or **Close** dismisses it and returns focus to the trigger. Background scrolling is locked while the dialog is open.
 

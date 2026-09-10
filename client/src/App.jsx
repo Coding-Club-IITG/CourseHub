@@ -1,3 +1,5 @@
+import styles from "./App.module.scss";
+import UploadDialogProvider from "./screens/contributions/UploadDialogProvider";
 import ShareProvider from "./screens/share/ShareProvider";
 import RouteBoundary from "./router_utils/RouteBoundary";
 import { useState, useEffect } from "react";
@@ -26,7 +28,7 @@ const App = () => {
     }, []);
 
     return (
-        <div className="App">
+        <div className={styles.app}>
             <ToastContainer
                 position={isMobile ? "bottom-center" : "top-right"}
                 autoClose={1500}
@@ -49,22 +51,27 @@ const App = () => {
                 }
             />
             <Router>
-                <ShareProvider>
-                    <RouteBoundary>
-                        <Routes>
-                            <Route path="/loading" element={<LoadingPage />} />
-                            <Route element={<PrivateRoutes />}>
-                                <Route element={<Dashboard />} path="dashboard" />
-                                <Route element={<ProfilePage />} path="profile" />
-                                <Route element={<BrowseScreen />} path="browse" />
-                                <Route element={<BrowseScreen />} path="browse/:code" />
-                                <Route element={<BrowseScreen />} path="browse/:code/:folderId" />
-                            </Route>
-                            <Route element={<LandingPage />} path="/" />
-                            <Route element={<ErrorScreen />} path="*" />
-                        </Routes>
-                    </RouteBoundary>
-                </ShareProvider>
+                <UploadDialogProvider>
+                    <ShareProvider>
+                        <RouteBoundary>
+                            <Routes>
+                                <Route path="/loading" element={<LoadingPage />} />
+                                <Route element={<PrivateRoutes />}>
+                                    <Route element={<Dashboard />} path="dashboard" />
+                                    <Route element={<ProfilePage />} path="profile" />
+                                    <Route element={<BrowseScreen />} path="browse" />
+                                    <Route element={<BrowseScreen />} path="browse/:code" />
+                                    <Route
+                                        element={<BrowseScreen />}
+                                        path="browse/:code/:folderId"
+                                    />
+                                </Route>
+                                <Route element={<LandingPage />} path="/" />
+                                <Route element={<ErrorScreen />} path="*" />
+                            </Routes>
+                        </RouteBoundary>
+                    </ShareProvider>
+                </UploadDialogProvider>
             </Router>
         </div>
     );

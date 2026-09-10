@@ -141,7 +141,10 @@ for (const width of [1440, 390]) {
         await page.getByRole("button", { name: "Edit name", exact: true }).click();
         await page.getByRole("textbox", { name: "Name", exact: true }).fill("Requested Student");
         await page.getByRole("button", { name: "Save name", exact: true }).click();
-        await page.getByRole("status").filter({ hasText: "Saving…" }).waitFor();
+        await page
+            .getByRole("button", { name: "Save name", exact: true })
+            .and(page.locator("[aria-busy=true]"))
+            .waitFor();
         assert.equal(
             await page.getByRole("textbox", { name: "Name", exact: true }).inputValue(),
             "Requested Student",
@@ -151,7 +154,7 @@ for (const width of [1440, 390]) {
         release();
         await page.getByText("Profile updated", { exact: true }).waitFor();
         await page
-            .locator(".front_banner header")
+            .getByRole("heading", { level: 2 })
             .filter({ hasText: "Confirmed Student" })
             .waitFor();
         assert.equal(requests.filter((r) => r.path === "/api/user/update").length, 1);
@@ -305,6 +308,6 @@ for (const width of [1440, 390])
             buffer: Buffer.from("CS101,CSN101\n"),
         });
         await page.getByRole("button", { name: "Upload and Link", exact: true }).click();
-        await page.getByRole("heading", { name: "Linking Summary", exact: true }).waitFor();
+        await page.getByRole("heading", { name: "Bulk linking", exact: true }).waitFor();
         assert.ok(requests.some((r) => r.path.endsWith("/bulk-link")));
     });

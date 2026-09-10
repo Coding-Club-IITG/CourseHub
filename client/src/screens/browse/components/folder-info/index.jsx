@@ -1,7 +1,7 @@
 import { useCourseBrowser } from "../../../../queries/browserContext";
 import { transport } from "../../../../api/http";
 import { getFileDownloadLink } from "../../../../api/File";
-import "./styles.scss";
+import styles from "./styles.module.scss";
 import { toast } from "react-toastify";
 import { useShare } from "../../../share/context";
 import { resourceLink } from "../../../../utils/resourceLink";
@@ -15,21 +15,14 @@ import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
-const FolderInfo = ({
-    path,
-    name,
-    canDownload,
-    contributionHandler,
-    folderId,
-    courseCode,
-    isMobileView = false, // New prop for mobile view
-}) => {
+const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, courseCode }) => {
     const share = useShare();
     const currentFolder = useCourseBrowser().currentFolder;
     const totalSubtreeFiles = getSubtreeFileCount(currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
     const [childType, setChildType] = useState("File");
+    const [formError, setFormError] = useState("");
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
 
@@ -37,6 +30,7 @@ const FolderInfo = ({
     const canContribute = currentFolder?.capabilities?.canContribute === true;
 
     const handleCreateFolder = () => {
+        setFormError("");
         setNewFolderName("");
         setChildType("File");
         setShowConfirm(true);
@@ -45,6 +39,7 @@ const FolderInfo = ({
     const handleConfirmCreateFolder = async () => {
         if (isAdding) return;
         setIsAdding(true);
+        setFormError("");
         const folderName = newFolderName.trim();
         if (!folderName?.trim() || !childType) {
             setIsAdding(false);
@@ -57,7 +52,7 @@ const FolderInfo = ({
                 (item) => item.name.toLowerCase() === folderName.toLowerCase(),
             )
         ) {
-            toast.error(`A file or folder named "${folderName}" already exists.`);
+            setFormError(`A file or folder named "${folderName}" already exists.`);
             setIsAdding(false);
             return;
         }
@@ -77,10 +72,10 @@ const FolderInfo = ({
             });
 
             toast.success(`Folder "${folderName}" created`);
-        } catch {
-            toast.error("Failed to create folder.");
+            setShowConfirm(false);
+        } catch (error) {
+            setFormError(error.message || "Failed to create folder.");
         }
-        setShowConfirm(false);
         setIsAdding(false);
     };
 
@@ -186,8 +181,11 @@ const FolderInfo = ({
     };
     return (
         <>
-            <div className="folder-info">
+            <div className={`${styles.root} folder-info`}>
                 <div className="info">
+                    {currentFolder?.affectedCourses?.length > 1 && (
+                        <p className="path">Shared by {currentFolder.affectedCourses.join(", ")}</p>
+                    )}
                     <p className="path">{path}</p>
                     <div className="curr-folder" key={folderId || name}>
                         <p className="folder-name">{name}</p>
@@ -204,8 +202,8 @@ const FolderInfo = ({
                     </div>
                 </div>
 
-                {!isMobileView && (
-                    <div className="main-actions">
+                {
+                    <div className="main-actions" role="group" aria-label="Folder actions">
                         <button
                             type="button"
                             className="btn share"
@@ -228,7 +226,9 @@ const FolderInfo = ({
                             disabled={isDownloading}
                         >
                             <span className="icon download-icon"></span>
-                            <span className="text">{isDownloading ? "Download" : "Download"}</span>
+                            <span className="text">
+                                {isDownloading ? "Preparing…" : "Download"}
+                            </span>
                         </button>
 
                         {canContribute && canDownload && (
@@ -253,12 +253,14 @@ const FolderInfo = ({
                             </button>
                         )}
                     </div>
-                )}
+                }
             </div>
 
-            {!isMobileView && (
+            {
                 <ConfirmDialog
                     show={showConfirm}
+                    isLoading={isAdding}
+                    error={formError}
                     input={true}
                     inputValue={newFolderName}
                     onInputChange={(e) => setNewFolderName(e.target.value)}
@@ -267,7 +269,7 @@ const FolderInfo = ({
                     onConfirm={handleConfirmCreateFolder}
                     onCancel={() => setShowConfirm(false)}
                 />
-            )}
+            }
         </>
     );
 };

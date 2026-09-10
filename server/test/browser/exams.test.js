@@ -46,7 +46,7 @@ for (const width of [1440, 390]) {
         await page.goto(frontend + "/dashboard");
         await page.getByText("Missing dates: QA999").waitFor();
         assert.equal(await page.locator(".exam-item-card").count(), 2);
-        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "—");
+        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
         assert.match(
             await page.locator('[data-exam-type="midSem"]').innerText(),
             /Dates incomplete/,
@@ -71,7 +71,7 @@ for (const width of [1440, 390]) {
                 await page.getByText("All listed Mid-Sem exams have finished.").waitFor();
                 assert.equal(
                     await page.locator('[data-exam-type="midSem"] .days').innerText(),
-                    "—",
+                    "-",
                 );
             } else
                 assert.equal(
@@ -87,7 +87,7 @@ for (const width of [1440, 390]) {
         });
         await page.goto(frontend + "/dashboard");
         await page.getByText("Loading exam schedule…", { exact: true }).waitFor();
-        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "—");
+        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
         state.status = 503;
         state.loading = false;
         state.release();
@@ -95,7 +95,7 @@ for (const width of [1440, 390]) {
             .getByRole("alert")
             .getByText("Exam schedule could not be loaded.", { exact: true })
             .waitFor();
-        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "—");
+        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
         state.status = 200;
         await page.getByRole("button", { name: "Try again" }).click();
         await page
@@ -130,7 +130,7 @@ test("an open dashboard refreshes countdown boundaries and discards a timetable 
     await page.clock.fastForward(1001);
     await page.getByText("Mid-Sem schedule unavailable.", { exact: true }).waitFor();
     assert.equal(await page.locator(".exam-item-card").count(), 0);
-    assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "—");
+    assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
     assert.ok(requests.filter((request) => request.path === "/api/event/examdates").length >= 4);
 });
 test("a different browser timezone does not change the returned exam date or countdown", async (t) => {

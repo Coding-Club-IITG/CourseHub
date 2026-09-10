@@ -1,0 +1,104 @@
+@use "@coursehub/ui/mixins" as ui;
+.card {
+    @include ui.typography;
+    position: relative;
+    box-sizing: border-box;
+    width: 200px;
+    height: 150px;
+    border: 0;
+    border-radius: 5px;
+    color: var(--ch-ink);
+    align-self: flex-start;
+}
+.open {
+    @include ui.control;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+}
+.code {
+    font-size: 0.8rem;
+    background: var(--ch-ink);
+    color: white;
+    padding: 3px 6px;
+}
+.name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    border: 1px dashed white;
+    background: var(--ch-black);
+    color: white;
+    font: inherit;
+    span {
+        font-size: 2rem;
+        line-height: 1;
+    }
+    &:focus-visible {
+        @include ui.focus-ring;
+    }
+}
+@media (hover: hover) and (pointer: fine) {
+    .card:hover,
+    .card:focus-within {
+        height: auto;
+        min-height: 150px;
+        .name {
+            -webkit-line-clamp: unset;
+        }
+    }
+    .add:hover,
+    .add:focus-within {
+        height: 150px;
+    }
+}
+@include ui.below(mobile) {
+    .card {
+        width: calc(50% - 0.5rem);
+        height: 130px;
+    }
+    .open {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    .name {
+        font-size: 0.9rem;
+    }
+    .code {
+        font-size: 0.7rem;
+    }
+}
+@media (max-width: 360px) {
+    .card {
+        height: 120px;
+    }
+    .open {
+        padding: 0.5rem;
+    }
+}

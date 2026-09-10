@@ -2,11 +2,10 @@ import FavouriteCard from "./components/favouritecard";
 import { session } from "../../session/runtime";
 import { useSession } from "../../session/context";
 import { normalizeCourseCode } from "@coursehub/domain";
-import "./styles.scss";
+import styles from "./styles.module.scss";
 import Container from "../../components/container";
 import ExamCard from "./components/examcard";
 import Heading from "../../components/heading";
-import Space from "../../components/space";
 import NavBar from "../../components/navbar";
 import SubHeading from "../../components/subheading";
 import CourseCard from "./components/coursecard";
@@ -23,7 +22,6 @@ import formatBranch from "../../utils/formatBranch";
 import { useState } from "react";
 import { getColors } from "../../utils/colors";
 
-import Contributions from "../contributions";
 import AddCourseModal from "./components/addcoursemodal";
 import { AddNewCourseAPI } from "../../api/User";
 import { toast } from "react-toastify";
@@ -42,16 +40,8 @@ const Dashboard = () => {
         }));
     };
 
-    const contributionHandler = () => {
-        const collection = document.getElementsByClassName("contri");
-        const contributionSection = collection[0];
-        if (contributionSection) contributionSection.classList.add("show");
-    };
-    const addCourseModalShowHandler = () => {
-        const collection = document.getElementsByClassName("add_modal");
-        const contributionSection = collection[0];
-        if (contributionSection) contributionSection.classList.add("show");
-    };
+    const [addCourseOpen, setAddCourseOpen] = useState(false);
+    const addCourseModalShowHandler = () => setAddCourseOpen(true);
     const handleAddCourse = async ({ code, name }) => {
         try {
             const found =
@@ -60,17 +50,15 @@ const Dashboard = () => {
 
             if (found) {
                 toast.info("Course already exists.");
-                return;
+                throw new Error("Course already exists.");
             }
             const res = await AddNewCourseAPI(code, name);
             session.setActor((current) => ({ ...current, readOnly: res.readOnly }));
             toast.success(`Course ${code.toUpperCase()} added to Others!`);
 
-            const collection = document.getElementsByClassName("add_modal");
-            const modal = collection[0];
-            if (modal) modal.classList.remove("show");
-        } catch {
-            toast.error("Failed to add course.");
+            setAddCourseOpen(false);
+        } catch (error) {
+            throw new Error(error.message || "Failed to add course.");
         }
     };
 
@@ -93,20 +81,19 @@ const Dashboard = () => {
     const [showPrevious, setShowPrevious] = useState(false);
 
     return (
-        <div className="App dashboard-page">
-            <div>
-                <NavBar />
-                <Container color={"dark"} className="dashboard-section">
+        <div className={styles.page}>
+            <NavBar />
+            <main>
+                <Container color="dark" className="dashboard-section">
                     <div className="split">
                         <div className="welcome-container">
-                            <Heading text={"Welcome,"} type={""} color={"light"} />
-                            <Heading text={formatName(user?.name)} type={"bold"} color={"light"} />
+                            <Heading text="Welcome," color="light" />
+                            <Heading text={formatName(user?.name)} type="bold" color="light" />
                             <SubHeading
                                 text={formatBranch(user?.degree, user?.department)}
-                                color={"light"}
+                                color="light"
                             />
                         </div>
-
                         {examQuery.data?.status !== "excluded" && (
                             <div className="exam-card-container">
                                 <ExamCard query={examQuery} type="midSem" name="Mid-Sem Exam" />
@@ -114,141 +101,93 @@ const Dashboard = () => {
                             </div>
                         )}
                     </div>
-                    <Space amount={50} />
-                    <SubHeading text={"MY COURSES"} color={"light"} type={"bold"} />
-                    <Space amount={20} />
-                    <div className="coursecard-container">
-                        {user.courses.map((course, index) => (
-                            <CourseCard
-                                key={course.name}
-                                code={course?.code?.toUpperCase()}
-                                name={course.name}
-                                color={getColors(index)}
-                                setClicked={() => handleClick(course.code)}
-                                isReadOnly={false}
-                            />
-                        ))}
-                    </div>
-                    <Space amount={50} />
-
-                    <SubHeading text={"OTHERS"} color={"light"} type={"bold"} />
-                    <Space amount={20} />
-                    <div className="coursecard-container">
-                        {(user?.readOnly || []).map((course, index) => (
-                            <CourseCard
-                                key={course.code || course.name}
-                                code={course?.code?.toUpperCase()}
-                                name={course.name}
-                                color={getColors(index)}
-                                setClicked={() => handleClick(course.code)}
-                                isReadOnly={true}
-                                onCourseRemoved={handleCourseRemoved}
-                            />
-                        ))}
-
-                        <CourseCard
-                            type={"ADD"}
-                            setClicked={() => {
-                                addCourseModalShowHandler();
-                            }}
-                        />
-                    </div>
-
-                    <Space amount={50} />
-
-                    {user.isBR && user.previousCourses?.length > 0 && (
-                        <>
-                            <div
-                                onClick={() => setShowPrevious(!showPrevious)}
-                                style={{
-                                    cursor: "pointer",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        transition: "transform 0.2s",
-                                        transform: showPrevious ? "rotate(0deg)" : "rotate(-90deg)",
-                                        color: "white",
-                                        fontSize: "0.85em",
-                                    }}
-                                >
-                                    ▼
-                                </span>
-                                <SubHeading
-                                    text={
-                                        showPrevious
-                                            ? "HIDE PREVIOUS COURSES"
-                                            : "SHOW PREVIOUS COURSES"
-                                    }
-                                    color={"light"}
-                                    type={"bold"}
+                    <section className={styles.courseSection} aria-labelledby="my-courses-heading">
+                        <h2 id="my-courses-heading">MY COURSES</h2>
+                        <div className="coursecard-container">
+                            {user.courses.map((course, index) => (
+                                <CourseCard
+                                    key={course.code}
+                                    code={course.code?.toUpperCase()}
+                                    name={course.name}
+                                    color={getColors(index)}
+                                    setClicked={() => handleClick(course.code)}
                                 />
-                            </div>
-
-                            {showPrevious && (
-                                <div className="previous-courses-wrapper">
-                                    {user.previousCourses.map((semesterGroup, semIndex) => (
-                                        <div key={semIndex} style={{ marginLeft: "20px" }}>
-                                            <Space amount={20} />
-                                            <div
-                                                style={{
-                                                    cursor: "pointer",
-                                                    display: "inline-flex",
-                                                    alignItems: "center",
-                                                    gap: "8px",
-                                                }}
-                                                onClick={() => toggleSemester(semIndex)}
-                                            >
-                                                <span
-                                                    style={{
-                                                        transition:
-                                                            "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                                                        transform: openSemesters[semIndex]
-                                                            ? "rotate(0deg)"
-                                                            : "rotate(-90deg)",
-                                                        color: "white",
-                                                        fontSize: "0.85em",
-                                                    }}
-                                                >
-                                                    ▼
-                                                </span>
-                                                <SubHeading
-                                                    text={`Semester ${semesterGroup.semester} (${semesterGroup.year})`}
-                                                    color={"light"}
-                                                    type={"bold"}
-                                                />
+                            ))}
+                        </div>
+                        {!user.courses.length && (
+                            <p>
+                                No registered courses yet. You can refresh them from your profile.
+                            </p>
+                        )}
+                    </section>
+                    <section
+                        className={styles.courseSection}
+                        aria-labelledby="other-courses-heading"
+                    >
+                        <h2 id="other-courses-heading">OTHERS</h2>
+                        <div className="coursecard-container">
+                            {(user.readOnly || []).map((course, index) => (
+                                <CourseCard
+                                    key={course.code}
+                                    code={course.code?.toUpperCase()}
+                                    name={course.name}
+                                    color={getColors(index)}
+                                    setClicked={() => handleClick(course.code)}
+                                    isReadOnly
+                                    onCourseRemoved={handleCourseRemoved}
+                                />
+                            ))}
+                            <CourseCard type="ADD" setClicked={addCourseModalShowHandler} />
+                        </div>
+                    </section>
+                    {user.isBR && user.previousCourses?.length > 0 && (
+                        <section className={styles.courseSection} aria-label="Previous courses">
+                            <button
+                                className={styles.disclosure}
+                                aria-expanded={showPrevious}
+                                aria-controls="previous-courses"
+                                onClick={() => setShowPrevious((value) => !value)}
+                            >
+                                <span aria-hidden="true">{showPrevious ? "▾" : "▸"}</span>
+                                {showPrevious ? "HIDE PREVIOUS COURSES" : "SHOW PREVIOUS COURSES"}
+                            </button>
+                            <div id="previous-courses" hidden={!showPrevious}>
+                                {user.previousCourses.map((group, index) => (
+                                    <div className={styles.semester} key={index}>
+                                        <button
+                                            className={styles.disclosure}
+                                            aria-expanded={!!openSemesters[index]}
+                                            aria-controls={"semester-" + index}
+                                            onClick={() => toggleSemester(index)}
+                                        >
+                                            <span aria-hidden="true">
+                                                {openSemesters[index] ? "▾" : "▸"}
+                                            </span>
+                                            Semester {group.semester} ({group.year})
+                                        </button>
+                                        <div
+                                            id={"semester-" + index}
+                                            hidden={!openSemesters[index]}
+                                        >
+                                            <div className="coursecard-container">
+                                                {group.courses.map((course, i) => (
+                                                    <CourseCard
+                                                        key={course.code}
+                                                        code={course.code?.toUpperCase()}
+                                                        name={course.name}
+                                                        color={getColors(i)}
+                                                        setClicked={() => handleClick(course.code)}
+                                                    />
+                                                ))}
                                             </div>
-                                            {openSemesters[semIndex] && (
-                                                <div className="previous-courses-wrapper">
-                                                    <Space amount={20} />
-                                                    <div className="coursecard-container">
-                                                        {semesterGroup.courses.map(
-                                                            (course, index) => (
-                                                                <CourseCard
-                                                                    key={course.name}
-                                                                    code={course?.code?.toUpperCase()}
-                                                                    name={course.name}
-                                                                    color={getColors(index)}
-                                                                    setClicked={() =>
-                                                                        handleClick(course.code)
-                                                                    }
-                                                                />
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
                     )}
                 </Container>
-                <Container color={"light"} className="dashboard-section">
+                <Container color="light" className="dashboard-section">
                     <section className="favourites-section" aria-labelledby="favourites-heading">
                         <h2 id="favourites-heading">Favourites</h2>
                         {user.favourites?.length ? (
@@ -263,15 +202,15 @@ const Dashboard = () => {
                     </section>
                 </Container>
                 <ExamScheduleWidget query={examQuery} />
-                <ContributionBanner contributionHandler={contributionHandler} />
-            </div>
-            <div>
-                <Footer />
-            </div>
-            <Contributions />
-            <AddCourseModal handleAddCourse={handleAddCourse} />
+                <ContributionBanner />
+            </main>
+            <Footer />
+            <AddCourseModal
+                open={addCourseOpen}
+                onOpenChange={setAddCourseOpen}
+                handleAddCourse={handleAddCourse}
+            />
         </div>
     );
 };
-
 export default Dashboard;

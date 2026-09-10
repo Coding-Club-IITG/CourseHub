@@ -1,11 +1,11 @@
-import Wrapper from "./components/wrapper";
-import SectionC from "./components/sectionC";
+import { Button, Dialog } from "@coursehub/ui";
+import { useUploadDialog } from "./dialogContext";
 import { FilePond } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import { useEffect, useRef, useState } from "react";
 import { isUploadLimits, uploadLimitsLabel, uploadLimitsError } from "@coursehub/domain";
 import { useLocation } from "react-router-dom";
-import "./styles.scss";
+import styles from "./styles.module.scss";
 import { CreateNewContribution } from "../../api/Contribution";
 import { useCourseBrowser } from "../../queries/browserContext";
 import { library } from "../../session/runtime";
@@ -31,6 +31,10 @@ const stateLabels = {
     cancelled: "Cancelled",
 };
 const Contributions = () => {
+    const { open, setOpen } = useUploadDialog();
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const isOpen = useRef(open);
+    isOpen.current = open;
     const currentFolder = useCourseBrowser().currentFolder;
     const currentCourseCode = useCourseBrowser().currentCourseCode;
     const isBR = currentFolder?.capabilities?.canManage === true;
@@ -94,13 +98,13 @@ const Contributions = () => {
                 )
                     throw new Error("Choose the folder belonging to this upload.");
                 showOperation(value);
-                document.querySelector(".contri")?.classList.add("show");
+                setOpen(true);
             })
             .catch(() => {
                 if (!controller.signal.aborted) setError("This upload could not be loaded.");
             });
         return () => controller.abort();
-    }, [location.key, location.search, currentFolder?._id, currentCourseCode]);
+    }, [location.key, location.search, currentFolder?._id, currentCourseCode, setOpen]);
     useEffect(() => {
         if (
             !operation ||
@@ -315,6 +319,7 @@ const Contributions = () => {
         fileIds.current.clear();
         setSentBytes({});
         setFileCount(0);
+        setSelectedFiles([]);
         setStatusError("");
         setOperation(undefined);
         setError("");
@@ -326,195 +331,192 @@ const Contributions = () => {
     const serverBusy =
         operation && ["planning", "queued", "running", "cancelling"].includes(operation.status);
     const canSelect = canSend && !closed && !busy && !serverBusy;
-    const close = () => document.querySelector(".contri")?.classList.remove("show");
+    const close = () => setOpen(false);
     return (
-        <SectionC busy={busy}>
-            <Wrapper>
-                <div className="upload-content">
-                    <header className="upload-header">
-                        <h2>{isBR ? "Upload Files" : "Share Your Files"}</h2>
-                        <p>To {currentFolder?.name || "this folder"}</p>
-                    </header>
-                    <div className="upload-body">
-                        {operation && (
-                            <div
-                                className="upload-results"
-                                aria-label="Upload results"
-                                aria-live="polite"
-                            >
-                                <p className="upload-summary">
-                                    {
-                                        operation.entries.filter(
-                                            (entry) => entry.state === "completed",
-                                        ).length
-                                    }{" "}
-                                    of {operation.entries.length} files uploaded
-                                </p>
-                                <ul>
-                                    {operation.entries.map((entry) => (
-                                        <li key={entry.id} data-state={entry.state}>
-                                            <span className="upload-file-name">{entry.name}</span>
-                                            <strong>
-                                                {busy &&
-                                                entry.state === "pending" &&
-                                                sentBytes[entry.id] !== undefined
-                                                    ? "Sending"
-                                                    : stateLabels[entry.state] || entry.state}
-                                            </strong>
-                                            {["failed", "cleanup"].includes(entry.state) &&
-                                                entry.error?.message && (
-                                                    <span className="upload-error">
-                                                        {entry.error.message}
-                                                    </span>
-                                                )}
-                                            {((busy &&
-                                                sentBytes[entry.id] !== undefined &&
-                                                entry.state !== "completed") ||
-                                                ["receiving", "uploading", "publishing"].includes(
-                                                    entry.state,
-                                                )) && (
-                                                <progress
-                                                    max={entry.size}
-                                                    value={
-                                                        entry.state === "pending" ||
-                                                        entry.state === "receiving"
-                                                            ? (sentBytes[entry.id] || 0) / 2
-                                                            : entry.size / 2 +
-                                                              (entry.uploadedBytes || 0) / 2
-                                                    }
-                                                    aria-label={entry.name + " storage progress"}
-                                                />
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        {/* Keep the picker mounted so retained File objects can be retried. */}
-                        {canSend && !closed && (
-                            <div className="upload-picker" hidden={!canSelect}>
-                                {operation && (
-                                    <p className="upload-hint">
-                                        Choose the original failed files to resume.
-                                    </p>
+        <Dialog
+            open={open}
+            onOpenChange={setOpen}
+            data-upload-dialog
+            title={isBR ? "Upload Files" : "Share Your Files"}
+            description={"To " + (currentFolder?.name || "this folder")}
+            className={styles.uploadDialog}
+            bodyClassName={styles["upload-body"]}
+            footerClassName={styles["upload-actions"]}
+            footer={
+                <>
+                    {!closed && canSend && !serverBusy && (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            className={styles["upload-primary"]}
+                            disabled={!fileCount || busy || !limits || operation?.cancelRequested}
+                            onClick={handleSubmit}
+                        >
+                            {busy
+                                ? "Uploading…"
+                                : operation
+                                  ? "Retry failed files"
+                                  : "Upload files"}
+                        </Button>
+                    )}
+                    {operation?.canCancel && (
+                        <Button type="button" variant="secondary" onClick={handleCancel}>
+                            Cancel remaining uploads
+                        </Button>
+                    )}
+                    {closed && currentFolder?.capabilities?.canContribute === true && (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            className={styles["upload-primary"]}
+                            onClick={reset}
+                            disabled={busy}
+                        >
+                            Start another batch
+                        </Button>
+                    )}
+                    {
+                        <Button
+                            type="button"
+                            variant="link"
+                            className={styles["upload-close"]}
+                            onClick={close}
+                        >
+                            Close
+                        </Button>
+                    }
+                </>
+            }
+        >
+            {operation && (
+                <div
+                    data-upload-results
+                    className={styles["upload-results"]}
+                    aria-label="Upload results"
+                    aria-live="polite"
+                >
+                    <p className={styles["upload-summary"]}>
+                        {operation.entries.filter((entry) => entry.state === "completed").length} of{" "}
+                        {operation.entries.length} files uploaded
+                    </p>
+                    <ul>
+                        {operation.entries.map((entry) => (
+                            <li key={entry.id} data-state={entry.state}>
+                                <span className={styles["upload-file-name"]}>{entry.name}</span>
+                                <strong>
+                                    {busy &&
+                                    entry.state === "pending" &&
+                                    sentBytes[entry.id] !== undefined
+                                        ? "Sending"
+                                        : stateLabels[entry.state] || entry.state}
+                                </strong>
+                                {["failed", "cleanup"].includes(entry.state) &&
+                                    entry.error?.message && (
+                                        <span className={styles["upload-error"]}>
+                                            {entry.error.message}
+                                        </span>
+                                    )}
+                                {((busy &&
+                                    sentBytes[entry.id] !== undefined &&
+                                    entry.state !== "completed") ||
+                                    ["receiving", "uploading", "publishing"].includes(
+                                        entry.state,
+                                    )) && (
+                                    <progress
+                                        max={entry.size}
+                                        value={
+                                            entry.state === "pending" || entry.state === "receiving"
+                                                ? (sentBytes[entry.id] || 0) / 2
+                                                : entry.size / 2 + (entry.uploadedBytes || 0) / 2
+                                        }
+                                        aria-label={entry.name + " storage progress"}
+                                    />
                                 )}
-                                <FilePond
-                                    name="file"
-                                    allowMultiple
-                                    maxFiles={limits?.files || 40}
-                                    disabled={!limits || Boolean(operation?.cancelRequested)}
-                                    onupdatefiles={(files) => setFileCount(files.length)}
-                                    allowDrop={!busy}
-                                    allowBrowse={!busy}
-                                    allowRemove={!busy}
-                                    instantUpload={false}
-                                    allowProcess={false}
-                                    allowRevert={false}
-                                    ref={(value) => {
-                                        pond.current = value;
-                                    }}
-                                />
-                                <p className="upload-limits">{uploadLimitsLabel(limits)}</p>
-                            </div>
-                        )}
-                        {limitsError && (
-                            <p className="upload-error" role="alert">
-                                Upload limits are unavailable.{" "}
-                                <button
-                                    className="upload-text-button"
-                                    type="button"
-                                    onClick={() => setLimitsAttempt((value) => value + 1)}
-                                >
-                                    Retry upload limits
-                                </button>
-                            </p>
-                        )}
-                        {!limits && !limitsError && (
-                            <p className="upload-hint" role="status">
-                                Loading upload settings…
-                            </p>
-                        )}
-                        {error && (
-                            <p className="upload-error" role="alert">
-                                {error}
-                            </p>
-                        )}
-                        {statusError && (
-                            <p className="upload-error" role="alert">
-                                {statusError}{" "}
-                                <button
-                                    className="upload-text-button"
-                                    type="button"
-                                    onClick={() =>
-                                        getOperation(operation.id)
-                                            .then(showOperation)
-                                            .catch(() =>
-                                                setStatusError("Status could not refresh."),
-                                            )
-                                    }
-                                >
-                                    Refresh status
-                                </button>
-                            </p>
-                        )}
-                        {operation && ["partial", "cancelled"].includes(operation.status) && (
-                            <p className="upload-hint">Uploaded files are kept.</p>
-                        )}
-                        {!isBR && (!operation || operation.status === "completed") && (
-                            <p className="upload-hint">
-                                Your files need approval before other students can see them.
-                            </p>
-                        )}
-                    </div>
-                    <footer className="upload-actions">
-                        {!closed && canSend && !serverBusy && (
-                            <button
-                                type="button"
-                                className="upload-button upload-primary"
-                                disabled={
-                                    !fileCount || busy || !limits || operation?.cancelRequested
-                                }
-                                onClick={handleSubmit}
-                            >
-                                {busy
-                                    ? "Uploading…"
-                                    : operation
-                                      ? "Retry failed files"
-                                      : "Upload files"}
-                            </button>
-                        )}
-                        {operation?.canCancel && (
-                            <button
-                                type="button"
-                                className="upload-button upload-secondary"
-                                onClick={handleCancel}
-                            >
-                                Cancel remaining uploads
-                            </button>
-                        )}
-                        {closed && currentFolder?.capabilities?.canContribute === true && (
-                            <button
-                                type="button"
-                                className="upload-button upload-primary"
-                                onClick={reset}
-                                disabled={busy}
-                            >
-                                Start another batch
-                            </button>
-                        )}
-                        {!busy && (
-                            <button
-                                type="button"
-                                className="upload-text-button upload-close"
-                                onClick={close}
-                            >
-                                Close
-                            </button>
-                        )}
-                    </footer>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-            </Wrapper>
-        </SectionC>
+            )}
+            {/* Keep the picker mounted so retained File objects can be retried. */}
+            {canSend && !closed && (
+                <div className={styles["upload-picker"]} hidden={!canSelect}>
+                    {operation && (
+                        <p className={styles["upload-hint"]}>
+                            Choose the original failed files to resume.
+                        </p>
+                    )}
+                    <FilePond
+                        name="file"
+                        allowMultiple
+                        maxFiles={limits?.files || 40}
+                        disabled={!limits || Boolean(operation?.cancelRequested)}
+                        files={selectedFiles}
+                        onupdatefiles={(files) => {
+                            if (isOpen.current) {
+                                setSelectedFiles(files.map((item) => item.file));
+                                setFileCount(files.length);
+                            }
+                        }}
+                        allowDrop={!busy}
+                        allowBrowse={!busy}
+                        allowRemove={!busy}
+                        instantUpload={false}
+                        allowProcess={false}
+                        allowRevert={false}
+                        ref={(value) => {
+                            pond.current = value;
+                        }}
+                    />
+                    <p className={styles["upload-limits"]}>{uploadLimitsLabel(limits)}</p>
+                </div>
+            )}
+            {limitsError && (
+                <p className={styles["upload-error"]} role="alert">
+                    Upload limits are unavailable.{" "}
+                    <button
+                        className={styles["upload-text-button"]}
+                        type="button"
+                        onClick={() => setLimitsAttempt((value) => value + 1)}
+                    >
+                        Retry upload limits
+                    </button>
+                </p>
+            )}
+            {!limits && !limitsError && (
+                <p className={styles["upload-hint"]} role="status">
+                    Loading upload settings…
+                </p>
+            )}
+            {error && (
+                <p className={styles["upload-error"]} role="alert">
+                    {error}
+                </p>
+            )}
+            {statusError && (
+                <p className={styles["upload-error"]} role="alert">
+                    {statusError}{" "}
+                    <button
+                        className={styles["upload-text-button"]}
+                        type="button"
+                        onClick={() =>
+                            getOperation(operation.id)
+                                .then(showOperation)
+                                .catch(() => setStatusError("Status could not refresh."))
+                        }
+                    >
+                        Refresh status
+                    </button>
+                </p>
+            )}
+            {operation && ["partial", "cancelled"].includes(operation.status) && (
+                <p className={styles["upload-hint"]}>Uploaded files are kept.</p>
+            )}
+            {!isBR && (!operation || operation.status === "completed") && (
+                <p className={styles["upload-hint"]}>
+                    Your files need approval before other students can see them.
+                </p>
+            )}
+        </Dialog>
     );
 };
 export default Contributions;

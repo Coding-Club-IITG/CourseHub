@@ -1,0 +1,51 @@
+@use "breakpoints" as *;
+@import url("./fonts.css");
+:root {
+    --ch-black: #000;
+    --ch-ink: #242424;
+    --ch-yellow: #fecf6f;
+    --ch-yellow-hover: #f5c15a;
+    --ch-paper: #fff;
+    --ch-surface: #f5f5f5;
+    --ch-muted: #535353;
+    --ch-border: #d2d2d2;
+    --ch-control-border: #767676;
+    --ch-success: #25613d;
+    --ch-success-surface: #eaf4ed;
+    --ch-danger: #a21c1c;
+    --ch-danger-surface: #fff0f0;
+    --ch-warning: #704b00;
+    --ch-warning-surface: #fff3d6;
+    --ch-info: #254c70;
+    --ch-info-surface: #edf4fc;
+    --ch-font-body: "Proxima Nova", Arial, sans-serif;
+    --ch-text-small: 0.875rem;
+    --ch-text-body: 1rem;
+    --ch-text-title: 1.75rem;
+    --ch-space-1: 0.25rem;
+    --ch-space-2: 0.5rem;
+    --ch-space-3: 0.75rem;
+    --ch-space-4: 1rem;
+    --ch-space-5: 1.25rem;
+    --ch-space-6: 1.5rem;
+    --ch-space-8: 2rem;
+    --ch-space-12: 3rem;
+    --ch-section-padding: 32px;
+    --ch-gutter: 64px;
+    --ch-radius-control: 0.375rem;
+    --ch-radius-card: 0.75rem;
+    --ch-radius-pill: 999px;
+    --ch-shadow-card: 0 2px 8px #0000000d;
+    --ch-shadow-dialog: 0 20px 70px #0004;
+    --ch-target: 2.75rem;
+    @include below(mobile) {
+        --ch-section-padding: 24px;
+        --ch-gutter: 16px;
+    }
+    @include below(small) {
+        --ch-gutter: 12px;
+    }
+    @media (max-width: 360px) {
+        --ch-gutter: 8px;
+    }
+}

@@ -89,44 +89,24 @@ after(async () => {
     }
 });
 
-test("authenticated administrator CSV uploads persist courses and clean up parsed and rejected files", async (t) => {
+test("administrator linking multipart rejection cleans up temporary files", async (t) => {
     const admin = await Admin.create({ userId: "multipart-admin", password });
-    let importedCourse;
-    t.after(async () => {
-        if (importedCourse) await Course.deleteOne({ _id: importedCourse._id });
-        await Admin.deleteOne({ _id: admin._id });
-    });
+    t.after(() => Admin.deleteOne({ _id: admin._id }));
     const headers = await sessionHeaders(admin.id, "admin");
-    delete headers["content-type"];
     fs.mkdirSync("uploads", { recursive: true });
     const beforeFiles = fs.readdirSync("uploads").sort();
-    const body = new FormData();
-    body.append(
-        "file",
-        new Blob(["QA6001,Multipart Course\n"], { type: "text/csv" }),
-        "courses.csv",
-    );
-    const response = await fetch(origin + "/api/admin/courses/upload", {
+    const invalid = new FormData();
+    invalid.append("file", new Blob(["QA6002,Must Not Import\n"]), "courses.csv");
+    invalid.append("items[4294967294]", "invalid");
+    const response = await fetch(origin + "/api/admin/courses/bulk-link", {
         method: "POST",
         headers,
-        body,
+        body: invalid,
     });
-    assert.equal(response.status, 200);
-    assert.ok((await response.json()).some((course) => course.code === "QA6001"));
-    importedCourse = await Course.findOne({ code: "QA6001" });
-    assert.equal(importedCourse.name, "Multipart Course");
+    assert.equal(response.status, 400);
+    await response.json();
+    assert.equal(await Course.exists({ code: "QA6002" }), null);
     assert.deepEqual(fs.readdirSync("uploads").sort(), beforeFiles);
-
-    for (const endpoint of ["/api/admin/courses/upload", "/api/admin/courses/bulk-link"]) {
-        const invalid = new FormData();
-        invalid.append("file", new Blob(["QA6002,Must Not Import\n"]), "courses.csv");
-        invalid.append("items[4294967294]", "invalid");
-        const rejected = await fetch(origin + endpoint, { method: "POST", headers, body: invalid });
-        assert.equal(rejected.status, 400);
-        await rejected.json();
-        assert.equal(await Course.exists({ code: "QA6002" }), null);
-        assert.deepEqual(fs.readdirSync("uploads").sort(), beforeFiles);
-    }
 });
 
 test("provisioned password hashes work with the existing administrator login", async () => {
@@ -157,7 +137,7 @@ test("provisioned password hashes work with the existing administrator login", a
     });
     const courses = await fetch(origin + "/api/admin/dbcourses", { headers });
     assert.equal(courses.status, 200);
-    assert.deepEqual(await courses.json(), []);
+    assert.deepEqual(await courses.json(), { items: [], page: 1, pageSize: 20, total: 0 });
 });
 
 test("repeat provisioning cannot replace an existing hash or identity", async () => {
@@ -485,4 +465,29 @@ test("validated nested references survive persistence, population and a profile-
         (await User.findById(person.id).lean()).previousCourses,
         before.previousCourses,
     );
+});
+
+test("administrator student pagination and detail contracts", async (t) => {
+    const { exerciseStudentAdministration } = await import("../support/student-administration.js");
+    await exerciseStudentAdministration(t, origin);
+});
+
+test("administrator course pagination and comparison contracts", async (t) => {
+    const { exerciseCourseAdministration } = await import("../support/course-administration.js");
+    await exerciseCourseAdministration(t, origin);
+});
+
+test("CSV imports preserve row results and recover through the existing journal", async (t) => {
+    const { exerciseImports } = await import("../support/imports.js");
+    await exerciseImports(t, origin);
+});
+
+test("BR coverage agrees with authoritative current and historical management rights", async (t) => {
+    const { exerciseBRCoverage } = await import("../support/br-coverage.js");
+    await exerciseBRCoverage(t, origin);
+});
+
+test("bulk linking receipts retain accepted jobs and scheduling failures without claiming completion", async (t) => {
+    const { exerciseLinkReceipts } = await import("../support/link-receipts.js");
+    await exerciseLinkReceipts(t, origin);
 });

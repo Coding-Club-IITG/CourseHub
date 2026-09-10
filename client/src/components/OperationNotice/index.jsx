@@ -1,3 +1,4 @@
+import { useUploadDialog } from "../../screens/contributions/dialogContext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { operationEvent, listOperations, getOperation } from "../../api/Operation";
@@ -16,6 +17,7 @@ const labels = {
     cancelled: "Cancelled",
 };
 export default function OperationNotice() {
+    const { open: uploadOpen } = useUploadDialog();
     const [items, setItems] = useState([]);
     const [error, setError] = useState("");
     const [attempt, setAttempt] = useState(0);
@@ -65,7 +67,7 @@ export default function OperationNotice() {
             controller.abort();
         };
     }, [items, attempt]);
-    if (!items.length && !error) return null;
+    if (uploadOpen || (!items.length && !error)) return null;
     return (
         <aside className="operation-notice" aria-label="Content operations">
             {error && (

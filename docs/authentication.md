@@ -31,7 +31,7 @@ To intentionally create an administrator, configure `MONGO_URI`, `ADMIN_USER_ID`
 npm run admin
 ```
 
-The user ID must be 1–128 characters and the password must be at least 12 characters. Provisioning validates the supplied credentials before connecting, stores a password hash, and refuses to replace an existing administrator with the same identity. Running it again is not a password-reset procedure.
+The user ID must be 1-128 characters and the password must be at least 12 characters. Provisioning validates the supplied credentials before connecting, stores a password hash, and refuses to replace an existing administrator with the same identity. Running it again is not a password-reset procedure.
 
 After provisioning, sign in through the admin portal. Keep these credentials and all signing keys out of `VITE_*` variables: those variables are included in browser code.
 

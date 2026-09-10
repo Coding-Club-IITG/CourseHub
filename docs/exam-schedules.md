@@ -2,7 +2,7 @@
 
 A countdown means the number of calendar days until the next applicable exam in that timetable.
 
-For example, suppose a student is registered for `RT5022` in slot G and `BM5101H` in slot A. In the July–November 2026 timetable, their Mid-Sem exams start on 13 and 14 September respectively. On 9 September, the dashboard shows **4 days until Mid-Sem Exam**, and the first timetable card shows **13 Sept 2026, 09:00–11:00**. After that exam finishes, the countdown moves to the next exam in the student's list.
+For example, suppose a student is registered for `RT5022` in slot G and `BM5101H` in slot A. In the July-November 2026 timetable, their Mid-Sem exams start on 13 and 14 September respectively. On 9 September, the dashboard shows **4 days until Mid-Sem Exam**, and the first timetable card shows **13 Sept 2026, 09:00-11:00**. After that exam finishes, the countdown moves to the next exam in the student's list.
 
 ## 1. Where the information comes from
 
@@ -65,7 +65,7 @@ Countdowns count calendar days, not completed 24-hour intervals. At 23:59, an ex
 
 The dashboard refreshes at least once a minute while active, with a shorter interval near midnight or the next start/end boundary. The server recalculates the academic period on every request. Returning to the dashboard or refocusing the browser also revalidates the query.
 
-A July–November timetable is never carried into January–May merely because no replacement has been added. After rollover, the new period must have both an academic allotment and a matching timetable. Otherwise the interface shows unavailable data.
+A July-November timetable is never carried into January-May merely because no replacement has been added. After rollover, the new period must have both an academic allotment and a matching timetable. Otherwise the interface shows unavailable data.
 
 ## 5. Providing or correcting a timetable
 

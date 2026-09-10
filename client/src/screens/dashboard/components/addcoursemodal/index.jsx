@@ -1,139 +1,112 @@
+import { useEffect, useRef, useState } from "react";
+import { Button, Dialog, FormField, LoadingState } from "@coursehub/ui";
 import { useSession } from "../../../../session/context";
 import { normalizeCourseCode } from "@coursehub/domain";
-import Wrapper from "./components/wrapper";
-import SectionC from "./components/sectionC";
-
-import "./styles.scss";
-import Space from "../../../../components/space";
-import { useState } from "react";
-import { useEffect } from "react";
 import { GetSearchResult } from "../../../../api/Search";
-import Result from "./components/result";
-import SmallLoader from "../../../../components/SmallLoader";
-const AddCourseModal = ({ handleAddCourse }) => {
-    const [code, setCode] = useState("");
-    const [btnState, setBtnState] = useState("disabled");
-    const [err, setErr] = useState(null);
-    const [results, setResults] = useState([]);
-    const [loading, setLoading] = useState(false);
+import styles from "./styles.module.scss";
+export default function AddCourseModal({ open, onOpenChange, handleAddCourse }) {
+    const [code, setCode] = useState(""),
+        [results, setResults] = useState([]),
+        [loading, setLoading] = useState(false),
+        [saving, setSaving] = useState(false),
+        [error, setError] = useState("");
+    const request = useRef(0);
     const user = useSession().data;
-    const userCourses = user?.courses || [];
-    const previousCourses = user?.previousCourses?.flatMap((sem) => sem.courses) || [];
-    const readOnlyCourses = user?.readOnly || [];
-
-    const allUserCourseCodes = [...userCourses, ...previousCourses, ...readOnlyCourses].map((c) =>
-        normalizeCourseCode(c.code),
-    );
-
+    const codes = [
+        ...(user?.courses || []),
+        ...(user?.readOnly || []),
+        ...(user?.previousCourses || []).flatMap((sem) => sem.courses || []),
+    ].map((c) => normalizeCourseCode(c.code));
     useEffect(() => {
-        if (code.length >= 1) {
-            if (btnState !== "") setBtnState("");
-        } else {
-            if (btnState !== "disabled") setBtnState("disabled");
+        if (!open) {
+            request.current++;
+            setLoading(false);
         }
-    }, [code, btnState]);
-
-    async function handleSearch() {
-        if (btnState === "disabled") return;
+    }, [open]);
+    const search = async (event) => {
+        event.preventDefault();
+        if (!code.trim() || saving) return;
+        const version = ++request.current;
+        setLoading(true);
+        setError("");
+        setResults([]);
         try {
-            setLoading(true);
-            setErr(null);
-            let searchArr;
-            if (/\d/.test(code)) {
-                let codeWithoutSpace = normalizeCourseCode(code);
-                searchArr = [codeWithoutSpace];
-            } else {
-                searchArr = code.split(" ");
-            }
-            const data = await GetSearchResult(searchArr);
-            if (data?.found === true) {
-                setResults(data.results);
-                setLoading(false);
-                setErr(null);
-            } else {
-                setErr("No results found!");
-                setLoading(false);
-                setResults([]);
-            }
-            setCode("");
+            const data = await GetSearchResult(
+                /\d/.test(code) ? [normalizeCourseCode(code)] : code.trim().split(/\s+/),
+            );
+            if (version !== request.current) return;
+            setResults(data.results || []);
+            if (!data.results?.length) setError("No results found.");
         } catch {
-            setCode("");
-            setErr("Server Error! Please contact admin.");
+            if (version === request.current) setError("Courses could not be loaded. Please retry.");
+        } finally {
+            if (version === request.current) setLoading(false);
         }
-    }
-    const handleModalClose = () => {
-        const collection = document.getElementsByClassName("add_modal");
-        const contributionSection = collection[0];
-        contributionSection.classList.remove("show");
     };
+    const add = async (course) => {
+        if (saving) return;
+        setSaving(true);
+        setError("");
+        try {
+            await handleAddCourse(course);
+        } catch (failure) {
+            setError(failure.message || "Course could not be added.");
+        } finally {
+            setSaving(false);
+        }
+    };
+    const available = results.filter((c) => !codes.includes(normalizeCourseCode(c.code)));
     return (
-        <SectionC>
-            <Wrapper>
-                <div className="head">Add New Course</div>
-                <div className="info-message">This course will be read only</div>
-                <div className="info-message.secondary">
-                    You can either type the course code or any keyword in the name of the course
-                </div>
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <div className="course" style={{ marginTop: "1.5rem" }}>
-                        <label htmlFor="course" className="label_course">
-                            KEY :
-                        </label>
-                        <input
-                            placeholder="Course Code"
-                            name="course"
-                            className="input_course"
-                            onChange={(e) => {
-                                setCode(e.target.value);
-                                if (results.length > 0) setResults([]);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key == "Enter") {
-                                    handleSearch();
-                                }
-                            }}
-                            value={code}
-                        ></input>
-                    </div>
-                </form>
-                {err === null ? (
-                    loading ? (
-                        <SmallLoader text="Loading your courses..." />
-                    ) : (
-                        (() => {
-                            const filtered = results.filter(
-                                (course) =>
-                                    !allUserCourseCodes.includes(normalizeCourseCode(course.code)),
-                            );
-                            if (results.length > 0 && filtered.length === 0) {
-                                return "Course already exists";
-                            }
-                            return (
-                                <div className="add-course-scroll">
-                                    {filtered.map((course) => (
-                                        <Result
-                                            key={course._id}
-                                            _id={course._id}
-                                            code={course.code}
-                                            name={course.name}
-                                            handleClick={handleAddCourse}
-                                            handleModalClose={handleModalClose}
-                                        />
-                                    ))}
-                                </div>
-                            );
-                        })()
-                    )
-                ) : (
-                    err
-                )}
-                <Space amount={35} />
-
-                <div className={`button ${btnState}`} onClick={handleSearch}>
-                    SEARCH CODE
-                </div>
-            </Wrapper>
-        </SectionC>
+        <Dialog
+            open={open}
+            onOpenChange={onOpenChange}
+            title="Add New Course"
+            description="Add a course to Others for read-only browsing. Search by course code or name."
+            busy={saving}
+            footer={
+                <>
+                    <Button variant="link" onClick={() => onOpenChange(false)} disabled={saving}>
+                        Close
+                    </Button>
+                    <Button
+                        type="submit"
+                        form="course-search"
+                        disabled={!code.trim()}
+                        busy={loading || saving}
+                    >
+                        Search courses
+                    </Button>
+                </>
+            }
+        >
+            <form id="course-search" onSubmit={search}>
+                <FormField label="Course code or name" error={error}>
+                    <input
+                        value={code}
+                        placeholder="Course Code"
+                        onChange={(event) => {
+                            setCode(event.target.value);
+                            request.current++;
+                            setLoading(false);
+                            setResults([]);
+                        }}
+                    />
+                </FormField>
+            </form>
+            {loading && <LoadingState title="Loading your courses…" />}
+            {results.length > 0 && !available.length && <p role="status">Course already exists.</p>}
+            <div className={styles.results}>
+                {available.map((course) => (
+                    <Button
+                        key={course._id || course.code}
+                        variant="secondary"
+                        onClick={() => add(course)}
+                        disabled={saving}
+                    >
+                        <strong>{course.code}</strong> - {course.name}
+                    </Button>
+                ))}
+            </div>
+        </Dialog>
     );
-};
-export default AddCourseModal;
+}

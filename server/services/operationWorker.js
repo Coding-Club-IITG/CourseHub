@@ -1,3 +1,4 @@
+import { runImport } from "./imports.js";
 import { randomUUID } from "node:crypto";
 import { OperationModel, CourseLock, StorageLease } from "../modules/operation/operation.model.js";
 import { acquireStorageLease, releaseStorageLease } from "./storageLeases.js";
@@ -106,6 +107,7 @@ async function processClaim(id, lane, checkWorker) {
         else if (operation.kind === "link") await runCourseLink(operation, checkpoint);
         else if (operation.kind === "rename") await runCourseRename(operation, checkpoint);
         else if (operation.kind === "academic-sync") await runAcademicSync(operation, checkpoint);
+        else if (operation.kind === "import") await runImport(operation, checkpoint);
         else await runUploads(operation, checkpoint);
     } catch (error) {
         if (error.code === "LEASE_LOST") return true;

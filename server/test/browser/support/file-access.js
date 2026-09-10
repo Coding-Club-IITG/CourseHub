@@ -9,11 +9,12 @@ export const fileIds = {
     folder: folder._id,
     second: "507f1f77bcf86cd799439088",
 };
-export async function fileAccessFixture(browser, t, { width = 1440, role = "student" } = {}) {
+export async function fileAccessFixture(browser, t, { width = 1440, role = "student", touch = false } = {}) {
     const frontend = process.env.BROWSER_CLIENT_ORIGIN || "http://127.0.0.1:4187";
     const api = process.env.BROWSER_API_ORIGIN || "http://127.0.0.1:4185";
     const context = await browser.newContext({
         viewport: { width, height: 900 },
+        hasTouch: touch,
         locale: "en-US",
         timezoneId: "Asia/Kolkata",
     });
@@ -78,6 +79,7 @@ export async function fileAccessFixture(browser, t, { width = 1440, role = "stud
                 name: "Test Student",
                 csrfToken: "c".repeat(43),
                 isBR: role === "br",
+                capabilities: { ...student.capabilities, canManageCourses: role === "br" ? ["CS101"] : [] },
                 favourites: favourites(),
             };
         else if (url.pathname === "/api/auth/csrf") data = { csrfToken: "c".repeat(43) };
@@ -88,6 +90,7 @@ export async function fileAccessFixture(browser, t, { width = 1440, role = "stud
                 children: [
                     {
                         ...year,
+                        capabilities: { canManage: role === "br", canContribute: false },
                         name: "2026",
                         children: [
                             {

@@ -1,96 +1,73 @@
-import formatLongText from "../../../../utils/formatLongText";
+import { useState } from "react";
+import { CloseIcon, IconButton, ConfirmDialog } from "@coursehub/ui";
 import { capitalise } from "../../../../utils/capitalise";
-import "./styles.scss";
-import { useEffect, useState } from "react";
 import { DeleteCourseAPI } from "../../../../api/User";
-import { toast } from "react-toastify";
-import { ConfirmDialog } from "./ConfirmDialog";
-const CourseCard = ({ code, color, name, type, setClicked, isReadOnly, onCourseRemoved }) => {
-    const [isAvailable, setIsAvailable] = useState(true);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [isRemoving, setIsRemoving] = useState(false);
-
-    useEffect(() => {
-        async function SetCourseAvailability() {
-            try {
-                setIsAvailable(true);
-            } catch {
-                setIsAvailable(false);
-            }
-        }
-        SetCourseAvailability();
-    }, []);
-
-    const handleRemove = async () => {
-        if (isRemoving) return;
+import styles from "./styles.module.scss";
+export default function CourseCard({
+    code,
+    color,
+    name,
+    type,
+    setClicked,
+    isReadOnly,
+    onCourseRemoved,
+}) {
+    const [open, setOpen] = useState(false),
+        [busy, setBusy] = useState(false),
+        [error, setError] = useState("");
+    const remove = async () => {
+        if (busy) return;
+        setBusy(true);
+        setError("");
         try {
-            setIsRemoving(true);
             await DeleteCourseAPI(code);
-            setIsRemoving(false);
-            setShowConfirm(false);
-            if (onCourseRemoved) {
-                onCourseRemoved(code);
-            } else {
-                location.reload();
-            }
-        } catch {
-            toast.error("Something went wrong!");
-            setIsRemoving(false);
-            setShowConfirm(false);
+            onCourseRemoved?.(code);
+            setOpen(false);
+        } catch (failure) {
+            setError(failure.message || "The course could not be removed. Please retry.");
+        } finally {
+            setBusy(false);
         }
     };
-
-    const cancelRemove = () => {
-        if (isRemoving) return;
-        setShowConfirm(false);
-    };
-
     return type === "ADD" ? (
-        <div className="coursecard ADD" onClick={setClicked}>
-            <div className="content">
-                <i className="fa fa-xl fa-plus" aria-hidden="true"></i>
-                <p>Add Course</p>
-            </div>
-        </div>
+        <button
+            type="button"
+            className={`${styles.card} ${styles.add} coursecard ADD`}
+            onClick={setClicked}
+        >
+            <span aria-hidden="true">+</span>Add Course
+        </button>
     ) : (
-        <>
-            <div className={`coursecard ${isAvailable}`} style={{ backgroundColor: color }}>
-                {isReadOnly && (
-                    <span
-                        className="remove-course"
-                        onClick={() => {
-                            setShowConfirm(true);
-                        }}
-                    ></span>
-                )}
-
-                <div className="card-content" onClick={isAvailable ? setClicked : () => {}}>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
-                        <p className="code">{code ? code : "code"}</p>
-                        {!isAvailable && <p className="unavailable">UNAVAILABLE</p>}
-                    </div>
-                    <div className="name">
-                        <p>{name ? formatLongText(capitalise(name), 39) : "Name Unavailable"}</p>
-                    </div>
-                </div>
-            </div>
-            {showConfirm && (
-                <ConfirmDialog
-                    isOpen={showConfirm}
-                    type="delete"
-                    onConfirm={handleRemove}
-                    onCancel={cancelRemove}
-                    isLoading={isRemoving}
-                />
+        <article className={`${styles.card} coursecard`} style={{ backgroundColor: color }}>
+            <button type="button" className={styles.open} onClick={setClicked} title={name}>
+                <span className={styles.code}>{code}</span>
+                <span className={`${styles.name} name`}>
+                    {name ? capitalise(name) : "Name unavailable"}
+                </span>
+            </button>
+            {isReadOnly && (
+                <IconButton
+                    className={styles.remove}
+                    label="Remove course"
+                    variant="ghost"
+                    onClick={() => {
+                        setError("");
+                        setOpen(true);
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
             )}
-        </>
+            <ConfirmDialog
+                open={open}
+                title="Remove this course?"
+                description="Remove this course from Others? It can be added again. Library content is kept."
+                confirmLabel="Remove"
+                onConfirm={remove}
+                onOpenChange={setOpen}
+                busy={busy}
+                error={error}
+            />
+        </article>
     );
-};
-
-export default CourseCard;
+}

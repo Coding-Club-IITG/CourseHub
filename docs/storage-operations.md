@@ -82,7 +82,7 @@ The upload endpoints require a session, its role selector and CSRF protection fo
 4. Poll `GET /api/operations/:id` for actual file state/progress.
 5. Use `POST /api/operations/:id/retry` for permitted unfinished work, or `POST /api/operations/:id/cancel` for owner cancellation.
 
-The idempotency key is 16–100 letters, digits or hyphens. It identifies the same intended batch across repeated requests. Reusing a key with different contents returns `409`, instead of silently treating a different upload as the original one.
+The idempotency key is 16-100 letters, digits or hyphens. It identifies the same intended batch across repeated requests. Reusing a key with different contents returns `409`, instead of silently treating a different upload as the original one.
 
 The upload-receive response is `202`: bytes have been accepted for processing. The browser must follow the operation to know whether they were stored and published. A successful HTTP receive is not the final upload result.
 

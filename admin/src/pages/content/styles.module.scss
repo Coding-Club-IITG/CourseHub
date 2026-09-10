@@ -1,0 +1,49 @@
+@use "@coursehub/ui/mixins" as ui;
+.tree {
+    @include ui.stack(0.5rem);
+}
+.row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: var(--ch-radius-control);
+    background: var(--ch-surface);
+    margin-left: calc(min(var(--depth), 3) * 12px);
+}
+.name {
+    @include ui.stack(0.25rem);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.name p {
+    margin: 0;
+}
+.icon {
+    display: grid;
+    place-items: center;
+}
+.submission {
+    @include ui.stack(0.75rem);
+    padding-block: 1rem;
+    border-top: 1px solid var(--ch-border);
+    overflow-wrap: anywhere;
+}
+.files {
+    @include ui.stack(0.5rem);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.summary {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+@include ui.below(mobile) {
+    .row {
+        margin-left: calc(min(var(--depth), 2) * 6px);
+        gap: 0.25rem;
+    }
+}

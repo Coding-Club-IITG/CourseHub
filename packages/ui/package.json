@@ -3,7 +3,12 @@
     "version": "1.0.0",
     "private": true,
     "type": "module",
-    "exports": "./src/index.js",
+    "exports": {
+        ".": "./src/index.js",
+        "./tokens.scss": "./src/styles/tokens.scss",
+        "./mixins": "./src/styles/_mixins.scss",
+        "./legacy-fonts.css": "./src/styles/legacy-fonts.css"
+    },
     "peerDependencies": {
         "react": "^19.2.8",
         "react-dom": "^19.2.8"
@@ -11,5 +16,19 @@
     "engines": {
         "node": ">=24 <25",
         "npm": ">=11 <12"
+    },
+    "dependencies": {
+        "@radix-ui/react-alert-dialog": "1.1.23",
+        "@radix-ui/react-dialog": "1.1.23"
+    },
+    "scripts": {
+        "gallery": "vite --config gallery/vite.config.js",
+        "gallery:build": "vite build --config gallery/vite.config.js",
+        "test:browser": "node --test test/*.browser.test.js"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "6.1.1",
+        "sass": "1.104.0",
+        "vite": "8.2.2"
     }
 }

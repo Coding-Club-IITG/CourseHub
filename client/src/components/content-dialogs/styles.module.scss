@@ -1,0 +1,18 @@
+@use "@coursehub/ui/mixins" as ui;
+.rename {
+    @include ui.stack(0.5rem);
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+    input {
+        min-width: 0;
+    }
+}
+.actions {
+    @include ui.actions;
+    gap: 0.25rem;
+    button {
+        padding-inline: 0.5rem;
+        font-size: 0.875rem;
+    }
+}

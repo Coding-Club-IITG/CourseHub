@@ -1,8 +1,13 @@
+import styles from "@/styles/layout.module.scss";
 export default function LinkingResult({ result, completed = true }) {
     if (!result) return null;
     return (
-        <div className="mt-3 min-w-0 space-y-2 break-words text-sm text-gray-800">
-            <p className="font-semibold">
+        <div
+            className={[styles.stack, styles.small, styles.wrap, styles.grow, styles.spaced].join(
+                " ",
+            )}
+        >
+            <p className={styles.text}>
                 {result.sourceCode} → {result.targetCode}
             </p>
             <p>
@@ -11,13 +16,13 @@ export default function LinkingResult({ result, completed = true }) {
                 {result.alreadyLinked.length}. Empty replacements: {result.replaced.length}.
             </p>
             {result.conflicts.length > 0 && (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3" role="status">
-                    <p className="font-semibold">
+                <div className={styles.warning} role="status">
+                    <p className={styles.text}>
                         {result.conflicts.length} year{" "}
                         {result.conflicts.length === 1 ? "conflict" : "conflicts"} - content
                         preserved
                     </p>
-                    <ul className="mt-2 list-disc space-y-2 pl-5">
+                    <ul className={[styles.stack, styles.spaced].join(" ")}>
                         {result.conflicts.map((conflict, index) => (
                             <li key={index}>
                                 <strong>{conflict.year}</strong>: {conflict.reason}

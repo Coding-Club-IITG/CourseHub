@@ -1,17 +1,9 @@
 import isAdmin from "../../middleware/isAdmin.js";
 import express from "express";
-import {
-    updateBRs,
-    createBR,
-    getAll,
-    deleteBR,
-    getBRs,
-    getCoursesWithoutBR,
-} from "./br.controller.js";
+import { createBR, getAll, deleteBR, getBRs, getCoursesWithoutBR } from "./br.controller.js";
 const router = express.Router();
 router.use(isAdmin);
 
-router.post("/updateList", updateBRs);
 router.post("/create", createBR);
 router.get("/all", getAll);
 router.get("/allBRs", getBRs);

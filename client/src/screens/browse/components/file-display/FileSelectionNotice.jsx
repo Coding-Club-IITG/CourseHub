@@ -1,3 +1,4 @@
+import styles from "./styles.module.scss";
 import { useSearchParams } from "react-router-dom";
 import { useCourseBrowser } from "../../../../queries/browserContext";
 export default function FileSelectionNotice() {
@@ -15,7 +16,7 @@ export default function FileSelectionNotice() {
         setParams(next, { replace: true });
     };
     return (
-        <div className="unavailable-file-state" role="alert">
+        <div className={`${styles.notice} unavailable-file-state`} role="alert">
             <div>
                 <h3>File unavailable</h3>
                 <p>This file was removed or you do not have access to it.</p>

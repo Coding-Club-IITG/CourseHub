@@ -1,3 +1,4 @@
+import { importResult, importRetryFields } from "../../services/imports.js";
 import { OperationModel } from "./operation.model.js";
 import { actorFor } from "../../services/authorization.js";
 import { uploadLimits } from "../../config/storage.js";
@@ -16,16 +17,20 @@ export function presentOperation(operation, actor) {
             operation.plan?.name ||
             (operation.kind === "upload"
                 ? "File upload"
-                : operation.kind === "link"
-                  ? "Course linking"
-                  : operation.kind === "rename"
-                    ? "Course update"
-                    : operation.kind === "academic-sync"
-                      ? "Academic course refresh"
-                      : "Content deletion"),
+                : operation.kind === "import"
+                  ? "CSV import"
+                  : operation.kind === "link"
+                    ? "Course linking"
+                    : operation.kind === "rename"
+                      ? "Course update"
+                      : operation.kind === "academic-sync"
+                        ? "Academic course refresh"
+                        : "Content deletion"),
         affectedCourses:
             operation.plan?.affectedCourses ||
             (operation.target.code ? [operation.target.code] : []),
+        import: operation.kind === "import" ? importResult(operation) : undefined,
+        batchLinking: actor.admin ? operation.target.batchLinking : undefined,
         linking: operation.kind === "link" ? operation.plan?.result : undefined,
         synchronization: operation.kind === "academic-sync" ? operation.plan?.result : undefined,
         course:
@@ -73,6 +78,7 @@ async function permittedOperation(req) {
     const operation = await OperationModel.findById(req.params.id);
     if (
         !operation ||
+        ((operation.kind === "import" || operation.target.batchLinking) && !actor.admin) ||
         (!actor.admin &&
             String(operation.actorId) !== actor.id &&
             !(operation.kind === "academic-sync" && operation.target.userId === actor.id) &&
@@ -110,6 +116,10 @@ export async function listOperations(req, res) {
                   { kind: "link", "target.sourceCode": { $in: actor.managed } },
               ],
           };
+    if (!actor.admin) {
+        filter.kind = { $ne: "import" };
+        filter["target.batchLinking"] = { $exists: false };
+    }
     if (req.query.status) {
         if (
             ![
@@ -170,6 +180,7 @@ export async function retryOperation(req, res) {
     if (!["failed", "partial"].includes(operation.status))
         throw new AppError(409, "This operation is not waiting for retry");
     const fields = {
+        ...(operation.kind === "import" ? await importRetryFields(operation) : {}),
         status:
             operation.kind !== "upload"
                 ? "queued"

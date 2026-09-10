@@ -1,0 +1,28 @@
+@use "@coursehub/ui/mixins" as ui;
+.guidance {
+    @include ui.stack(0.75rem);
+    padding: 1rem;
+    border-left: 3px solid var(--ch-yellow);
+}
+.guidance p {
+    margin: 0;
+}
+.results {
+    @include ui.stack(0.75rem);
+    @include ui.focus-ring;
+    max-height: 22rem;
+    overflow: auto;
+    overflow-wrap: anywhere;
+}
+.courseCode {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+.operation {
+    @include ui.stack(1rem);
+    > p {
+        margin: 0;
+    }
+}

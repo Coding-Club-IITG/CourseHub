@@ -1,0 +1,37 @@
+@use "@coursehub/ui/mixins" as ui;
+.app {
+    @include ui.typography;
+    min-height: 100vh;
+    background: var(--ch-surface);
+    color: var(--ch-ink);
+}
+.shell {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+.main {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+}
+.skip {
+    position: fixed;
+    z-index: 100;
+    top: -5rem;
+    left: 1rem;
+    padding: 0.75rem;
+    background: var(--ch-yellow);
+    color: var(--ch-ink);
+    &:focus {
+        top: 1rem;
+    }
+}
+.notFound {
+    padding: 2rem;
+}
+@include ui.below(tablet) {
+    .shell {
+        display: block;
+    }
+}

@@ -1,10 +1,13 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@coursehub/browser";
-import { RequestError } from "@coursehub/browser/react";
+import { Button, FormField, Input, LoadingState, ErrorState } from "@coursehub/ui";
 import { library } from "../session";
 import CoursesWithoutBRTable from "../components/CoursesWithoutBRTable";
-import { fetchCoursesWithoutBR } from "@/apis/br";
-
+import { fetchCoursesWithoutBR } from "../apis/br";
+import styles from "../styles/layout.module.scss";
 export default function CoursesWithoutBR() {
+    const [search, setSearch] = useState("");
     const query = useQuery(
         library.options("without-br", "", async ({ signal }) => {
             const data = await fetchCoursesWithoutBR(signal);
@@ -13,26 +16,55 @@ export default function CoursesWithoutBR() {
             return data.coursesWithoutBR;
         }),
     );
-    const courses = query.data || [],
-        loading = query.isPending,
-        error = query.error;
-
+    const term = search.trim().toLowerCase(),
+        courses = (query.data || []).filter((course) =>
+            [course.code, course.name].some((value) => value?.toLowerCase().includes(term)),
+        );
     return (
-        <div className="p-6 space-y-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <section className={styles.page}>
+            <header className={styles.pageHeader}>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Courses Without BR</h1>
-                    <p className="text-gray-600 mt-1">
-                        Courses that don't have a branch representative assigned yet
+                    <h1 className={styles.heading}>Courses Without BR</h1>
+                    <p className={styles.muted}>
+                        Courses without a registered BR who has a current or historical academic
+                        allotment for them.
                     </p>
                 </div>
-            </div>
-
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6">
-                {loading && <p>Loading...</p>}
-                {error && <RequestError error={error} onRetry={query.refetch} />}
-                {!loading && !error && <CoursesWithoutBRTable courses={courses} />}
-            </div>
-        </div>
+                <Link className={styles.link} to="/admin/students?isBR=true">
+                    Manage BRs
+                </Link>
+            </header>
+            <section className={`${styles.panel} ${styles.stack}`}>
+                <div className={`${styles.toolbar} ${styles.alignEnd}`}>
+                    <FormField label="Search courses" className={styles.grow}>
+                        <Input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Code or name"
+                        />
+                    </FormField>
+                    <Button
+                        variant="secondary"
+                        onClick={() => query.refetch()}
+                        busy={query.isFetching}
+                        busyLabel="Refreshing…"
+                    >
+                        Refresh
+                    </Button>
+                </div>
+                {query.error && (
+                    <ErrorState
+                        title="Could not load courses without BR"
+                        error={query.error}
+                        onRetry={query.refetch}
+                    />
+                )}{" "}
+                {query.isPending ? (
+                    <LoadingState title="Loading courses…" />
+                ) : (
+                    query.data && <CoursesWithoutBRTable courses={courses} />
+                )}
+            </section>
+        </section>
     );
 }

@@ -1,5 +1,6 @@
+import triggerStyles from "../../../../components/content-dialogs/triggers.module.scss";
 import { useCourseBrowser } from "../../../../queries/browserContext";
-import "./styles.scss";
+import styles from "./styles.module.scss";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useShare } from "../../../share/context";
@@ -7,43 +8,38 @@ import { resourceLink } from "../../../../utils/resourceLink";
 import { useFavourite } from "../../../../queries/favourites";
 import { useFileActions } from "../../../../components/file-actions/useFileActions";
 import FileThumbnail from "../../../../components/file-actions/FileThumbnail";
-import { formatFileName, formatFileSize, formatFileType } from "../../../../utils/formatFile";
+import { formatFileSize, formatFileType } from "../../../../utils/formatFile";
 import { toast } from "react-toastify";
 
 import capitalise from "../../../../utils/capitalise.js";
 import { verifyFile, unverifyFile, renameFile } from "../../../../api/File";
 
-import ConfirmDialog from "./components/ConfirmDialog.jsx";
-import FileRename from "./components/FileRename.jsx";
+import { ResourceConfirmation, InlineRename } from "../../../../components/content-dialogs";
 
-const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index = 0 }) => {
+const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
     const fileSize = formatFileSize(file.sizeBytes ?? file.size);
     const fileType = formatFileType(file.name);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogType, setDialogType] = useState("verify");
-    const [onConfirmAction, setOnConfirmAction] = useState(() => () => {});
+    const [actionError, setActionError] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
 
     let name = file.name;
-    let _dispName = formatFileName(name);
     let contributor = file.name;
     let untruncatedDispName = name;
     try {
         const lastTildeIndex = name.lastIndexOf("~");
         if (lastTildeIndex !== -1 && !file.contributorName) {
             untruncatedDispName = name.slice(0, lastTildeIndex);
-            _dispName = formatFileName(untruncatedDispName);
             let contributorPart = name.slice(lastTildeIndex + 1);
             const dotIdx = contributorPart.indexOf(".");
             contributor = dotIdx !== -1 ? contributorPart.slice(0, dotIdx) : contributorPart;
         } else {
             const dotIdx = name.lastIndexOf(".");
             untruncatedDispName = dotIdx !== -1 ? name.slice(0, dotIdx) : name;
-            _dispName = formatFileName(untruncatedDispName);
             contributor = file.contributorName || "Anonymous";
         }
     } catch {
-        _dispName = formatFileName(file.name);
         untruncatedDispName = file.name;
         contributor = "Anonymous";
     }
@@ -71,70 +67,36 @@ const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index =
     const [isEditing, setIsEditing] = useState(false);
 
     const handleRename = async (newName) => {
-        const trimmed = newName?.trim();
-        if (!trimmed || trimmed === untruncatedDispName) return;
-
-        // Validation for illegal OneDrive characters: \ / : * ? " < > |
-        const illegalChars = /[\\/:*?"<>|]/;
-        if (illegalChars.test(trimmed)) {
-            toast.error(
-                'Filename cannot contain any of the following characters: \\ / : * ? " < > |',
-            );
-            return;
-        }
-
-        if (trimmed.length > 200) {
-            toast.error("Filename is too long (maximum 200 characters).");
-            return;
-        }
-
-        try {
-            await renameFile(file._id, trimmed, currCourseCode);
-            toast.success("File renamed successfully!");
-        } catch (err) {
-            console.error("Error renaming file:", err);
-            toast.error(err.message || "Failed to rename file");
-        }
+        if (newName === untruncatedDispName) return;
+        if (/[\\/:*?"<>|]/.test(newName))
+            throw new Error("Filename contains an unsupported character.");
+        await renameFile(file._id, newName, currCourseCode);
+        toast.success("File renamed successfully!");
     };
-
-    const handleVerify = async () => {
+    const handleVerify = () => {
+        setActionError("");
         setDialogType("verify");
-        setOnConfirmAction(() => async () => {
-            if (isProcessing) return;
-
-            try {
-                setIsProcessing(true);
-                await verifyFile(file._id, currCourseCode);
-                toast.success("File verified!");
-            } catch (err) {
-                console.error("Error verifying:", err);
-                toast.error("Failed to verify file.");
-            } finally {
-                setIsProcessing(false);
-                setShowDialog(false);
-            }
-        });
         setShowDialog(true);
     };
-
     const handleUnverify = () => {
+        setActionError("");
         setDialogType("delete");
-        setOnConfirmAction(() => async () => {
-            if (isProcessing) return;
-
-            try {
-                setIsProcessing(true);
-                await unverifyFile(file._id, currCourseCode, file.affectedCourses);
-                toast.success("File deleted!");
-            } catch (err) {
-                console.error("Error deleting:", err);
-                toast.error("Failed to delete file.");
-            } finally {
-                setIsProcessing(false);
-                setShowDialog(false);
-            }
-        });
         setShowDialog(true);
+    };
+    const onConfirmAction = async () => {
+        if (isProcessing) return;
+        setIsProcessing(true);
+        setActionError("");
+        try {
+            if (dialogType === "verify") await verifyFile(file._id, currCourseCode);
+            else await unverifyFile(file._id, currCourseCode, file.affectedCourses);
+            setShowDialog(false);
+            toast.success(dialogType === "verify" ? "File verified!" : "File deleted!");
+        } catch (error) {
+            setActionError(error.message || "The action could not finish. Please retry.");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -142,13 +104,24 @@ const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index =
             ref={card}
             tabIndex={selected ? 0 : -1}
             aria-label={selected ? `Selected file: ${file.name}` : undefined}
-            className={`file-display ${selected ? "selected" : ""} ${
+            className={`${styles.card} file-display ${selected ? "selected" : ""} ${
                 !file.isVerified || canManage ? (file.isVerified ? "verified" : "unverified") : ""
             }`}
             style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
         >
             <div className="img-preview">
                 <FileThumbnail file={file} />
+                {canManage && !file.isVerified && (
+                    <button
+                        type="button"
+                        className="verify"
+                        aria-label="Verify file"
+                        title="Verify file"
+                        onClick={handleVerify}
+                    >
+                        ✓
+                    </button>
+                )}
                 {selected && (
                     <button
                         type="button"
@@ -163,26 +136,7 @@ const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index =
                         Selected <span aria-hidden="true">×</span>
                     </button>
                 )}
-                <div className="top">
-                    {!isMobileView && canManage && (
-                        <>
-                            {!file.isVerified ? (
-                                <span
-                                    className="verify"
-                                    onClick={handleVerify}
-                                    title="Verify"
-                                ></span>
-                            ) : (
-                                <></>
-                            )}
-                            <span
-                                className="unverify"
-                                onClick={handleUnverify}
-                                title="Delete"
-                            ></span>
-                        </>
-                    )}
-                </div>
+
                 <button
                     type="button"
                     className="view"
@@ -195,31 +149,31 @@ const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index =
                 </button>
             </div>
             <div className="content">
-                {isEditing ? (
-                    <FileRename
+                {isEditing && (
+                    <InlineRename
                         affectedCourses={file.affectedCourses}
                         initialName={untruncatedDispName}
                         onCancel={() => setIsEditing(false)}
-                        onSave={(newName) => {
-                            handleRename(newName);
-                            setIsEditing(false);
-                        }}
+                        onSave={handleRename}
                     />
-                ) : (
-                    <p className="title" title={file.name}>
-                        {file?.name ? _dispName : "Quiz 1 Answer Key"}
-                        {!isMobileView && canManage && (
-                            <span
-                                className="rename-tick"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsEditing(true);
-                                }}
-                                title="Rename"
-                            ></span>
-                        )}
-                    </p>
                 )}
+                <div className="title" title={file.name}>
+                    <p className="title-text" hidden={isEditing}>
+                        {file?.name ? untruncatedDispName : "Untitled file"}
+                    </p>
+                    {canManage && (
+                        <button
+                            type="button"
+                            aria-label="Rename file"
+                            className={`rename-tick ${triggerStyles.trigger}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsEditing(true);
+                            }}
+                            title="Rename"
+                        ></button>
+                    )}
+                </div>
                 <div className="file-metadata">
                     <p className="info">
                         {fileType.toUpperCase()} {fileSize}
@@ -260,9 +214,19 @@ const FileDisplay = ({ file, courseCode, folderId, isMobileView = false, index =
                     disabled={!!busy}
                     onClick={download}
                 />
+                {canManage && (
+                    <button
+                        type="button"
+                        aria-label="Delete file"
+                        className={`unverify ${triggerStyles.trigger}`}
+                        onClick={handleUnverify}
+                        title="Delete"
+                    ></button>
+                )}
             </div>
-            {!isMobileView && (
-                <ConfirmDialog
+            {canManage && (
+                <ResourceConfirmation
+                    error={actionError}
                     affectedCourses={file.affectedCourses}
                     isOpen={showDialog}
                     type={dialogType}

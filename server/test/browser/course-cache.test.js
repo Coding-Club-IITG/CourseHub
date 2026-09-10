@@ -188,7 +188,7 @@ for (const width of [1440, 390]) {
 test("folder navigation and reload restore the selected year without separate tree copies", async (t) => {
     const { page, requests } = await fixture(t);
     await page.goto(frontend + `/browse/CS101/${year._id}`);
-    await page.locator(".browse-folder").first().click();
+    await page.locator(".browse-folder").first().getByRole("button").first().click();
     await page.waitForURL(`**/browse/CS101/${folder._id}`);
     await page.getByTitle(libraryFile.name, { exact: true }).first().waitFor();
     assert.equal(requests.filter((item) => item.path === "/api/course/CS101").length, 1);
@@ -206,8 +206,8 @@ test("a folder rename in another tab refreshes both shared courses", async (t) =
     const second = await newPage();
     await second.goto(frontend + "/browse/MA101");
     await second.locator(".browse-folder .rename-tick").click();
-    await second.locator("textarea.input-rename").fill("Renamed in another course");
-    await second.locator("textarea.input-rename").press("Enter");
+    await second.getByRole("textbox", { name: /^Folder name/ }).fill("Renamed in another course");
+    await second.getByRole("textbox", { name: /^Folder name/ }).press("Enter");
     for (const tab of [page, second])
         await tab
             .locator(".browse-folder .name")
@@ -223,10 +223,10 @@ test("a stale course response cannot replace the newly selected course", async (
         release = resolve;
     });
     await page.goto(frontend + "/dashboard");
-    await page.locator(".coursecard").filter({ hasText: "CS101" }).locator(".card-content").click();
+    await page.locator(".coursecard").filter({ hasText: "CS101" }).locator(":scope > button").first().click();
     await page.getByText("Loading course data...", { exact: true }).waitFor();
-    await page.locator(".nav-browse .desktop-nav").getByText("Dashboard", { exact: true }).click();
-    await page.locator(".coursecard").filter({ hasText: "MA101" }).locator(".card-content").click();
+    await page.getByRole("navigation", {name:"Main navigation"}).getByRole("link", {name:"Dashboard", exact:true}).click();
+    await page.locator(".coursecard").filter({ hasText: "MA101" }).locator(":scope > button").first().click();
     await page.locator(".browse-folder").first().waitFor();
     release();
     state.hold = null;
@@ -252,7 +252,7 @@ test("logout in another tab clears visible library data and preserves the destin
     const second = await newPage();
     await second.goto(frontend + "/browse/MA101");
     await second.locator(".browse-folder").first().waitFor();
-    await second.locator(".nav-browse .desktop-nav").getByText("Log Out", { exact: true }).click();
+    await second.getByRole("button", {name:"Log Out", exact:true}).click();
     await page.waitForURL("**/?returnTo=*");
     assert.equal(
         new URL(page.url()).searchParams.get("returnTo"),

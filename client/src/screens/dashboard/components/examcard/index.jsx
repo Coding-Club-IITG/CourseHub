@@ -2,7 +2,7 @@ import "./styles.scss";
 const ExamCard = ({ query, type, name }) => {
     const schedule = query.data?.exams?.[type];
     const next = schedule?.nextExam;
-    let value = "—",
+    let value = "-",
         caption = "Schedule unavailable";
     if (query.isPending) caption = "Loading schedule…";
     else if (!query.isError && query.data?.status === "ready") {
@@ -24,7 +24,7 @@ const ExamCard = ({ query, type, name }) => {
             data-exam-type={type}
         >
             <div className="ndays">
-                <p className={`days ${typeof value === "string" && value !== "—" ? "word" : ""}`}>
+                <p className={`days ${typeof value === "string" && value !== "-" ? "word" : ""}`}>
                     {value}
                 </p>
             </div>

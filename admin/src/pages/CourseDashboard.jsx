@@ -1,295 +1,131 @@
-import { useQuery } from "@coursehub/browser";
-import { RequestError } from "@coursehub/browser/react";
-import { library } from "../session";
-import { useParams } from "react-router-dom";
 import { useState } from "react";
-import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
-import {
-    FiFolder,
-    FiFile,
-    FiTrash2,
-    FiChevronRight,
-    FiChevronDown,
-    FiUsers,
-    FiCheckCircle,
-    FiInbox,
-    FiCheck,
-    FiX,
-} from "react-icons/fi";
-
-function LoadStructure({ node, onDelete, depth = 0 }) {
-    const isFolder = node.childType === "Folder" || node.children;
-    const nodeType = isFolder ? "folder" : "file";
-
-    const [open, setOpen] = useState(true);
-    const hasChildren = isFolder && node.children && node.children.length > 0;
-
-    return (
-        <div>
-            <div
-                className="group flex items-center gap-2 rounded-lg px-2.5 py-1.5 hover:bg-slate-100"
-                style={{ paddingLeft: `${10 + depth * 22}px` }}
-            >
-                {isFolder ? (
-                    <button
-                        type="button"
-                        onClick={() => setOpen((v) => !v)}
-                        aria-label={open ? "Collapse folder" : "Expand folder"}
-                        className="grid h-5 w-5 flex-shrink-0 place-items-center rounded text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-                    >
-                        {hasChildren ? open ? <FiChevronDown /> : <FiChevronRight /> : null}
-                    </button>
-                ) : (
-                    <span className="w-5 flex-shrink-0" />
-                )}
-
-                <span
-                    className={`grid flex-shrink-0 place-items-center text-base ${isFolder ? "text-blue-600" : "text-slate-500"}`}
-                >
-                    {isFolder ? <FiFolder /> : <FiFile />}
-                </span>
-
-                <span className="min-w-0 flex-1 truncate text-sm text-slate-900">{node.name}</span>
-
-                <button
-                    type="button"
-                    title={`Delete ${node.name}`}
-                    aria-label={`Delete ${node.name}`}
-                    onClick={() => onDelete(nodeType, node._id, node.name, node.affectedCourses)}
-                    className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-md text-red-600 opacity-0 hover:bg-red-50 group-hover:opacity-100"
-                >
-                    <FiTrash2 />
-                </button>
-            </div>
-
-            {isFolder &&
-                open &&
-                node.children?.map((child) => (
-                    <LoadStructure
-                        key={child._id}
-                        node={child}
-                        onDelete={onDelete}
-                        depth={depth + 1}
-                    />
-                ))}
-        </div>
-    );
-}
-
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@coursehub/browser";
+import { LoadingState, ErrorState, EmptyState } from "@coursehub/ui";
+import { library } from "../session";
+import { fetchCourseDashboardData } from "../apis/courses";
+import { useOperation } from "../queries/useOperation";
+import { useWorkflowLocation } from "../queries/useWorkflowLocation";
+import OperationCard from "../components/operations/OperationCard";
+import ContentTree from "./content/ContentTree";
+import {countVerified} from "./content/countVerified";
+import ModerationList from "./content/ModerationList";
+import ContentActionDialog from "./content/ContentActionDialog";
+import styles from "../styles/layout.module.scss";
+import content from "./content/styles.module.scss";
 export default function CourseDashboard() {
-    const { code } = useParams();
-
+    const { code } = useParams(),
+        { params, update } = useWorkflowLocation(),
+        [target, setTarget] = useState(null),
+        [result, setResult] = useState("");
     const query = useQuery(
-        library.options("dashboard", code, ({ signal }) => fetchCourseDashboardData(code, signal)),
-    );
-    const data = query.data;
-    const loading = query.isPending;
-    const loadData = () => library.invalidate();
-
-    const handleContributionAction = async (contributionId, action) => {
-        const isApprove = action === "approve";
-        const contribution = data.contributions.find(
-            (item) => item.contributionId === contributionId,
-        );
-        const affectedCourses = [
-            ...new Set(contribution?.files.flatMap((file) => file.affectedCourses || [code])),
-        ].sort();
-        const impact =
-            !isApprove && affectedCourses.length > 1
-                ? ` Shared files will be deleted from every affected course: ${affectedCourses.join(", ")}.`
-                : "";
-        if (!window.confirm(`Are you sure you want to ${action} this contribution?${impact}`)) {
-            return;
-        }
-
-        try {
-            await handleContribution(contributionId, action, code, affectedCourses);
-            alert(`Contribution ${isApprove ? "Approved" : "Rejected"} succesfully!`);
-            loadData();
-        } catch (error) {
-            console.log(error);
-            alert(error.message || "The contribution action could not finish.");
+            library.options("dashboard", code, ({ signal }) =>
+                fetchCourseDashboardData(code, signal),
+            ),
+        ),
+        operation = useOperation(params.get("operation")),
+        data = query.data;
+    const accepted = (response, message) => {
+        if (response.operationId) {
+            update({ operation: response.operationId });
+            setResult("");
+        } else {
+            setResult(message);
+            library.invalidate([code]);
         }
     };
-
-    const handleDelete = async (type, id, name, affectedCourses = []) => {
-        const impact =
-            affectedCourses.length > 1
-                ? type === "file"
-                    ? ` This shared file will be removed from ${affectedCourses.join(", ")}.`
-                    : ` This folder will be unlinked from ${code}; other linked courses keep it.`
-                : "";
-        if (
-            !window.confirm(
-                `Are you SURE you want to permanently delete the ${type} "${name}"?${impact} This cannot be undone.`,
-            )
-        ) {
-            return;
-        }
-        try {
-            await deleteNode(type, id, code, affectedCourses);
-            loadData();
-        } catch (error) {
-            console.error(error);
-            alert(
-                error.message ||
-                    `Could not finish deleting the ${type}. Open Operations for its status.`,
-            );
-        }
-    };
-
-    if (query.isError) return <RequestError error={query.error} onRetry={query.refetch} />;
-    if (loading) {
-        return (
-            <div className="flex min-h-[60vh] items-center justify-center gap-3 text-sm text-slate-600">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
-                Loading dashboard…
-            </div>
-        );
-    }
-
-    const studentCount = data?.studentCount || 0;
-    const approvedContributions = data?.contributions?.filter((c) => c.approved) || [];
-    const verifiedFilesCount = approvedContributions.reduce((total, contribution) => {
-        return total + (contribution.files?.length || 0);
-    }, 0);
-
-    const pendingContributions = data?.contributions?.filter((c) => !c.approved) || [];
-
     return (
-        <div className="min-h-full bg-slate-100 text-slate-900">
-            <header className="flex items-center gap-4 border-b border-slate-200 bg-white px-7 py-4">
-                <h1 className="text-lg font-bold tracking-tight">
-                    {data?.course?.code}
-                    <span className="font-medium text-slate-600"> · {data?.course?.name}</span>
+        <section className={styles.page}>
+            <header className={styles.pageHeader}>
+                <h1 className={`${styles.heading} ${styles.wrap}`}>
+                    {data?.course?.code || code}
+                    {data?.course?.name && (
+                        <span className={styles.muted}> · {data.course.name}</span>
+                    )}
                 </h1>
+                <Link className={styles.link} to="/admin/courses">
+                    Back to courses
+                </Link>
             </header>
-
-            <div className="flex max-w-5xl flex-col gap-6 p-7">
-                <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4">
-                        <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-lg bg-blue-50 text-xl text-blue-600">
-                            <FiUsers />
-                        </span>
-                        <div>
-                            <div className="text-2xl font-bold leading-tight tracking-tight">
-                                {studentCount}
-                            </div>
-                            <div className="mt-0.5 text-xs text-slate-600">Registered students</div>
+            {result && (
+                <p role="status" className={styles.success}>
+                    {result}
+                </p>
+            )}
+            {operation.error && (
+                <ErrorState
+                    title="Could not update cleanup status"
+                    error={operation.error}
+                    onRetry={operation.refetch}
+                />
+            )}
+            {params.get("operation") && operation.isPending && (
+                <LoadingState title="Loading cleanup status…" />
+            )}
+            {operation.data && (
+                <OperationCard item={operation.data} onRetried={() => operation.refetch()} />
+            )}
+            {query.error && (
+                <ErrorState
+                    title="Could not load course dashboard"
+                    error={query.error}
+                    onRetry={query.refetch}
+                />
+            )}
+            {query.isPending ? (
+                <LoadingState title="Loading dashboard…" />
+            ) : (
+                data && (
+                    <>
+                        <div className={styles.grid}>
+                            <section className={styles.panel}>
+                                <p className={content.summary}>{data.studentCount || 0}</p>
+                                <p>Registered students</p>
+                            </section>
+                            <section className={styles.panel}>
+                                <p className={content.summary}>
+                                    {countVerified(data.course?.children)}
+                                </p>
+                                <p>Verified files</p>
+                            </section>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4">
-                        <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-lg bg-green-50 text-xl text-green-600">
-                            <FiCheckCircle />
-                        </span>
-                        <div>
-                            <div className="text-2xl font-bold leading-tight tracking-tight">
-                                {verifiedFilesCount}
-                            </div>
-                            <div className="mt-0.5 text-xs text-slate-600">
-                                Verified contributions
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                    <div className="flex items-center gap-2.5 border-b border-slate-200 px-5 py-4 text-sm font-semibold">
-                        <FiFolder className="text-slate-600" /> Course structure
-                    </div>
-                    <div className="p-2.5">
-                        {data?.course?.children?.length ? (
-                            data.course.children.map((child) => (
-                                <LoadStructure
-                                    key={child._id}
-                                    node={child}
-                                    onDelete={handleDelete}
-                                />
-                            ))
-                        ) : (
-                            <div className="px-5 py-9 text-center text-slate-600">
-                                <span className="mb-2.5 inline-grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-xl text-slate-400">
-                                    <FiFolder />
-                                </span>
-                                <div className="text-sm font-semibold text-slate-900">
-                                    No folders or files yet
-                                </div>
-                                <div className="mt-0.5 text-sm">
-                                    Course content will appear here once added.
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                    <div className="flex items-center gap-2.5 border-b border-slate-200 px-5 py-4 text-sm font-semibold">
-                        <FiInbox className="text-slate-600" /> Pending contributions
-                        <span className="ml-auto rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                            {pendingContributions.length}
-                        </span>
-                    </div>
-                    <div className="p-2.5">
-                        {pendingContributions.length === 0 ? (
-                            <div className="px-5 py-9 text-center text-slate-600">
-                                <span className="mb-2.5 inline-grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-xl text-slate-400">
-                                    <FiCheckCircle />
-                                </span>
-                                <div className="text-sm font-semibold text-slate-900">
-                                    You're all caught up
-                                </div>
-                                <div className="mt-0.5 text-sm">
-                                    New submissions will show up here for review.
-                                </div>
-                            </div>
-                        ) : (
-                            pendingContributions.map((contribution) => (
-                                <div
-                                    key={contribution.contributionId}
-                                    className="m-1.5 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 px-3.5 py-3"
-                                >
-                                    <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-amber-50 text-base text-amber-700">
-                                        <FiFile />
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                        <div className="text-sm font-semibold">
-                                            {contribution.files?.map((f) => f.name).join(", ") ||
-                                                contribution.contributionId}
-                                        </div>
-                                        <div className="text-xs text-slate-600">
-                                            Awaiting review
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-shrink-0 gap-2">
-                                        <button
-                                            onClick={() =>
-                                                handleContributionAction(
-                                                    contribution.contributionId,
-                                                    "approve",
-                                                )
-                                            }
-                                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700"
-                                        >
-                                            <FiCheck /> Approve
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                handleContributionAction(
-                                                    contribution.contributionId,
-                                                    "reject",
-                                                )
-                                            }
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50"
-                                        >
-                                            <FiX /> Reject
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </section>
-            </div>
-        </div>
+                        <section className={`${styles.panel} ${styles.stack}`}>
+                            <h2 className={styles.heading}>Course structure</h2>
+                            {data.course?.children?.length ? (
+                                data.course.children.map((node) => (
+                                    <ContentTree
+                                        key={node._id}
+                                        node={node}
+                                        canManage={data.course.capabilities?.canManage}
+                                        onAction={setTarget}
+                                    />
+                                ))
+                            ) : (
+                                <EmptyState title="No folders or files yet">
+                                    <p>Course content will appear here once added.</p>
+                                </EmptyState>
+                            )}
+                        </section>
+                        <section className={styles.panel}>
+                            <h2 className={styles.heading}>Pending contributions</h2>
+                            <ModerationList
+                                code={code}
+                                items={data.contributions?.filter((item) => !item.approved) || []}
+                                canModerate={data.course?.capabilities?.canModerate}
+                                onAction={setTarget}
+                            />
+                        </section>
+                    </>
+                )
+            )}
+            {target && (
+                <ContentActionDialog
+                    target={target}
+                    code={code}
+                    onClose={() => setTarget(null)}
+                    onAccepted={accepted}
+                />
+            )}
+        </section>
     );
 }

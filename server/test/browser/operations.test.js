@@ -99,7 +99,7 @@ async function pageFor(t, width, { admin = false, resumed = true, manager = fals
             };
         else if (url.pathname === "/api/admin/course/cs101/dashboard")
             data = {
-                course,
+                course: { ...course, capabilities: { canManage: true, canModerate: true } },
                 studentCount: 24,
                 contributions: [
                     {
@@ -248,8 +248,18 @@ for (const width of [320, 390, 768, 1024, 1440]) {
         const button = page.getByRole("button", { name: "Retry failed files", exact: true });
         await page.waitForFunction(
             () =>
-                document.querySelector(".contri .upload-actions .upload-primary")?.disabled ===
-                false,
+                document.querySelector(
+                    '[data-upload-dialog] [data-ui-dialog-footer] button[data-variant="primary"]',
+                )?.disabled === false,
+        );
+        // Closing details retains the selected File object for a failed-file-only retry.
+        await page.getByRole("button", { name: "Close", exact: true }).click();
+        await page.getByRole("link", { name: "View upload" }).click();
+        await page.waitForFunction(
+            () =>
+                document.querySelector(
+                    '[data-upload-dialog] [data-ui-dialog-footer] button[data-variant="primary"]',
+                )?.disabled === false,
         );
         await button.focus();
         await page.keyboard.press("Enter");
@@ -267,10 +277,10 @@ for (const width of [320, 390, 768, 1024, 1440]) {
             .waitFor();
         await capture(page, `admin-operations-failed-${width}`);
         await page.getByRole("button", { name: "Retry unfinished work" }).click();
-        await page.locator("li").getByText("queued", { exact: true }).waitFor();
+        await page.getByRole("article").getByText("queued", { exact: true }).waitFor();
         state.operation = deletionOperation("completed");
         await page.getByRole("button", { name: "Refresh", exact: true }).click();
-        await page.locator("li").getByText("completed", { exact: true }).waitFor();
+        await page.getByRole("article").getByText("completed", { exact: true }).waitFor();
         assert.equal(state.retryCalls, 1);
         assert.ok(
             requests.some(
@@ -295,11 +305,11 @@ for (const width of [390, 1440]) {
             release = resolve;
         });
         await page.goto(adminOrigin + "/admin/operations");
-        await page.getByText("Updating operations…", { exact: true }).waitFor();
+        await page.getByText("Loading operations…", { exact: true }).waitFor();
         await capture(page, `admin-operations-loading-${width}`);
         state.operation = null;
         release();
-        await page.getByText("No operations match this status.", { exact: true }).waitFor();
+        await page.getByText("No operations match this status", { exact: true }).waitFor();
         await capture(page, `admin-operations-empty-${width}`);
     });
     test(`upload limits failure is recoverable without losing the resumed batch at ${width}px`, async (t) => {
@@ -328,7 +338,10 @@ for (const width of [390, 1440]) {
         await page.getByRole("progressbar").waitFor();
         await capture(page, `upload-progress-${width}`);
         await page.getByRole("button", { name: "Cancel remaining uploads" }).click();
-        await page.locator(".upload-results").getByText("Cancelled", { exact: true }).waitFor();
+        await page
+            .locator("[data-upload-results]")
+            .getByText("Cancelled", { exact: true })
+            .waitFor();
         assert.equal(state.operation.entries[0].state, "completed");
     });
 }
@@ -353,29 +366,28 @@ test("cancelling a resumed partial batch keeps successful results visible", asyn
     const { page, state } = await pageFor(t, 390);
     await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
     await page.getByRole("button", { name: "Cancel remaining uploads" }).click();
-    await page.locator(".upload-results").getByText("Cancelled", { exact: true }).waitFor();
+    await page.locator("[data-upload-results]").getByText("Cancelled", { exact: true }).waitFor();
     assert.equal(state.operation.entries[0].state, "completed");
     await page.getByText("1 of 2 files uploaded", { exact: true }).waitFor();
     await capture(page, "upload-cancelled-390");
 });
 test("shared contribution rejection confirms affected courses and waits for actual cleanup completion", async (t) => {
     const { page, state } = await pageFor(t, 1440, { admin: true });
-    const dialogs = [];
-    page.on("dialog", async (dialog) => {
-        dialogs.push({ type: dialog.type(), message: dialog.message() });
-        await dialog.accept();
-    });
     await page.goto(adminOrigin + "/admin/courses/CS101");
     await page.getByRole("button", { name: "Reject", exact: true }).click();
+    const dialog = page.getByRole("alertdialog");
+    await dialog.waitFor();
+    assert.match(await dialog.innerText(), /CS101, MA101/);
+    await dialog.getByRole("button", { name: "Reject", exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
     await page
         .getByText("Cleanup is in progress. You can leave this page.", { exact: true })
         .waitFor();
-    assert.equal(dialogs.length, 1);
-    assert.equal(dialogs[0].type, "confirm");
-    assert.match(dialogs[0].message, /CS101, MA101/);
+    assert.equal(await page.getByText("Cleanup completed", { exact: true }).count(), 0);
     state.operation = deletionOperation("completed");
-    await page.getByText("Cleanup completed.", { exact: true }).waitFor();
-    assert.ok(dialogs.some((dialog) => dialog.type === "alert" && /Rejected/.test(dialog.message)));
+    await page.getByText("Cleanup completed", { exact: true }).waitFor();
+    await page.reload();
+    await page.getByText("Cleanup completed", { exact: true }).waitFor();
 });
 test("administrator status failure preserves the last results and offers an explicit retry", async (t) => {
     const { page, state } = await pageFor(t, 390, { admin: true });
@@ -403,14 +415,16 @@ for (const width of [320, 390, 768, 1024, 1440]) {
         }));
         await page.goto(`${frontend}/browse/CS101/${folder._id}?upload=${state.operation.id}`);
         await page.getByText("20 of 40 files uploaded", { exact: true }).waitFor();
-        const bounds = await page.locator(".upload-actions").evaluate((footer) => ({
-            footer: footer.getBoundingClientRect().toJSON(),
-            width: innerWidth,
-            height: innerHeight,
-            buttons: [...footer.querySelectorAll("button")].map((button) =>
-                button.getBoundingClientRect().toJSON(),
-            ),
-        }));
+        const bounds = await page
+            .locator("[data-upload-dialog] [data-ui-dialog-footer]")
+            .evaluate((footer) => ({
+                footer: footer.getBoundingClientRect().toJSON(),
+                width: innerWidth,
+                height: innerHeight,
+                buttons: [...footer.querySelectorAll("button")].map((button) =>
+                    button.getBoundingClientRect().toJSON(),
+                ),
+            }));
         for (const rect of [bounds.footer, ...bounds.buttons]) {
             assert.ok(rect.left >= 0 && rect.right <= bounds.width, JSON.stringify(bounds));
             assert.ok(rect.top >= 0 && rect.bottom <= bounds.height, JSON.stringify(bounds));
@@ -420,7 +434,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
             false,
         );
         await capture(page, `upload-large-${width}`);
-        await page.locator(".upload-body").evaluate((body) => {
+        await page.locator("[data-upload-dialog] [data-ui-dialog-body]").evaluate((body) => {
             body.scrollTop = body.scrollHeight;
         });
         await page.getByRole("button", { name: "Cancel remaining uploads" }).click();
@@ -446,7 +460,7 @@ for (const width of [390, 1440]) {
         assert.equal(await notice.getByRole("button", { name: /cancel/i }).count(), 0);
         await capture(page, `notice-partial-${width}`);
         await notice.getByRole("link", { name: "View upload" }).click();
-        await page.locator(".contri.show").waitFor();
+        await page.locator("[data-upload-dialog]").waitFor();
         assert.equal(await notice.isVisible(), false);
         await page.getByRole("button", { name: "Cancel remaining uploads" }).click();
         await page.getByRole("button", { name: "Start another batch" }).waitFor();

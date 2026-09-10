@@ -1,9 +1,7 @@
+import { randomUUID } from "node:crypto";
+import { OperationModel } from "../operation/operation.model.js";
+import { listCourses } from "../../services/courseAdministration.js";
 import { withRevision } from "../../utils/resourceRevision.js";
-import {
-    assertCourseIdentityAvailable,
-    validCourseCode,
-    codeReferenceRegex,
-} from "../../services/courseIdentity.js";
 import { scheduleCourseRename } from "../../services/courseReferences.js";
 import {
     presentCourse,
@@ -25,43 +23,9 @@ import Contribution from "../contribution/contribution.model.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { scheduleAcademicRefresh } from "../../services/academicSync.js";
 
-// Get all courses from DB
-export async function getDBCourses(req, res, next) {
-    try {
-        const dbCourses = await CourseModel.find({});
-        return res.json(dbCourses);
-    } catch (err) {
-        return next(new AppError(500, "Failed to fetch courses"));
-    }
+export async function getDBCourses(req, res) {
+    res.json(await listCourses(req.query));
 }
-
-// Upload courses via CSV file (comma-separated)
-export async function uploadCourses(req, res) {
-    const operations = [];
-    const allCourses = await processUploadedCsv(req.file, ["code", "name"], async (results) => {
-        for (const { code, name } of results) {
-            if (!code || !name) continue;
-            const codeUpper = validCourseCode(code);
-            await mutateContent(req, [codeUpper], async () => {
-                const course = await CourseModel.findOne({
-                    code: codeReferenceRegex(codeUpper),
-                });
-                if (!course) {
-                    await assertCourseIdentityAvailable(codeUpper);
-                    await CourseModel.create({ code: codeUpper, name });
-                } else {
-                    operations.push(
-                        await scheduleCourseRename(req, course.code, { newCode: codeUpper, name }),
-                    );
-                }
-            });
-        }
-        return CourseModel.find({});
-    });
-    if (operations.length) return res.status(202).json({ items: allCourses, operations });
-    res.json(allCourses);
-}
-
 export async function getCourseDashboardData(req, res) {
     const course = await presentCourse(req, req.params.code);
     const codeRegex = getCourseCodeCaseInsensitiveRegex(course.code);
@@ -167,39 +131,24 @@ export async function bulkLinkCourses(req, res) {
     };
 
     const summary = await processUploadedCsv(req.file, { headers: false }, async (results) => {
+        const rows = results
+            .map(Object.values)
+            .filter((values) => values.some((value) => String(value).trim()));
+        if (rows[0]?.length === 2 && rows[0].every(isHeaderValue)) rows.shift();
+        if (rows.length > 1000) throw new AppError(413, "Link at most 1,000 rows per CSV file");
         const summary = { scheduled: 0, failed: 0, errors: [], operations: [] };
-        for (const row of results) {
-            const keys = Object.keys(row);
-            if (keys.length === 0) continue;
-
-            let rawOld = "";
-            let rawNew = "";
-
-            if (row.oldCode || row.legacyCode || row.old || row.sourceCode) {
-                rawOld = row.oldCode || row.legacyCode || row.old || row.sourceCode;
-                rawNew = row.newCode || row.targetCode || row.new || row.target;
-            } else if (keys.length >= 2) {
-                rawOld = row[keys[0]];
-                rawNew = row[keys[1]];
-            } else if (keys.length === 1 && typeof row[keys[0]] === "string") {
-                const parts = row[keys[0]].split(",").map((s) => s.trim());
-                if (parts.length >= 2) {
-                    rawOld = parts[0];
-                    rawNew = parts[1];
-                }
-            }
-
-            if (!rawOld || !rawNew) continue;
-
-            if (isHeaderValue(rawOld) && isHeaderValue(rawNew)) {
+        for (const values of rows) {
+            const oldCode = normalizeCourseCode(values[0] || "");
+            const newCode = normalizeCourseCode(values[1] || "");
+            if (values.length !== 2 || !oldCode || !newCode) {
+                summary.failed++;
+                summary.errors.push({
+                    oldCode,
+                    newCode,
+                    error: "Use exactly two nonempty course codes",
+                });
                 continue;
             }
-
-            const oldCode = normalizeCourseCode(rawOld);
-            const newCode = normalizeCourseCode(rawNew);
-
-            if (!oldCode || !newCode) continue;
-
             try {
                 const operation = await scheduleCourseLink(req, newCode, oldCode);
                 summary.operations.push({ oldCode, newCode, ...operation });
@@ -212,6 +161,20 @@ export async function bulkLinkCourses(req, res) {
 
         return summary;
     });
+    if (summary.operations.length) {
+        summary.receiptId = randomUUID();
+        // A completed receipt records scheduling, not completion of the linked jobs.
+        await OperationModel.create({
+            _id: summary.receiptId,
+            kind: "link",
+            actorId: req.admin._id,
+            actorRole: "admin",
+            status: "completed",
+            target: { batchLinking: summary },
+            plan: { name: "Bulk link scheduling" },
+            completedSteps: ["scheduled"],
+        });
+    }
     res.status(202).json({ message: "Link operations scheduled", summary });
 }
 

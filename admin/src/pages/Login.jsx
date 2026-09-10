@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Brand, Button, FormField } from "@coursehub/ui";
 import { adminLogin } from "@/apis/auth";
-
+import styles from "./Login.module.scss";
 export default function Login() {
-    const [userId, setUserId] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    const onSubmit = async (e) => {
-        e.preventDefault();
+    const [userId, setUserId] = useState(""),
+        [password, setPassword] = useState(""),
+        [loading, setLoading] = useState(false),
+        [error, setError] = useState("");
+    const submit = async (event) => {
+        event.preventDefault();
+        if (loading) return;
         setError("");
         setLoading(true);
         try {
@@ -23,54 +22,53 @@ export default function Login() {
                 target.pathname !== "/admin/login"
                     ? target.pathname + target.search + target.hash
                     : "/admin/";
-        } catch (error) {
-            setError(error.message || "Unable to sign in. Please try again.");
+        } catch (failure) {
+            setError(failure.message || "Unable to sign in. Please try again.");
         } finally {
             setLoading(false);
         }
     };
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-8 w-full max-w-md">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Login</h1>
-                <p className="text-gray-600 mb-6">
-                    Enter your credentials to access the admin panel.
-                </p>
+        <main id="admin-content" className={styles.page}>
+            <div className={styles.brand}>
+                <Brand />
+                <p>Administration</p>
+            </div>
+            <section className={styles.card}>
+                <h1>Admin Login</h1>
+                <p>Enter your credentials to access the admin panel.</p>
                 {error && (
-                    <div role="alert" className="mb-4 text-sm text-red-600">
+                    <p className={styles.error} role="alert">
                         {error}
-                    </div>
+                    </p>
                 )}
-                <form onSubmit={onSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm text-gray-700 mb-1">User ID</label>
-                        <Input
+                <form onSubmit={submit}>
+                    <FormField label="User ID" required>
+                        <input
+                            name="username"
+                            autoComplete="username"
                             value={userId}
-                            onChange={(e) => setUserId(e.target.value)}
+                            onChange={(event) => setUserId(event.target.value)}
                             placeholder="admin id"
-                            required
+                            disabled={loading}
                         />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-gray-700 mb-1">Password</label>
-                        <Input
+                    </FormField>
+                    <FormField label="Password" required>
+                        <input
+                            name="password"
                             type="password"
+                            autoComplete="current-password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(event) => setPassword(event.target.value)}
                             placeholder="••••••••"
-                            required
+                            disabled={loading}
                         />
-                    </div>
-                    <Button
-                        type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700"
-                        disabled={loading}
-                    >
-                        {loading ? "Signing in..." : "Sign In"}
+                    </FormField>
+                    <Button type="submit" busy={loading} busyLabel="Signing in...">
+                        Sign In
                     </Button>
                 </form>
-            </div>
-        </div>
+            </section>
+        </main>
     );
 }

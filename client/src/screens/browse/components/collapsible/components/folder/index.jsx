@@ -2,7 +2,7 @@ import { useCourseBrowser } from "../../../../../../queries/browserContext";
 import { useState } from "react";
 import FolderController from "../folder-controller";
 
-import "./styles.scss";
+import styles from "./styles.module.scss";
 
 import { useEffect } from "react";
 import { getSubtreeFileCount } from "../../../../../../utils/folderUtils";
@@ -34,7 +34,7 @@ const Folder = ({ folder, state }) => {
     }, [_state.currentFolder?._id, folder._id]);
 
     return (
-        <div className={`main-folder ${open}`}>
+        <div className={`${styles.root} main-folder ${open}`}>
             <div className="folder-vertical-line">
                 <span className="up"></span>
                 <span className="down"></span>
@@ -47,17 +47,22 @@ const Folder = ({ folder, state }) => {
                             folder._id === _state?.currentFolder?._id ? "current" : ""
                         }`}
                     >
-                        <span
+                        <button
+                            type="button"
                             className={`text ${folder.childType === "File" && "nobold"}`}
                             onClick={() => onClick(folder)}
                         >
                             {folder.name}
                             <span className="tree-file-count">({fileCount})</span>
-                        </span>
-                        <span
-                            className={`${folder.childType !== "File" ? "triangle" : ""}`}
-                            onClick={closeFolder}
-                        ></span>
+                        </button>
+                        {folder.childType !== "File" && (
+                            <button
+                                type="button"
+                                aria-label={`Collapse ${folder.name}`}
+                                className={`${folder.childType !== "File" ? "triangle" : ""}`}
+                                onClick={closeFolder}
+                            ></button>
+                        )}
                     </div>
                 </div>
                 <div className="children">

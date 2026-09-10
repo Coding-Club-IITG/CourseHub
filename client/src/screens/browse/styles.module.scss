@@ -1,0 +1,78 @@
+@use "@coursehub/ui/mixins" as ui;
+.layout {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) minmax(0, 1fr) 164px;
+    grid-template-areas: "sidebar main years";
+    min-height: calc(100dvh - 72px);
+}
+.sidebar {
+    grid-area: sidebar;
+    border-right: 1px solid var(--ch-border);
+    min-width: 0;
+    h2 {
+        padding: 0.75rem 1.25rem;
+        background: var(--ch-yellow);
+        color: var(--ch-ink);
+        font-size: 1.125rem;
+    }
+    h3 {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        color: var(--ch-muted);
+    }
+}
+.main {
+    grid-area: main;
+    min-width: 0;
+}
+.years {
+    grid-area: years;
+    background: var(--ch-black);
+    color: var(--ch-paper);
+    min-width: 0;
+}
+.mobileSelection {
+    display: none;
+}
+.files {
+    @include ui.actions;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+.back {
+    padding: 0.25rem 1rem 0;
+}
+@include ui.below(tablet) {
+    .layout {
+        grid-template-columns: 220px minmax(0, 1fr) 140px;
+    }
+}
+@include ui.below(mobile) {
+    .layout {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+    .sidebar {
+        display: none;
+    }
+    .mobileSelection {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        gap: 0.75rem;
+        padding: 1rem var(--ch-gutter);
+    }
+    .files {
+        gap: 1rem;
+        padding: 1rem var(--ch-gutter);
+    }
+    .years {
+        background: var(--ch-paper);
+        color: var(--ch-ink);
+    }
+    .back {
+        padding-inline: var(--ch-gutter);
+    }
+}
+@include ui.below(mobile) {.files{gap:.5rem;padding:.5rem;}}

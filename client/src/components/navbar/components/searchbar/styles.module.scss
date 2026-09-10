@@ -1,0 +1,39 @@
+@use "@coursehub/ui/mixins" as ui;
+.search {
+    position: relative;
+    form {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+    form > div {
+        flex: 1;
+        min-width: 0;
+    }
+    label {
+        color: var(--ch-paper);
+        font-size: 0.875rem;
+    }
+}
+.results {
+    @include ui.surface;
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 0.5rem);
+    width: 100%;
+    max-height: 50dvh;
+    overflow: auto;
+    padding: 0.75rem;
+    box-shadow: var(--ch-shadow-dialog);
+    a {
+        @include ui.control;
+        display: block;
+        padding: 0.75rem 0.5rem;
+        color: var(--ch-ink);
+        text-decoration: none;
+        overflow-wrap: anywhere;
+        &:hover {
+            background: var(--ch-warning-surface);
+        }
+    }
+}

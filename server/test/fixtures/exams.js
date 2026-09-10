@@ -16,7 +16,7 @@ export const examResponse = {
                     ...course,
                     slot: index ? "A" : "G",
                     date,
-                    time: type === "midSem" ? "09:00–11:00" : "09:00–12:00",
+                    time: type === "midSem" ? "09:00-11:00" : "09:00-12:00",
                     startsAt: `${date}T03:30:00.000Z`,
                     endsAt: `${date}T${type === "midSem" ? "05" : "06"}:30:00.000Z`,
                     state: "upcoming",

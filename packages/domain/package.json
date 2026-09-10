@@ -10,5 +10,8 @@
     "engines": {
         "node": ">=24 <25",
         "npm": ">=11 <12"
+    },
+    "dependencies": {
+        "papaparse": "5.7.0"
     }
 }
