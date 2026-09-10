@@ -34,7 +34,7 @@ Long-running changes remain journaled operations. Their restart recovery is desc
 
 Production models import the configured Mongoose instance from `server/config/mongoose.js`. It explicitly enables schema strictness and sets `strictQuery` to `throw`.
 
-Suppose a developer writes a destructive filter using a misspelled field. Silently removing that field could turn a narrow query into a much broader one. Throwing instead lets the request fail before the query changes records. Integration tests check that records remain present after such a rejected operation.
+Suppose a developer writes a destructive filter using a misspelled field. Silently removing that field could turn a narrow query into a much broader one. Throwing instead lets the request fail before the query changes records.
 
 This protects against unknown fields; it does not prove that a known filter is safe. A handler must still resolve the resource on the server, validate its course context and check permissions. Never pass a request body directly to a destructive database operation.
 

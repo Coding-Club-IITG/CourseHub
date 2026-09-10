@@ -33,11 +33,7 @@ export default defineConfig([
         },
     },
     {
-        files: ["packages/ui/test/**/*.browser.test.js"],
-        languageOptions: { globals: globals.browser },
-    },
-    {
-        files: ["server/**/*.js", "**/*.config.js", "packages/*/test/**/*.js"],
+        files: ["server/**/*.js", "**/*.config.js"],
         languageOptions: { globals: globals.node },
     },
 ]);

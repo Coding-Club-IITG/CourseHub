@@ -22,7 +22,9 @@ import ImportDialog from "../components/imports/ImportDialog";
 import styles from "@/styles/layout.module.scss";
 import courseStyles from "./courses/styles.module.scss";
 export default function Courses() {
-    const state = usePagedList("courses", fetchCourses, ["nameless", "duplicates", "withoutBR"]);
+    const state = usePagedList("courses", fetchCourses, ["nameless", "duplicates", "withoutBR"], {
+        refetchInterval: (query) => (query.queryKey.at(-1).withoutBR ? 30_000 : false),
+    });
     const { query, filters, update } = state;
     const location = useLocation();
     const [editing, setEditing] = useState(null),

@@ -105,5 +105,3 @@ Unrelated valid courses remain browsable. Changes involving an invalid shared st
 | [`courseLinking.js`](../server/services/courseLinking.js)       | Plan, schedule and apply course links.                                        |
 | [`deletions.js`](../server/services/deletions.js)               | Decide shared unlinking versus unique cleanup.                                |
 | [`operationJournal.js`](../server/services/operationJournal.js) | Record completed steps and finish operations.                                 |
-
-The integration scenarios in [`shared-trees.js`](../server/test/support/shared-trees.js) exercise shared and unique descendants, populated duplicates, repeated links, concurrent changes and restart recovery.

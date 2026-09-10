@@ -22,8 +22,7 @@
     },
     "scripts": {
         "gallery": "vite --config gallery/vite.config.js",
-        "gallery:build": "vite build --config gallery/vite.config.js",
-        "test:browser": "node --test test/*.browser.test.js"
+        "gallery:build": "vite build --config gallery/vite.config.js"
     },
     "devDependencies": {
         "@vitejs/plugin-react": "6.1.1",

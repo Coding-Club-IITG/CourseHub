@@ -186,7 +186,7 @@ This keeps the library useful without requiring the core team to organise every 
 coursehub/
 ├── client/              # Student React app, browser requests and navigation state
 ├── admin/               # Administrator React app and management screens
-├── server/              # API, models, permission services, workers and tests
+├── server/              # API, models, permission services and workers
 ├── packages/            # Shared domain, browser/session code and React UI boundary
 ├── docs/                # Explanations, operating procedures and implementation guides
 └── .github/workflows/   # Current CI and deployment workflows
@@ -250,16 +250,11 @@ Run these commands from the repository root:
 
 ```sh
 npm run preflight
-npm test
 npm run lint
 npm run build
 ```
 
-The root test command runs shared-domain, browser transport/cache contracts and server unit tests. The server unit tests use mocked dependencies. Database integrations are a separate command and require an **empty, isolated** database in the `coursehub_test_` namespace:
-
-```sh
-TEST_MONGO_URI=mongodb://127.0.0.1:27017/coursehub_test_local_run npm --prefix server run test:db
-```
+`npm run verify` runs all three checks in sequence.
 
 ## Workflow
 

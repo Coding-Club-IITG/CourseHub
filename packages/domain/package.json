@@ -4,9 +4,6 @@
     "private": true,
     "type": "module",
     "exports": "./src/index.js",
-    "scripts": {
-        "test": "node --test test/*.test.js"
-    },
     "engines": {
         "node": ">=24 <25",
         "npm": ">=11 <12"

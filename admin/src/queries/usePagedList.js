@@ -4,7 +4,12 @@ import { useQuery } from "@coursehub/browser";
 import { library } from "../session";
 const positive = (value, fallback, max) =>
     /^[1-9]\d*$/.test(value || "") && Number(value) <= max ? Number(value) : fallback;
-export function usePagedList(resource, fetcher, booleanFilters = []) {
+export function usePagedList(
+    resource,
+    fetcher,
+    booleanFilters = [],
+    { refetchInterval = false } = {},
+) {
     const [params] = useSearchParams();
     const location = useLocation(),
         navigate = useNavigate();
@@ -37,6 +42,7 @@ export function usePagedList(resource, fetcher, booleanFilters = []) {
         queryKey: [...library.key(resource), filters],
         queryFn: ({ signal }) => fetcher(filters, signal),
         retry: false,
+        refetchInterval,
     });
     const update = (changes) =>
         setParams(

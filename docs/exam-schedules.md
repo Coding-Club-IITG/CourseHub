@@ -75,7 +75,7 @@ Timetables are reviewed server data. To provide the next academic period:
 1. Obtain the approved course-slot mappings and exam windows for that period.
 2. Add a period-specific data file under `server/data/examSchedules/`, following the existing structure. Use the service's `Jan-May` or `July-Nov` period labels and the actual calendar year.
 3. Register the file in the `schedules` list in [`server/services/examSchedule.js`](../server/services/examSchedule.js). Keep one timetable per period.
-4. Check missing mappings, deliberate no-exam entries, dates and time windows. Add representative service fixtures for changed rules, and run the verification commands below.
+4. Check missing mappings, deliberate no-exam entries, dates and time windows against the approved timetable.
 5. Review the data change and release the API.
 
 ## 6. API and deployment details

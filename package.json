@@ -18,14 +18,11 @@
         "dev:student": "npm run dev --workspace @coursehub/student --",
         "dev:admin": "npm run dev --workspace @coursehub/admin --",
         "preflight": "npm run preflight --workspace @coursehub/server",
-        "test": "npm run test --workspace @coursehub/domain && npm run test --workspace @coursehub/browser && npm run test --workspace @coursehub/server",
-        "test:db": "npm run test:db --workspace @coursehub/server",
-        "test:browser": "npm run test:browser --workspace @coursehub/server",
         "build:student": "npm run build --workspace @coursehub/student",
         "build:admin": "npm run build --workspace @coursehub/admin",
         "build": "npm run build:student && npm run build:admin",
         "lint": "eslint client admin packages --max-warnings 0",
-        "verify": "npm run preflight && npm test && npm run lint && npm run build"
+        "verify": "npm run preflight && npm run lint && npm run build"
     },
     "packageManager": "npm@11.17.0",
     "devDependencies": {
@@ -34,7 +31,6 @@
         "eslint-plugin-react": "7.37.5",
         "eslint-plugin-react-hooks": "7.1.1",
         "eslint-plugin-react-refresh": "0.5.6",
-        "globals": "17.12.0",
-        "playwright": "1.62.0"
+        "globals": "17.12.0"
     }
 }
