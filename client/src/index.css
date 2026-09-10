@@ -8,24 +8,6 @@
     font-family: "Regular", Arial, sans-serif;
 }
 
-.toast-container .Toastify__toast {
-    border-radius: 8px;
-    min-height: 50px;
-    font-family: "Regular", sans-serif;
-}
-
-.toast-container .Toastify__toast--loading {
-    background-color: #f3f4f6;
-    color: #374151;
-}
-
-@media screen and (max-width: 768px) {
-    .toast-container .Toastify__toast {
-        margin-bottom: 0.5rem;
-        font-size: 14px;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

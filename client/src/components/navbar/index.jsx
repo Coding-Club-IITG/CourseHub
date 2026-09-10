@@ -86,8 +86,12 @@ export default function NavBar({ compact = false }) {
                             setOpen(false);
                     }}
                 >
-                    <NavLink to="/dashboard" onClick={() => setOpen(false)}>Dashboard</NavLink>
-                    <NavLink to="/profile" onClick={() => setOpen(false)}>Profile</NavLink>
+                    <NavLink to="/dashboard" onClick={() => setOpen(false)}>
+                        Dashboard
+                    </NavLink>
+                    <NavLink to="/profile" onClick={() => setOpen(false)}>
+                        Profile
+                    </NavLink>
                     <Button variant="ghost" busy={busy} onClick={logout}>
                         Log Out
                     </Button>

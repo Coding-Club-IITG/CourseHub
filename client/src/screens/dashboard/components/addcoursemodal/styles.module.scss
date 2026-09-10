@@ -3,7 +3,20 @@
     @include ui.stack(var(--ch-space-2));
     margin-top: var(--ch-space-4);
     button {
+        flex-wrap: wrap;
         justify-content: flex-start;
         text-align: left;
     }
+}
+.code {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.name {
+    flex: 1 1 12rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }

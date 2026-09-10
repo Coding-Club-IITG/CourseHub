@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Button, Badge } from "@coursehub/ui";
-import { verifyFile, unverifyFile } from "../../../../../api/File";
-import { useFileActions } from "../../../../../components/file-actions/useFileActions";
+import { Button, ButtonLink, Badge } from "@coursehub/ui";
+import { verifyFile, unverifyFile, getFilePreviewUrl } from "../../../../../api/File";
 import { ResourceConfirmation } from "../../../../../components/content-dialogs";
 import styles from "./styles.module.scss";
 export default function ContributionCard({
@@ -15,7 +14,6 @@ export default function ContributionCard({
         [busy, setBusy] = useState(false),
         [error, setError] = useState("");
     const context = managementCourseCode || courseCode;
-    const { preview, busy: opening } = useFileActions(file, context);
     const confirm = async () => {
         if (busy) return;
         setBusy(true);
@@ -49,15 +47,15 @@ export default function ContributionCard({
                     </time>
                 )}
             </div>
-            <Button
+            <ButtonLink
                 variant="link"
                 className={styles.name}
-                onClick={preview}
-                busy={!!opening}
-                busyLabel="Opening…"
+                href={getFilePreviewUrl(file._id, context)}
+                target="_blank"
+                rel="noopener noreferrer"
             >
                 {file.name}
-            </Button>
+            </ButtonLink>
             <div className={styles.actions}>
                 <Badge tone={file.isVerified ? "success" : "warning"}>
                     {file.isVerified ? "Approved" : "Pending"}

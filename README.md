@@ -273,7 +273,7 @@ Start with the guide that matches what you are trying to understand:
 | Guide                                                                     | What it explains                                                                                         |
 | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | [Runtime and Database Models](docs/runtime-and-models.md)                 | Request errors, shutdown, validated references and compatibility with existing data.                     |
-| [Course Linking & Shared Folders](docs/course_link_logic.md)              | Why folders are shared, how populated years are preserved, and how unlinking differs from file deletion. |
+| [Course Linking &amp; Shared Folders](docs/course_link_logic.md)          | Why folders are shared, how populated years are preserved, and how unlinking differs from file deletion. |
 | [Shared Course Trees: Server Implementation](docs/shared-course-trees.md) | Reachable membership, linking API results, locks, recovery and tree limits.                              |
 | [Data Sources and Maintenance](docs/data-sources.md)                      | What is scraped, what needs manual input, refresh triggers, and the semester checklist.                  |
 | [Academic Synchronization](docs/academic-synchronization.md)              | Current/history registrations, ordinary versus force refresh, empty data and failure behavior.           |

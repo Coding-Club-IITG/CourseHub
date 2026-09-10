@@ -1,0 +1,3 @@
+{
+    "ignore": ["**/onedrive-access-token.json", "test/**"]
+}

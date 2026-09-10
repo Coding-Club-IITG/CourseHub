@@ -55,7 +55,9 @@ export function parseAcademicSnapshot(html) {
                 );
             let roll, code;
             try {
-                roll = studentRoll(cells.eq(2).text().trim());
+                const sourceRoll = cells.eq(2).text().trim();
+                // The portal also returns X-prefixed identities
+                roll = /^X\d{9}$/.test(sourceRoll) ? sourceRoll : studentRoll(sourceRoll);
                 code = validCourseCode(cells.eq(3).text().trim());
             } catch {
                 throw new AppError(
@@ -100,6 +102,7 @@ export const academicProvider = {
                 {
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     timeout: 30000,
+                    signal: AbortSignal.timeout(30000),
                     maxContentLength: academicLimits.responseBytes,
                     maxBodyLength: 1024,
                     maxRedirects: 0,

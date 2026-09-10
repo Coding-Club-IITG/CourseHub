@@ -127,9 +127,10 @@ async function processClaim(id, lane, checkWorker) {
                     nextRunAt: new Date(Date.now() + wait),
                     error: {
                         code: error.code || "OPERATION_FAILED",
-                        message: permanent
-                            ? error.message
-                            : "The operation could not finish. Retrying preserves completed work.",
+                        message:
+                            permanent || error.code === "ACADEMIC_UNAVAILABLE"
+                                ? error.message
+                                : "The operation could not finish. Retrying preserves completed work.",
                     },
                 },
                 $unset: { leaseToken: 1, leaseUntil: 1 },

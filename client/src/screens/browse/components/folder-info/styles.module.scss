@@ -34,6 +34,7 @@
         }
         .btn {
             @include ui.control;
+            @include ui.control-motion;
             display: inline-flex;
             flex-direction: column;
             align-items: center;

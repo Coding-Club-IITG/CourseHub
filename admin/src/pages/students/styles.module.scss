@@ -1,8 +1,9 @@
 @use "@coursehub/ui/mixins" as ui;
 .actions {
     @include ui.actions;
-    flex-wrap: wrap;
-    min-width: 15rem;
+    flex-wrap: nowrap;
+    min-width: max-content;
+    gap: 0.25rem;
 }
 .details {
     @include ui.stack(1rem);
@@ -50,4 +51,6 @@
     gap: 1rem;
 }
 
-.access { white-space: nowrap; }
+.access {
+    white-space: nowrap;
+}

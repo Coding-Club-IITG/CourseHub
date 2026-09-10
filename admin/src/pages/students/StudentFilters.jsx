@@ -1,4 +1,4 @@
-import { Button, FormField } from "@coursehub/ui";
+import { Button, Icon, FormField } from "@coursehub/ui";
 import styles from "@/styles/layout.module.scss";
 export default function StudentFilters({ filters, search, setSearch, update, reset }) {
     return (
@@ -27,7 +27,7 @@ export default function StudentFilters({ filters, search, setSearch, update, res
                     BRs Only
                 </Button>
                 <Button variant="link" onClick={reset}>
-                    Reset filters
+                    <Icon name="refresh" /> Reset filters
                 </Button>
             </div>
         </div>

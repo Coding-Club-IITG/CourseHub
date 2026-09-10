@@ -207,7 +207,11 @@ async function prepareSync(operation, checkpoint) {
             .select("_id email rollNumber courses previousCourses readOnly courseSync")
             .lean();
         const rolls = new Set([
-            ...Object.keys(snapshot.allotments).map(Number),
+            // CourseHub accounts use nine-digit rolls
+            // Keep other portal identities in source snapshot without assigning them to accounts
+            ...Object.keys(snapshot.allotments)
+                .filter((roll) => /^\d{9}$/.test(roll))
+                .map(Number),
             ...users.map((user) => studentRoll(user.rollNumber)),
         ]);
         records = [...rolls].map((rollNumber) => ({

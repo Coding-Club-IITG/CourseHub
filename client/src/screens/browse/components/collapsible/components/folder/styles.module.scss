@@ -17,6 +17,9 @@
             padding-right: 10px;
         }
         :global(.text-content) {
+            display: flex;
+            align-items: center;
+            min-width: 0;
             width: 100%;
             background-color: #fff;
             padding: 0.3em;
@@ -40,6 +43,9 @@
             }
 
             :global(.text) {
+                flex: 1;
+                min-width: 0;
+                overflow-wrap: anywhere;
                 font-size: 1rem;
                 font-family: "Bold";
                 cursor: pointer;
@@ -62,15 +68,15 @@
             }
             :global(.triangle) {
                 cursor: pointer;
-                display: inline-block;
-                width: 10px;
-                margin-left: 5px;
-                height: 10px;
-                margin-bottom: 1px;
-                background: url(../../assets/triangle.svg), none;
-                background-position: center;
-                background-repeat: no-repeat;
-                background-size: cover;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 32px;
+                min-height: 36px;
+                background: transparent;
+                svg {
+                    transform: rotate(180deg);
+                }
             }
             &:global(.lastfolder) {
                 display: none;
@@ -114,5 +120,9 @@
         font: inherit;
         cursor: pointer;
         text-align: left;
+        &:focus-visible {
+            outline-offset: -2px;
+            box-shadow: none;
+        }
     }
 }

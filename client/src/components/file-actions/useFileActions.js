@@ -1,29 +1,10 @@
 import { useState } from "react";
-import { toast } from "react-toastify";
-import { previewFile, getFileDownloadLink } from "../../api/File";
+import { toast } from "../../notifications/toast";
+import { getFileDownloadLink } from "../../api/File";
 import { transport } from "../../api/http";
 
 export function useFileActions(file, code) {
     const [busy, setBusy] = useState("");
-    const preview = async () => {
-        if (busy) return;
-        const tab = window.open("about:blank", "_blank");
-        if (!tab) {
-            toast.error("Allow pop-ups to open the file preview.");
-            return;
-        }
-        tab.opener = null;
-        setBusy("preview");
-        try {
-            const { url } = await previewFile(file._id, code);
-            if (!tab.closed) tab.location.replace(url);
-        } catch (error) {
-            tab.close();
-            toast.error(error.message || "The file preview is unavailable.");
-        } finally {
-            setBusy("");
-        }
-    };
     const download = async () => {
         if (busy) return;
         setBusy("download");
@@ -43,5 +24,5 @@ export function useFileActions(file, code) {
             setBusy("");
         }
     };
-    return { preview, download, busy };
+    return { download, busy };
 }

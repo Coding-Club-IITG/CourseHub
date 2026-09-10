@@ -145,6 +145,16 @@ for (const width of [1440, 390]) {
             false,
         );
     });
+    test(`a queued registration refresh lets the student continue to the saved destination at ${width}px`, async (t) => {
+        const { page, state } = await fixture(t, width);
+        await page.goto(client + "/loading?returnTo=%2Fprofile%3Ftab%3Dcourses%23history");
+        await page.getByRole("heading", { name: "Refreshing your courses" }).waitFor();
+        await page.getByRole("link", { name: "Continue with saved courses" }).click();
+        await page.waitForURL("**/profile?tab=courses#history");
+        await page.getByRole("button", { name: "Refresh registered courses" }).waitFor();
+        assert.equal(state.status, "queued");
+        assert.equal(state.submits, 1);
+    });
     test(`course editing waits for persistence and preserves failed edits at ${width}px`, async (t) => {
         const { page, state } = await fixture(t, width, true);
         await page.goto(admin + "/admin/courses");

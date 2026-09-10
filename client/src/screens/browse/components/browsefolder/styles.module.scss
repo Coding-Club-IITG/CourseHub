@@ -4,6 +4,7 @@
     @include ui.stack(0.25rem);
     align-items: flex-start;
     width: 200px;
+    box-sizing: border-box;
     min-width: 0;
     min-height: 190px;
     padding: 1.5rem 0.75rem 0.5rem;
@@ -24,6 +25,10 @@
     cursor: pointer;
     overflow-wrap: anywhere;
 }
+.open[hidden],
+.actions[hidden] {
+    display: none;
+}
 .count {
     font-weight: 400;
     color: var(--ch-muted);
@@ -31,7 +36,7 @@
 }
 .actions {
     @include ui.actions;
-    gap: 0;
+    gap: 0.25rem;
     width: 100%;
     button {
         padding-inline: 0.4rem;
@@ -60,8 +65,9 @@
 .folder:has(form) {
     height: auto;
     min-height: 210px;
+    padding-top: 1.75rem;
 }
-@media (hover: hover) and (pointer: fine) {
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
     .folder:hover,
     .folder:focus-within {
         height: auto;

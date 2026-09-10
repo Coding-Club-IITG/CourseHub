@@ -148,3 +148,42 @@ test("concurrent rejected CSRF tokens share their replacement request", async ()
     await Promise.all([api.json("save", { method: "POST" }), api.json("save", { method: "POST" })]);
     assert.equal(refreshes, 1);
 });
+
+test("relative API bases resolve against the browser origin and retain destination boundaries", async () => {
+    for (const baseUrl of ["/api/", "/backend/api/"]) {
+        const calls = [];
+        const api = createTransport({
+            baseUrl,
+            role: "admin",
+            origin: "http://localhost:5174",
+            fetchImpl: async (url, options) => {
+                calls.push({ url, options });
+                return reply({ user: { userId: "admin" } });
+            },
+        });
+        await api.json("admin/");
+        assert.equal(calls[0].url, "http://localhost:5174" + baseUrl + "admin/");
+        assert.equal(calls[0].options.credentials, "include");
+        assert.equal(calls[0].options.headers.get("X-Session-Role"), "admin");
+        await assert.rejects(
+            api.json("https://unrelated.example.test/api/admin/"),
+            (error) => error.status === 400,
+        );
+        await assert.rejects(api.json("../outside"), (error) => error.status === 400);
+        assert.equal(calls.length, 1);
+    }
+});
+test("an absolute API base keeps its configured origin when a browser origin is supplied", async () => {
+    let requested;
+    const api = createTransport({
+        baseUrl: "http://localhost:8080/api",
+        origin: "http://localhost:5174",
+        role: "student",
+        fetchImpl: async (url) => {
+            requested = url;
+            return reply({});
+        },
+    });
+    await api.json("user");
+    assert.equal(requested, "http://localhost:8080/api/user");
+});

@@ -19,8 +19,13 @@ export class ApiError extends Error {
 }
 
 // Shared by JSON requests, streamed downloads and FilePond's upload headers
-export function createTransport({ baseUrl, role, fetchImpl = globalThis.fetch }) {
-    const base = new URL(baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
+export function createTransport({
+    baseUrl,
+    role,
+    fetchImpl = globalThis.fetch,
+    origin = globalThis.location?.origin,
+}) {
+    const base = new URL(baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`, origin);
     let token,
         pending,
         generation = 0,

@@ -66,3 +66,17 @@ A busy dialog blocks dismissal during a short save. Long uploads should remain d
 ## Gallery
 
 From the repository root, run `npm run gallery --workspace @coursehub/ui` and open `http://localhost:48233`. This separate local gallery uses synthetic content. It includes long scrollable content, nested confirmation, failure, disabled/busy controls, all status tones and form examples. `npm run gallery:build --workspace @coursehub/ui` checks its standalone build.
+
+## Compact actions and motion
+
+Use the shared `Icon` for common actions such as search, edit, delete, refresh and information. Icons follow the surrounding text color. Keep the existing CourseHub artwork where it already identifies those actions. Give icon-only controls a descriptive accessible label - `IconButton` also uses that label as its tooltip unless a more specific `title` is supplied.
+
+The `control-motion` mixin keeps color and shadow transitions short while controls stay in place. Set foreground and background colors together for every variant and hover state. Dark buttons keep light text on a dark hover surface. Reduced-motion styles remove transitions without affecting busy state or dismissal timing.
+
+## Student notifications
+
+Student notifications use the single `Notifications` host in `client/src/notifications/`. Transient feedback should call its `toast.success`, `toast.error`, `toast.warning` or `toast.info` wrapper. Green indicates success, red indicates failure, amber indicates a partial result or warning, and blue indicates information.
+
+Every completed message stays for at least 8 seconds. Longer messages receive up to 20 seconds, and hovering, keyboard focus or leaving the browser window pauses the timer. All cards have a labelled dismiss button.
+
+The compact operation notice uses the same card and timing rules. Unfinished work remains visible until it reaches a result or the user dismisses the notice. Completed results expire from the notification stack while the server's operation record and upload resume context remain available. Avoid adding a second success toast when that operation notice already reports the result.

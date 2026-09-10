@@ -1,0 +1,134 @@
+@use "@coursehub/ui/mixins" as ui;
+@mixin notification {
+    @include ui.typography;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.85rem 2.75rem 0.85rem 0.8rem;
+    border: 1px solid var(--ch-border);
+    border-left: 4px solid var(--notice-tone, var(--ch-info));
+    border-radius: var(--ch-radius-control);
+    background: var(--ch-paper);
+    color: var(--ch-ink);
+    box-shadow: var(--ch-shadow-card);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+.host {
+    position: fixed;
+    inset: auto 1rem 1rem auto;
+    z-index: 1900;
+    width: min(24rem, calc(100vw - 2rem));
+    max-height: 45dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    pointer-events: none;
+    > * {
+        pointer-events: auto;
+    }
+}
+.toasts:global(.Toastify__toast-container) {
+    position: static;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    transform: none;
+    :global(.Toastify__toast) {
+        padding: 0;
+        border: 0;
+        min-height: 0;
+        background: transparent;
+        box-shadow: none;
+        margin: 0.5rem 0 0;
+        overflow: visible;
+    }
+    .notice {
+        margin-top: 0;
+        animation: none;
+    }
+}
+
+.notice {
+    @include notification;
+    margin-top: 0.5rem;
+    animation: enter 160ms ease-out;
+    &[data-tone="success"] {
+        --notice-tone: var(--ch-success);
+    }
+    &[data-tone="error"] {
+        --notice-tone: var(--ch-danger);
+    }
+    &[data-tone="warning"] {
+        --notice-tone: var(--ch-warning);
+    }
+    p {
+        margin: 0.25rem 0;
+    }
+}
+.statusIcon {
+    color: var(--notice-tone, var(--ch-info));
+    flex: none;
+    padding-top: 2px;
+}
+.body {
+    flex: 1;
+    min-width: 0;
+}
+.close {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+}
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    a,
+    button {
+        @include ui.focus-ring;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        font: inherit;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        padding: 0;
+    }
+}
+.enter {
+    animation: enter 160ms ease-out;
+}
+.exit {
+    animation: exit 160ms ease-in;
+}
+@keyframes enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes exit {
+    to {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+@include ui.reduced-motion {
+    .enter,
+    .exit,
+    .notice {
+        animation-duration: 0.01ms;
+    }
+}

@@ -1,6 +1,5 @@
 import styles from "@/styles/layout.module.scss";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { operationEvent } from "@/apis/operations";
 
 export default function OperationNotice() {
@@ -20,6 +19,7 @@ export default function OperationNotice() {
                 : operation?.kind === "upload"
                   ? "Upload"
                   : "Cleanup";
+    if (!operation) return null;
     return (
         <div className={styles.operationNotice}>
             {operation && (
@@ -31,9 +31,6 @@ export default function OperationNotice() {
                           : `${activity} is in progress. You can leave this page.`}
                 </span>
             )}
-            <Link className={styles.link} to="/admin/operations">
-                Operations
-            </Link>
         </div>
     );
 }

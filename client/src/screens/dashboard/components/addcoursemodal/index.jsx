@@ -61,7 +61,7 @@ export default function AddCourseModal({ open, onOpenChange, handleAddCourse }) 
             open={open}
             onOpenChange={onOpenChange}
             title="Add New Course"
-            description="Add a course to Others for read-only browsing. Search by course code or name."
+            description="Add a course for read-only browsing."
             busy={saving}
             footer={
                 <>
@@ -83,7 +83,6 @@ export default function AddCourseModal({ open, onOpenChange, handleAddCourse }) 
                 <FormField label="Course code or name" error={error}>
                     <input
                         value={code}
-                        placeholder="Course Code"
                         onChange={(event) => {
                             setCode(event.target.value);
                             request.current++;
@@ -103,7 +102,8 @@ export default function AddCourseModal({ open, onOpenChange, handleAddCourse }) 
                         onClick={() => add(course)}
                         disabled={saving}
                     >
-                        <strong>{course.code}</strong> - {course.name}
+                        <strong className={styles.code}>{course.code}</strong>
+                        <span className={styles.name}>{course.name}</span>
                     </Button>
                 ))}
             </div>

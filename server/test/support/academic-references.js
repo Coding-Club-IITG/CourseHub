@@ -273,7 +273,11 @@ export async function exerciseAcademicReferences(t, origin) {
             });
             const before = await User.findById(user.id).lean();
             const mock = sub.mock.method(academicProvider, "fetch", () => {
-                throw new Error("Portal down");
+                const error = new Error(
+                    "The academic service is unavailable. Saved courses are preserved.",
+                );
+                error.code = "ACADEMIC_UNAVAILABLE";
+                throw error;
             });
             const accepted = await scheduleStudentSync(user, {
                 actorId: admin.id,
@@ -283,6 +287,10 @@ export async function exerciseAcademicReferences(t, origin) {
             const paused = await run(accepted.operationId);
             assert.equal(paused.status, "queued");
             assert.equal(paused.plan, undefined);
+            assert.equal(
+                paused.error.message,
+                "The academic service is unavailable. Saved courses are preserved.",
+            );
             assert.deepEqual((await User.findById(user.id).lean()).courses, before.courses);
             assert.equal((await User.findById(user.id)).courseSync.lastSucceededAt.getTime(), 0);
             mock.mock.restore();
@@ -315,6 +323,31 @@ export async function exerciseAcademicReferences(t, origin) {
                 (await synchronizationStatus(await User.findById(user.id))).needsSync,
                 false,
             );
+        },
+    );
+    await t.test(
+        "bulk academic refresh never assigns prefixed identities to numeric accounts",
+        async (sub) => {
+            const user = await person();
+            await AcademicSnapshot.deleteOne({ _id: periodKey(academicPeriod()) });
+            sub.mock.method(academicProvider, "fetch", async () => ({
+                [user.rollNumber]: ["PREFIX101"],
+                [`X${user.rollNumber}`]: ["PREFIX999"],
+            }));
+            const accepted = await scheduleAcademicRefresh({
+                actorId: admin.id,
+                actorRole: "admin",
+            });
+            const operation = await run(accepted.operationId);
+            assert.equal(operation.status, "completed");
+            assert.deepEqual(
+                (await User.findById(user.id)).courses.map((course) => course.code),
+                ["PREFIX101"],
+            );
+            const snapshot = await AcademicSnapshot.findById(periodKey(academicPeriod())).lean();
+            assert.deepEqual(snapshot.allotments[`X${user.rollNumber}`], ["PREFIX999"]);
+            assert.equal(await CourseAllotment.countDocuments({ courses: "PREFIX999" }), 0);
+            assert.equal(await Course.countDocuments({ code: "PREFIX999" }), 0);
         },
     );
     await t.test(

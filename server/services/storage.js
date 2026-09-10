@@ -130,7 +130,8 @@ export function createStorage({ client = graph, root = storageRoot, sleep = dela
                     {
                         method: "POST",
                         data: {
-                            item: { name: remoteName, "@microsoft.graph.conflictBehavior": "fail" },
+                            // Graph's OData reader requires annotations before item properties.
+                            item: { "@microsoft.graph.conflictBehavior": "fail", name: remoteName },
                         },
                         signal,
                     },

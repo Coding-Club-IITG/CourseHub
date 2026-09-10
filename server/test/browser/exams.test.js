@@ -44,13 +44,21 @@ for (const width of [1440, 390]) {
     test(`missing mappings retain known exams and suppress a misleading countdown at ${width}px`, async (t) => {
         const { page, frontend } = await examFixture(browser, t, { width, scenario: "partial" });
         await page.goto(frontend + "/dashboard");
-        await page.getByText("Missing dates: QA999").waitFor();
+        await page.locator(".exam-item-card").first().waitFor();
+        assert.equal(
+            await page.getByText(/Some exam dates are unavailable|Missing dates:/).count(),
+            0,
+        );
+        assert.equal(
+            await page
+                .getByRole("region", { name: "Exam schedule" })
+                .getByRole("button", { name: "Try again" })
+                .count(),
+            0,
+        );
         assert.equal(await page.locator(".exam-item-card").count(), 2);
         assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
-        assert.match(
-            await page.locator('[data-exam-type="midSem"]').innerText(),
-            /Dates incomplete/,
-        );
+        assert.match(await page.locator('[data-exam-type="midSem"]').innerText(), /Listed exams/);
         assert.equal(await page.getByText(/No Mid-Sem exams scheduled/).count(), 0);
     });
     test(`unavailable, empty and excluded exam data are distinct at ${width}px`, async (t) => {

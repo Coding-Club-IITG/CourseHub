@@ -93,5 +93,12 @@
         order: 1;
     }
 }
-.navbar .toggle[data-variant="ghost"], .links button[data-variant="ghost"] {color:inherit;}
-.navbar .toggle[data-variant="ghost"]:hover, .links button[data-variant="ghost"]:hover {background:#292929;color:var(--ch-yellow);}
+.navbar .toggle[data-variant="ghost"],
+.links button[data-variant="ghost"] {
+    color: inherit;
+}
+.navbar .toggle[data-variant="ghost"]:hover,
+.links button[data-variant="ghost"]:hover {
+    background: #292929;
+    color: var(--ch-yellow);
+}

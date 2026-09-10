@@ -1,14 +1,26 @@
 @use "@coursehub/ui/mixins" as ui;
 .actions {
     @include ui.actions;
-    min-width: 15rem;
+    min-width: max-content;
+    gap: 0.25rem;
     flex-wrap: nowrap;
     a {
         @include ui.focus-ring;
         display: inline-flex;
         align-items: center;
-        min-height: 44px;
-        padding: 0 0.75rem;
+        min-height: 36px;
+        width: 36px;
+        justify-content: center;
+        border: 1px solid var(--ch-control-border);
+        border-radius: var(--ch-radius-control);
+        @include ui.control-motion;
+        &:hover {
+            background: var(--ch-surface);
+        }
+        @media (pointer: coarse) {
+            min-height: 44px;
+            width: 44px;
+        }
         font-weight: 700;
         color: inherit;
     }

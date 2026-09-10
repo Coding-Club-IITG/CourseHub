@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Button, CloseIcon, IconButton, LoadingState, ErrorState, EmptyState } from "@coursehub/ui";
+import {
+    Button,
+    Icon,
+    CloseIcon,
+    IconButton,
+    LoadingState,
+    ErrorState,
+    EmptyState,
+} from "@coursehub/ui";
 import { fetchCourses } from "../apis/courses";
 import { library } from "../session";
 import { usePagedList } from "../queries/usePagedList";
@@ -34,7 +42,10 @@ export default function Courses() {
                         <h1 className={styles.heading}>Courses</h1>
                         <p>Manage course titles, codes and library content.</p>
                     </div>
-                    <Button onClick={() => setImporting(true)}>Add Courses</Button>
+                    <Button onClick={() => setImporting(true)}>
+                        <Icon name="plus" />
+                        Add Courses
+                    </Button>
                 </div>
                 <CourseFilters {...state} />
             </header>

@@ -1,18 +1,21 @@
 @use "@coursehub/ui/mixins" as ui;
 .search {
     position: relative;
-    form {
-        display: flex;
-        align-items: flex-end;
-        gap: 0.5rem;
+}
+.field {
+    position: relative;
+    display: block;
+    color: var(--ch-muted);
+    svg {
+        position: absolute;
+        left: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
     }
-    form > div {
-        flex: 1;
-        min-width: 0;
-    }
-    label {
-        color: var(--ch-paper);
-        font-size: 0.875rem;
+    input {
+        @include ui.field-control;
+        padding-left: 2.6rem;
     }
 }
 .results {

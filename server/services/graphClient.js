@@ -45,9 +45,10 @@ export function providerUrl(input) {
         url.username ||
         url.password ||
         url.port ||
-        !/(^|\.)(sharepoint\.com|1drv\.com|onedrive\.com|storage\.live\.com|microsoftusercontent\.com)$/i.test(
+        (!/(^|\.)(sharepoint\.com|1drv\.com|onedrive\.com|storage\.live\.com|microsoftusercontent\.com)$/i.test(
             url.hostname,
-        )
+        ) &&
+            !/^[a-z0-9-]+-mediap\.svc\.ms$/i.test(url.hostname))
     )
         throw new StorageError(502, "INVALID_STORAGE_RESPONSE");
     return url.href;

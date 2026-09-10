@@ -21,7 +21,11 @@ export default function ImportResults({ rows, counts, total, finished, preview =
                     </p>
                 </>
             )}
-            <ul tabIndex={0} className={styles.rows} aria-label={preview ? "Import preview" : "Import results"}>
+            <ul
+                tabIndex={0}
+                className={styles.rows}
+                aria-label={preview ? "Import preview" : "Import results"}
+            >
                 {rows.map((row, index) => (
                     <li key={index}>
                         <div className={styles.rowHeader}>

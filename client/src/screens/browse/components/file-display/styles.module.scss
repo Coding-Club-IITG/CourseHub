@@ -46,12 +46,14 @@
             }
         }
         :global(.view) {
+            text-decoration: none;
             position: absolute;
             inset: 0;
             display: flex;
             align-items: flex-end;
             justify-content: center;
             padding-bottom: 8px;
+            gap: 4px;
             border: 0;
             width: 100%;
             cursor: pointer;
@@ -66,6 +68,8 @@
             right: 4px;
             top: 4px;
             width: 44px;
+            display: grid;
+            place-items: center;
             background: #e4f6ea;
             border: 1px solid #17693c;
             border-radius: 4px;
@@ -81,12 +85,17 @@
         text-align: center;
     }
     :global(.title) {
-        display: flex;
+        display: grid;
+        grid-template-columns: 36px minmax(0, 1fr) 36px;
         align-items: center;
         min-height: 44px;
         gap: 2px;
+        @media (pointer: coarse) {
+            grid-template-columns: 44px minmax(0, 1fr) 44px;
+        }
     }
     :global(.title-text) {
+        grid-column: 2;
         flex: 1;
         min-width: 0;
         display: -webkit-box;
@@ -100,11 +109,12 @@
     :global(.title-text[hidden]) {
         display: none;
     }
+    :global(.title[hidden]) {
+        display: none;
+    }
     :global(.rename-tick) {
-        flex-shrink: 0;
-        width: 44px;
-        height: 44px;
-        background: url(./assets/edit.svg) center/20px no-repeat;
+        grid-column: 3;
+        background: transparent;
     }
     :global(.file-metadata) {
         margin-top: 4px;
@@ -148,7 +158,8 @@
             background-image: url(./assets/Download.svg);
         }
         :global(.unverify) {
-            background-image: url(./assets/Unverify.svg);
+            display: inline-grid;
+            place-items: center;
         }
         button:hover {
             background-color: #fff2d4;
@@ -185,7 +196,7 @@
         height: auto;
         min-height: 126px;
     }
-    @media (hover: hover) and (pointer: fine) {
+    @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
         &:hover,
         &:focus-within {
             box-shadow: 0 8px 16px #0002;
@@ -259,4 +270,8 @@
     min-height: 44px;
 }
 
-@media(max-width:360px){.card{width:100%;}}
+@media (max-width: 360px) {
+    .card {
+        width: 100%;
+    }
+}

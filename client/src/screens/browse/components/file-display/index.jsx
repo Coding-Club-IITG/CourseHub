@@ -1,4 +1,5 @@
 import triggerStyles from "../../../../components/content-dialogs/triggers.module.scss";
+import { IconButton, Icon } from "@coursehub/ui";
 import { useCourseBrowser } from "../../../../queries/browserContext";
 import styles from "./styles.module.scss";
 import { useState, useRef, useEffect } from "react";
@@ -9,10 +10,10 @@ import { useFavourite } from "../../../../queries/favourites";
 import { useFileActions } from "../../../../components/file-actions/useFileActions";
 import FileThumbnail from "../../../../components/file-actions/FileThumbnail";
 import { formatFileSize, formatFileType } from "../../../../utils/formatFile";
-import { toast } from "react-toastify";
+import { toast } from "../../../../notifications/toast";
 
 import capitalise from "../../../../utils/capitalise.js";
-import { verifyFile, unverifyFile, renameFile } from "../../../../api/File";
+import { verifyFile, unverifyFile, renameFile, getFilePreviewUrl } from "../../../../api/File";
 
 import { ResourceConfirmation, InlineRename } from "../../../../components/content-dialogs";
 
@@ -52,7 +53,7 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
         [share, file._id],
     );
     const { favourite, saving, toggle } = useFavourite(file._id, currCourseCode);
-    const { preview, download, busy } = useFileActions(file, currCourseCode);
+    const { download, busy } = useFileActions(file, currCourseCode);
     const [params, setParams] = useSearchParams();
     const selected = params.get("file") === file._id;
     const card = useRef(null);
@@ -91,7 +92,7 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
             if (dialogType === "verify") await verifyFile(file._id, currCourseCode);
             else await unverifyFile(file._id, currCourseCode, file.affectedCourses);
             setShowDialog(false);
-            toast.success(dialogType === "verify" ? "File verified!" : "File deleted!");
+            if (dialogType === "verify") toast.success("File verified!");
         } catch (error) {
             setActionError(error.message || "The action could not finish. Please retry.");
         } finally {
@@ -119,7 +120,7 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                         title="Verify file"
                         onClick={handleVerify}
                     >
-                        ✓
+                        <Icon name="check" />
                     </button>
                 )}
                 {selected && (
@@ -137,16 +138,16 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                     </button>
                 )}
 
-                <button
-                    type="button"
+                <a
                     className="view"
-                    onClick={preview}
-                    disabled={!!busy}
+                    href={getFilePreviewUrl(file._id, currCourseCode)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     title={file.name}
                     aria-label={`Preview ${file.name}`}
                 >
-                    {busy === "preview" ? "Opening…" : "View"}
-                </button>
+                    <Icon name="eye" size={16} /> View
+                </a>
             </div>
             <div className="content">
                 {isEditing && (
@@ -157,21 +158,23 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                         onSave={handleRename}
                     />
                 )}
-                <div className="title" title={file.name}>
+                <div className="title" title={file.name} hidden={isEditing}>
                     <p className="title-text" hidden={isEditing}>
                         {file?.name ? untruncatedDispName : "Untitled file"}
                     </p>
                     {canManage && (
-                        <button
-                            type="button"
-                            aria-label="Rename file"
-                            className={`rename-tick ${triggerStyles.trigger}`}
+                        <IconButton
+                            size="sm"
+                            label="Rename file"
+                            variant="ghost"
+                            className="rename-tick"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsEditing(true);
                             }}
-                            title="Rename"
-                        ></button>
+                        >
+                            <Icon name="edit" size={16} />
+                        </IconButton>
                     )}
                 </div>
                 <div className="file-metadata">
@@ -221,7 +224,9 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                         className={`unverify ${triggerStyles.trigger}`}
                         onClick={handleUnverify}
                         title="Delete"
-                    ></button>
+                    >
+                        <Icon name="trash" />
+                    </button>
                 )}
             </div>
             {canManage && (

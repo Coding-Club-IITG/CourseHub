@@ -1,5 +1,6 @@
 import { useCourseBrowser } from "../../../../../../queries/browserContext";
 import { useState } from "react";
+import { Icon } from "@coursehub/ui";
 import FolderController from "../folder-controller";
 
 import styles from "./styles.module.scss";
@@ -50,18 +51,23 @@ const Folder = ({ folder, state }) => {
                         <button
                             type="button"
                             className={`text ${folder.childType === "File" && "nobold"}`}
+                            aria-current={
+                                folder._id === _state.currentFolder?._id ? "page" : undefined
+                            }
                             onClick={() => onClick(folder)}
                         >
                             {folder.name}
                             <span className="tree-file-count">({fileCount})</span>
                         </button>
-                        {folder.childType !== "File" && (
+                        {folder.childType !== "File" && open && (
                             <button
                                 type="button"
                                 aria-label={`Collapse ${folder.name}`}
                                 className={`${folder.childType !== "File" ? "triangle" : ""}`}
                                 onClick={closeFolder}
-                            ></button>
+                            >
+                                <Icon name="chevron" />
+                            </button>
                         )}
                     </div>
                 </div>

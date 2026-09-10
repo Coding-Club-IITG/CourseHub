@@ -2,6 +2,7 @@
 .button {
     @include typography;
     @include control;
+    @include control-motion;
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -72,6 +73,15 @@
     width: var(--ch-target);
     flex-shrink: 0;
     padding: 0.5rem;
+    &[data-size="sm"] {
+        width: 36px;
+        min-height: 36px;
+        padding: 0.4rem;
+        @media (pointer: coarse) {
+            width: 44px;
+            min-height: 44px;
+        }
+    }
 }
 .field {
     @include typography;

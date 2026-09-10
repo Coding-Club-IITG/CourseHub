@@ -260,6 +260,31 @@ test("content redirects are restricted and do not forward Graph bearer credentia
     await assert.rejects(client.request("https://graph.microsoft.com@evil.test/me"), StorageError);
 });
 
+test("Microsoft media thumbnail redirects work without forwarding credentials or accepting lookalike hosts", async () => {
+    const calls = [];
+    const client = createGraphClient({
+        tokens: { getAccessToken: async () => "secret-token" },
+        transport: async (config) => {
+            calls.push(config);
+            if (calls.length === 1)
+                throw failure(302, { location: "https://centralindia1-mediap.svc.ms/thumbnail" });
+            return response("thumbnail");
+        },
+    });
+    await client.request("me/drive/items/file/thumbnails/0/medium/content");
+    assert.equal(calls[0].headers.Authorization, "Bearer secret-token");
+    assert.equal(calls[1].headers.Authorization, undefined);
+    for (const url of [
+        "https://centralindia1-mediap.svc.ms.evil.test/thumbnail",
+        "https://evil-centralindia1-mediap.svc.ms@evil.test/thumbnail",
+        "https://centralindia1-mediap.svc.ms:8443/thumbnail",
+        "http://centralindia1-mediap.svc.ms/thumbnail",
+        "https://unrelated.svc.ms/thumbnail",
+    ])
+        await assert.rejects(client.request(url, { preauthenticated: true }), StorageError);
+    assert.equal(calls.length, 2);
+});
+
 test("root-bound resolution forbids automatic folder/root deletion and foreign items; absent files are idempotent", async () => {
     const items = {
         root: { id: "root", folder: {} },
@@ -311,11 +336,17 @@ test("storage sends sequential Graph-compliant chunks and recovers a lost final 
         request: async (url, options = {}) => {
             if (url === "me/drive/items/root") return response({ id: "root", folder: {} });
             if (url === "me/drive/items/uploaded") return response(item);
-            if (url.endsWith("createUploadSession"))
+            if (url.endsWith("createUploadSession")) {
+                // Preserve wire order: Graph rejects the annotation after the name.
+                assert.equal(
+                    JSON.stringify(options.data),
+                    `{"item":{"@microsoft.graph.conflictBehavior":"fail","name":"${remoteName}"}}`,
+                );
                 return response({
                     uploadUrl: "https://tenant.sharepoint.com/upload",
                     nextExpectedRanges: ["0-"],
                 });
+            }
             if (url.startsWith("me/drive/items/root:/")) {
                 if (!committed) throw new StorageError(404);
                 return response(item);

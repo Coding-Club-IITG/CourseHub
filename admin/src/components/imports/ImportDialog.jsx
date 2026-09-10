@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@coursehub/browser";
 import { Button, Dialog, FormField, LoadingState, ErrorState } from "@coursehub/ui";
 import { parseImportCsv, importLimits } from "@coursehub/domain";
@@ -226,7 +226,6 @@ export default function ImportDialog({ type, onClose, onSuccess }) {
                             separately in Operations.
                         </p>
                     )}
-                    <Link to={`/admin/operations?operation=${id}`}>View in Operations</Link>
                 </>
             )}
             {errors.length > 0 && (

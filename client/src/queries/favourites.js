@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSession } from "../session/context";
 import { session } from "../session/runtime";
 import { AddToFavourites, RemoveFromFavourites } from "../api/User";
-import { toast } from "react-toastify";
+import { toast } from "../notifications/toast";
 
 export function useFavourite(id, code) {
     const actor = useSession().data;

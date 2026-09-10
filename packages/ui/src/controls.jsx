@@ -1,6 +1,25 @@
 import { cloneElement, useId } from "react";
 import styles from "./primitives.module.scss";
 
+export function ButtonLink({
+    children,
+    variant = "primary",
+    size = "default",
+    className = "",
+    ...props
+}) {
+    return (
+        <a
+            {...props}
+            data-variant={variant}
+            data-size={size}
+            className={`${styles.button} ${className}`}
+        >
+            {children}
+        </a>
+    );
+}
+
 export function Button({
     children,
     variant = "primary",
@@ -27,13 +46,13 @@ export function Button({
         </button>
     );
 }
-export function IconButton({ label, children, className = "", ...props }) {
+export function IconButton({ label, title = label, children, className = "", ...props }) {
     return (
         <Button
             {...props}
             className={`${styles.iconButton} ${className}`}
             aria-label={label}
-            title={label}
+            title={title}
         >
             {children}
         </Button>

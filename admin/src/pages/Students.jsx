@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Button, CloseIcon, EmptyState, ErrorState, IconButton, LoadingState } from "@coursehub/ui";
+import {
+    Button,
+    Icon,
+    CloseIcon,
+    EmptyState,
+    ErrorState,
+    IconButton,
+    LoadingState,
+} from "@coursehub/ui";
 import { library } from "../session";
 import AddBRs from "../components/AddBRs";
 import Pagination from "../components/Pagination";
@@ -31,12 +39,17 @@ export default function Students() {
                         <p>View students and manage BR registry assignments.</p>
                     </div>
                     <div className={styles.toolbar}>
-                        {filters.isBR && <Button onClick={() => setAdding(true)}>Add BRs</Button>}
+                        {filters.isBR && (
+                            <Button onClick={() => setAdding(true)}>
+                                <Icon name="plus" />
+                                Add BRs
+                            </Button>
+                        )}
                         <Button
                             variant="secondary"
                             onClick={() => setAction({ type: "refresh-all" })}
                         >
-                            Refresh all courses
+                            <Icon name="refresh" /> Refresh all courses
                         </Button>
                     </div>
                 </div>

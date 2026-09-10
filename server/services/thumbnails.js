@@ -26,7 +26,7 @@ export async function thumbnailStream(file, { signal } = {}) {
         try {
             return await graph.request(url, {
                 preauthenticated: true,
-                trustedOrigin: process.env.IMAGEKIT_URL_ENDPOINT,
+                ...(isImageKitUrl(url) ? { trustedOrigin: process.env.IMAGEKIT_URL_ENDPOINT } : {}),
                 responseType: "stream",
                 signal,
             });

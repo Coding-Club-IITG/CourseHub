@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Badge, Button } from "@coursehub/ui";
+import { Badge, IconButton, Icon } from "@coursehub/ui";
 import {
     Table,
     TableHeader,
@@ -36,7 +36,10 @@ export default function StudentTable({ items, expanded, onExpand, onAction }) {
                                     : "Awaiting registration"}
                             </TableCell>
                             <TableCell>
-                                <Badge className={styles.access} tone={item.isBR ? "success" : "neutral"}>
+                                <Badge
+                                    className={styles.access}
+                                    tone={item.isBR ? "success" : "neutral"}
+                                >
                                     {item.isBR ? "BR" : "Student"}
                                 </Badge>
                             </TableCell>
@@ -44,35 +47,49 @@ export default function StudentTable({ items, expanded, onExpand, onAction }) {
                                 <div className={styles.actions}>
                                     {item.isRegistered && (
                                         <>
-                                            <Button
+                                            <IconButton
+                                                size="sm"
                                                 variant="secondary"
+                                                label={
+                                                    expanded === item._id
+                                                        ? "Hide details"
+                                                        : "Details"
+                                                }
                                                 aria-expanded={expanded === item._id}
                                                 aria-controls={"student-" + item._id}
                                                 onClick={() => onExpand(item._id)}
                                             >
-                                                {expanded === item._id ? "Hide details" : "Details"}
-                                            </Button>
-                                            <Button
+                                                <Icon
+                                                    name={expanded === item._id ? "close" : "info"}
+                                                />
+                                            </IconButton>
+                                            <IconButton
+                                                size="sm"
                                                 variant="secondary"
+                                                label="Refresh courses"
                                                 onClick={() => onAction({ type: "refresh", item })}
                                             >
-                                                Refresh courses
-                                            </Button>
-                                            <Button
+                                                <Icon name="refresh" />
+                                            </IconButton>
+                                            <IconButton
+                                                size="sm"
                                                 variant="secondary"
+                                                label="Delete student"
                                                 onClick={() => onAction({ type: "delete", item })}
                                             >
-                                                Delete student
-                                            </Button>
+                                                <Icon name="trash" />
+                                            </IconButton>
                                         </>
                                     )}
                                     {item.isBR && (
-                                        <Button
+                                        <IconButton
+                                            size="sm"
                                             variant="secondary"
+                                            label="Remove BR"
                                             onClick={() => onAction({ type: "remove-br", item })}
                                         >
-                                            Remove BR
-                                        </Button>
+                                            <Icon name="userMinus" />
+                                        </IconButton>
                                     )}
                                 </div>
                             </TableCell>

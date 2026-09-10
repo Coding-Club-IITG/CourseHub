@@ -9,7 +9,11 @@ export const fileIds = {
     folder: folder._id,
     second: "507f1f77bcf86cd799439088",
 };
-export async function fileAccessFixture(browser, t, { width = 1440, role = "student", touch = false } = {}) {
+export async function fileAccessFixture(
+    browser,
+    t,
+    { width = 1440, role = "student", touch = false } = {},
+) {
     const frontend = process.env.BROWSER_CLIENT_ORIGIN || "http://127.0.0.1:4187";
     const api = process.env.BROWSER_API_ORIGIN || "http://127.0.0.1:4185";
     const context = await browser.newContext({
@@ -63,6 +67,7 @@ export async function fileAccessFixture(browser, t, { width = 1440, role = "stud
     await context.route("**/api/**", async (route) => {
         const request = route.request(),
             url = new URL(request.url());
+        if (!url.pathname.startsWith("/api/")) return route.continue();
         requests.push({
             path: url.pathname,
             method: request.method(),
@@ -79,7 +84,10 @@ export async function fileAccessFixture(browser, t, { width = 1440, role = "stud
                 name: "Test Student",
                 csrfToken: "c".repeat(43),
                 isBR: role === "br",
-                capabilities: { ...student.capabilities, canManageCourses: role === "br" ? ["CS101"] : [] },
+                capabilities: {
+                    ...student.capabilities,
+                    canManageCourses: role === "br" ? ["CS101"] : [],
+                },
                 favourites: favourites(),
             };
         else if (url.pathname === "/api/auth/csrf") data = { csrfToken: "c".repeat(43) };
@@ -129,13 +137,20 @@ export async function fileAccessFixture(browser, t, { width = 1440, role = "stud
             url.pathname.startsWith("/api/files/content/") ||
             url.pathname.startsWith("/api/files/preview/")
         )
-            return state.contentStatus !== 200
-                ? route.fulfill({
-                      status: state.contentStatus,
-                      contentType: "application/json",
-                      body: JSON.stringify({ message: "File delivery unavailable. Please retry." }),
-                  })
-                : route.fulfill({ contentType: "application/pdf", body: "%PDF-1.4 fixture file" });
+            return !visible() || state.fileStatus !== 200
+                ? route.fulfill({ status: 404, json: { message: "This file is unavailable." } })
+                : state.contentStatus !== 200
+                  ? route.fulfill({
+                        status: state.contentStatus,
+                        contentType: "application/json",
+                        body: JSON.stringify({
+                            message: "File delivery unavailable. Please retry.",
+                        }),
+                    })
+                  : route.fulfill({
+                        contentType: "application/pdf",
+                        body: "%PDF-1.4 fixture file",
+                    });
         else if (url.pathname.startsWith("/api/user/favourites")) {
             status = state.saveStatus;
             if (status === 200) state.favourite = request.method() !== "DELETE";

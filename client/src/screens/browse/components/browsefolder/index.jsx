@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Badge } from "@coursehub/ui";
+import { IconButton, Icon } from "@coursehub/ui";
 import { deleteFolder, renameFolder } from "../../../../api/Folder";
 import { ResourceConfirmation, InlineRename } from "../../../../components/content-dialogs";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
@@ -30,6 +30,7 @@ export default function BrowseFolder({ name, subject, folderData }) {
     return (
         <article className={`${styles.folder} browse-folder`}>
             <button
+                hidden={editing}
                 type="button"
                 className={styles.open}
                 onClick={() => navigate(`/browse/${courseCode}/${folderData._id}`)}
@@ -39,23 +40,30 @@ export default function BrowseFolder({ name, subject, folderData }) {
                     {count === 0 ? "Empty" : `${count} ${count === 1 ? "file" : "files"}`}
                 </span>
             </button>
-            {folderData.affectedCourses?.length > 1 && <Badge tone="info">Shared folder</Badge>}
             {canManage && (
-                <div className={styles.actions}>
-                    <Button className="rename-tick" variant="link" onClick={() => setEditing(true)}>
-                        Rename
-                    </Button>
-                    <Button
+                <div className={styles.actions} hidden={editing}>
+                    <IconButton
+                        size="sm"
+                        label="Rename"
+                        className="rename-tick"
+                        variant="ghost"
+                        onClick={() => setEditing(true)}
+                    >
+                        <Icon name="edit" />
+                    </IconButton>
+                    <IconButton
+                        size="sm"
+                        label={folderData.affectedCourses?.length > 1 ? "Remove" : "Delete"}
                         className="delete"
                         title="Delete folder"
-                        variant="link"
+                        variant="ghost"
                         onClick={() => {
                             setError("");
                             setDeleting(true);
                         }}
                     >
-                        {folderData.affectedCourses?.length > 1 ? "Remove" : "Delete"}
-                    </Button>
+                        <Icon name="trash" />
+                    </IconButton>
                 </div>
             )}
             {editing && (

@@ -2,7 +2,7 @@ import { useCourseBrowser } from "../../../../queries/browserContext";
 import { transport } from "../../../../api/http";
 import { getFileDownloadLink } from "../../../../api/File";
 import styles from "./styles.module.scss";
-import { toast } from "react-toastify";
+import { toast } from "../../../../notifications/toast";
 import { useShare } from "../../../share/context";
 import { resourceLink } from "../../../../utils/resourceLink";
 import { useState } from "react";
@@ -79,7 +79,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
         setIsAdding(false);
     };
 
-    const downloadFolder = async (id, folderPath = "") => {
+    const downloadFolder = async (id, folderPath = "", failures = []) => {
         try {
             const data = await fetchFolder(id, courseCode);
 
@@ -91,7 +91,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
                 if (childType === "Folder") {
                     const childFolderPath = folderPath ? `${folderPath}/${child.name}` : child.name;
 
-                    const childZip = await downloadFolder(child._id, childFolderPath);
+                    const childZip = await downloadFolder(child._id, childFolderPath, failures);
 
                     if (childZip) {
                         const promises = [];
@@ -104,6 +104,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
                                             zip.file(relativePath, content);
                                         })
                                         .catch((error) => {
+                                            failures.push(relativePath);
                                             console.error(
                                                 `Error processing file ${relativePath}:`,
                                                 error,
@@ -125,7 +126,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
                         zip.file(filePath, fileBlob);
                     } catch (error) {
                         console.error(`Error downloading file ${child.name}:`, error);
-                        toast.error(`Failed to download file: ${child.name}`);
+                        failures.push(child.name);
                     }
                 }
             }
@@ -133,7 +134,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
             return zip;
         } catch (error) {
             console.error(`Error downloading folder content:`, error);
-            toast.error("Failed to download folder content.");
+            failures.push(folderPath || "Folder contents");
             return null;
         }
     };
@@ -141,20 +142,12 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
     const downloadAndSaveFolder = async (folderId, folderName = "folder") => {
         if (isDownloading) return;
 
-        let toastId;
+        const failures = [];
         try {
             setIsDownloading(true);
-            toastId = toast.info("Preparing to download folder...", {
-                autoClose: false,
-                closeOnClick: false,
-                closeButton: false,
-                draggable: false,
-            });
-
-            const zip = await downloadFolder(folderId);
+            const zip = await downloadFolder(folderId, "", failures);
 
             if (!zip) {
-                toast.dismiss(toastId);
                 toast.error("Failed to create folder archive.");
                 return;
             }
@@ -167,13 +160,13 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
 
             saveAs(zipBlob, `${folderName}.zip`);
 
-            toast.dismiss(toastId);
-            toast.success("Folder Ready for download!");
+            if (failures.length)
+                toast.warning(
+                    `Archive downloaded with ${failures.length} missing file or folder${failures.length === 1 ? "" : "s"}. Try downloading those items again.`,
+                );
+            else toast.success("Folder ready for download.");
         } catch (error) {
             console.error("Error in downloadAndSaveFolder:", error);
-            if (toastId) {
-                toast.dismiss(toastId);
-            }
             toast.error("Failed to download folder.");
         } finally {
             setIsDownloading(false);

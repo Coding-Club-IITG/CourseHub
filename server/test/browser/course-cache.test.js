@@ -223,10 +223,23 @@ test("a stale course response cannot replace the newly selected course", async (
         release = resolve;
     });
     await page.goto(frontend + "/dashboard");
-    await page.locator(".coursecard").filter({ hasText: "CS101" }).locator(":scope > button").first().click();
+    await page
+        .locator(".coursecard")
+        .filter({ hasText: "CS101" })
+        .locator(":scope > button")
+        .first()
+        .click();
     await page.getByText("Loading course data...", { exact: true }).waitFor();
-    await page.getByRole("navigation", {name:"Main navigation"}).getByRole("link", {name:"Dashboard", exact:true}).click();
-    await page.locator(".coursecard").filter({ hasText: "MA101" }).locator(":scope > button").first().click();
+    await page
+        .getByRole("navigation", { name: "Main navigation" })
+        .getByRole("link", { name: "Dashboard", exact: true })
+        .click();
+    await page
+        .locator(".coursecard")
+        .filter({ hasText: "MA101" })
+        .locator(":scope > button")
+        .first()
+        .click();
     await page.locator(".browse-folder").first().waitFor();
     release();
     state.hold = null;
@@ -252,7 +265,7 @@ test("logout in another tab clears visible library data and preserves the destin
     const second = await newPage();
     await second.goto(frontend + "/browse/MA101");
     await second.locator(".browse-folder").first().waitFor();
-    await second.getByRole("button", {name:"Log Out", exact:true}).click();
+    await second.getByRole("button", { name: "Log Out", exact: true }).click();
     await page.waitForURL("**/?returnTo=*");
     assert.equal(
         new URL(page.url()).searchParams.get("returnTo"),

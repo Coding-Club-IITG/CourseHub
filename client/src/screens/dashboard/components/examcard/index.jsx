@@ -8,7 +8,8 @@ const ExamCard = ({ query, type, name }) => {
     else if (!query.isError && query.data?.status === "ready") {
         if (schedule?.status === "none") caption = "No exam scheduled";
         else if (schedule?.status === "complete") caption = "Exams finished";
-        else if (schedule?.status === "partial") caption = "Dates incomplete";
+        else if (schedule?.status === "partial") caption = "Listed exams";
+        else if (schedule?.status === "unavailable") caption = "No dates listed";
         else if (next) {
             value =
                 next.state === "ongoing" ? "Now" : next.daysUntil === 0 ? "Today" : next.daysUntil;

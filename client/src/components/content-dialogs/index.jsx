@@ -1,6 +1,6 @@
 import styles from "./styles.module.scss";
 import { useEffect, useRef, useState } from "react";
-import { Button, ConfirmDialog, FormField } from "@coursehub/ui";
+import { IconButton, Icon, ConfirmDialog, FormField } from "@coursehub/ui";
 
 export function ResourceConfirmation({
     isOpen,
@@ -59,7 +59,9 @@ export function InlineRename({
             if (target?.isConnected) target.focus({ preventScroll: true });
         };
     }, []);
-    useEffect(() => { if (!busy && error) input.current?.focus(); }, [busy, error]);
+    useEffect(() => {
+        if (!busy && error) input.current?.focus();
+    }, [busy, error]);
     const save = async (event) => {
         event.preventDefault();
         if (busy) return;
@@ -108,12 +110,18 @@ export function InlineRename({
                 />
             </FormField>
             <div className={styles.actions}>
-                <Button type="submit" busy={busy} busyLabel="Saving…">
-                    Save name
-                </Button>
-                <Button variant="link" onClick={onCancel} disabled={busy}>
-                    Cancel
-                </Button>
+                <IconButton size="sm" label="Save name" type="submit" busy={busy}>
+                    {!busy && <Icon name="check" />}
+                </IconButton>
+                <IconButton
+                    size="sm"
+                    label="Cancel"
+                    variant="ghost"
+                    onClick={onCancel}
+                    disabled={busy}
+                >
+                    <Icon name="close" />
+                </IconButton>
             </div>
         </form>
     );

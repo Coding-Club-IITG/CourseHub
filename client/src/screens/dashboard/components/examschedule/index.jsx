@@ -65,38 +65,18 @@ const ExamScheduleWidget = ({ query }) => {
                         <p className="state-text">
                             {data?.reason === "REGISTRATION_UNAVAILABLE"
                                 ? "Current course registrations are unavailable."
-                                : `${label} schedule unavailable.`}
+                                : data.status === "ready"
+                                  ? `No ${label} exam dates are listed for your courses.`
+                                  : `${label} schedule unavailable.`}
                         </p>
                         <p>
                             {data?.reason === "REGISTRATION_UNAVAILABLE"
                                 ? "Refresh your courses from Profile, then try again."
-                                : "Dates have not been provided for all of your registered courses."}
+                                : "No exam dates are listed here yet. Check the published institute timetable."}
                         </p>
-                        {schedule?.missingCourses?.length > 0 && (
-                            <p className="missing-courses">
-                                Missing dates:{" "}
-                                {schedule.missingCourses.map((course) => course.code).join(", ")}
-                            </p>
-                        )}
-                        {retry}
                     </div>
                 ) : (
                     <>
-                        {schedule?.status === "partial" && (
-                            <div className="schedule-notice" role="status">
-                                <p>
-                                    <strong>Some exam dates are unavailable.</strong> The listed
-                                    dates are known, but a countdown cannot be confirmed.
-                                </p>
-                                <p className="missing-courses">
-                                    Missing dates:{" "}
-                                    {schedule.missingCourses
-                                        .map((course) => course.code)
-                                        .join(", ")}
-                                </p>
-                                {retry}
-                            </div>
-                        )}
                         {schedule?.status === "none" && (
                             <div className="schedule-empty-state">
                                 <p className="empty-message">

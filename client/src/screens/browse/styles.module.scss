@@ -75,4 +75,9 @@
         padding-inline: var(--ch-gutter);
     }
 }
-@include ui.below(mobile) {.files{gap:.5rem;padding:.5rem;}}
+@include ui.below(mobile) {
+    .files {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+}

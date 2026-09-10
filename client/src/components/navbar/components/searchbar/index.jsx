@@ -1,7 +1,7 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@coursehub/browser";
-import { Button, FormField } from "@coursehub/ui";
+import { Button, Icon } from "@coursehub/ui";
 import { GetSearchResult } from "../../../../api/Search";
 import { library } from "../../../../session/runtime";
 import { normalizeCourseCode } from "@coursehub/domain";
@@ -11,9 +11,14 @@ export default function SearchBar() {
         [submitted, setSubmitted] = useState(""),
         [open, setOpen] = useState(false),
         id = useId();
+    const term = value.trim();
+    useEffect(() => {
+        const timer = setTimeout(() => setSubmitted(term), 250);
+        return () => clearTimeout(timer);
+    }, [term]);
     const query = useQuery({
         queryKey: library.key("search", submitted),
-        enabled: !!submitted && open,
+        enabled: !!submitted && submitted === term && open,
         queryFn: ({ signal }) =>
             GetSearchResult(
                 /\d/.test(submitted) ? [normalizeCourseCode(submitted)] : submitted.split(/\s+/),
@@ -39,25 +44,26 @@ export default function SearchBar() {
                     setOpen(true);
                 }}
             >
-                <FormField label="Search courses">
+                <label className={styles.field}>
+                    <Icon name="search" />
                     <input
+                        aria-label="Search courses"
                         value={value}
                         placeholder="Search Courses"
                         aria-controls={open ? id : undefined}
                         onChange={(event) => {
                             setValue(event.target.value);
-                            setSubmitted("");
-                            setOpen(false);
+                            setOpen(true);
+                        }}
+                        onFocus={() => {
+                            if (term) setOpen(true);
                         }}
                     />
-                </FormField>
-                <Button type="submit" aria-label="Search courses" disabled={!value.trim()}>
-                    Search
-                </Button>
+                </label>
             </form>
-            {open && submitted && (
+            {open && term && (
                 <div className={styles.results} id={id}>
-                    {query.isPending ? (
+                    {submitted !== term || query.isPending ? (
                         <p role="status">Searching…</p>
                     ) : query.isError ? (
                         <p role="alert">

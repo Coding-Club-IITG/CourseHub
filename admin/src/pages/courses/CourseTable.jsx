@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Button, Badge } from "@coursehub/ui";
+import { IconButton, Icon, Badge } from "@coursehub/ui";
 import {
     Table,
     TableBody,
@@ -34,23 +34,31 @@ export default function CourseTable({ items, onEdit, onDelete }) {
                         </TableCell>
                         <TableCell>
                             <div className={styles.actions}>
-                                <Link to={`/admin/courses/${encodeURIComponent(item.code)}`}>
-                                    View
+                                <Link
+                                    aria-label="View"
+                                    title="View course"
+                                    to={`/admin/courses/${encodeURIComponent(item.code)}`}
+                                >
+                                    <Icon name="eye" />
                                 </Link>
-                                <Button
+                                <IconButton
+                                    size="sm"
                                     variant="secondary"
+                                    label="Edit"
                                     title="Edit course code and name"
                                     onClick={() => onEdit(item)}
                                 >
-                                    Edit
-                                </Button>
-                                <Button
+                                    <Icon name="edit" />
+                                </IconButton>
+                                <IconButton
+                                    size="sm"
                                     variant="secondary"
+                                    label="Delete"
                                     title="Delete course"
                                     onClick={() => onDelete(item)}
                                 >
-                                    Delete
-                                </Button>
+                                    <Icon name="trash" />
+                                </IconButton>
                             </div>
                         </TableCell>
                     </TableRow>

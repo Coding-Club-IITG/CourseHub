@@ -1,4 +1,4 @@
-import { Button, Badge, EmptyState } from "@coursehub/ui";
+import { Button, Icon, Badge, EmptyState } from "@coursehub/ui";
 import styles from "./styles.module.scss";
 import layout from "../../styles/layout.module.scss";
 export default function ModerationList({ items, canModerate, onAction, code }) {
@@ -47,6 +47,7 @@ export default function ModerationList({ items, canModerate, onAction, code }) {
                                 })
                             }
                         >
+                            <Icon name={action === "approve" ? "check" : "close"} />
                             {action === "approve" ? "Approve" : "Reject"}
                         </Button>
                     ))}

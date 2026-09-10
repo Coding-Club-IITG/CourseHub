@@ -26,7 +26,7 @@ for (const width of [1440, 390]) {
                 .getAttribute("aria-pressed"),
             "false",
         );
-        await page.getByRole("button", { name: "close", exact: true }).click();
+        await page.getByRole("button", { name: "Dismiss notification", exact: true }).click();
         state.saveStatus = 200;
         await card.getByRole("button", { name: "Add to favourites" }).click();
         await card.getByRole("button", { name: "Remove from favourites" }).waitFor();
@@ -93,7 +93,9 @@ for (const width of [1440, 390]) {
         assert.equal(await page.evaluate(() => window.copiedLink), link);
         await page.keyboard.press("Escape");
         assert.equal(await dialog.count(), 0);
-        await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Share file");
+        await page.waitForFunction(
+            () => document.activeElement?.getAttribute("aria-label") === "Share file",
+        );
         assert.equal(await trigger.evaluate((el) => document.activeElement === el), true);
     });
     test(`missing file selection and unavailable favourites are explicit at ${width}px`, async (t) => {
@@ -169,28 +171,29 @@ test("thumbnail failure falls back and downloads report access failures without 
     );
 });
 
-test("preview checks current access, closes denied previews and opens the authenticated endpoint", async (t) => {
+test("preview opens the authenticated resource endpoint and reports revoked access there", async (t) => {
     const { page, state, frontend, api, requests } = await fileAccessFixture(browser, t);
     await page.goto(`${frontend}/browse/CS101/${fileIds.folder}`);
     state.fileStatus = 404;
     const denied = page.waitForEvent("popup");
-    await page.getByRole("button", { name: "Preview Lecture notes.pdf", exact: true }).click();
+    await page.getByRole("link", { name: "Preview Lecture notes.pdf", exact: true }).click();
     const deniedTab = await denied;
-    await page.getByText("This file is unavailable.", { exact: true }).waitFor();
-    assert.equal(deniedTab.isClosed(), true);
-    state.fileStatus = 200;
-    const opened = page.waitForEvent("popup");
-    await page.getByRole("button", { name: "Preview Lecture notes.pdf", exact: true }).click();
-    const tab = await opened;
-    await tab.waitForURL(`${api}/api/files/preview/${fileIds.file}?courseCode=CS101`);
+    await deniedTab.getByText("This file is unavailable.", { exact: false }).waitFor();
+    assert.equal(await deniedTab.evaluate(() => window.opener), null);
+    assert.equal(deniedTab.url(), `${api}/api/files/preview/${fileIds.file}?courseCode=CS101`);
     assert.ok(
         requests.some(
             (r) =>
-                r.path === `/api/files/link/${fileIds.file}` &&
-                r.headers["x-session-role"] === "student",
+                r.path.startsWith("/api/files/preview/") &&
+                r.headers.cookie?.includes("token=synthetic"),
         ),
     );
-    await tab.close();
+    assert.equal(
+        requests.some((r) => r.path.startsWith("/api/files/link/")),
+        false,
+    );
+    await deniedTab.close();
+    assert.equal(await page.locator(".file-display").count(), 2);
 });
 
 test("a share dialog closes when revalidation removes its file", async (t) => {

@@ -24,7 +24,7 @@ import { getColors } from "../../utils/colors";
 
 import AddCourseModal from "./components/addcoursemodal";
 import { AddNewCourseAPI } from "../../api/User";
-import { toast } from "react-toastify";
+import { toast } from "../../notifications/toast";
 
 const Dashboard = () => {
     const navigate = useNavigate();

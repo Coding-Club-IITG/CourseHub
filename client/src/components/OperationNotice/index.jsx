@@ -1,8 +1,11 @@
 import { useUploadDialog } from "../../screens/contributions/dialogContext";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { operationEvent, listOperations, getOperation } from "../../api/Operation";
-import "./styles.scss";
+import { createPortal } from "react-dom";
+import { NotificationTarget } from "../../notifications/context";
+import Notice from "../../notifications/Notice";
+import styles from "../../notifications/styles.module.scss";
 
 const active = ["planning", "queued", "running", "cancelling"];
 const labels = {
@@ -17,6 +20,7 @@ const labels = {
     cancelled: "Cancelled",
 };
 export default function OperationNotice() {
+    const target = useContext(NotificationTarget);
     const { open: uploadOpen } = useUploadDialog();
     const [items, setItems] = useState([]);
     const [error, setError] = useState("");
@@ -67,57 +71,75 @@ export default function OperationNotice() {
             controller.abort();
         };
     }, [items, attempt]);
-    if (uploadOpen || (!items.length && !error)) return null;
-    return (
-        <aside className="operation-notice" aria-label="Content operations">
+    if (!target || uploadOpen || (!items.length && !error)) return null;
+    return createPortal(
+        <aside aria-label="Content operations">
             {error && (
-                <p role="alert">
-                    {error}{" "}
-                    <button type="button" onClick={() => setAttempt((value) => value + 1)}>
-                        Retry status
-                    </button>
-                </p>
+                <Notice tone="error" message={error} onDismiss={() => setError("")}>
+                    <p role="alert">{error}</p>
+                    <div className={styles.actions}>
+                        <button type="button" onClick={() => setAttempt((value) => value + 1)}>
+                            Retry status
+                        </button>
+                    </div>
+                </Notice>
             )}
-            {items.slice(0, 3).map((item) => (
-                <div className="operation-notice-item" key={item.id}>
-                    <span role="status">
-                        {item.name}: {labels[item.status] || item.status}
-                    </span>
-                    {item.kind === "upload" && item.entries?.length > 0 && (
-                        <p>
-                            {item.entries.filter((entry) => entry.state === "completed").length} /{" "}
-                            {item.entries.length} uploaded
-                        </p>
-                    )}
-                    {item.kind !== "upload" && item.error?.message && <p>{item.error.message}</p>}
-                    <div className="operation-notice-actions">
-                        {item.kind === "upload" && item.folderId && (
-                            <Link
-                                to={`/browse/${item.courseCode}/${item.folderId}?upload=${item.id}`}
-                            >
-                                View upload
-                            </Link>
-                        )}
-                        {item.kind === "delete" && item.status === "failed" && (
+            {items.slice(0, 3).map((item) => {
+                const message = item.name + ": " + (labels[item.status] || item.status);
+                return (
+                    <Notice
+                        key={item.id}
+                        tone={
+                            item.status === "failed"
+                                ? "error"
+                                : item.status === "partial"
+                                  ? "warning"
+                                  : item.status === "completed"
+                                    ? "success"
+                                    : "info"
+                        }
+                        message={message + (item.error?.message || "")}
+                        persistent={active.includes(item.status) || item.status === "awaiting"}
+                        onDismiss={() =>
+                            setItems((current) => current.filter((other) => other.id !== item.id))
+                        }
+                    >
+                        <span role="status">{message}</span>
+                        {item.kind === "upload" && item.entries?.length > 0 && (
                             <p>
-                                An administrator can retry cleanup. Completed steps are preserved.
+                                {item.entries.filter((entry) => entry.state === "completed").length}{" "}
+                                / {item.entries.length} uploaded
                             </p>
                         )}
-                        {!active.includes(item.status) && (
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setItems((current) =>
-                                        current.filter((other) => other.id !== item.id),
-                                    )
-                                }
-                            >
-                                Dismiss
-                            </button>
+                        {item.kind !== "upload" && item.error?.message && (
+                            <p>{item.error.message}</p>
                         )}
-                    </div>
-                </div>
-            ))}
-        </aside>
+                        <div className={styles.actions}>
+                            {item.kind === "upload" && item.folderId && (
+                                <Link
+                                    to={
+                                        "/browse/" +
+                                        item.courseCode +
+                                        "/" +
+                                        item.folderId +
+                                        "?upload=" +
+                                        item.id
+                                    }
+                                >
+                                    View upload
+                                </Link>
+                            )}
+                            {item.kind === "delete" && item.status === "failed" && (
+                                <p>
+                                    An administrator can retry cleanup. Completed steps are
+                                    preserved.
+                                </p>
+                            )}
+                        </div>
+                    </Notice>
+                );
+            })}
+        </aside>,
+        target,
     );
 }

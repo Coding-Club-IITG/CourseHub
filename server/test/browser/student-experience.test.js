@@ -96,10 +96,40 @@ test("search uses current results for unregistered courses and discards a stale 
     await page.waitForURL("**/browse/QA999");
     assert.equal(await page.getByRole("link", { name: /OLD101/ }).count(), 0);
 });
-for(const width of [390,1440]) test(`BR file actions stay together and year deletion remains discoverable at ${width}px`,async t=>{
- const {fileAccessFixture,fileIds}=await import('./support/file-access.js');const {page,frontend}=await fileAccessFixture(browser,t,{width,role:'br'});await page.goto(`${frontend}/browse/CS101/${fileIds.folder}`);const cards=page.locator('.file-display');await cards.nth(1).waitFor();await page.mouse.move(0,0);
- const heights=await cards.evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().height));assert.equal(heights[0],heights[1]);assert.equal(await cards.first().locator('.file-actions').getByRole('button',{name:'Delete file'}).count(),1);
- await cards.first().getByRole('button',{name:'Rename file'}).click();assert.equal(await page.getByRole('dialog').count(),0);await cards.first().getByRole('textbox',{name:'File name'}).waitFor();await page.keyboard.press('Escape');await cards.first().locator('form').waitFor({state:'hidden'});
- if(width===1440){await page.mouse.move(0,0);const remove=page.getByRole('button',{name:'Delete year 2026'});assert.equal(await remove.evaluate(node=>getComputedStyle(node).opacity),'0');await remove.focus();assert.equal(await remove.evaluate(node=>getComputedStyle(node).opacity),'1');await page.keyboard.press('Enter');await page.getByRole('alertdialog').waitFor();await page.keyboard.press('Escape');}
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-});
+for (const width of [390, 1440])
+    test(`BR file actions stay together and year deletion remains discoverable at ${width}px`, async (t) => {
+        const { fileAccessFixture, fileIds } = await import("./support/file-access.js");
+        const { page, frontend } = await fileAccessFixture(browser, t, { width, role: "br" });
+        await page.goto(`${frontend}/browse/CS101/${fileIds.folder}`);
+        const cards = page.locator(".file-display");
+        await cards.nth(1).waitFor();
+        await page.mouse.move(0, 0);
+        const heights = await cards.evaluateAll((nodes) =>
+            nodes.map((node) => node.getBoundingClientRect().height),
+        );
+        assert.equal(heights[0], heights[1]);
+        assert.equal(
+            await cards
+                .first()
+                .locator(".file-actions")
+                .getByRole("button", { name: "Delete file" })
+                .count(),
+            1,
+        );
+        await cards.first().getByRole("button", { name: "Rename file" }).click();
+        assert.equal(await page.getByRole("dialog").count(), 0);
+        await cards.first().getByRole("textbox", { name: "File name" }).waitFor();
+        await page.keyboard.press("Escape");
+        await cards.first().locator("form").waitFor({ state: "hidden" });
+        if (width === 1440) {
+            await page.mouse.move(0, 0);
+            const remove = page.getByRole("button", { name: "Delete year 2026" });
+            assert.equal(await remove.evaluate((node) => getComputedStyle(node).opacity), "0");
+            await remove.focus();
+            assert.equal(await remove.evaluate((node) => getComputedStyle(node).opacity), "1");
+            await page.keyboard.press("Enter");
+            await page.getByRole("alertdialog").waitFor();
+            await page.keyboard.press("Escape");
+        }
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    });

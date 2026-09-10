@@ -1,7 +1,9 @@
 import "./styles/tokens.scss";
+export { Icon } from "./Icon.jsx";
 export {
     Brand,
     Button,
+    ButtonLink,
     IconButton,
     CloseIcon,
     FormField,

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { useQuery } from "@coursehub/browser";
 import { Button, FormField, LoadingState, ErrorState, EmptyState } from "@coursehub/ui";
 import { library, session } from "../session";
@@ -47,9 +46,6 @@ export default function Operations() {
                         Uploads, linking, course refreshes, imports and recoverable content cleanup.
                     </p>
                 </div>
-                <Link className={styles.link} to="/admin/courses">
-                    Back to courses
-                </Link>
             </header>
             <div className={`${styles.toolbar} ${styles.alignEnd}`}>
                 <FormField label="Status">

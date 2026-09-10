@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "@coursehub/ui";
 import FolderController from "./components/folder-controller";
 import styles from "./styles.module.scss";
 import { useNavigate } from "react-router-dom";
@@ -43,7 +44,9 @@ const Collapsible = ({ course, color }) => {
                             {course.name ? capitalise(course.name) : "Name Unavailable"}
                         </p>
                     </div>
-                    <div className="arrow"></div>
+                    <span className="arrow">
+                        <Icon name="chevron" size={20} />
+                    </span>
                 </div>
             </div>
             <div className="collapsible-content">

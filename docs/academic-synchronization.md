@@ -61,6 +61,8 @@ A valid academic response can say that a student has no courses for a period. Fo
 
 A portal error is different. If the portal is unavailable or its response cannot be validated, CourseHub keeps the last successful course data. It does not replace those courses with an empty array just because a request failed.
 
+The portal also includes identities such as `X260100001`. The source snapshot preserves that full identifier separately from `260100001`. CourseHub currently assigns registrations only to its supported 9-digit account rolls - a bulk refresh does not strip the prefix or transfer those registrations to another account. Malformed identifiers still invalidate the response. This distinction lets ordinary registrations refresh without confusing distinct institute identities.
+
 The student refresh screen reflects this distinction:
 
 - While work is running, it explains that courses are being refreshed and offers **Continue with saved courses**.

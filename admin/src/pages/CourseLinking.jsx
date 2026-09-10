@@ -1,6 +1,5 @@
 import workflow from "../styles/workflows.module.scss";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button, FormField, Input, ErrorState, LoadingState } from "@coursehub/ui";
 import { normalizeCourseCode, isCourseCode } from "@coursehub/domain";
 import { linkCourse, linkCsv } from "../apis/linking";
@@ -198,16 +197,6 @@ export default function CourseLinking() {
             {operation.data && (
                 <OperationCard item={operation.data} onRetried={() => operation.refetch()} />
             )}
-            <Link
-                className={styles.link}
-                to={
-                    params.has("operation")
-                        ? `/admin/operations?operation=${params.get("operation")}`
-                        : "/admin/operations"
-                }
-            >
-                View in Operations
-            </Link>
         </section>
     );
 }

@@ -8,7 +8,7 @@ import { useOperation } from "../queries/useOperation";
 import { useWorkflowLocation } from "../queries/useWorkflowLocation";
 import OperationCard from "../components/operations/OperationCard";
 import ContentTree from "./content/ContentTree";
-import {countVerified} from "./content/countVerified";
+import { countVerified } from "./content/countVerified";
 import ModerationList from "./content/ModerationList";
 import ContentActionDialog from "./content/ContentActionDialog";
 import styles from "../styles/layout.module.scss";

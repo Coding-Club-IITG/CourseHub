@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, IconButton, CloseIcon } from "@coursehub/ui";
+import { Button, IconButton, Icon } from "@coursehub/ui";
 import { useSession } from "../../../../session/context";
 import { library } from "../../../../session/runtime";
 import { canManageCourse } from "../../../../utils/capabilities";
@@ -73,7 +73,7 @@ export default function YearInfo({ courseCode, course, currYear }) {
                                 variant="ghost"
                                 onClick={() => askRemove(year)}
                             >
-                                <CloseIcon />
+                                <Icon name="trash" />
                             </IconButton>
                         )}
                     </div>
@@ -88,7 +88,7 @@ export default function YearInfo({ courseCode, course, currYear }) {
                             setAdding(true);
                         }}
                     >
-                        New Year
+                        <Icon name="plus" /> New Year
                     </Button>
                     {years[currYear] && (
                         <Button
@@ -96,7 +96,7 @@ export default function YearInfo({ courseCode, course, currYear }) {
                             variant="secondary"
                             onClick={() => askRemove(years[currYear])}
                         >
-                            Remove year {years[currYear].name}
+                            <Icon name="trash" /> Remove year {years[currYear].name}
                         </Button>
                     )}
                 </div>

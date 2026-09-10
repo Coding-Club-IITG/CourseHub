@@ -7,10 +7,18 @@
     flex-direction: column-reverse;
 }
 .yearRow {
+    position: relative;
+    &:has(.year[aria-current]) {
+        color: var(--ch-ink);
+    }
     display: flex;
     align-items: center;
     min-width: 0;
     > button:not(.year) {
+        position: absolute;
+        inset-inline-end: 4px;
+        top: 50%;
+        transform: translateY(-50%);
         color: inherit;
         &:hover {
             color: var(--ch-ink);
@@ -25,6 +33,7 @@
     gap: 0.25rem;
     align-items: center;
     padding: 0.75rem;
+    padding-inline-end: 3.25rem;
     border: 0;
     border-radius: 0;
     background: transparent;
