@@ -1,8 +1,9 @@
 import express from "express";
 import CourseModel from "../course/course.model.js";
+import config from "../../config/default.js";
 
 const router = express.Router();
-const BASE_URL = "https://coursehub.codingclub.in";
+const BASE_URL = config.clientURL;
 
 // 1 sitemap.xml
 
@@ -24,6 +25,7 @@ router.get("/sitemap.xml", async (req, res) => {
             </url>`;
 
         for (const course of courses) {
+            if (!course?.code) continue ;
             const lastmod = course.updatedAt && !isNaN(new Date(course.updatedAt))
                 ? new Date(course.updatedAt).toISOString().split("T")[0]
                 : new Date().toISOString().split("T")[0];
@@ -64,7 +66,7 @@ Disallow: /admin/
 
 Sitemap: ${BASE_URL}/sitemap.xml`;
 
-
+    res.set("Cache-Control", "public, max-age=86400, s-maxage=86400");
     res.set("Content-Type", "text/plain");
     res.send(robotsTxt);
 });
