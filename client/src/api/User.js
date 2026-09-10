@@ -1,48 +1,54 @@
-import axios from "axios";
+import { session } from "../session/runtime";
+import { ApiError } from "@coursehub/browser";
+import { transport } from "./http";
 import serverRoot from "./server";
 
-let redirectUri = "https://www.coursehubiitg.in/api/auth/login/redirect";
+import { loginDestination } from "../utils/loginDestination";
 
-axios.defaults.withCredentials = true;
-
-export const getUser = async () => {
-    const resp = await axios.get(`${serverRoot}/api/user`, {
-        withCredentials: true,
+export const getUser = async (signal) => {
+    signal?.throwIfAborted();
+    const data = await session.refresh();
+    signal?.throwIfAborted();
+    if (!data) throw new ApiError(401);
+    return data;
+};
+export const updateUser = (newUserData) =>
+    transport.json("user/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newUserData }),
     });
-    return resp;
-};
-export const updateUser = async (newUserData) => {
-    const resp = await axios.put(`${serverRoot}/api/user/update`, { newUserData });
-    return resp;
-};
 
 export const handleLogin = () => {
-    window.location.href = `${serverRoot}/api/auth/login`;
+    const destination = loginDestination(
+        new URLSearchParams(window.location.search).get("returnTo"),
+    );
+    window.location.href = `${serverRoot}/api/auth/login?returnTo=${encodeURIComponent(destination)}`;
 };
-export const AddNewCourseAPI = async (code, name) => {
-    const resp = await axios.post(`${serverRoot}/api/user/readonly`, { code, name });
-    return resp;
-};
-export const DeleteCourseAPI = async (code) => {
-    const resp = await axios.delete(`${serverRoot}/api/user/readonly/${code}`);
-    return resp;
-};
+export const AddNewCourseAPI = (code, name) =>
+    transport.json("user/readonly", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, name }),
+    });
+export const DeleteCourseAPI = (code) =>
+    transport.json(`user/readonly/${code}`, { method: "DELETE" });
 
-export const AddToFavourites = async (id, name, path, code) => {
-    const data = {
-        id: id,
-        name: name,
-        path: path,
-        code: code,
-    };
-    const resp = await axios.post(`${serverRoot}/api/user/favourites`, data);
-    return resp;
-};
-export const RemoveFromFavourites = async (id) => {
-    const resp = await axios.delete(`${serverRoot}/api/user/favourites/${id}`);
-    return resp;
-};
-export const GetExamDates = async () => {
-    const resp = await axios.get(`${serverRoot}/api/event/examdates`);
-    return resp;
+export const AddToFavourites = (id, code) =>
+    transport.json("user/favourites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, code }),
+    });
+export const RemoveFromFavourites = (id) =>
+    transport.json(`user/favourites/${id}`, { method: "DELETE" });
+export const GetExamSchedule = (signal) => transport.json("event/examdates", { signal });
+
+export const logoutUser = async () => {
+    try {
+        await transport.json("auth/logout", { method: "POST" });
+    } catch (error) {
+        if (error.status !== 401) throw error;
+    }
+    session.clear();
 };

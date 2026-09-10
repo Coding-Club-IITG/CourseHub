@@ -1,20 +1,21 @@
+@use "@coursehub/ui/mixins" as ui;
 .footer-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #000000;
-    color: #fff;
+    background-color: var(--ch-black);
+    color: var(--ch-paper);
     padding: 30px 20px;
     text-align: center;
 
     .footer-text {
         font-size: 0.95rem;
-        color: #a0a0a0;
-        margin-bottom: 12px;
+        color: var(--ch-border);
+        margin-bottom: var(--ch-space-3);
         letter-spacing: 0.5px;
     }
-    
+
     .footer-content {
         display: flex;
         align-items: center;
@@ -26,29 +27,29 @@
         display: flex;
         align-items: center;
         gap: 15px;
-        
+
         .lockup-icon {
-            color: #ffffff;
+            color: var(--ch-paper);
         }
 
         .lockup-text {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            
+
             .club-name {
-                font-family: "Bold", sans-serif;
+                font-family: var(--ch-font-body);
+                font-weight: 700;
                 font-size: 1.5rem;
-                font-weight: bold;
                 line-height: 1.1;
             }
-            
+
             .insti-name {
                 font-size: 0.85rem;
-                font-weight: normal;
+                font-weight: 400;
                 letter-spacing: 1.5px;
-                color: #cccccc;
-                margin-top: 4px;
+                color: var(--ch-border);
+                margin-top: var(--ch-space-1);
             }
         }
     }
@@ -56,46 +57,46 @@
     .social-links {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        
+        gap: 0;
+
         .link-item {
+            @include ui.control-motion;
+            @include ui.focus-ring-inverse;
             display: flex;
             align-items: center;
+            justify-content: center;
+            min-height: var(--ch-target);
+            min-width: var(--ch-target);
             gap: 10px;
-            color: #888888;
+            color: var(--ch-border);
             font-size: 0.95rem;
             text-decoration: none;
-            transition: all 0.2s ease-in-out;
-            
+
             &:hover {
-                color: #ffffff;
+                color: var(--ch-paper);
                 transform: translateY(-2px);
             }
         }
-        
-        &.left-links {
-            .link-item {
-                justify-content: flex-end;
-            }
+
+        &.left-links .link-item {
+            justify-content: flex-end;
         }
-        
-        &.right-links {
-            .link-item {
-                justify-content: flex-start;
-            }
+
+        &.right-links .link-item {
+            justify-content: flex-start;
         }
     }
 
-    @media screen and (max-width: 768px) {
+    @include ui.below(mobile) {
         .footer-content {
             flex-direction: column;
             gap: 25px;
         }
-        
+
         .social-links {
             flex-direction: row;
             gap: 20px;
-            
+
             &.left-links .link-item {
                 flex-direction: row;
             }
@@ -105,17 +106,17 @@
         }
     }
 
-    @media screen and (max-width: 480px) {
+    @include ui.below(small) {
         padding: 20px 15px;
-        
+
         .footer-text {
             font-size: 0.85rem;
             margin-bottom: 15px;
         }
-        
+
         .lockup {
             gap: 10px;
-            
+
             .lockup-icon {
                 width: 32px;
                 height: 42px;
@@ -130,7 +131,7 @@
                 }
             }
         }
-        
+
         .social-links {
             gap: 15px;
             .link-item span {

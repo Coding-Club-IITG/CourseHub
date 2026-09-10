@@ -1,38 +1,10 @@
-import axios from "axios";
-axios.defaults.withCredentials = true;
-import root from "./server";
+import { transport } from "./http";
 
-export const getCourse = async (code) => {
-    const resp = await axios.get(`${root}/api/course/${code}`);
-    return resp;
-};
-
-export const getUserCourses = async (courses) => {
-    try {
-        const resp = await axios.get(`${root}/api/course/getUserCourses`, {
-            params: {
-                courses: courses,
-            },
-        });
-        return resp.data;
-    } catch (err) {
-    }
-};
-
-export const fetchUserCoursesData = async (user) => {
-    const [coursesRes, prevCoursesRes] = await Promise.all([
-        axios.post(`${root}/api/auth/fetchCourses`, {
-            rollNumber: user.rollNumber,
-        }),
-        user.isBR
-            ? axios.post(`${root}/api/auth/fetchCoursesForBr`, {
-                  rollNumber: user.rollNumber,
-              })
-            : Promise.resolve({ data: { courses: [] } }),
-    ]);
-
-    return {
-        courses: coursesRes.data.courses,
-        previousCourses: prevCoursesRes.data.courses,
-    };
-};
+export const getCourse = (code, signal) => transport.json(`course/${code}`, { signal });
+export const synchronizeCourses = (signal) =>
+    transport.json("user/synchronize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+        signal,
+    });

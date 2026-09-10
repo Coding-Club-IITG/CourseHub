@@ -1,166 +1,97 @@
-import "./styles.scss";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { ChangeFolder, PushFolderHistory } from "../../../../actions/filebrowser_actions";
-import { deleteFolder, renameFolder } from "../../../../api/Folder";
-import { toast } from "react-toastify";
-import { ConfirmDialog } from "./confirmDialog";
-import { FolderRename } from "./folderRename.jsx";
-import { getSubtreeFileCount } from "../../../../utils/folderUtils";
-
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const BrowseFolder = ({
-    name,
-    subject,
-    folderData,
-    parentFolder,
-    isMobileView = false,
-    index = 0,
-}) => {
-    const dispatch = useDispatch();
+import { Button, Card, IconButton, Icon } from "@coursehub/ui";
+import { deleteFolder, renameFolder } from "../../../../api/Folder";
+import { ResourceConfirmation, InlineRename } from "../../../../components/content-dialogs";
+import { getSubtreeFileCount } from "../../../../utils/folderUtils";
+import styles from "./styles.module.scss";
+export default function BrowseFolder({ name, subject, folderData }) {
     const navigate = useNavigate();
-    const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
-    const isBR = useSelector((state) => state.user.user.isBR);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const user = useSelector((state) => state.user.user);
-    const courseCode = subject || (folderData?.courses ? folderData.courses[0] : folderData?.course);
-    const fileCount = getSubtreeFileCount(folderData);
-    const isReadOnlyCourse =
-        user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !(
-            user?.isBR &&
-            user?.previousCourses?.some((sem) =>
-                sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
-            )
-        );
-
-    const [isEditing, setIsEditing] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const setFolderName = async (newName) => {
+    const [editing, setEditing] = useState(false),
+        [deleting, setDeleting] = useState(false),
+        [busy, setBusy] = useState(false),
+        [error, setError] = useState("");
+    const courseCode = subject || folderData.courses?.[0];
+    const canManage = folderData.capabilities?.canManage === true;
+    const count = getSubtreeFileCount(folderData);
+    const remove = async () => {
+        if (busy) return;
+        setBusy(true);
+        setError("");
         try {
-            const renamedFolder = await renameFolder(folderData._id, newName);
-            toast.success("Folder renamed successfully!");
-            dispatch(
-                ChangeFolder({
-                    ...currentFolder,
-                    children: (currentFolder?.children || []).map((child) =>
-                        child._id === folderData._id ? { ...child, name: renamedFolder.name } : child
-                    ),
-                })
-            );
-        } catch (err) {
-            toast.error("Failed to rename folder");
-        }
-    };
-
-    const onClick = (folderData) => {
-        if (currentFolder) {
-            dispatch(PushFolderHistory(currentFolder));
-        }
-        dispatch(ChangeFolder(folderData));
-        if (courseCode && folderData?._id) {
-            navigate(`/browse/${courseCode}/${folderData._id}`);
-        }
-    };
-
-    const handleDelete = async (e) => {
-        if (isDeleting) return;
-        try {
-            setIsDeleting(true);
-            await deleteFolder({ folder: folderData, parentFolderId: parentFolder._id, courseCode });
-            toast.success("Folder deleted successfully!");
-            dispatch(
-                ChangeFolder({
-                    ...currentFolder,
-                    children: (currentFolder?.children || []).filter(
-                        (child) => child._id !== folderData._id
-                    ),
-                })
-            );
-            setShowConfirm(false);
-        } catch (err) {
-            toast.error("Failed to delete folder.");
+            await deleteFolder({ folderId: folderData._id, courseCode });
+            setDeleting(false);
+        } catch (failure) {
+            setError(failure.message || "Failed to delete folder.");
         } finally {
-            setIsDeleting(false);
+            setBusy(false);
         }
     };
-
-    const cancelDelete = () => {
-        if (isDeleting) return;
-        setShowConfirm(false);
-    };
-
     return (
-        <>
-            <div
-                className="browse-folder"
-                onClick={() => onClick(folderData)}
-                style={{ animationDelay: `${Math.min(index * 30, 150)}ms` }}
-            >
-                <div className="content">
-                    <div className="top">
-                        <p className="path">{""}</p>
-                        {!isEditing ? (
-                            <div className="name-container">
-                                <span className="name">
-                                    {name ? name : "Name"}
-                                    {!isMobileView && isBR && !isReadOnlyCourse && (
-                                        <div
-                                            className="rename-tick"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsEditing(true);
-                                            }}
-                                        ></div>
-                                    )}
-                                </span>
-                                <span className="file-count" title={`${fileCount} files in subtree`}>
-                                    {fileCount === 0 ? "EMPTY" : `${fileCount} ${fileCount === 1 ? "FILE" : "FILES"}`}
-                                </span>
-                            </div>
-                        ) : (
-                            <FolderRename
-                                initialName={name}
-                                onCancel={() => setIsEditing(false)}
-                                onSave={(newName) => {
-                                    setFolderName(newName);
-                                    setIsEditing(false);
-                                }}
-                            />
-                        )}
-                        {!isMobileView && isBR && !isReadOnlyCourse && (
-                            <span
-                                className="delete"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowConfirm(true);
-                                }}
-                                title="Delete folder"
-                            ></span>
-                        )}
-                    </div>
-                    <div className="bottom">
-                        <p className="subject">
-                            {subject ? subject.toUpperCase() : "Subject Here"}
-                        </p>
-                    </div>
-                </div>
+        <Card as="article" className={`${styles.folder} browse-folder`}>
+            <div className={styles.heading} hidden={editing}>
+                <Button
+                    hidden={editing}
+                    type="button"
+                    className={styles.open}
+                    variant="ghost"
+                    onClick={() => navigate(`/browse/${courseCode}/${folderData._id}`)}
+                >
+                    <span className="name">{name || "Untitled folder"}</span>
+                </Button>
+                {canManage && (
+                    <IconButton
+                        size="sm"
+                        label="Rename"
+                        className={`${styles.renameTrigger} rename-tick`}
+                        variant="ghost"
+                        onClick={() => setEditing(true)}
+                    >
+                        <Icon name="edit" />
+                    </IconButton>
+                )}
             </div>
-            {!isMobileView && isBR && !isReadOnlyCourse && (
-                <ConfirmDialog
-                    isOpen={showConfirm}
-                    type="delete"
-                    onConfirm={handleDelete}
-                    onCancel={cancelDelete}
-                    isLoading={isDeleting}
+            {editing && (
+                <InlineRename
+                    resource="folder"
+                    initialName={name}
+                    affectedCourses={folderData.affectedCourses}
+                    onCancel={() => setEditing(false)}
+                    onSave={(value) => renameFolder(folderData._id, value, courseCode)}
                 />
             )}
-        </>
+            <span className={styles.count}>
+                {count === 0 ? "EMPTY" : `${count} ${count === 1 ? "FILE" : "FILES"}`}
+            </span>
+            <div className={styles.footer}>
+                {canManage && (
+                    <IconButton
+                        size="sm"
+                        label={folderData.affectedCourses?.length > 1 ? "Remove" : "Delete"}
+                        className={`${styles.deleteTrigger} delete`}
+                        hidden={editing}
+                        title="Delete folder"
+                        variant="ghost"
+                        onClick={() => {
+                            setError("");
+                            setDeleting(true);
+                        }}
+                    >
+                        <Icon name="trash" />
+                    </IconButton>
+                )}
+                <span className={styles.subject}>{courseCode}</span>
+            </div>
+            <ResourceConfirmation
+                resource="folder"
+                isOpen={deleting}
+                affectedCourses={folderData.affectedCourses}
+                courseCode={courseCode}
+                onConfirm={remove}
+                onCancel={() => setDeleting(false)}
+                isLoading={busy}
+                error={error}
+            />
+        </Card>
     );
-};
-
-export default BrowseFolder;
+}

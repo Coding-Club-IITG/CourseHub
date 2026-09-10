@@ -1,64 +1,36 @@
-import axios from "axios";
+import { transport } from "./http";
 import serverRoot from "./server";
+import { waitForOperation } from "./Operation";
 
-const API = axios.create({
-    baseURL: `${serverRoot}/api`,
-    withCredentials: true,
-});
-API.interceptors.request.use((req) => {
-    const user = JSON.parse(localStorage.getItem("profile"));
-    if (user) req.headers.Authorization = `Bearer ${user.token}`;
-    return req;
-});
-export const downloadFile = async (fileId) => {
-    const { data } = await API.get(`/file/download/${fileId}`);
-    return data;
+export const getFilePreviewUrl = (fileId, courseCode) => {
+    const query = courseCode ? `?courseCode=${encodeURIComponent(courseCode)}` : "";
+    return new URL(`/api/files/preview/${encodeURIComponent(fileId)}${query}`, serverRoot).href;
 };
-export const previewFile = async (fileId) => {
-    const { data } = await API.get(`/file/preview/${fileId}`);
-    return data;
-};
-export const fetchAllFiles = async () => {
-    const { data } = await API.get("/file/all");
-    return data;
-};
-export const verifyFile = async (fileId) => {
-    const { data } = await API.put(`/files/verify/${fileId}`);
-    return data;
-};
-export const unverifyFile = async (fileId, oneDriveId, folderId) => {
-    await API.delete(`/files/unverify/${fileId}`, {
-        data: {
-            oneDriveId,
-            folderId,
-        },
+export const verifyFile = (fileId, courseCode) =>
+    transport.json(`files/verify/${fileId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseCode }),
     });
-};
-
-export const getThumbnail = async (fileId) => {
-    const resp = await axios.post(`${serverRoot}/api/file/thumbnail`, {
-        fileId: fileId,
+export const unverifyFile = async (fileId, courseCode, affectedCourses) => {
+    const data = await transport.json(`files/unverify/${fileId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseCode, affectedCourses }),
     });
+    return waitForOperation(data);
 };
-
-export const getFileDownloadLink = async (fileId) => {
-    const response = await fetch(serverRoot + "/api/files/download", {
+export const getFileDownloadLink = async (fileId, courseCode) => {
+    const data = await transport.json("files/download", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: fileId }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId, courseCode }),
     });
-
-    if (!response.ok) {
-        throw new Error(`Error fetching download link: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.downloadLink;
+    return new URL(data.downloadLink, serverRoot).href;
 };
-
-export const renameFile = async (fileId, newName) => {
-    const { data } = await API.put(`/files/rename/${fileId}`, { newName });
-    return data;
-};
+export const renameFile = (fileId, newName, courseCode) =>
+    transport.json(`files/rename/${fileId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newName, courseCode }),
+    });

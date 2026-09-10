@@ -1,42 +1,26 @@
 import express from "express";
 const router = express.Router();
-import catchAsync from "../../utils/catchAsync.js";
-import {
-    redirectHandler,
-    loginHandler,
-    logoutHandler,
-    guestLoginHanlder,
-    fetchCourses,
-    fetchCoursesForBr
-} from "./auth.controller.js";
+import isAuthenticated from "../../middleware/isAuthenticated.js";
 
-router.get("/login", loginHandler);
-router.get("/login/guest", guestLoginHanlder);
+import { authThrottle } from "../../middleware/authThrottle.js";
+import { requireSession } from "../../middleware/sessionAuthentication.js";
+import AppError from "../../utils/appError.js";
+import { redirectHandler, loginHandler, logoutHandler } from "./auth.controller.js";
 
-router.post("/fetchCourses", async (req, res, next) => {
-    try {
-        const { rollNumber } = req.body;
-        if (!rollNumber) return res.status(400).json({ error: "rollNumber required" });
-        const courses = await fetchCourses(rollNumber);
-        res.json({ courses });
-    } catch (err) {
-        next(err);
-    }
-});
+router.get("/login", authThrottle("student-login"), loginHandler);
+router.get(
+    "/csrf",
+    (req, res, next) => {
+        const role = req.query.role;
+        if (!["student", "admin"].includes(role))
+            return next(new AppError(400, "Invalid session role"));
+        requireSession(role)(req, res, next);
+    },
+    (req, res) => res.json({ csrfToken: req.session.csrfToken }),
+);
 
-router.post("/fetchCoursesForBr", async (req, res, next) => {
-    try {
-        const { rollNumber } = req.body;
-        if (!rollNumber) return res.status(400).json({ error: "rollNumber required" });
-        const courses = await fetchCoursesForBr(rollNumber);
-        res.json({ courses });
-    } catch (error) {
-        next(error);
-    }
-});
+router.get("/login/redirect", authThrottle("student-callback"), redirectHandler);
 
-router.get("/login/redirect", catchAsync(redirectHandler));
-
-router.get("/logout", logoutHandler);
+router.post("/logout", isAuthenticated, logoutHandler);
 
 export default router;

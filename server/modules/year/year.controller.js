@@ -1,96 +1,32 @@
-import { FolderModel } from "../course/course.model.js";
-import CourseModel from "../course/course.model.js";
-import { deleteFile } from "../file/file.controller.js";
-import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
+import Course from "../course/course.model.js";
+import { requireCourse, presentFolder } from "../../services/authorization.js";
+import { scheduleDeletion } from "../../services/deletions.js";
+import { mutateContent } from "../../services/contentMutation.js";
 import { createYearFolderWithDefaultStructure } from "../course/course.service.js";
-import logger from "../../utils/logger.js";
-
-async function addYear(req, res) {
-    const { name, course } = req.body;
-    const normalizedCourseCode = normalizeCourseCode(course);
-    const courseCode = normalizedCourseCode || course;
-
-    const newYear = await createYearFolderWithDefaultStructure(name, courseCode);
-
-    if (normalizedCourseCode) {
-        const parent = await CourseModel.findOne({
-            code: getCourseCodeCaseInsensitiveRegex(normalizedCourseCode),
-        });
-        if (!parent) {
-            return res.status(404).json({ message: "Course not found" });
-        }
-        parent.children.push(newYear._id);
-        await parent.save();
-    }
-
-    return res.json(newYear);
+import AppError from "../../utils/appError.js";
+async function addYearAction(req, res) {
+    const context = await requireCourse(req, req.body.course, "canManage");
+    if (typeof req.body.name !== "string" || !req.body.name.trim())
+        throw new AppError(400, "A year name is required");
+    const year = await createYearFolderWithDefaultStructure(req.body.name, context.code);
+    await Course.updateOne({ _id: context.course._id }, { $addToSet: { children: year._id } });
+    req.authorizationGraph = undefined;
+    res.json(await presentFolder(req, year._id, context.code));
 }
-
-async function deleteYear(req, res) {
-    const { folder, courseCode } = req.body;
-    const folderId = folder._id;
-    const normalizedCourseCode = normalizeCourseCode(courseCode);
-
-    try {
-        if (normalizedCourseCode) {
-            await CourseModel.findOneAndUpdate(
-                { code: getCourseCodeCaseInsensitiveRegex(normalizedCourseCode) }, 
-                {$pull: { children: folderId }}
-            );
-        }
-
-        const folderDoc = await FolderModel.findById(folderId);
-        if (folderDoc) {
-            if (folderDoc.courses.length > 1) {
-                // Remove this course from the shared folder and its descendants
-                await removeCourseFromFolderRecursive(folderId, normalizedCourseCode);
-            } else {
-                // Last course using this folder, delete it
-                await recursiveDelete(folder);
-            }
-        }
-
-        return res.json({ success: true, folderId });
-    } catch (err) {
-        logger.error("Year deletion failed", { error: err, attributes: { dependency: "mongodb", operation: "delete-year", outcome: "failure", retryable: false } });
-        return res.status(500).json({ success: false, error: err.message });
-    }
-}
-
-async function removeCourseFromFolderRecursive(folderId, codeToRemove) {
-    const folder = await FolderModel.findById(folderId);
-    if (!folder) return;
-
-    await FolderModel.updateOne(
-        { _id: folderId },
-        { $pull: { courses: codeToRemove } }
+export async function deleteYear(req, res) {
+    res.status(202).json(
+        await scheduleDeletion(req, {
+            kind: "folder",
+            id: req.body.folderId,
+            code: req.body.courseCode,
+            rootOnly: true,
+        }),
     );
-
-    if (folder.childType === "Folder") {
-        for (const childId of folder.children) {
-            await removeCourseFromFolderRecursive(childId, codeToRemove);
-        }
-    }
 }
 
-async function recursiveDelete(folder){
-    if(!folder.children) {
-        await FolderModel.findByIdAndDelete(folder._id);
-        return;
-    }
-    if (folder.childType === "Folder"){
-        for(const subfolder of folder.children){
-            await recursiveDelete(subfolder);
-        }
-        await FolderModel.findByIdAndDelete(folder._id);
-    }
-    else if(folder.childType === "File"){
-        for(const file of folder.children){
-            logger.debug("Year file inspected", { attributes: { dependency: "mongodb", operation: "inspect-year-file", outcome: "success" } });
-            await deleteFile(file);
-        }
-        await FolderModel.findByIdAndDelete(folder._id);
-    }
+export async function addYear(req, res) {
+    const context = await requireCourse(req, req.body.course, "canManage");
+    return mutateContent(req, context.affectedCourses || [context.code], () =>
+        addYearAction(req, res),
+    );
 }
-
-export {addYear,deleteYear}

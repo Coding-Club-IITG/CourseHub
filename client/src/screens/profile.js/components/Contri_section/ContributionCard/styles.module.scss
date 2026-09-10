@@ -1,0 +1,54 @@
+@use "@coursehub/ui/mixins" as ui;
+.card {
+    @include ui.typography;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    background: var(--ch-yellow);
+    border-radius: var(--ch-radius-card);
+    min-width: 0;
+}
+.details {
+    @include ui.stack(0.25rem);
+    flex: 0 0 12rem;
+    time {
+        font-size: 0.875rem;
+    }
+}
+.name {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    justify-content: flex-start;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.actions {
+    @include ui.actions;
+    justify-content: flex-end;
+}
+.approve:not(:disabled) {
+    border-color: var(--ch-black);
+}
+@include ui.below(mobile) {
+    .card {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+    .details {
+        flex-basis: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .name {
+        flex-basis: 100%;
+        padding-inline: 0;
+    }
+    .actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

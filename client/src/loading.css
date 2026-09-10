@@ -1,43 +1,79 @@
-
 .loading-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    width: 100vw;
-    background-color: black;
-    color: white;
+    min-height: 100dvh;
+    padding: var(--ch-space-6);
+    box-sizing: border-box;
+    background: var(--ch-black);
+    color: var(--ch-paper);
 }
-
-
-.loader {
-    border: 3px solid #d4af37; 
-    border-top: 3px solid transparent; 
+.loading-page .course-sync-spinner {
+    border: 3px solid var(--ch-yellow);
+    border-top-color: transparent;
     border-radius: 50%;
-    width: 48px; 
-    height: 48px; 
-    animation: spin 1s linear infinite;
+    width: 48px;
+    height: 48px;
+    animation: var(--ch-anim-spin) 1s linear infinite;
 }
-
-
-.loading-text {
-    margin-top: 24px;
+.loading-page .loading-text {
+    margin-top: var(--ch-space-6);
     text-align: center;
+    max-width: 440px;
 }
-
-.loading-text h2 {
-    font-size: 18px;
-    font-weight: 500;
-    margin: 4px 0;
+.loading-page h1 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin: 0 0 var(--ch-space-3);
 }
-
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
+.loading-page p {
+    font-size: var(--ch-text-body);
+    line-height: 1.5;
+    color: var(--ch-border);
+}
+.loading-page button,
+.loading-page a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ch-target);
+    margin: var(--ch-space-5) auto 0;
+    font: inherit;
+    font-weight: 700;
+}
+.loading-page button {
+    background: var(--ch-yellow);
+    border: 0;
+    border-radius: var(--ch-radius-control);
+    padding: 0.55rem 1.25rem;
+    color: var(--ch-ink);
+    box-shadow: var(--ch-shadow-control);
+    cursor: pointer;
+    transition:
+        background-color var(--ch-duration-fast) ease,
+        box-shadow var(--ch-duration-fast) ease,
+        transform var(--ch-duration-fast) ease;
+}
+.loading-page button:hover {
+    background: var(--ch-yellow-hover);
+    box-shadow: var(--ch-shadow-control-hover);
+    transform: translateY(var(--ch-lift));
+}
+.loading-page button:active {
+    transform: scale(var(--ch-press));
+}
+.loading-page a {
+    padding-inline: var(--ch-space-2);
+    color: var(--ch-yellow);
+    text-underline-offset: 4px;
+}
+.loading-page :focus-visible {
+    outline: 2px solid var(--ch-yellow);
+    outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .loading-page .course-sync-spinner {
+        animation: none;
     }
 }

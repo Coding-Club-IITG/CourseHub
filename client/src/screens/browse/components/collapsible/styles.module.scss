@@ -1,0 +1,74 @@
+@use "@coursehub/ui/mixins" as ui;
+.root {
+    max-width: 300px;
+    user-select: none;
+    :global(.main) {
+        cursor: pointer;
+        display: flex;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        :global(.color) {
+            height: 100px;
+            width: 12px;
+        }
+        :global(.content) {
+            padding-left: 10px;
+            width: 100%;
+
+            border-bottom: 1px solid rgba(0, 0, 0, 0.33);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            :global(.text) {
+                max-width: 90%;
+                :global(.code) {
+                    font-family: var(--ch-font-body);
+                    font-weight: 700;
+                    font-size: 1.05rem;
+                }
+                :global(.name) {
+                    font-size: 1rem;
+                }
+            }
+            :global(.arrow) {
+                transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                transform: rotateZ(-90deg);
+                width: 20px;
+                height: 20px;
+                flex: 0 0 20px;
+                display: inline-flex;
+                margin-right: 5px;
+            }
+        }
+    }
+    &:global(.true) {
+        :global(.main) {
+            :global(.content) {
+                :global(.arrow) {
+                    transform: rotateZ(0deg);
+                }
+            }
+        }
+        :global(.collapsible-content) {
+            max-height: none;
+            opacity: 1;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.33);
+        }
+    }
+    :global(.collapsible-content) {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition:
+            max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.25s ease;
+    }
+    :global(.main):focus-visible {
+        outline: 2px solid var(--ch-ink);
+        outline-offset: -2px;
+    }
+}

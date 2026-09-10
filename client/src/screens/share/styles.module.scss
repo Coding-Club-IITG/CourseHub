@@ -1,0 +1,27 @@
+.share {
+    width: min(460px, 100%);
+}
+.name {
+    margin: 0 0 var(--ch-space-3);
+    overflow-wrap: anywhere;
+}
+.help {
+    color: var(--ch-muted);
+    margin: 0 0 var(--ch-space-5);
+}
+.status {
+    margin: var(--ch-space-2) 0 var(--ch-space-4);
+    &:empty {
+        display: none;
+    }
+}
+.illustration {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: var(--ch-space-6) auto 0;
+}
+.close {
+    margin-left: auto;
+}

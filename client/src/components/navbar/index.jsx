@@ -1,123 +1,108 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./styles.scss";
-import Logo from "./components/logo";
-import NavLink from "./components/navlink";
+import { useEffect, useId, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Brand, Button, IconButton } from "@coursehub/ui";
+import { logoutUser } from "../../api/User";
 import SearchBar from "./components/searchbar";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-
-import server from "../../api/server";
-
-import { LogoutUser } from "../../actions/user_actions";
-
-const NavBar = () => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const mobileMenuRef = useRef(null);
-    const toggleButtonRef = useRef(null);
-
-    const handleLogout = () => {
-        dispatch(LogoutUser());
-        window.location = `${server}/api/auth/logout`;
-    };
-
-    const toggleMobileMenu = (e) => {
-        e.stopPropagation();
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
-
-    const closeMobileMenu = () => {
-        setIsMobileMenuOpen(false);
-    };
+import styles from "./styles.module.scss";
+export default function NavBar({ compact = false }) {
+    const [open, setOpen] = useState(false),
+        [busy, setBusy] = useState(false),
+        [error, setError] = useState("");
+    const menu = useRef(null),
+        trigger = useRef(null),
+        id = useId(),
+        location = useLocation(),
+        navigate = useNavigate();
+    useEffect(() => setOpen(false), [location.key]);
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                mobileMenuRef.current &&
-                !mobileMenuRef.current.contains(event.target) &&
-                toggleButtonRef.current &&
-                !toggleButtonRef.current.contains(event.target)
-            ) {
-                setIsMobileMenuOpen(false);
-            }
+        if (!open) return;
+        menu.current?.querySelector("a")?.focus();
+        const outside = (event) => {
+            if (!menu.current?.contains(event.target) && !trigger.current?.contains(event.target))
+                setOpen(false);
         };
-
-        const handleEscapeKey = (event) => {
-            if (event.key === "Escape") {
-                setIsMobileMenuOpen(false);
-            }
-        };
-
-        if (isMobileMenuOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-            document.addEventListener("keydown", handleEscapeKey);
+        document.addEventListener("pointerdown", outside);
+        return () => document.removeEventListener("pointerdown", outside);
+    }, [open]);
+    const logout = async () => {
+        if (busy) return;
+        setBusy(true);
+        setError("");
+        try {
+            await logoutUser();
+            navigate("/", { replace: true });
+        } catch {
+            setError("Could not log out. Please try again.");
+        } finally {
+            setBusy(false);
         }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleEscapeKey);
-        };
-    }, [isMobileMenuOpen]);
-
-    const handleNavLinkClick = (action) => {
-        action();
-        closeMobileMenu();
     };
-
     return (
-        <nav className="navbar">
-            <div className="active">
-                <div className="nav-content">
-                    <span onClick={() => navigate("/dashboard")}>
-                        <Logo />
-                    </span>
-                    <SearchBar />
-                    <div className="navlinks desktop-nav">
-                        <NavLink text={"Dashboard"} onClick={() => navigate("/dashboard")} />
-                        <NavLink text={"Profile"} onClick={() => navigate("/profile")} />
-                        <NavLink text={"Log Out"} onClick={handleLogout} />
-                    </div>
-                    <div
-                        className="mobile-menu-toggle"
-                        onClick={toggleMobileMenu}
-                        ref={toggleButtonRef}
-                        aria-label="Toggle mobile menu"
-                        aria-expanded={isMobileMenuOpen}
+        <nav
+            className={styles.navbar}
+            aria-label="Main navigation"
+            onKeyDown={(event) => {
+                if (event.key === "Escape" && open) {
+                    setOpen(false);
+                    trigger.current?.focus();
+                }
+            }}
+        >
+            <div className={styles.content}>
+                <Link className={styles.logo} to="/dashboard" aria-label="CourseHub dashboard">
+                    <Brand />
+                </Link>
+                <IconButton
+                    ref={trigger}
+                    label="Toggle mobile menu"
+                    className={styles.toggle}
+                    variant="ghost"
+                    aria-expanded={open}
+                    aria-controls={id}
+                    onClick={() => setOpen((value) => !value)}
+                >
+                    <svg
+                        width="20"
+                        height="24"
+                        viewBox="0 0 20 24"
+                        aria-hidden="true"
+                        fill="currentColor"
                     >
-                        <div className={`three-dots ${isMobileMenuOpen ? "cross" : ""}`}>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-
-                        
-                        <div
-                            className={`mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
-                            ref={mobileMenuRef}
-                        >
-                            <div className="mobile-menu-content">
-                                <NavLink
-                                    text={"Dashboard"}
-                                    onClick={() => handleNavLinkClick(() => navigate("/dashboard"))}
-                                />
-                                <NavLink
-                                    text={"Profile"}
-                                    onClick={() => handleNavLinkClick(() => navigate("/profile"))}
-                                />
-                                <NavLink
-                                    text={"Log Out"}
-                                    onClick={() => handleNavLinkClick(handleLogout)}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                        <circle cx="10" cy="5" r="2" />
+                        <circle cx="10" cy="12" r="2" />
+                        <circle cx="10" cy="19" r="2" />
+                    </svg>
+                </IconButton>
+                <div
+                    ref={menu}
+                    id={id}
+                    className={styles.links}
+                    data-open={open}
+                    onBlur={(event) => {
+                        if (
+                            !event.currentTarget.contains(event.relatedTarget) &&
+                            event.relatedTarget !== trigger.current
+                        )
+                            setOpen(false);
+                    }}
+                >
+                    <NavLink to="/dashboard" onClick={() => setOpen(false)}>
+                        Dashboard
+                    </NavLink>
+                    <NavLink to="/profile" onClick={() => setOpen(false)}>
+                        Profile
+                    </NavLink>
+                    <Button variant="ghost" busy={busy} onClick={logout}>
+                        Log Out
+                    </Button>
+                    {error && <p role="alert">{error}</p>}
                 </div>
-            </div>
-            <div className="passive">
-                <SearchBar type={"passive"} />
+                {!compact && (
+                    <div className={styles.search}>
+                        <SearchBar />
+                    </div>
+                )}
             </div>
         </nav>
     );
-};
-
-export default NavBar;
+}

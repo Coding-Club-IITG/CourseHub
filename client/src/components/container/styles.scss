@@ -1,42 +1,30 @@
+@use "@coursehub/ui/mixins" as ui;
 .container {
     position: relative;
 
     .container-content {
-        max-width: 1400px;
-        margin: auto;
-        padding: 10px 64px;
+        @include ui.page-shell;
+        padding-block: 10px;
     }
 
     &.dark {
-        background-color: #000;
+        background-color: var(--ch-black);
     }
 
     &.light {
-        background-color: #fff;
+        background-color: var(--ch-paper);
     }
 
     &.fluid {
         .container-content {
             max-width: 100%;
-            padding: 0px;
+            padding: 0;
         }
     }
-    @media screen and (max-width: 768px) {
+
+    @include ui.below(mobile) {
         .container-content {
-            padding: 10px 16px;
             overflow-x: hidden;
-        }
-    }
-
-    @media screen and (max-width: 480px) {
-        .container-content {
-            padding: 10px 12px;
-        }
-    }
-
-    @media screen and (max-width: 360px) {
-        .container-content {
-            padding: 10px 8px;
         }
     }
 }

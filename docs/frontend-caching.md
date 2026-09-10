@@ -1,85 +1,80 @@
-# Frontend Caching (Client)
+# How CourseHub keeps browsing data current
 
-This document outlines how course data is cached in the client application to improve performance and reduce redundant API calls. All course cache reads and writes are centralized through the `client/src/utils/frontendCache.js` utility.
+A course can contain years, nested folders and many files. CourseHub should reuse that data while you move around, but it must also notice when someone else changes it. A deleted final file must produce an empty folder, and a renamed shared folder must update in every course that uses it.
 
-## Cache Keys and Payloads
+Both frontends use TanStack Query for course data. Course and folder selection come from the URL. Temporary choices, such as an open dialog or an unsaved name, stay in local React state.
 
-### 1. `AllCourses` (Stored in `sessionStorage`)
-- **What is cached:** An array of full "Course Tree" objects. Each object contains the course metadata (like `code` and `name`) and a deeply nested `children` array representing the entire folder and file structure for that course (e.g., Years -> Folders like "Midsem" -> Files like PDFs). 
-- **Example Data:**
-  ```json
-  [
-    {
-      "_id": "course_id_123",
-      "code": "CS101",
-      "name": "Intro to Computer Science",
-      "childType": "Folder",
-      "children": [
-        {
-          "_id": "year_id_2023",
-          "name": "2023",
-          "childType": "Folder",
-          "children": [
-            {
-              "_id": "folder_id_midsem",
-              "name": "Midsem",
-              "childType": "File",
-              "children": [
-                {
-                  "_id": "file_id_pdf1",
-                  "name": "Midsem_2023_Solutions.pdf",
-                  "fileType": "application/pdf",
-                  "isVerified": true
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-  ```
-- **Why it's cached:** When a user browses a course, the server returns the full folder structure. Caching this prevents re-fetching the folder tree when the user switches between courses or navigates through the sidebar.
-- **Sanitization Rule:** If multiple trees exist for the same course code, the cache utility automatically keeps the "largest" tree (the one with the most items in its `children` array) to ensure no data is lost.
-- **Written by:** `filebrowser_reducer` (whenever a folder or file is updated/verified) via `writeAllCoursesCache`.
-- **Read by:** App startup, Dashboard, and Browse screens via `readAllCoursesCache` to instantly render the sidebar and folder views.
-- **Lifetime:** Cleared when the browser tab/session is closed, or manually cleared if the data becomes corrupted.
+## What happens when you open a course
 
-### 2. `LocalCourses` (Stored in `localStorage`)
-- **What is cached:** An array of simple course objects (typically just `code` and `name`, without the deep nested file structures). These are custom courses the user has manually added to their dashboard.
-- **Example Data:**
-  ```json
-  [
-    {
-      "code": "CS101",
-      "name": "Intro to Computer Science",
-      "color": "#6F8FFE"
-    },
-    {
-      "code": "MA201",
-      "name": "Linear Algebra",
-      "color": "#FECF6F"
-    }
-  ]
-  ```
-- **Why it's cached:** To remember the user's custom added courses across different browser sessions and tabs, so their dashboard remains intact even after a page reload.
-- **Sanitization Rule:** Deduplicates courses by their `code` (e.g., "cs101" and "CS 101" are treated as the same course).
-- **Written by:** `user_reducer` (when a user clicks "Add Course") via `upsertLocalCourseCache`.
-- **Read by:** `App.jsx` during initial startup via `readLocalCoursesCache` to populate the user's dashboard.
-- **Lifetime:** Persists across browser sessions until the user manually logs out or clears their browser data.
+Suppose you open `/browse/CS101/folder-id?file=file-id#preview`.
 
----
+1. The session provider confirms who you are. Until that finishes, the browser does not fetch the course.
+2. The course query requests the authorized course tree from the API. The server resolves course membership, removes files you cannot see and returns the capabilities for the visible resources.
+3. The course browser finds the requested folder inside that tree. The containing year, sidebar selection and folder contents all come from the same result.
+4. Moving to another folder in that course changes the URL. It does not write a second folder tree or a navigation-history stack.
+5. Reloading the page restores the selection from its URL and fetches fresh authorized data. Browser Back and Forward use the same route state.
 
-## Utility Function Map
+A course URL without a folder selects the latest year in the server's ordered year list. A URL that explicitly names a year or folder keeps that selection. If the named folder has been deleted or is inaccessible, the page explains that it is unavailable and offers retry and a link to the course. It does not silently substitute another folder.
 
-The `frontendCache.js` module provides safe access to these storage keys. It automatically handles `JSON.parse` errors and data sanitization.
+Bookmarks using a course's old code continue through the server's alias resolution. Once the response identifies the current code, controls and subsequent folder links use that canonical code.
 
-| File | Cache utility functions used | Purpose |
-| --- | --- | --- |
-| `client/src/App.jsx` | `migrateLegacyLocalCoursesFromSession`, `readLocalCoursesCache` | Migrates legacy session data and loads the user's saved custom courses on startup. |
-| `client/src/reducers/filebrowser_reducer.js` | `writeAllCoursesCache` | Saves the updated nested folder structure back to the session cache when the user navigates or modifies files. |
-| `client/src/reducers/user_reducer.js` | `upsertLocalCourseCache` | Adds a newly selected course to the local storage so it appears on the dashboard permanently. |
-| `client/src/screens/browse/index.jsx` | `readAllCoursesCache`, `clearAllCoursesCache` | Fetches the cached folder structure to display the course files. Clears the cache if corrupted. |
-| `client/src/screens/browse/components/collapsible/index.jsx` | `readAllCoursesCache` | Uses the cached course tree to rapidly render the expandable sidebar navigation. |
-| `client/src/screens/dashboard/index.jsx` | `clearLegacySessionLocalCoursesCache`, `readAllCoursesCache` | Clears old migration data and fast-loads the cached folder trees for display. |
-| `client/src/screens/landing/index.jsx` | `clearLegacySessionLocalCoursesCache` | Cleans up legacy migration data on the login screen. |
+## Where data lives
+
+| Data                                                               | Source and lifetime                                                                                                           |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Student or administrator session                                   | A shared query for that application's session role; see [frontend sessions](frontend-sessions.md).                            |
+| Student course tree                                                | An in-memory query scoped to the actor, capabilities, normalized course code and resource kind.                               |
+| Selected year and folder                                           | Derived from the route and current course tree; no separate saved copy.                                                       |
+| Administrator course list, course dashboard and Courses Without BR | In-memory queries using the administrator's actor scope and resource kind.                                                    |
+| Recently browsed extra courses                                     | Sidebar shortcuts derived from that actor's cached course results; they disappear when the cache expires or the session ends. |
+| Others                                                             | The user's server-saved course list. It survives reloads and does not grant management rights.                                |
+| Dialog state, filters and unsaved form input                       | Local component state.                                                                                                        |
+
+The student profile and favourites also read the session query directly. Profile and course-list updates use the saved response to update that session data.
+
+Course data stays in memory and does not depend on local or session storage. Denying browser storage or exhausting a storage quota therefore cannot stop browsing. Others and favourites are saved on the server.
+
+## Freshness and server revisions
+
+An active course query revalidates every 30 seconds and on focus or reconnect. Opening a course again revalidates it even if it has a cached result. Inactive results remain in memory for up to five minutes. The cache's 15-second freshness setting also allows ordinary query consumers to share recent results.
+
+The server adds a `revision` to authorized course and folder responses and to administrator course dashboards. This is a hash of the returned presentation, including nested contents and capabilities. It is calculated after visibility filtering. A change to a pending file that you cannot see does not enter your presentation hash.
+
+This approach also notices direct database repairs and historical records without requiring every old mutation to maintain a new counter. It adds no database field, changes no ID and needs no data migration.
+
+When the revision is unchanged, the query cache can retain its existing object references. When it changes, the new result replaces the previous result, including a genuinely empty `children` array. The browser never chooses a response because it contains more years or files.
+
+Revalidation still makes an authenticated API request. The revision is a freshness aid, not an authorization token or a permanent promise that a file is accessible. Preview, thumbnail and download endpoints continue checking the current session and resource visibility independently.
+
+## Shared changes and background operations
+
+Consider a folder shared by CS101 and MA101. Renaming it in MA101 must also refresh an already-open CS101 view.
+
+The shared browser transport observes successful content mutations. It invalidates queries for the affected course codes and cached trees that reference those shared courses. Course lists are also invalidated. If a response does not provide a complete affected-course list, it conservatively invalidates all library queries rather than risk leaving a sibling course stale.
+
+Long-running operations need a second refresh when their results become available. The cache observes terminal operation states, including partial uploads and failures that may have completed some steps. Each distinct operation result invalidates affected data once. Repeated polling of the same completed result does not repeatedly reload the course. Course renames, deletions and academic synchronization also revalidate session data, where registered-course references are displayed.
+
+Same-origin tabs exchange invalidation notices through BroadcastChannel. These notices contain course codes and change/logout signals, not file trees, tokens or user records. A shared rename therefore updates another open tab promptly. Deployments on separate origins cannot use the same browser channel; their views catch up through the ordinary focus, reconnect and periodic checks.
+
+## Switching courses, errors and logout
+
+Course query functions consume the cancellation signal supplied by TanStack Query. Leaving a course while its request is pending aborts that read. A late response from CS101 cannot become the selected MA101 tree. Queries are keyed by actor and capabilities, so they cannot be reused as another user's authorized view.
+
+A changed actor or changed course capabilities removes the previous resource queries. Logout cancels queries, clears cached user data and tells other same-origin tabs of that role to leave protected content. A response that started before logout cannot restore the old actor afterward.
+
+A failed revalidation shows an explicit retryable state. Inaccessible content is not rendered from an old successful result after a denied refresh. The requested URL remains available for a successful retry. Administrator list failures likewise stay separate from valid empty lists.
+
+These changes consolidate data flow; they do not redesign the upload modal or administrator tables. Upload progress, partial results and cancellation remain in the upload operation interface. Broader table, dialog and mobile-management improvements are separate remediation batches.
+
+## Code to start with
+
+| File                                                                                              | Responsibility                                                             |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [`packages/browser/src/library.js`](../packages/browser/src/library.js)                           | Query keys, freshness settings, shared invalidation and cross-tab notices. |
+| [`packages/browser/src/session.js`](../packages/browser/src/session.js)                           | Session queries and removal of data from a previous actor.                 |
+| [`client/src/queries/course.js`](../client/src/queries/course.js)                                 | Student course query and successful-response validation.                   |
+| [`client/src/queries/CourseBrowserProvider.jsx`](../client/src/queries/CourseBrowserProvider.jsx) | Derive the visible folder and year from the current route and tree.        |
+| [`server/services/authorization.js`](../server/services/authorization.js)                         | Build the authorized course/folder presentation before adding a revision.  |
+| [`server/utils/resourceRevision.js`](../server/utils/resourceRevision.js)                         | Calculate a revision from that presentation.                               |
+
+The implementation follows TanStack Query's [query invalidation](https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation) and [cancellation](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation) contracts, with the explicit timings described above.

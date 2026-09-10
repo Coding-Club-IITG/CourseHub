@@ -1,0 +1,40 @@
+name: Checks
+
+on:
+    pull_request:
+        branches: [dev, prod]
+    push:
+        branches: [dev]
+
+concurrency:
+    group: checks-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    checks:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "24"
+                  cache: "npm"
+                  cache-dependency-path: "package-lock.json"
+
+            - name: Pin npm
+              run: npm install --global npm@11.17.0
+
+            - name: Install workspace dependencies
+              run: npm ci
+
+            - name: Build Client
+              run: npm run build:student
+
+            - name: Build Admin
+              run: npm run build:admin
+
+            - name: Check Server Runtime
+              run: npm run preflight

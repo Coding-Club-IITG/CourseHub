@@ -1,23 +1,14 @@
-import React from "react";
+import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import { SessionProvider } from "./session/SessionProvider";
 
 import "./index.css";
 
-import "./fonts/ProximaNovaThin.otf";
-import "./fonts/ProximaNovaRegular.otf";
-import "./fonts/ProximaNovaBlack.otf";
-import "./fonts/ProximaNovaBold.otf";
-
-import { createStore } from "redux";
-import reducers from "./reducers";
-const store = createStore(reducers);
-import { Provider } from "react-redux";
-import axios from "axios";
-axios.defaults.withCredentials = true;
-
 ReactDOM.createRoot(document.getElementById("root")).render(
-	<Provider store={store}>
-		<App />
-	</Provider>
+    <StrictMode>
+        <SessionProvider>
+            <App />
+        </SessionProvider>
+    </StrictMode>,
 );

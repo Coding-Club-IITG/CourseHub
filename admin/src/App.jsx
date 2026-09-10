@@ -1,86 +1,65 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Outlet, Route, Routes, Link } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import RouteBoundary from "./router_utils/RouteBoundary";
+import PrivateRoute from "./router_utils/PrivateRoutes";
 import Sidebar from "./components/Sidebar";
-import CoursesWithoutBR from "./pages/CoursesWithoutBR";
+import OperationNotice from "./components/OperationNotice";
 import Students from "./pages/Students";
 import Courses from "./pages/Courses";
 import CourseLinking from "./pages/CourseLinking";
-import PrivateRoute from "./router_utils/PrivateRoutes";
-import Login from "./pages/Login";
-import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
 import CourseDashboard from "./pages/CourseDashboard";
-
-function App() {
+import Operations from "./pages/Operations";
+import Login from "./pages/Login";
+import styles from "./shell.module.scss";
+function Shell() {
+    return (
+        <div className={styles.shell}>
+            <Sidebar />
+            <main id="admin-content" className={styles.main}>
+                <OperationNotice />
+                <Outlet />
+            </main>
+        </div>
+    );
+}
+export default function App() {
     return (
         <Router>
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-                <div className="mx-auto flex">
-                    <Sidebar />
-                    <main className="flex-1 min-h-screen">
-                        <Routes>
-                            <Route path = "/admin/courses/:code" element = {
+            <div className={styles.app}>
+                <a className={styles.skip} href="#admin-content">
+                    Skip to content
+                </a>
+                <RouteBoundary>
+                    <Routes>
+                        <Route path="/admin/login" element={<Login />} />
+                        <Route
+                            element={
                                 <PrivateRoute>
-                                    <CourseDashboard/>
+                                    <Shell />
                                 </PrivateRoute>
-                            }/>
-                            <Route path="/admin/login" element={<Login />} />
-                            <Route
-                                path="/admin/"
-                                element={
-                                    <PrivateRoute>
-                                        <Students />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/students"
-                                element={
-                                    <PrivateRoute>
-                                        <Students />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/courses"
-                                element={
-                                    <PrivateRoute>
-                                        <Courses />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/course-linking"
-                                element={
-                                    <PrivateRoute>
-                                        <CourseLinking />
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route
-                                path="/admin/courses-without-br"
-                                element={
-                                    <PrivateRoute>
-                                        <CoursesWithoutBR />
-                                    </PrivateRoute>
-                                }
-                            />
+                            }
+                        >
+                            <Route path="/admin/" element={<Students />} />
+                            <Route path="/admin/students" element={<Students />} />
+                            <Route path="/admin/courses" element={<Courses />} />
+                            <Route path="/admin/courses/:code" element={<CourseDashboard />} />
+                            <Route path="/admin/course-linking" element={<CourseLinking />} />
+                            <Route path="/admin/operations" element={<Operations />} />
                             <Route
                                 path="*"
                                 element={
-                                    <div className="p-10">
-                                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-10">
-                                            Page Not Found
-                                        </div>
-                                    </div>
+                                    <section className={styles.notFound}>
+                                        <h1>Page not found</h1>
+                                        <Link to="/admin/">Open Students</Link>
+                                    </section>
                                 }
                             />
-                        </Routes>
-                    </main>
-                </div>
-                <ToastContainer position="bottom-right" autoClose={5000}/>
+                        </Route>
+                    </Routes>
+                </RouteBoundary>
+                <ToastContainer position="bottom-right" autoClose={5000} />
             </div>
         </Router>
     );
 }
-
-export default App;

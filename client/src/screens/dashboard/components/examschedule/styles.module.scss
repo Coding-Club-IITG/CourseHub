@@ -1,0 +1,124 @@
+@use "@coursehub/ui/mixins" as ui;
+.root {
+    @include ui.typography;
+    @include ui.focus-ring-inverse;
+    scroll-margin-block-start: var(--ch-section-padding);
+    @include ui.stack(1.25rem);
+    width: 100%;
+    color: var(--ch-paper);
+}
+.header {
+    @include ui.stack(1rem);
+    align-items: flex-start;
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+}
+.toggleGroup {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--ch-muted);
+    border-radius: var(--ch-radius-control);
+    background: var(--ch-black);
+}
+.tab {
+    @include ui.control;
+    @include ui.interactive;
+    @include ui.focus-ring-inverse;
+    padding: 6px 20px;
+    border: 0;
+    border-radius: var(--ch-radius-sm);
+    background: transparent;
+    color: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    &:hover:not([aria-pressed="true"]) {
+        @include ui.tinted-hover;
+    }
+    &[aria-pressed="true"] {
+        background: var(--ch-yellow);
+        color: var(--ch-ink);
+    }
+}
+.list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 20px;
+}
+.item {
+    @include ui.enters($duration: var(--ch-duration-base), $easing: var(--ch-ease-entrance));
+    justify-content: space-between;
+    width: 210px;
+    min-height: 165px;
+    border-color: transparent;
+    color: var(--ch-ink);
+    flex-shrink: 0;
+}
+.itemState {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: right;
+}
+.stateBox {
+    @include ui.stack(0.5rem);
+    align-items: flex-start;
+    width: 100%;
+    p {
+        margin: 0;
+    }
+}
+.stateText {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ch-border);
+}
+.emptyState {
+    @include ui.stack(1rem);
+    width: 100%;
+}
+.emptyMessage {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ch-surface);
+}
+.graphic {
+    width: 100%;
+    max-width: 400px;
+    height: 280px;
+    margin: 0 auto;
+    background: url(../../graphic-cropped.svg) center / contain no-repeat;
+    opacity: 0.85;
+}
+@include ui.below(mobile) {
+    .list {
+        gap: 12px;
+    }
+    .item {
+        width: calc(50% - 6px);
+        min-width: 0;
+        min-height: 155px;
+        padding: 10px;
+    }
+    .emptyMessage {
+        font-size: 1.1rem;
+    }
+}
+@include ui.below(small) {
+    .item {
+        min-height: 145px;
+        padding: 8px;
+    }
+}
+@include ui.below(tiny) {
+    .item {
+        min-height: 135px;
+    }
+}

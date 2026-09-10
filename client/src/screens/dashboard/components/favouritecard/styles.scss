@@ -1,82 +1,54 @@
-.fav-card {
-    width: 200px;
-    height: 175px;
-    margin: 10px;
-    transition: 200ms ease;
-    &:hover {
-        transform: scale(1.02);
-        .close{
-            cursor: pointer;
-            display: block;
-        }
-        .content{
-            .top{
-                .path{
-                    padding: 20px 50px 0px 15px;
-                }
-
-            }
-            .bottom{
-                .subject{
-                    padding: 0px 15px 30px 0px;
-
-                }
-            }
-        }
+@use "@coursehub/ui/mixins" as ui;
+.favourites-section {
+    color: var(--ch-ink);
+    h2 {
+        font-family: var(--ch-font-body);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: var(--ch-space-4);
     }
-
-    svg {
-        position: absolute;
-        z-index: -1;
+    .favourites-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 200px));
+        gap: var(--ch-space-5);
     }
-
-    .close{
-
-        width: 10px;
-        height: 10px;
-        margin-left: auto;
-        background: url(./close.png);
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        display: none;
-
+    .favourite-card .file-display {
+        width: 100%;
+        margin: 0;
     }
-    .content {
-        cursor: pointer;
+    .favourite-location {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        height: 100%;
-        .top {
-            .path {
-                padding: 30px 50px 0px 15px;
-                font-size: 0.9rem;
-            }
-
-            .name {
-                font-family: 'Bold';
-                font-size: 1.05rem;
-                padding: 5px 50px 0px 15px;
-            }
-
-        }
-
-        .bottom {
-            width: 100%;
-            text-align: right;
-            display: flex;
-            justify-content: right;
-
-            .subject {
-                width: 85%;
-                text-align: right;
-                padding: 0px 15px 20px 0px;
-                font-family: 'Bold';
-                font-size: 1.2rem;
-                color: rgba(80, 80, 80, 0.5)
-            }
+        gap: var(--ch-space-1);
+        color: inherit;
+        margin-bottom: var(--ch-space-2);
+        overflow-wrap: anywhere;
+    }
+    .favourite-location span {
+        font-size: var(--ch-text-small);
+        color: var(--ch-muted);
+    }
+    .favourite-unavailable {
+        @include ui.surface;
+        padding: var(--ch-space-4);
+        box-shadow: var(--ch-shadow-card);
+    }
+    .favourite-unavailable p {
+        margin: var(--ch-space-3) 0;
+    }
+    .favourite-unavailable button {
+        @include ui.control;
+        @include ui.interactive;
+        background: transparent;
+        border: 0;
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        padding: var(--ch-space-2);
+        font: inherit;
+        cursor: pointer;
+        &:hover {
+            @include ui.tinted-hover;
         }
     }
-
 }

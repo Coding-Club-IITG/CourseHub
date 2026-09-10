@@ -1,57 +1,46 @@
+@use "@coursehub/ui/mixins" as ui;
 .microsoft-signin-btn {
-    width: 280px;
-    height: 50px;
-    color: #fff;
-    background-color: #000;
-    padding: 15px 30px;
+    @include ui.control;
+    @include ui.interactive;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 5px;
-    border-radius: 8px;
+    gap: 10px;
+    width: 280px;
+    min-height: 50px;
+    padding: 15px 30px;
     border: none;
-    font-family: inherit;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    .logo {
-        background: url(./logo.svg), none;
-        background-repeat: no-repeat;
-        background-position: center;
-        width: 35px;
-        height: 35px;
-    }
-    span {
-        display: block;
-        margin-left: 10px;
-        font-family: "Bold";
-        font-size: 1rem;
-        font-weight: 600;
-    }
+    background-color: var(--ch-black);
+    color: var(--ch-paper);
+    box-shadow: var(--ch-shadow-control);
     cursor: pointer;
-    transition: all 0.2s ease;
-    &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        background-color: #1a1a1a;
-    }
-    &:active {
-        transform: scale(0.97);
-        background-color: #2a2a2a;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-    }
-    &:focus {
-        outline: 2px solid #ffffff;
-        outline-offset: 2px;
-    }
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    min-height: 44px;
-    @media screen and (max-width: 750px) {
+
+    .logo {
+        flex-shrink: 0;
+        width: 35px;
+        height: 35px;
+        background: url(./logo.svg) center / contain no-repeat;
+    }
+
+    span {
+        display: block;
+        font-family: var(--ch-font-body);
+        font-weight: 700;
+        font-size: var(--ch-text-body);
+    }
+
+    &:hover {
+        background-color: var(--ch-ink);
+        box-shadow: var(--ch-shadow-control-hover);
+    }
+
+    @include ui.focus-ring-inverse;
+
+    @include ui.below(mobile) {
         width: 220px;
-        height: 44px;
+        min-height: var(--ch-target);
         padding: 12px 20px;
         .logo {
             width: 22px;
@@ -61,51 +50,19 @@
             font-size: 0.85rem;
         }
     }
-    @media screen and (max-width: 480px) {
+
+    @include ui.below(small) {
         width: 100%;
         max-width: 270px;
-        height: 44px;
-        padding: 12px 20px;
         margin: 0;
-        border-radius: 10px;
-        font-size: 14px;
-        background-color: #1a1a1a;
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-        border: 2px solid transparent;
+    }
+
+    @include ui.below(tiny) {
+        max-width: 250px;
+        padding: 10px 18px;
         .logo {
             width: 20px;
             height: 20px;
-        }
-        span {
-            font-size: 0.9rem;
-            margin-left: 10px;
-            font-weight: 600;
-        }
-        &:hover {
-            background-color: #2a2a2a;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-        &:active {
-            transform: scale(0.97);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-    }
-    @media screen and (max-width: 360px) {
-        width: 100%;
-        max-width: 250px;
-        height: 42px;
-        padding: 10px 18px;
-        margin: 0;
-        border-radius: 8px;
-        .logo {
-            width: 18px;
-            height: 18px;
-        }
-        span {
-            font-size: 0.85rem;
-            margin-left: 8px;
-            font-weight: 600;
         }
     }
 }

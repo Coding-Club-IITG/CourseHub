@@ -1,0 +1,56 @@
+@use "@coursehub/ui/mixins" as ui;
+.actions {
+    @include ui.actions;
+    flex-wrap: nowrap;
+    min-width: max-content;
+    gap: 0.25rem;
+}
+.details {
+    @include ui.stack(1rem);
+    white-space: normal;
+    padding: 1rem;
+    background: var(--ch-surface);
+    max-width: 70rem;
+    dl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin: 0;
+        dt {
+            font-weight: 700;
+        }
+        dd {
+            margin: 0;
+        }
+    }
+    h3 {
+        margin: 0 0 0.5rem;
+    }
+    ul {
+        margin: 0.5rem 0;
+        padding-left: 1.25rem;
+    }
+    p {
+        margin: 0;
+    }
+    summary {
+        min-height: var(--ch-target);
+        display: list-item;
+        cursor: pointer;
+        @include ui.focus-ring;
+    }
+}
+.status {
+    @include ui.surface;
+    padding: 1rem;
+    border-color: var(--ch-success);
+    color: var(--ch-success);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.access {
+    white-space: nowrap;
+}

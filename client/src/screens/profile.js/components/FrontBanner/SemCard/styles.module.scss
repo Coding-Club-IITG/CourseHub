@@ -1,0 +1,39 @@
+@use "@coursehub/ui/mixins" as ui;
+.card {
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-shrink: 0;
+    align-self: center;
+    width: 150px;
+    min-height: 112px;
+    background: var(--ch-yellow);
+    color: var(--ch-ink);
+    text-align: center;
+    strong {
+        @include ui.stat-number;
+    }
+    span {
+        font-size: 1.4rem;
+        line-height: 1.2;
+    }
+}
+@include ui.below(mobile) {
+    .card {
+        width: 110px;
+        min-height: 95px;
+        padding: var(--ch-space-3);
+        span {
+            font-size: 1.1rem;
+        }
+    }
+}
+@include ui.below(tiny) {
+    .card {
+        width: 90px;
+        min-height: 85px;
+        span {
+            font-size: 0.95rem;
+        }
+    }
+}

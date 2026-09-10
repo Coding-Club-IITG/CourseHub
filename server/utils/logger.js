@@ -18,9 +18,12 @@ export function readLoggingConfig(env = process.env) {
     const secret = env.OPS_LOG_INGEST_SECRET || PLACEHOLDER_SECRET;
     if (enabled && production) {
         const url = new URL(ingestionUrl);
-        if (url.protocol !== "https:") throw new TypeError("OPS_LOG_INGEST_URL must use HTTPS in production");
+        if (url.protocol !== "https:")
+            throw new TypeError("OPS_LOG_INGEST_URL must use HTTPS in production");
         if (secret.length < 32 || /placeholder|change[-_ ]?me|disabled/i.test(secret)) {
-            throw new TypeError("OPS_LOG_INGEST_SECRET must be a non-placeholder secret of at least 32 characters");
+            throw new TypeError(
+                "OPS_LOG_INGEST_SECRET must be a non-placeholder secret of at least 32 characters",
+            );
         }
     }
     return { enabled, ingestionUrl, secret };

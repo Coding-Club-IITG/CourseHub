@@ -1,17 +1,16 @@
-import axios from "axios";
-axios.defaults.withCredentials = true;
-import root from "./server";
+import { transport } from "./http";
 
-export const CreateNewContribution = async (data) => {
-    const resp = await axios.post(`${root}/api/contribution/`, data);
-    return resp;
-};
-export const GetMyContributions = async () => {
-    const resp = await axios.get(`${root}/api/contribution/`);
-    return resp;
-};
-
-export const GetBrContribution = async (courses) => {
-    const resp = await axios.post(`${root}/api/contribution/br`, { courses });
-    return resp;
-}
+export const CreateNewContribution = (data, key) =>
+    transport.json("contribution/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+        body: JSON.stringify(data),
+    });
+export const GetMyContributions = (signal) => transport.json("contribution/", { signal });
+export const GetBrContribution = (signal) =>
+    transport.json("contribution/br", {
+        signal,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+    });

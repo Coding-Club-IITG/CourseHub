@@ -1,49 +1,36 @@
-import "./styles.scss";
-import { toast } from "react-toastify";
-import clientRoot from "../../../../api/server";
-import Share from "../../../share";
+import { useCourseBrowser } from "../../../../queries/browserContext";
+import { transport } from "../../../../api/http";
+import { getFileDownloadLink } from "../../../../api/File";
+import styles from "./styles.module.scss";
+import { toast } from "../../../../notifications/toast";
+import { useShare } from "../../../share/context";
+import { resourceLink } from "../../../../utils/resourceLink";
 import { useState } from "react";
 import { createFolder } from "../../../../api/Folder";
-import { ChangeFolder } from "../../../../actions/filebrowser_actions";
-import { useDispatch, useSelector } from "react-redux";
+
 import { ConfirmDialog } from "./confirmDialog";
-import server from "../../../../api/server";
+
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
-const FolderInfo = ({
-    isBR,
-    path,
-    name,
-    canDownload,
-    contributionHandler,
-    folderId,
-    courseCode,
-    isMobileView = false, // New prop for mobile view
-}) => {
-    const dispatch = useDispatch();
-    const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
+const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, courseCode }) => {
+    const share = useShare();
+    const currentFolder = useCourseBrowser().currentFolder;
     const totalSubtreeFiles = getSubtreeFileCount(currentFolder);
     const [showConfirm, setShowConfirm] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
     const [childType, setChildType] = useState("File");
+    const [formError, setFormError] = useState("");
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const user = useSelector((state) => state.user.user);
-    const isReadOnlyCourse =
-        user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
-        !(
-            user?.isBR &&
-            user?.previousCourses?.some((sem) =>
-                sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
-            )
-        );
+    const canManage = currentFolder?.capabilities?.canManage === true;
+    const canContribute = currentFolder?.capabilities?.canContribute === true;
 
     const handleCreateFolder = () => {
+        setFormError("");
         setNewFolderName("");
         setChildType("File");
         setShowConfirm(true);
@@ -52,6 +39,7 @@ const FolderInfo = ({
     const handleConfirmCreateFolder = async () => {
         if (isAdding) return;
         setIsAdding(true);
+        setFormError("");
         const folderName = newFolderName.trim();
         if (!folderName?.trim() || !childType) {
             setIsAdding(false);
@@ -61,10 +49,10 @@ const FolderInfo = ({
         if (
             currentFolder?.children &&
             currentFolder.children.some(
-                (item) => item.name.toLowerCase() === folderName.toLowerCase()
+                (item) => item.name.toLowerCase() === folderName.toLowerCase(),
             )
         ) {
-            toast.error(`A file or folder named "${folderName}" already exists.`);
+            setFormError(`A file or folder named "${folderName}" already exists.`);
             setIsAdding(false);
             return;
         }
@@ -76,30 +64,22 @@ const FolderInfo = ({
         }
 
         try {
-            const newFolder = await createFolder({
+            await createFolder({
                 name: folderName.trim(),
                 course: courseCode,
                 parentFolder: folderId,
                 childType: childType,
             });
 
-            if (currentFolder) {
-                dispatch(
-                    ChangeFolder({
-                        ...currentFolder,
-                        children: [...(currentFolder.children || []), newFolder],
-                    })
-                );
-            }
             toast.success(`Folder "${folderName}" created`);
+            setShowConfirm(false);
         } catch (error) {
-            toast.error("Failed to create folder.");
+            setFormError(error.message || "Failed to create folder.");
         }
-        setShowConfirm(false);
         setIsAdding(false);
     };
 
-    const downloadFolder = async (id, folderPath = "") => {
+    const downloadFolder = async (id, folderPath = "", failures = []) => {
         try {
             const data = await fetchFolder(id, courseCode);
 
@@ -111,7 +91,7 @@ const FolderInfo = ({
                 if (childType === "Folder") {
                     const childFolderPath = folderPath ? `${folderPath}/${child.name}` : child.name;
 
-                    const childZip = await downloadFolder(child._id, childFolderPath);
+                    const childZip = await downloadFolder(child._id, childFolderPath, failures);
 
                     if (childZip) {
                         const promises = [];
@@ -124,11 +104,12 @@ const FolderInfo = ({
                                             zip.file(relativePath, content);
                                         })
                                         .catch((error) => {
+                                            failures.push(relativePath);
                                             console.error(
                                                 `Error processing file ${relativePath}:`,
-                                                error
+                                                error,
                                             );
-                                        })
+                                        }),
                                 );
                             }
                         });
@@ -136,30 +117,16 @@ const FolderInfo = ({
                     }
                 } else {
                     try {
-                        const fileResponse = await fetch(`${server}/api/files/download`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ url: child.webUrl }),
-                        });
+                        const downloadLink = await getFileDownloadLink(child._id, courseCode);
 
-                        if (!fileResponse.ok) {
-                            toast.error(`Failed to download file: ${child.name}`);
-                            continue;
-                        }
-
-                        const fileData = await fileResponse.json();
-                        const downloadLink = fileData.downloadLink;
-
-                        const curfile = await fetch(downloadLink);
+                        const curfile = await transport.request(downloadLink);
                         const fileBlob = await curfile.blob();
 
                         const filePath = folderPath ? `${folderPath}/${child.name}` : child.name;
                         zip.file(filePath, fileBlob);
                     } catch (error) {
                         console.error(`Error downloading file ${child.name}:`, error);
-                        toast.error(`Failed to download file: ${child.name}`);
+                        failures.push(child.name);
                     }
                 }
             }
@@ -167,7 +134,7 @@ const FolderInfo = ({
             return zip;
         } catch (error) {
             console.error(`Error downloading folder content:`, error);
-            toast.error("Failed to download folder content.");
+            failures.push(folderPath || "Folder contents");
             return null;
         }
     };
@@ -175,20 +142,12 @@ const FolderInfo = ({
     const downloadAndSaveFolder = async (folderId, folderName = "folder") => {
         if (isDownloading) return;
 
-        let toastId;
+        const failures = [];
         try {
             setIsDownloading(true);
-            toastId = toast.info("Preparing to download folder...", {
-                autoClose: false,
-                closeOnClick: false,
-                closeButton: false,
-                draggable: false,
-            });
-
-            const zip = await downloadFolder(folderId);
+            const zip = await downloadFolder(folderId, "", failures);
 
             if (!zip) {
-                toast.dismiss(toastId);
                 toast.error("Failed to create folder archive.");
                 return;
             }
@@ -201,13 +160,13 @@ const FolderInfo = ({
 
             saveAs(zipBlob, `${folderName}.zip`);
 
-            toast.dismiss(toastId);
-            toast.success("Folder Ready for download!");
+            if (failures.length)
+                toast.warning(
+                    `Archive downloaded with ${failures.length} missing file or folder${failures.length === 1 ? "" : "s"}. Try downloading those items again.`,
+                );
+            else toast.success("Folder ready for download.");
         } catch (error) {
             console.error("Error in downloadAndSaveFolder:", error);
-            if (toastId) {
-                toast.dismiss(toastId);
-            }
             toast.error("Failed to download folder.");
         } finally {
             setIsDownloading(false);
@@ -215,22 +174,44 @@ const FolderInfo = ({
     };
     return (
         <>
-            <div className="folder-info">
+            <div className={`${styles.root} folder-info`}>
                 <div className="info">
+                    {currentFolder?.affectedCourses?.length > 1 && (
+                        <p className="path">Shared by {currentFolder.affectedCourses.join(", ")}</p>
+                    )}
                     <p className="path">{path}</p>
                     <div className="curr-folder" key={folderId || name}>
                         <p className="folder-name">{name}</p>
                         {currentFolder && (
-                            <span className="folder-header-count-badge" title={`${totalSubtreeFiles} total files in subtree`}>
-                                {totalSubtreeFiles === 0 ? "EMPTY" : `${totalSubtreeFiles} ${totalSubtreeFiles === 1 ? "FILE" : "FILES"}`}
+                            <span
+                                className="folder-header-count-badge"
+                                title={`${totalSubtreeFiles} total files in subtree`}
+                            >
+                                {totalSubtreeFiles === 0
+                                    ? "EMPTY"
+                                    : `${totalSubtreeFiles} ${totalSubtreeFiles === 1 ? "FILE" : "FILES"}`}
                             </span>
                         )}
-                        <div className="folder-actions"></div>
                     </div>
                 </div>
 
-                {!isMobileView && (
-                    <div className="main-actions">
+                {
+                    <div className="main-actions" role="group" aria-label="Folder actions">
+                        <button
+                            type="button"
+                            className="btn share"
+                            aria-label="Share folder"
+                            onClick={() =>
+                                share({
+                                    kind: "folder",
+                                    name,
+                                    link: resourceLink(courseCode, folderId),
+                                })
+                            }
+                        >
+                            <span className="icon share-icon" aria-hidden="true" />
+                            <span className="text">Share</span>
+                        </button>
                         <button
                             className="btn download"
                             onClick={() => downloadAndSaveFolder(folderId, name)}
@@ -238,17 +219,21 @@ const FolderInfo = ({
                             disabled={isDownloading}
                         >
                             <span className="icon download-icon"></span>
-                            <span className="text">{isDownloading ? "Download" : "Download"}</span>
+                            <span className="text">
+                                {isDownloading ? "Preparing…" : "Download"}
+                            </span>
                         </button>
 
-                        {!isReadOnlyCourse && canDownload && (
+                        {canContribute && canDownload && (
                             <button className="btn primary" onClick={contributionHandler}>
                                 <span className="icon plus-icon"></span>
-                                <span className="text">{isBR ? "Add File" : "Contribute"}</span>
+                                <span className="text">
+                                    {canManage ? "Add File" : "Contribute"}
+                                </span>
                             </button>
                         )}
 
-                        {!isReadOnlyCourse && isBR && !canDownload && (
+                        {canManage && !canDownload && (
                             <button
                                 className="btn primary"
                                 onClick={handleCreateFolder}
@@ -261,13 +246,14 @@ const FolderInfo = ({
                             </button>
                         )}
                     </div>
-                )}
+                }
             </div>
 
-            <Share link={`${clientRoot}/browse/${courseCode}/${folderId}`} />
-            {!isMobileView && (
+            {
                 <ConfirmDialog
                     show={showConfirm}
+                    isLoading={isAdding}
+                    error={formError}
                     input={true}
                     inputValue={newFolderName}
                     onInputChange={(e) => setNewFolderName(e.target.value)}
@@ -276,7 +262,7 @@ const FolderInfo = ({
                     onConfirm={handleConfirmCreateFolder}
                     onCancel={() => setShowConfirm(false)}
                 />
-            )}
+            }
         </>
     );
 };

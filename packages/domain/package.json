@@ -1,0 +1,14 @@
+{
+    "name": "@coursehub/domain",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "exports": "./src/index.js",
+    "engines": {
+        "node": ">=24 <25",
+        "npm": ">=11 <12"
+    },
+    "dependencies": {
+        "papaparse": "5.7.0"
+    }
+}

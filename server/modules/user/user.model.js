@@ -1,24 +1,22 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from "../../config/mongoose.js";
 import Joi from "joi";
-import axios from "axios";
-import jwt from "jsonwebtoken";
-import config from "../../config/default.js";
-import logger from "../../utils/logger.js";
+import AppError from "../../utils/appError.js";
+import { graph } from "../../services/graphClient.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import { normalizeCourseCode } from "../../utils/course.js";
+import { courseReference, semesterReference } from "./courseReference.schema.js";
 
 const userSchema = Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     rollNumber: { type: Number, required: true, unique: true },
-    // branch: { type: String, required: true },
-    semester: { type: Number, reqiured: true },
+    semester: { type: Number, required: true, min: 1, validate: Number.isSafeInteger },
     degree: { type: String, required: true },
-    courses: { type: Array, default: [], required: true },
-    readOnly: {type: Array, default: []},
+    courses: { type: [courseReference], default: [], required: true },
+    readOnly: { type: [courseReference], default: [] },
     isBR: { type: Boolean },
-    previousCourses: { type: Array, default: [] },
-    department: { type: String, required: true }, //dup
+    previousCourses: { type: [semesterReference], default: [] },
+    department: { type: String, required: true },
     favourites: [
         {
             name: { type: String },
@@ -28,9 +26,15 @@ const userSchema = Schema({
         },
     ],
     deviceToken: { type: String, default: "" },
+    courseSync: {
+        operationId: String,
+        period: String,
+        historyPeriod: String,
+        lastSucceededAt: Date,
+    },
 });
 
-userSchema.pre("save", function (next) {
+userSchema.pre("save", function () {
     const user = this;
     if (
         user.isModified("courses") ||
@@ -40,38 +44,12 @@ userSchema.pre("save", function (next) {
         const courseCodes = new Set([
             ...user.courses.map((c) => normalizeCourseCode(c.code)),
             ...(user.previousCourses?.flatMap((sem) =>
-                sem.courses.map((c) => normalizeCourseCode(c.code))
+                sem.courses.map((c) => normalizeCourseCode(c.code)),
             ) || []),
         ]);
         user.readOnly = user.readOnly.filter((c) => !courseCodes.has(normalizeCourseCode(c.code)));
     }
-    next();
 });
-
-userSchema.methods.generateJWT = function () {
-    var user = this;
-    var token = jwt.sign(
-        { user: user._id, isBR: user.isBR },
-        config.jwtSecret,
-        {
-            expiresIn: "24d",
-        }
-    );
-    return token;
-};
-
-userSchema.statics.findByJWT = async function (token) {
-    try {
-        var user = this;
-        var decoded = jwt.verify(token, config.jwtSecret);
-        const id = decoded.user;
-        const fetchedUser = await user.findOne({ _id: id });
-        if (!fetchedUser) return false;
-        return fetchedUser;
-    } catch (error) {
-        return false;
-    }
-};
 
 const User = model("User", userSchema);
 export default User;
@@ -86,57 +64,50 @@ export const validateUser = function (obj) {
         degree: Joi.string().required(),
         courses: Joi.array().required(),
         isBR: Joi.boolean().optional(),
-        previousCourses: Joi.array().items(
-            Joi.object({
-                semester: Joi.number().required(),
-                year: Joi.number().required(),
-                courses: Joi.array().required()
-            })
-        ).required(),
+        previousCourses: Joi.array()
+            .items(
+                Joi.object({
+                    semester: Joi.number().required(),
+                    year: Joi.number().required(),
+                    courses: Joi.array().required(),
+                }),
+            )
+            .required(),
         department: Joi.string().required(),
         readOnly: Joi.array().required(),
     });
     return joiSchema.validate(obj);
 };
 export const updateUserData = async (userId, userData) => {
-    User.findOne({ _id: userId }, async (err, doc) => {
-        if (err) {
-            logger.error("User update failed", { attributes: { dependency: "mongodb", operation: "update-user", outcome: "failure", retryable: false } });
-        }
-        if (userData.newUserData.newUserName) {
-            doc.name = userData.newUserData.newUserName;
-            await doc.save();
-        } else if (userData.newUserData.newUserSem) {
-            doc.semester = userData.newUserData.newUserSem;
-            await doc.save();
-        }
-    });
+    const schema = Joi.object({
+        newUserName: Joi.string().trim().min(1).max(120),
+        newUserSem: Joi.number().integer().min(1).max(12),
+    })
+        .min(1)
+        .required();
+    const { value, error } = schema.validate(userData, { abortEarly: false });
+    if (error)
+        throw new AppError(
+            400,
+            "Check the profile fields",
+            "VALIDATION_FAILED",
+            Object.fromEntries(
+                error.details.map((detail) => [detail.path.join("."), detail.message]),
+            ),
+        );
+    const updates = {};
+    if (value.newUserName !== undefined) updates.name = value.newUserName;
+    if (value.newUserSem !== undefined) updates.semester = value.newUserSem;
+    const saved = await User.findByIdAndUpdate(
+        userId,
+        { $set: updates },
+        { returnDocument: "after", runValidators: true },
+    );
+    if (!saved) throw new AppError(404, "Profile not found");
+    return { name: saved.name, semester: saved.semester };
 };
 
-export const getUserFromToken = async function (access_token) {
-    try {
-        var config = {
-            method: "get",
-            url: "https://graph.microsoft.com/v1.0/me",
-            headers: {
-                Authorization: `Bearer ${access_token}`,
-            },
-        };
-        const response = await axios.get(config.url, {
-            headers: config.headers,
-        });
-
-        return response;
-    } catch (error) {
-        return false;
-    }
-};
-
-// export const findUserWithRollNumber = async function (rollNumber) {
-// 	const user = await User.findOne({ rollNumber: rollNumber });
-// 	if (!user) return false;
-// 	return user;
-// };
+export const getUserFromToken = (accessToken) => graph.request("me", { token: accessToken });
 
 export const findUserWithEmail = async function (email) {
     const normalizedEmail = email?.toString().trim().toLowerCase();
@@ -150,40 +121,12 @@ export const findUserWithEmail = async function (email) {
 };
 
 export const addToFavourites = async (userid, name, id, path, code) => {
-    const UserData = await User.findById(userid);
-    const favs = UserData.favourites;
-    const found = favs.find((item) => item.id === id);
-    if (found) return UserData;
-    UserData.favourites.push({
-        name: name,
-        id: id,
-        path: path,
-        code: code,
-    });
-    const updatedUser = await UserData.save();
-    return updatedUser;
-};
-export const AddNewCourse = async (userid, code, name) => {
-    const UserData = await User.findById(userid);
-    const normalizedCode = normalizeCourseCode(code);
-
-    if (UserData.courses.some((c) => normalizeCourseCode(c.code) === normalizedCode))
-        return UserData;
-
-    const color = getRandomColor();
-
-    // Remove from readOnly if present
-    UserData.readOnly = UserData.readOnly.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode
+    const updated = await User.findOneAndUpdate(
+        { _id: userid, "favourites.id": { $ne: id } },
+        { $push: { favourites: { id, name, path, code } } },
+        { returnDocument: "after", runValidators: true },
     );
-
-    UserData.courses.push({
-        code: normalizedCode,
-        name,
-        color,
-    });
-    const updatedUser = await UserData.save();
-    return updatedUser;
+    return updated || User.findById(userid);
 };
 
 export const AddReadOnlyCourse = async (userid, code, name) => {
@@ -195,13 +138,13 @@ export const AddReadOnlyCourse = async (userid, code, name) => {
 
     // Check if in courses
     const inCourses = UserData.courses.some(
-        (course) => normalizeCourseCode(course.code) === normalizedCode
+        (course) => normalizeCourseCode(course.code) === normalizedCode,
     );
     if (inCourses) return UserData;
 
     // Check if in previousCourses
     const inPrevious = UserData.previousCourses?.some((sem) =>
-        sem.courses.some((course) => normalizeCourseCode(course.code) === normalizedCode)
+        sem.courses.some((course) => normalizeCourseCode(course.code) === normalizedCode),
     );
     if (inPrevious) return UserData;
 
@@ -215,22 +158,11 @@ export const AddReadOnlyCourse = async (userid, code, name) => {
     return updatedUser;
 };
 
-export const RemoveCourse = async (userid, code) => {
-    const UserData = await User.findById(userid);
-    const normalizedCode = normalizeCourseCode(code);
-    let filtered = UserData.courses.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode
-    );
-    UserData.courses = filtered;
-    const updatedUser = await UserData.save();
-    return updatedUser;
-};
-
 export const RemoveReadOnly = async (userid, code) => {
     const UserData = await User.findById(userid);
     const normalizedCode = normalizeCourseCode(code);
     let filtered = UserData.readOnly.filter(
-        (course) => normalizeCourseCode(course.code) !== normalizedCode
+        (course) => normalizeCourseCode(course.code) !== normalizedCode,
     );
     UserData.readOnly = filtered;
     const updatedUser = await UserData.save();
@@ -241,7 +173,7 @@ export const removeFromFavourites = async (userid, fileid) => {
     const resp = await User.findOneAndUpdate(
         { _id: userid },
         { $pull: { favourites: { _id: fileid } } },
-        { new: true }
+        { returnDocument: "after" },
     );
     return resp;
 };

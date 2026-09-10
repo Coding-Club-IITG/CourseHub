@@ -1,7 +1,8 @@
-import mongoose from "mongoose";
+import mongoose from "../../config/mongoose.js";
 
 const CourseAllotmentSchema = new mongoose.Schema(
     {
+        fetchedAt: Date,
         rollNumber: {
             type: Number,
             required: true,
@@ -20,7 +21,7 @@ const CourseAllotmentSchema = new mongoose.Schema(
             required: true,
         },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 CourseAllotmentSchema.index({ rollNumber: 1, session: 1, year: 1 }, { unique: true });

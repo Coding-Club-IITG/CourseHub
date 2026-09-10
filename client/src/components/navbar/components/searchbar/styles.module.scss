@@ -1,0 +1,42 @@
+@use "@coursehub/ui/mixins" as ui;
+.search {
+    position: relative;
+}
+.field {
+    position: relative;
+    display: block;
+    color: var(--ch-muted);
+    svg {
+        position: absolute;
+        left: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+    input {
+        @include ui.field-control;
+        padding-left: 2.6rem;
+    }
+}
+.results {
+    @include ui.surface;
+    position: absolute;
+    z-index: var(--ch-z-dropdown);
+    top: calc(100% + 0.5rem);
+    width: 100%;
+    max-height: 50dvh;
+    overflow: auto;
+    padding: 0.75rem;
+    box-shadow: var(--ch-shadow-dialog);
+    a {
+        @include ui.control;
+        display: block;
+        padding: 0.75rem 0.5rem;
+        color: var(--ch-ink);
+        text-decoration: none;
+        overflow-wrap: anywhere;
+        &:hover {
+            background: var(--ch-warning-surface);
+        }
+    }
+}

@@ -1,0 +1,45 @@
+@use "@coursehub/ui/mixins" as ui;
+.section > :global(.container-content) {
+    @include ui.section-padding;
+}
+.content {
+    @include ui.typography;
+    @include ui.stack(1.5rem);
+    h2 {
+        margin: 0;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+}
+.list {
+    @include ui.stack(1rem);
+}
+.empty {
+    text-align: center;
+    p {
+        margin: 0 0 1rem;
+        color: var(--ch-muted);
+    }
+}
+.artwork,
+.brArtwork {
+    width: 100%;
+    height: clamp(180px, 30vw, 350px);
+    background: center/contain no-repeat;
+}
+.artwork {
+    background-image: url(./No-Contri-graphic.svg);
+}
+.brArtwork {
+    background-image: url(./No-BRcontri-graphic.png);
+}
+.refresh {
+    display: flex;
+    justify-content: center;
+}
+
+.state {
+    margin: 0;
+    padding: 1rem;
+}

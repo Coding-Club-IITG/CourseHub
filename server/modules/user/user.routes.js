@@ -1,32 +1,29 @@
+import isAuthenticated from "../../middleware/isAuthenticated.js";
 import { Router } from "express";
 import {
     getUser,
+    synchronizeCourses,
     addToFavouriteController,
     removeFromFavouritesController,
     updateUserController,
-    addNewCourse,
-    deleteCourse,
     updateDeviceToken,
     getFavouritesController,
     addReadOnly,
-    deleteReadOnly
-
+    deleteReadOnly,
 } from "./user.controller.js";
-import catchAsync from "../../utils/catchAsync.js";
+
 const router = Router();
+router.use(isAuthenticated);
 
-import isAuthenticated from "../../middleware/isAuthenticated.js";
+router.get("/", getUser);
+router.post("/synchronize", synchronizeCourses);
+router.put("/update", updateUserController);
 
-router.get("/", isAuthenticated, catchAsync(getUser));
-router.put("/update", isAuthenticated, catchAsync(updateUserController));
+router.get("/favourites", getFavouritesController);
+router.post("/favourites", addToFavouriteController);
 
-router.get("/favourites", isAuthenticated, catchAsync(getFavouritesController));
-router.post("/favourites", isAuthenticated, catchAsync(addToFavouriteController));
-
-router.delete("/favourites/:id", isAuthenticated, catchAsync(removeFromFavouritesController));
-router.post("/course", isAuthenticated, catchAsync(addNewCourse));
-router.post("/readonly", isAuthenticated, catchAsync(addReadOnly))
-router.delete("/course/:code", isAuthenticated, catchAsync(deleteCourse));
-router.delete("/readonly/:code", isAuthenticated, catchAsync(deleteReadOnly));
-router.put("/devicetoken", isAuthenticated, catchAsync(updateDeviceToken));
+router.delete("/favourites/:id", removeFromFavouritesController);
+router.post("/readonly", addReadOnly);
+router.delete("/readonly/:code", deleteReadOnly);
+router.put("/devicetoken", updateDeviceToken);
 export default router;

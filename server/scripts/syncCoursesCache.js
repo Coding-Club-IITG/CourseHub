@@ -1,59 +1,26 @@
-import { randomUUID } from "node:crypto";
+import "dotenv/config";
 import { fileURLToPath } from "node:url";
-import path from "node:path";
-import mongoose from "mongoose";
-import axios from "axios";
-import qs from "qs";
-import dotenv from "dotenv";
+import mongoose from "../config/mongoose.js";
 import config from "../config/default.js";
-import academic from "../config/academic.js";
-import CourseAllotment from "../modules/course/courseAllotment.model.js";
-import { lifecycleLogger, flushLogging, getCorrelationId } from "../utils/logger.js";
-import { parseCourseAllotmentsFromHtml } from "../utils/course.js";
+import { scheduleAcademicRefresh } from "../services/academicSync.js";
+import { OperationModel } from "../modules/operation/operation.model.js";
 
-const __filename = fileURLToPath(import.meta.url);
-dotenv.config({ path: path.join(path.dirname(__filename), "../.env") });
-
-export async function runSync({ correlationId = getCorrelationId() || randomUUID() } = {}) {
-    lifecycleLogger.info("Course cache job started", { correlationId, attributes: { jobName: "course-cache", operation: "course-cache-sync", outcome: "started" } });
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
     try {
-        const response = await axios.post(
-            "https://academic.iitg.ac.in/sso/gen/student1.jsp",
-            qs.stringify({ cid: "All", sess: academic.session, yr: academic.currentYear }),
-            { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 60000 }
-        );
-        if (!response.data) throw new Error("Academic portal returned no data");
-        const allotments = parseCourseAllotmentsFromHtml(response.data);
-        const bulkOps = Object.keys(allotments).map((roll) => ({
-            updateOne: {
-                filter: { rollNumber: Number.parseInt(roll), session: academic.session, year: academic.currentYear },
-                update: { $set: { courses: allotments[roll] } },
-                upsert: true,
-            },
-        }));
-        if (bulkOps.length) {
-            await CourseAllotment.bulkWrite(bulkOps);
-            lifecycleLogger.info("Course cache job completed", { correlationId, attributes: { dependency: "mongodb", jobName: "course-cache", operation: "course-cache-sync", outcome: "success" } });
-        } else {
-            lifecycleLogger.warn("Course cache job produced no updates", { correlationId, attributes: { dependency: "academic-portal", jobName: "course-cache", operation: "course-cache-sync", outcome: "empty" } });
-        }
+        const args = process.argv.slice(2);
+        if (args.length !== 2 || args[0] !== "--database" || !/^[a-zA-Z0-9_-]+$/.test(args[1]))
+            throw new Error(
+                "Use --database <explicit-target>. This schedules an upstream refresh for the running API worker.",
+            );
+        await mongoose.connect(config.mongoURI, { dbName: args[1] });
+        await OperationModel.createIndexes();
+        console.log(JSON.stringify(await scheduleAcademicRefresh()));
     } catch (error) {
-        lifecycleLogger.error("Course cache job failed", { error, correlationId, attributes: { dependency: "academic-portal", jobName: "course-cache", operation: "course-cache-sync", outcome: "failure", retryable: true } });
-        throw error;
-    }
-}
-
-if (process.argv[1] === __filename) {
-    const correlationId = randomUUID();
-    let exitCode = 0;
-    try {
-        await mongoose.connect(config.mongoURI);
-        await runSync({ correlationId });
-    } catch {
-        exitCode = 1;
+        console.error(
+            "Academic refresh could not be queued. Check MONGO_URI and --database <explicit-target>; a worker on that database must be running.",
+        );
+        process.exitCode = 1;
     } finally {
         await mongoose.disconnect();
-        await flushLogging();
-        process.exit(exitCode);
     }
 }

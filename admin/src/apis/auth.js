@@ -1,30 +1,22 @@
+import { apiFetch, setCsrfToken } from "./http";
 import { API_BASE_URL } from "./server.js";
-
+import { session } from "../session";
 export async function adminLogin({ userId, password }) {
-    const res = await fetch(`${API_BASE_URL}api/admin/auth/login`, {
+    const res = await apiFetch(API_BASE_URL + "api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ userId, password }),
     });
-    if (!res.ok) throw new Error("Login failed");
-    return res.json();
+    const data = await res.json();
+    setCsrfToken(data.csrfToken);
+    await session.refresh();
+    return data;
 }
-
 export async function adminLogout() {
-    const res = await fetch(`${API_BASE_URL}api/admin/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-    });
-    if (!res.ok) throw new Error("Logout failed");
-    return res.json();
-}
-
-export async function checkAdminSession() {
-    const res = await fetch(`${API_BASE_URL}api/admin/`, {
-        credentials: "include",
-        headers: { Authorization: "Bearer admin-coursehub-cc23-golang" },
-    });
-    // Even though server uses middleware isAdmin with JWT, some older routes may still accept header; cookie is primary.
-    return res.ok;
+    try {
+        await apiFetch(API_BASE_URL + "api/admin/auth/logout", { method: "POST" });
+    } catch (error) {
+        if (error.status !== 401) throw error;
+    }
+    session.clear();
 }

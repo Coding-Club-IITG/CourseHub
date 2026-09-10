@@ -1,46 +1,26 @@
-@font-face {
-    font-family: "Light";
-    src: local("ProximaNovaThin"), url("./fonts/ProximaNovaThin.otf") format("opentype");
-}
-@font-face {
-    font-family: "Regular";
-    src: local("ProximaNovaRegular"), url("./fonts/ProximaNovaRegular.otf") format("opentype");
-}
-@font-face {
-    font-family: "Black";
-    src: local("ProximaNovaBlack"), url("./fonts/ProximaNovaBlack.otf") format("opentype");
-}
-@font-face {
-    font-family: "Bold";
-    src: local("ProximaNovaBold"), url("./fonts/ProximaNovaBold.otf") format("opentype");
-}
-
 * {
     margin: 0;
     padding: 0;
     list-style: none;
     box-sizing: border-box;
-    font-family: "Regular";
 }
 
-
-.toast-container .Toastify__toast {
-    border-radius: 8px;
-    min-height: 50px;
-    font-family: "Regular", sans-serif;
+body {
+    font-family: var(--ch-font-body);
+    font-size: var(--ch-text-body);
+    line-height: 1.5;
+    color: var(--ch-ink);
 }
 
-.toast-container .Toastify__toast--loading {
-    background-color: #f3f4f6;
-    color: #374151;
+button,
+input,
+select,
+textarea {
+    font: inherit;
 }
 
-
-@media screen and (max-width: 768px) {
-    .toast-container .Toastify__toast {
-        margin-bottom: 0.5rem;
-        font-size: 14px;
-    }
+a {
+    color: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {

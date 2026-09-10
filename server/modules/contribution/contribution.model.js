@@ -1,8 +1,9 @@
-import mongoose, { model, mongo, Schema } from "mongoose";
-import User from "../user/user.model.js";
+import { model, Schema } from "../../config/mongoose.js";
 
 const ContributionSchema = Schema(
     {
+        operationId: String,
+        deletingOperation: String,
         contributionId: { type: String },
         uploadedBy: { type: String },
         courseCode: { type: String },
@@ -11,22 +12,8 @@ const ContributionSchema = Schema(
         approved: { type: Boolean, default: false },
         description: { type: String },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
-
-ContributionSchema.pre("save", async function (next) {
-    try {
-        if (this.uploadedBy) {
-            const user = await User.findById(this.uploadedBy);
-            if (user && user.isBR) {
-                this.approved = true;
-            }
-        }
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
 
 const Contribution = model("Contribution", ContributionSchema);
 

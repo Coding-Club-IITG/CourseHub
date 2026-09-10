@@ -1,20 +1,18 @@
+import { useCourseBrowser } from "../../../../../../queries/browserContext";
 import { useState } from "react";
+import { Icon } from "@coursehub/ui";
 import FolderController from "../folder-controller";
 
-import "./styles.scss";
+import styles from "./styles.module.scss";
 
-import { useDispatch, useSelector } from "react-redux";
-
-import { ChangeFolder } from "../../../../../../actions/filebrowser_actions";
 import { useEffect } from "react";
 import { getSubtreeFileCount } from "../../../../../../utils/folderUtils";
 
 import { useNavigate } from "react-router-dom";
 
 const Folder = ({ folder, state }) => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const _state = useSelector((state) => state.fileBrowser);
+    const _state = useCourseBrowser();
     const [open, setOpen] = useState(state ? state : false);
     const fileCount = getSubtreeFileCount(folder);
 
@@ -24,7 +22,6 @@ const Folder = ({ folder, state }) => {
     };
 
     const onClick = (folderData) => {
-        dispatch(ChangeFolder(folderData));
         setOpen(true);
         if (_state.currentCourseCode && folderData?._id) {
             navigate(`/browse/${_state.currentCourseCode}/${folderData._id}`);
@@ -32,13 +29,13 @@ const Folder = ({ folder, state }) => {
     };
 
     useEffect(() => {
-        if (!open && _state?.currentFolder?._id === folder._id) {
+        if (_state?.currentFolder?._id === folder._id) {
             setOpen(true);
         }
-    }, [_state.currentFolder]);
+    }, [_state.currentFolder?._id, folder._id]);
 
     return (
-        <div className={`main-folder ${open}`}>
+        <div className={`${styles.root} main-folder ${open}`}>
             <div className="folder-vertical-line">
                 <span className="up"></span>
                 <span className="down"></span>
@@ -48,26 +45,30 @@ const Folder = ({ folder, state }) => {
                     <div className="horizontal-line"></div>
                     <div
                         className={`text-content ${
-                            folder._id === _state?.currentFolder?._id
-                                ? "current"
-                                : ""
+                            folder._id === _state?.currentFolder?._id ? "current" : ""
                         }`}
                     >
-                        <span
-                            className={`text ${
-                                folder.childType === "File" && "nobold"
-                            }`}
+                        <button
+                            type="button"
+                            className={`text ${folder.childType === "File" && "nobold"}`}
+                            aria-current={
+                                folder._id === _state.currentFolder?._id ? "page" : undefined
+                            }
                             onClick={() => onClick(folder)}
                         >
                             {folder.name}
                             <span className="tree-file-count">({fileCount})</span>
-                        </span>
-                        <span
-                            className={`${
-                                folder.childType !== "File" ? "triangle" : ""
-                            }`}
-                            onClick={closeFolder}
-                        ></span>
+                        </button>
+                        {folder.childType !== "File" && open && (
+                            <button
+                                type="button"
+                                aria-label={`Collapse ${folder.name}`}
+                                className={`${folder.childType !== "File" ? "triangle" : ""}`}
+                                onClick={closeFolder}
+                            >
+                                <Icon name="chevron" />
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="children">

@@ -1,29 +1,17 @@
-import axios from "axios";
-import serverRoot from "./server";
-import { Children } from "react";
-const API = axios.create({
-    baseURL: `${serverRoot}/api`,
-    withCredentials: true,
-});
-API.interceptors.request.use((req) => {
-    const user = JSON.parse(localStorage.getItem("profile"));
-    if (user) req.headers.Authorization = `Bearer ${user.token}`;
-    return req;
-});
+import { transport } from "./http";
+import { waitForOperation } from "./Operation";
 
-export const addYear = async ({ name, course }) => {
-    const { data } = await API.post("/year", {
-        name,
-        course,
-        childType: "Folder",
-        Children: [],
+export const addYear = ({ name, course }) =>
+    transport.json("year", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, course, childType: "Folder", Children: [] }),
     });
-    return data;
-};
-
-export const deleteYear = async ({ folder, courseCode }) => {
-    const { data } = await API.delete("/year/delete", {
-        data: { folder, courseCode },
+export const deleteYear = async ({ folderId, courseCode }) => {
+    const data = await transport.json("year/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderId, courseCode }),
     });
-    return data;
+    return waitForOperation(data);
 };

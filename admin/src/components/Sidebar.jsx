@@ -1,86 +1,109 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { Brand, Button, Dialog, IconButton } from "@coursehub/ui";
+import { FaBook, FaLayerGroup, FaLink, FaUserGraduate, FaBars } from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
-
-const navItems = [
-    { label: "Students", to: "/admin/students", icon: FaUserGraduate },
-    { label: "Courses", to: "/admin/courses", icon: FaBook },
-    { label: "Course Linking", to: "/admin/course-linking", icon: FaLink },
-    { label: "Courses Without BR", to: "/admin/courses-without-br", icon: FaExclamationTriangle },
+import styles from "./Sidebar.module.scss";
+const items = [
+    ["Operations", "/admin/operations", FaLayerGroup],
+    ["Students", "/admin/students", FaUserGraduate],
+    ["Courses", "/admin/courses", FaBook],
+    ["Course Linking", "/admin/course-linking", FaLink],
 ];
-
-const Sidebar = () => {
+function Navigation({ onNavigate }) {
     const location = useLocation();
-
-    const handleLogout = async () => {
+    return (
+        <nav className={styles.links} aria-label="Administrator navigation">
+            {items.map(([label, to, Icon]) => (
+                <NavLink
+                    key={to}
+                    to={label === "Students" && location.pathname === "/admin/" ? "/admin/" : to}
+                    className={
+                        location.pathname === "/admin/" && label === "Students"
+                            ? styles.active
+                            : undefined
+                    }
+                    aria-current={
+                        location.pathname === "/admin/" && label === "Students" ? "page" : undefined
+                    }
+                    onClick={onNavigate}
+                >
+                    <Icon aria-hidden="true" />
+                    <span>{label}</span>
+                </NavLink>
+            ))}
+        </nav>
+    );
+}
+export default function Sidebar() {
+    const [open, setOpen] = useState(false),
+        [busy, setBusy] = useState(false),
+        [error, setError] = useState(""),
+        trigger = useRef(null);
+    useEffect(() => {
+        const media = window.matchMedia("(min-width:1025px)");
+        const resize = () => {
+            if (media.matches) setOpen(false);
+        };
+        media.addEventListener("change", resize);
+        return () => media.removeEventListener("change", resize);
+    }, []);
+    const logout = async () => {
+        if (busy) return;
+        setBusy(true);
+        setError("");
         try {
             await adminLogout();
-        } catch (err) {
-            console.error("Logout failed", err);
+            window.location.href = "/admin/login";
+        } catch {
+            setError("Could not log out. Please try again.");
+        } finally {
+            setBusy(false);
         }
-        window.location.href = "/admin/login";
     };
-
-    return (
-        <aside className="h-screen w-72 sticky top-0 bg-white/80 backdrop-blur-sm border-r border-gray-200/60 shadow-lg hidden md:flex md:flex-col">
-            {/* Brand */}
-            <div className="px-6 py-5 border-b border-gray-200/60">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
-                        <FaLayerGroup className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                        <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                            Admin
-                        </div>
-                        <div className="text-xs text-gray-500">CourseHub</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Nav */}
-            <nav className="flex-1 overflow-y-auto px-3 py-4">
-                <ul className="space-y-1.5">
-                    {navItems.map(({ label, to, icon: Icon }) => {
-                        const isActive = location.pathname === to;
-                        return (
-                            <li key={to}>
-                                <Link
-                                    to={to}
-                                    className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 border ${
-                                        isActive
-                                            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-md"
-                                            : "bg-white/70 hover:bg-blue-50/80 text-gray-700 border-gray-200/60"
-                                    }`}
-                                >
-                                    <Icon
-                                        className={`h-4 w-4 ${
-                                            isActive
-                                                ? "text-white"
-                                                : "text-blue-700/70 group-hover:text-blue-800"
-                                        }`}
-                                    />
-                                    <span className="text-sm font-medium">{label}</span>
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </nav>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200/60 text-xs text-gray-500 flex items-center justify-between">
-                <span>© {new Date().getFullYear()} CourseHub</span>
-                <button
-                    onClick={handleLogout}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                    Logout
-                </button>
-            </div>
-        </aside>
+    const footer = (
+        <div className={styles.footer}>
+            {error && <p role="alert">{error}</p>}
+            <Button variant="primary" busy={busy} busyLabel="Logging out…" onClick={logout}>
+                Logout
+            </Button>
+        </div>
     );
-};
-
-export default Sidebar;
+    return (
+        <>
+            <aside className={styles.sidebar}>
+                <Link className={styles.brand} to="/admin/">
+                    <Brand />
+                    <small>Administration</small>
+                </Link>
+                <Navigation />
+                {footer}
+            </aside>
+            <header className={styles.mobile}>
+                <Link className={styles.brand} to="/admin/">
+                    <Brand />
+                </Link>
+                <IconButton
+                    ref={trigger}
+                    label="Open navigation"
+                    aria-expanded={open}
+                    onClick={() => setOpen(true)}
+                >
+                    <FaBars />
+                </IconButton>
+            </header>
+            <Dialog
+                open={open}
+                onOpenChange={setOpen}
+                title="Navigation"
+                className={styles.drawer}
+                bodyClassName={styles.drawerBody}
+                footer={footer}
+                busy={busy}
+                returnFocusRef={trigger}
+            >
+                <Navigation onNavigate={() => setOpen(false)} />
+            </Dialog>
+        </>
+    );
+}

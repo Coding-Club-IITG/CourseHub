@@ -1,54 +1,28 @@
+import { loginDestination } from "../../utils/loginDestination";
 import MicrosoftSignIn from "./components/microsoftbutton";
-import SearchCourseButton from "./components/searchcoursebtn";
 import "./styles.scss";
-import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { LoginUser, LogoutUser } from "../../actions/user_actions";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { getUser, handleLogin } from "../../api/User";
-import AddCourseModal from "./components/searchcoursemodal";
+import { Navigate } from "react-router-dom";
+import { handleLogin } from "../../api/User";
+import { useSession } from "../../session/context";
 import Loader from "../../components/Loader";
-import { clearLegacySessionLocalCoursesCache } from "../../utils/frontendCache";
-
+import { RequestError } from "@coursehub/browser/react";
 const LandingPage = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        clearLegacySessionLocalCoursesCache();
-    }, []);
-
-    const searchCourseShowModalHandler = (event) => {
-        const collection = document.getElementsByClassName("add_modal");
-        const contributionSection = collection[0];
-        contributionSection.classList.add("show");
-    };
-    useEffect(() => {
-        async function getAuth() {
-            try {
-                const { data } = await getUser();
-                if (!data) {
-                    dispatch(LogoutUser());
-                    setLoading(false);
-                    return;
-                }
-                if (data.needsCourseSync) {
-                    setLoading(false);
-                    return navigate("/loading");
-                }
-                dispatch(LoginUser(data));
-                setLoading(false);
-                navigate(`/dashboard`);
-            } catch (error) {
-                dispatch(LogoutUser());
-                setLoading(false);
-            }
-        }
-        getAuth();
-    }, []);
-
+    const result = useSession();
+    if (result.data)
+        return (
+            <Navigate
+                to={loginDestination(new URLSearchParams(window.location.search).get("returnTo"))}
+                replace
+            />
+        );
+    if (result.isError)
+        return (
+            <RequestError
+                title="We couldn’t check your session. Please try again."
+                onRetry={result.refetch}
+            />
+        );
+    const loading = result.isPending;
     return loading ? (
         <div
             style={{
@@ -78,12 +52,10 @@ const LandingPage = () => {
                         </div>
                         <div className="btn-container">
                             <MicrosoftSignIn setClicked={handleLogin} />
-                            
                         </div>
                     </div>
                 </div>
             </section>
-            <AddCourseModal />
         </>
     );
 };

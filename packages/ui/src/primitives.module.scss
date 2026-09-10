@@ -1,0 +1,345 @@
+@use "styles/mixins" as *;
+.button {
+    @include typography;
+    @include control;
+    @include interactive;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--ch-space-2);
+    padding: 0.55rem 1rem;
+    border: 1px solid transparent;
+    background: var(--ch-yellow);
+    color: var(--ch-ink);
+    box-shadow: var(--ch-shadow-control);
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    &:hover:not(:disabled) {
+        background: var(--ch-yellow-hover);
+        box-shadow: var(--ch-shadow-control-hover);
+    }
+    &[data-variant="secondary"],
+    &[data-variant="outline"] {
+        border-color: var(--ch-control-border);
+        background: var(--ch-paper);
+        color: var(--ch-ink);
+        &:hover:not(:disabled) {
+            background: var(--ch-surface);
+        }
+    }
+    &[data-variant="dark"] {
+        background: var(--ch-black);
+        color: var(--ch-paper);
+        &:hover:not(:disabled) {
+            background: var(--ch-ink);
+        }
+    }
+    &[data-variant="danger"],
+    &[data-variant="destructive"] {
+        background: var(--ch-danger);
+        color: var(--ch-paper);
+        &:hover:not(:disabled) {
+            background: var(--ch-danger-hover);
+        }
+    }
+    &[data-variant="ghost"],
+    &[data-variant="link"] {
+        background: transparent;
+        color: inherit;
+        box-shadow: none;
+        &:hover:not(:disabled) {
+            @include tinted-hover;
+            box-shadow: none;
+        }
+    }
+    &[data-variant="link"] {
+        padding-inline: 0.25rem;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+    }
+    &:disabled {
+        background: var(--ch-disabled-surface);
+        color: var(--ch-disabled-ink);
+        border-color: var(--ch-border);
+        box-shadow: none;
+    }
+    &[data-variant="ghost"]:disabled,
+    &[data-variant="link"]:disabled {
+        background: transparent;
+        border-color: transparent;
+        opacity: 0.55;
+        color: inherit;
+    }
+    &[data-size="sm"] {
+        font-size: var(--ch-text-small);
+        padding-block: 0.4rem;
+        padding-inline: 0.75rem;
+    }
+    svg {
+        flex-shrink: 0;
+    }
+}
+.iconButton {
+    width: var(--ch-target);
+    flex-shrink: 0;
+    padding: 0.5rem;
+    &[data-size="sm"] {
+        width: var(--ch-target-compact);
+        min-width: var(--ch-target-compact);
+        min-height: var(--ch-target-compact);
+        height: var(--ch-target-compact);
+        padding: 0;
+        border-radius: var(--ch-radius-sm);
+        &,
+        &:hover,
+        &:active {
+            transform: none;
+        }
+        svg,
+        img {
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+.field {
+    @include typography;
+    @include stack(var(--ch-space-2));
+    color: var(--ch-ink);
+    label {
+        font-weight: 700;
+    }
+}
+.input {
+    @include field-control;
+}
+.hint {
+    margin: 0;
+    color: var(--ch-muted);
+    font-size: var(--ch-text-small);
+    overflow-wrap: anywhere;
+}
+.fieldError {
+    margin: 0;
+    color: var(--ch-danger);
+    overflow-wrap: anywhere;
+}
+.badge {
+    @include typography;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ch-space-1);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--ch-radius-pill);
+    background: var(--ch-surface);
+    color: var(--ch-ink);
+    font-size: var(--ch-text-small);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    @each $tone in success, danger, warning, info {
+        &[data-tone="#{$tone}"] {
+            background: var(--ch-#{$tone}-surface);
+            color: var(--ch-#{$tone});
+        }
+    }
+}
+// Card shell
+.card {
+    @include card;
+    @include stack(var(--ch-space-2));
+    padding: var(--ch-space-4);
+    background: var(--ch-paper);
+    color: var(--ch-ink);
+    border: 1px solid var(--ch-border);
+    &[data-interactive="true"] {
+        @include card-interactive;
+    }
+    &[data-tone="bare"] {
+        border-color: transparent;
+    }
+}
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ch-space-2);
+    min-width: 0;
+}
+.cardCode {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 3px 6px;
+    border-radius: var(--ch-radius-sm);
+    background: var(--ch-ink);
+    color: var(--ch-paper);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.cardPill {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border: 1px solid currentColor;
+    border-radius: var(--ch-radius-sm);
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.cardTitle {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+.cardDetails {
+    @include stack(3px);
+    padding: 6px 8px;
+    border-radius: var(--ch-radius-sm);
+    background: color-mix(in srgb, var(--ch-paper) 65%, transparent);
+}
+.cardDetailRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ch-space-2);
+    font-size: 0.78rem;
+    dt {
+        color: var(--ch-muted);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    dd {
+        margin: 0;
+        font-weight: 700;
+    }
+}
+.state {
+    @include typography;
+    @include surface;
+    @include stack(var(--ch-space-3));
+    @include enters($duration: var(--ch-duration-base), $easing: var(--ch-ease-entrance));
+    align-items: flex-start;
+    margin: var(--ch-space-6);
+    padding: var(--ch-space-6);
+    overflow-wrap: anywhere;
+    p {
+        margin: 0;
+    }
+}
+.state[data-plain="true"] {
+    margin: 0;
+    padding: var(--ch-space-6) 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.stateTitle {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+.illustration {
+    align-self: center;
+    max-width: 100%;
+    img,
+    svg {
+        max-width: 100%;
+        height: auto;
+    }
+}
+.spinner {
+    @include spinner;
+}
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--ch-z-overlay);
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    overflow-y: auto;
+    background: #0009;
+    backdrop-filter: blur(4px);
+    &[data-state="open"] {
+        animation: var(--ch-anim-fade-in) var(--ch-duration-base) var(--ch-ease-entrance);
+    }
+}
+.dialog {
+    @include typography;
+    @include surface;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: var(--ch-z-dialog);
+    width: min(100%, 36rem);
+    max-height: calc(100dvh - 2rem);
+    box-shadow: var(--ch-shadow-dialog);
+    min-height: 0;
+    outline: none;
+    &[data-state="open"] {
+        animation: var(--ch-anim-pop-in) var(--ch-duration-base) var(--ch-ease-entrance);
+    }
+    @include below(small) {
+        width: 100%;
+    }
+}
+.dialogHeader {
+    flex: none;
+    padding: var(--ch-space-6);
+    padding-bottom: var(--ch-space-4);
+    position: relative;
+}
+.dialogTitle {
+    margin: 0;
+    padding-right: 2.5rem;
+    font-size: var(--ch-text-title);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.dialogDescription {
+    margin: 0.5rem 0 0;
+    color: var(--ch-muted);
+    overflow-wrap: anywhere;
+}
+.dialogClose {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+}
+.dialogBody {
+    padding: 0 var(--ch-space-6) var(--ch-space-5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+    overflow-wrap: anywhere;
+}
+.dialogFooter {
+    @include actions;
+    justify-content: flex-end;
+    flex: none;
+    padding: var(--ch-space-4) var(--ch-space-6);
+    border-top: 1px solid var(--ch-border);
+}
+.brand {
+    font-family: var(--ch-font-body);
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.visuallyHidden {
+    @include visually-hidden;
+}

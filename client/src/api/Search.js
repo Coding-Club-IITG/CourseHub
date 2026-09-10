@@ -1,16 +1,9 @@
-import axios from "axios";
-import serverRoot from "./server";
+import { transport } from "./http";
 
-export const GetSearchResult = async (wordArr) => {
-    const fetched = await axios.post(`${serverRoot}/api/search`, {
-        words: wordArr,
+export const GetSearchResult = (words, signal) =>
+    transport.json("search", {
+        method: "POST",
+        signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ words }),
     });
-    return fetched;
-};
-
-export const IsCourseAvailable = async (code) => {
-    const fetched = await axios.post(`${serverRoot}/api/search/isavailable`, {
-        code: code,
-    });
-    return fetched;
-};

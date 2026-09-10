@@ -1,0 +1,144 @@
+@use "@coursehub/ui/mixins" as ui;
+.layout {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) minmax(0, 1fr) 164px;
+    grid-template-areas: "sidebar main years";
+    width: 100%;
+    min-height: calc(100dvh - var(--ch-navbar-height));
+    --browse-inline: 1.5rem;
+}
+.sidebar {
+    grid-area: sidebar;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: calc(100dvh - var(--ch-navbar-height));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    border-right: 1px solid var(--ch-border);
+    min-width: 0;
+    h2 {
+        padding: 0.75rem 1.25rem;
+        background: var(--ch-yellow);
+        color: var(--ch-ink);
+        font-size: 1.125rem;
+    }
+    summary {
+        @include ui.control;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ch-space-2);
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--ch-muted);
+        cursor: pointer;
+        list-style: none;
+        &::-webkit-details-marker {
+            display: none;
+        }
+        &:hover {
+            background: var(--ch-surface);
+            color: var(--ch-ink);
+        }
+        svg {
+            flex: 0 0 auto;
+            transform: rotate(-90deg);
+            transition: transform var(--ch-duration-fast) ease;
+        }
+        &:focus-visible {
+            outline-offset: -2px;
+        }
+    }
+    details[open] > summary svg {
+        transform: rotate(0deg);
+    }
+}
+.main {
+    grid-area: main;
+    min-width: 0;
+}
+.years {
+    grid-area: years;
+    border-inline-start: 1px solid var(--ch-border);
+    background: var(--ch-black);
+    color: var(--ch-paper);
+    min-width: 0;
+}
+.mobileSelection {
+    display: none;
+}
+.files {
+    @include ui.actions;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem var(--browse-inline);
+}
+.back {
+    padding: 0.75rem var(--browse-inline) 0;
+}
+.backButton {
+    @include ui.enters($duration: var(--ch-duration-base), $easing: var(--ch-ease-entrance));
+    gap: 0.35rem;
+    margin-inline-start: -0.75rem;
+    svg {
+        transition: transform var(--ch-duration-fast) ease;
+    }
+    &:hover svg {
+        transform: translateX(-3px);
+    }
+}
+.empty {
+    width: 100%;
+    padding: 0;
+    > p {
+        font-size: 1.125rem;
+        font-weight: 400;
+        color: var(--ch-muted);
+    }
+}
+@include ui.below(tablet) {
+    .layout {
+        grid-template-columns: 220px minmax(0, 1fr) 140px;
+    }
+}
+@include ui.below(mobile) {
+    .layout {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        --browse-inline: var(--ch-gutter);
+    }
+    .sidebar {
+        display: none;
+    }
+    .mobileSelection {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        gap: 0.75rem;
+        padding: 1rem var(--browse-inline);
+    }
+    .files {
+        gap: 0.75rem;
+        padding: 1rem var(--browse-inline);
+    }
+    .empty {
+        text-align: center;
+    }
+    .years {
+        border-inline-start: 0;
+        border-block-end: 1px solid var(--ch-border);
+        background: var(--ch-paper);
+        color: var(--ch-ink);
+    }
+}
+@include ui.below(small) {
+    .files {
+        gap: 0.5rem;
+    }
+}

@@ -1,0 +1,100 @@
+@use "@coursehub/ui/mixins" as ui;
+.uploadDialog {
+    font-size: 0.9375rem;
+    .upload-summary {
+        margin: 0 0 0.25rem;
+        font-weight: 700;
+    }
+    .upload-results ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .upload-results li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.3rem 0.75rem;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #e8e8e8;
+    }
+    .upload-results strong {
+        font-size: 0.75rem;
+        font-weight: 700;
+        align-self: start;
+        max-width: 7.5rem;
+        text-align: right;
+        color: var(--ch-muted);
+    }
+    [data-state="completed"] strong {
+        color: var(--ch-success);
+    }
+    [data-state="failed"] strong {
+        color: var(--ch-danger);
+    }
+    .upload-file-name {
+        overflow-wrap: anywhere;
+    }
+    .upload-results .upload-error,
+    .upload-results progress {
+        grid-column: 1 / -1;
+    }
+    .upload-results progress {
+        width: 100%;
+        height: 0.5rem;
+        accent-color: #9b741b;
+    }
+    .upload-hint,
+    .upload-limits {
+        margin: 0.75rem 0 0;
+        font-size: 0.8125rem;
+        color: var(--ch-muted);
+    }
+    .upload-error {
+        color: var(--ch-danger);
+        font-size: 0.8125rem;
+        overflow-wrap: anywhere;
+    }
+    .upload-picker:not([hidden]) {
+        margin-top: 0.75rem;
+    }
+    .upload-picker .upload-hint {
+        margin: 0 0 0.5rem;
+    }
+    :global(.filepond--root) {
+        max-height: 12rem;
+        margin: 0;
+        font-family: inherit;
+    }
+    :global(.filepond--drop-label) {
+        color: var(--ch-muted);
+    }
+    :global(.filepond--credits) {
+        display: none;
+    }
+    .upload-actions {
+        justify-content: flex-start;
+    }
+    .upload-close {
+        margin-left: auto;
+    }
+    .upload-text-button {
+        @include ui.control;
+        padding: 0.5rem;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    @include ui.below(small) {
+        .upload-primary {
+            flex: 1 0 100%;
+        }
+        .upload-body {
+            padding-inline: 1rem;
+        }
+        .upload-actions {
+            padding: 0.75rem 1rem;
+        }
+    }
+}
