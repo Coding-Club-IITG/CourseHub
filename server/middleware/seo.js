@@ -2,20 +2,31 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import CourseModel from "../modules/course/course.model.js";
+import config from "../config/default.js";
+const courseCache = new Map(); 
+const CACHE_TTL_MS = 60 * 60 * 1000; 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BASE_URL = "https://coursehub.codingclub.in";
+const BASE_URL =
+    config.clientURL || "https://coursehub.codingclub.in";
 
 const INDEX_HTML_PATH =
     process.env.INDEX_HTML_PATH ||
     path.resolve(__dirname, "../static/index.html");
 
 let cachedIndexHtml = null;
+let cachedIndexHtmlAt = 0;
+const INDEX_HTML_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function getIndexHtml() {
-    if (!cachedIndexHtml) {
+    const now = Date.now();
+    if (
+        !cachedIndexHtml ||
+        now - cachedIndexHtmlAt >= INDEX_HTML_CACHE_TTL_MS
+    ) {
         try {
             cachedIndexHtml = fs.readFileSync(INDEX_HTML_PATH, "utf-8");
+            cachedIndexHtmlAt = now;
         } catch {
             return null;
         }
@@ -24,7 +35,7 @@ function getIndexHtml() {
 }
 
 const BOT_UA_REGEX =
-    /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|facebookexternalhit|twitterbot|discordbot|whatsapp|telegrambot|linkedinbot|slackbot|applebot|ia_archiver|msnbot|ahrefsbot|semrushbot|dotbot|rogerbot|360spider|sogou/i;
+    /googlebot|google-inspectiontool|chrome-lighthouse|storebot-google|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|facebookexternalhit|twitterbot|discordbot|whatsapp|telegrambot|linkedinbot|slackbot|applebot|ia_archiver|msnbot|ahrefsbot|semrushbot|dotbot|rogerbot|360spider|sogou|bytespider/i;
 
 function isBot(userAgent) {
     if (!userAgent) return false;
@@ -86,16 +97,17 @@ function injectCourseMetaTags(html, course) {
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
     <meta name="twitter:image" content="${ogImage}" />
+    <link rel="canonical" href="${courseUrl}" />
     <script type="application/ld+json">${jsonLd}</script>`;
 
     let modified = html.replace(
-        /<title>CourseHub<\/title>/i,
-        `<title>${title}</title>`,
+        /<title[^>]*>[\s\S]*?<\/title>/i,
+        () => `<title>${title}</title>`,
     );
 
     modified = modified.replace(
         /<meta\s+name="description"[^>]*\/?>/i,
-        injectedBlock,
+        () => injectedBlock,
     );
 
     return modified;
@@ -116,17 +128,31 @@ export default async function seoMiddleware(req, res, next) {
     try {
         const rawCode        = decodeURIComponent(match[1]);
         const normalizedCode = rawCode.replace(/\s+/g, "");
-        const escapedCode    = normalizedCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const flexPattern    = escapedCode.split("").join("\\s*");
+        const cacheKey       = normalizedCode.toLowerCase();
+        const cachedCourse   = courseCache.get(cacheKey);
+        let course;
 
-        const course = await CourseModel.findOne({
-            code: { $regex: new RegExp(`^${flexPattern}$`, "i") },
-        })
-            .select("name code")
-            .lean();
+        if (cachedCourse && cachedCourse.expiresAt > Date.now()) {
+            course = cachedCourse.course;
+        } else {
+            const escapedCode = normalizedCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const flexPattern = escapedCode.split("").join("\\s*");
+
+            course = await CourseModel.findOne({
+                code: { $regex: new RegExp(`^${flexPattern}$`, "i") },
+            })
+                .select("name code")
+                .lean();
+
+            courseCache.set(cacheKey, {
+                course,
+                expiresAt: Date.now() + CACHE_TTL_MS,
+            });
+        }
 
         if (!course) {
             const safeCode = escapeHtml(normalizedCode);
+            res.set("Vary", "User-Agent");
             return res.status(404).send(
                 `<!DOCTYPE html>
 <html lang="en">

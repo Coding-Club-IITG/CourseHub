@@ -79,6 +79,18 @@ const BrowseScreen = () => {
     const fb = useSelector((state) => state.fileBrowser);
 
     useEffect(() => {
+        if (code) {
+            document.title = `${code.toUpperCase()} | CourseHub`;
+        } else {
+            document.title = "CourseHub";
+        }
+
+        return () => {
+            document.title = "CourseHub";
+        };
+    }, [code]);
+
+    useEffect(() => {
         const cleaned = readAllCoursesCache();
         if (cleaned.length > 0) {
             dispatch(LoadCourses(cleaned));

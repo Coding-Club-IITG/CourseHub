@@ -16,11 +16,8 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     useEffect(() => {
-    document.title = "CourseHub | IIT Guwahati Study Materials, Notes & PYQs";
-    return () => {
         document.title = "CourseHub";
-    };
-}, []);
+    }, []);
     useEffect(() => {
         clearLegacySessionLocalCoursesCache();
     }, []);
