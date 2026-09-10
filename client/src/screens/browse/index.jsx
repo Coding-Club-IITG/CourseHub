@@ -2,7 +2,8 @@ import { useUploadDialog } from "../contributions/dialogContext";
 import FileSelectionNotice from "./components/file-display/FileSelectionNotice";
 import { useSession } from "../../session/context";
 import styles from "./styles.module.scss";
-import { Button, EmptyState, FormField } from "@coursehub/ui";
+import { useEffect, useState } from "react";
+import { Button, EmptyState, FormField, Icon } from "@coursehub/ui";
 import Container from "../../components/container";
 import Collapsible from "./components/collapsible";
 
@@ -25,6 +26,28 @@ const BrowseScreen = () => (
         <BrowseContent />
     </CourseBrowserProvider>
 );
+function PreviousSemester({ semester, currentCourseCode }) {
+    const isCurrent = semester.courses.some(
+        (item) => normalizeCourseCode(item.code) === normalizeCourseCode(currentCourseCode),
+    );
+    const [open, setOpen] = useState(isCurrent);
+    useEffect(() => {
+        if (isCurrent) setOpen(true);
+    }, [isCurrent]);
+    return (
+        <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+            <summary>
+                <span>
+                    Semester {semester.semester} ({semester.year})
+                </span>
+                <Icon name="chevron" size={16} />
+            </summary>
+            {semester.courses.map((item, index) => (
+                <Collapsible key={item.code} course={item} color={getColors(index)} />
+            ))}
+        </details>
+    );
+}
 function BrowseContent() {
     const navigate = useNavigate();
     const [params] = useSearchParams();
@@ -148,19 +171,12 @@ function BrowseContent() {
                     ))}
                     {user?.isBR && !!user.previousCourses?.length && <h2>PREVIOUS COURSES</h2>}
                     {user?.isBR &&
-                        (user.previousCourses || []).map((semester, index) => (
-                            <div key={index}>
-                                <h3>
-                                    Semester {semester.semester} ({semester.year})
-                                </h3>
-                                {semester.courses.map((item, i) => (
-                                    <Collapsible
-                                        key={item.code}
-                                        course={item}
-                                        color={getColors(i)}
-                                    />
-                                ))}
-                            </div>
+                        (user.previousCourses || []).map((semester) => (
+                            <PreviousSemester
+                                key={`${semester.year}-${semester.semester}`}
+                                semester={semester}
+                                currentCourseCode={currCourseCode}
+                            />
                         ))}
                 </aside>
                 <aside className={styles.years} aria-label="Year navigation">
@@ -216,13 +232,7 @@ function BrowseContent() {
                                             ? "No files available."
                                             : "No folders available."
                                     }
-                                >
-                                    <p>
-                                        {folderData.childType === "File"
-                                            ? "Nothing has been uploaded to this folder yet."
-                                            : "This year has no folders yet."}
-                                    </p>
-                                </EmptyState>
+                                />
                             )
                         ) : folderData.childType === "File" ? (
                             <FileController files={folderData.children} code={currCourseCode} />

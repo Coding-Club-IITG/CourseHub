@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
     Button,
     Card,
@@ -22,8 +21,7 @@ const displayDate = (value) =>
         year: "numeric",
     }).format(new Date(value));
 
-const ExamScheduleWidget = ({ query }) => {
-    const [activeTab, setActiveTab] = useState("midSem");
+const ExamScheduleWidget = ({ query, activeTab, onTabChange, sectionRef }) => {
     const data = query.data;
     if (data?.status === "excluded") return null;
     const schedule = data?.exams?.[activeTab];
@@ -36,7 +34,13 @@ const ExamScheduleWidget = ({ query }) => {
     );
     return (
         <Container color="dark" className="dashboard-section">
-            <section className={styles.root} aria-label="Exam schedule">
+            <section
+                id="exam-schedule"
+                ref={sectionRef}
+                tabIndex={-1}
+                className={styles.root}
+                aria-label="Exam schedule"
+            >
                 <div className={styles.header}>
                     <h2>Exam schedule</h2>
                     <div className={styles.toggleGroup} aria-label="Exam type">
@@ -46,7 +50,7 @@ const ExamScheduleWidget = ({ query }) => {
                                 type="button"
                                 className={styles.tab}
                                 aria-pressed={activeTab === type}
-                                onClick={() => setActiveTab(type)}
+                                onClick={() => onTabChange(type)}
                             >
                                 {type === "midSem" ? "Mid-Sem" : "End-Sem"}
                             </button>

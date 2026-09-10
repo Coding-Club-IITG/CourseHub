@@ -78,6 +78,26 @@ export async function exerciseExams(t, origin) {
         },
     );
     await t.test(
+        "a persisted unmapped registration preserves the next listed countdown",
+        async () => {
+            await CourseAllotment.findByIdAndUpdate(allotment._id, {
+                $set: { courses: ["RT5022", "QA999"] },
+            });
+            const partial = await getExamSchedule(person, new Date("2026-09-09T06:30:00Z"));
+            assert.equal(partial.exams.midSem.status, "partial");
+            assert.deepEqual(partial.exams.midSem.missingCourses, [
+                { code: "QA999", name: "QA999" },
+            ]);
+            assert.equal(partial.exams.midSem.nextExam.daysUntil, 4);
+            const expected = await getExamSchedule(person);
+            const response = await fetch(origin + "/api/event/examdates", {
+                headers: await sessionHeaders(person.id, "student"),
+            });
+            assert.equal(response.status, 200);
+            assert.deepEqual((await response.json()).exams, expected.exams);
+        },
+    );
+    await t.test(
         "a persisted empty allotment is no-exam; a missing one is unavailable",
         async () => {
             await CourseAllotment.findByIdAndUpdate(allotment._id, { $set: { courses: [] } });

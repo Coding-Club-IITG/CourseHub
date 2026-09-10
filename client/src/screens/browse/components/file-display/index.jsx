@@ -1,5 +1,5 @@
 import triggerStyles from "../../../../components/content-dialogs/triggers.module.scss";
-import { IconButton, Icon } from "@coursehub/ui";
+import { Button, Card, IconButton, Icon } from "@coursehub/ui";
 import { useCourseBrowser } from "../../../../queries/browserContext";
 import styles from "./styles.module.scss";
 import { useState, useRef, useEffect } from "react";
@@ -101,7 +101,7 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
     };
 
     return (
-        <div
+        <Card
             ref={card}
             tabIndex={selected ? 0 : -1}
             aria-label={selected ? `Selected file: ${file.name}` : undefined}
@@ -113,20 +113,23 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
             <div className="img-preview">
                 <FileThumbnail file={file} />
                 {canManage && !file.isVerified && (
-                    <button
+                    <IconButton
+                        size="sm"
                         type="button"
                         className="verify"
-                        aria-label="Verify file"
+                        variant="ghost"
+                        label="Verify file"
                         title="Verify file"
                         onClick={handleVerify}
                     >
                         <Icon name="check" />
-                    </button>
+                    </IconButton>
                 )}
                 {selected && (
-                    <button
+                    <Button
                         type="button"
                         className="selected-file-label"
+                        variant="dark"
                         aria-label="Clear selection"
                         onClick={() => {
                             const next = new URLSearchParams(params);
@@ -135,7 +138,7 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                         }}
                     >
                         Selected <span aria-hidden="true">×</span>
-                    </button>
+                    </Button>
                 )}
 
                 <a
@@ -159,23 +162,25 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                     />
                 )}
                 <div className="title" title={file.name} hidden={isEditing}>
-                    <p className="title-text" hidden={isEditing}>
-                        {file?.name ? untruncatedDispName : "Untitled file"}
-                    </p>
-                    {canManage && (
-                        <IconButton
-                            size="sm"
-                            label="Rename file"
-                            variant="ghost"
-                            className="rename-tick"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsEditing(true);
-                            }}
-                        >
-                            <Icon name="edit" size={16} />
-                        </IconButton>
-                    )}
+                    <div className={`title-name ${canManage ? "can-rename" : ""}`}>
+                        <p className="title-text" hidden={isEditing}>
+                            {file?.name ? untruncatedDispName : "Untitled file"}
+                        </p>
+                        {canManage && (
+                            <IconButton
+                                size="sm"
+                                label="Rename file"
+                                variant="ghost"
+                                className="rename-tick"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsEditing(true);
+                                }}
+                            >
+                                <Icon name="edit" size={16} />
+                            </IconButton>
+                        )}
+                    </div>
                 </div>
                 <div className="file-metadata">
                     <p className="info">
@@ -186,19 +191,30 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                 </div>
             </div>
             <div className="file-actions">
-                <button
+                <IconButton
+                    size="sm"
                     type="button"
+                    variant="ghost"
                     className="star"
-                    aria-label={favourite ? "Remove from favourites" : "Add to favourites"}
+                    label={favourite ? "Remove from favourites" : "Add to favourites"}
                     title={favourite ? "Remove from favourites" : "Add to favourites"}
                     aria-pressed={!!favourite}
                     disabled={saving}
                     onClick={toggle}
-                />
-                <button
+                >
+                    <img
+                        src={new URL("./assets/Favorites.svg", import.meta.url).href}
+                        alt=""
+                        width="16"
+                        height="16"
+                    />
+                </IconButton>
+                <IconButton
+                    size="sm"
                     type="button"
+                    variant="ghost"
                     className="share"
-                    aria-label="Share file"
+                    label="Share file"
                     title="Share file"
                     onClick={() =>
                         share({
@@ -208,25 +224,43 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                             link: resourceLink(currCourseCode, currFolderId, file._id),
                         })
                     }
-                />
-                <button
+                >
+                    <img
+                        src={new URL("./assets/Share.svg", import.meta.url).href}
+                        alt=""
+                        width="16"
+                        height="16"
+                    />
+                </IconButton>
+                <IconButton
+                    size="sm"
                     type="button"
+                    variant="ghost"
                     className="download"
-                    aria-label={busy === "download" ? "Downloading file" : "Download file"}
+                    label={busy === "download" ? "Downloading file" : "Download file"}
                     title="Download file"
                     disabled={!!busy}
                     onClick={download}
-                />
+                >
+                    <img
+                        src={new URL("./assets/Download.svg", import.meta.url).href}
+                        alt=""
+                        width="16"
+                        height="16"
+                    />
+                </IconButton>
                 {canManage && (
-                    <button
+                    <IconButton
+                        size="sm"
                         type="button"
-                        aria-label="Delete file"
+                        label="Delete file"
+                        variant="ghost"
                         className={`unverify ${triggerStyles.trigger}`}
                         onClick={handleUnverify}
                         title="Delete"
                     >
                         <Icon name="trash" />
-                    </button>
+                    </IconButton>
                 )}
             </div>
             {canManage && (
@@ -240,7 +274,7 @@ const FileDisplay = ({ file, courseCode, folderId, index = 0 }) => {
                     isLoading={isProcessing}
                 />
             )}
-        </div>
+        </Card>
     );
 };
 

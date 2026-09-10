@@ -1,18 +1,66 @@
 @use "@coursehub/ui/mixins" as ui;
 .rename {
-    @include ui.stack(0.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     width: 100%;
     min-width: 0;
-    text-align: left;
-    input {
-        min-width: 0;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    .field {
+        display: contents;
+        font: inherit;
+        color: inherit;
+        > label {
+            @include ui.visually-hidden;
+        }
+        > input {
+            grid-column: 1;
+            grid-row: 1;
+            min-width: 0;
+            min-height: 0;
+            height: 1.125em;
+            width: 100%;
+            padding: 0;
+            border: 0;
+            border-bottom: 1px solid currentColor;
+            border-radius: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            line-height: 1;
+            text-align: inherit;
+            box-shadow: none;
+        }
+        > p {
+            grid-column: 1 / -1;
+            margin: 0.25rem 0;
+            font-size: var(--ch-text-small);
+            font-weight: 400;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
     }
 }
 .actions {
-    @include ui.actions;
-    gap: 0.25rem;
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
     button {
-        padding-inline: 0.5rem;
-        font-size: 0.875rem;
+        flex: 0 0 var(--ch-target-compact);
+        width: var(--ch-target-compact);
+        padding: 0;
+        color: inherit;
+        &,
+        &:hover,
+        &:active {
+            transform: none;
+        }
+        &:hover:not(:disabled) {
+            background: color-mix(in srgb, currentColor 10%, transparent);
+            color: inherit;
+        }
     }
 }

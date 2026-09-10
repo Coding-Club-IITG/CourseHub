@@ -1,6 +1,8 @@
 @use "@coursehub/ui/mixins" as ui;
 .root {
     @include ui.typography;
+    @include ui.focus-ring-inverse;
+    scroll-margin-block-start: var(--ch-section-padding);
     @include ui.stack(1.25rem);
     width: 100%;
     color: var(--ch-paper);

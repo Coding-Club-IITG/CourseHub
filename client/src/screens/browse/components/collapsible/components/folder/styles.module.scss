@@ -22,7 +22,7 @@
             min-width: 0;
             width: 100%;
             background-color: #fff;
-            padding: 0.3em;
+            padding: 0 0.3em;
             border-radius: 4px;
             transition:
                 background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
@@ -74,8 +74,8 @@
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                flex: 0 0 32px;
-                min-height: 36px;
+                flex: 0 0 var(--ch-target-compact);
+                min-height: var(--ch-target-compact);
                 background: transparent;
                 svg {
                     transform: rotate(180deg);
@@ -117,6 +117,8 @@
 .root {
     :global(button) {
         @include ui.control;
+        min-height: var(--ch-target-compact);
+        padding-block: 0;
         border: 0;
         background-color: transparent;
         color: inherit;

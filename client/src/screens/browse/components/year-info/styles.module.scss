@@ -17,8 +17,9 @@
     > button:not(.year) {
         position: absolute;
         inset-inline-end: 4px;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 0;
+        bottom: 0;
+        margin-block: auto;
         color: inherit;
     }
 }
@@ -27,10 +28,10 @@
     display: flex;
     flex: 1;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    gap: 0.25rem var(--ch-space-3);
     align-items: center;
     padding: 0.75rem;
-    padding-inline-end: 3.25rem;
+    padding-inline-end: calc(var(--ch-target-compact) + 0.5rem);
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -38,9 +39,16 @@
     cursor: pointer;
     font-weight: 700;
     small {
-        display: block;
+        display: inline-block;
         font-size: 0.75rem;
-        font-weight: 400;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 1px 4px;
+        border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+        border-radius: var(--ch-radius-sm);
+        background: color-mix(in srgb, currentColor 6%, transparent);
     }
     &[aria-current] {
         background: var(--ch-paper);

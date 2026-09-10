@@ -28,7 +28,7 @@ The `control`, `focus-ring`, `actions`, `stack`, `surface`, `section-padding`, `
 
 ## Controls and states
 
-`Button` defaults to `type="button"`, preventing accidental form submission. Set `type="submit"` deliberately. Its primary, dark, secondary, danger, ghost and link variants share a 44px minimum target and visible keyboard focus. `busy` disables repeat activation - provide `busyLabel` for the action's current state. `IconButton` requires a meaningful `label` and accepts existing icon artwork as children.
+`Button` defaults to `type="button"`, preventing accidental form submission. Set `type="submit"` deliberately. Its primary, dark, secondary, danger, ghost and link variants share a 44px minimum target and visible keyboard focus. `busy` disables repeat activation - provide `busyLabel` for the action's current state. `IconButton` requires a meaningful `label` and accepts existing icon artwork as children. Small icon buttons (`size="sm"`) use the shared `--ch-target-compact`. Use image or SVG children for artwork so background hover treatments cannot reset its sizing or repeat it.
 
 `FormField` wraps one native input, select or textarea. It connects the visible label, hint and error to that element, retaining caller-supplied descriptions. A required field carries the native required constraint, and an error sets `aria-invalid` and an announced error message. Values, validation and submit behavior belong to the screen.
 

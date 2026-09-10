@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IconButton, Icon } from "@coursehub/ui";
+import { Button, Card, IconButton, Icon } from "@coursehub/ui";
 import { deleteFolder, renameFolder } from "../../../../api/Folder";
 import { ResourceConfirmation, InlineRename } from "../../../../components/content-dialogs";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
@@ -28,44 +28,29 @@ export default function BrowseFolder({ name, subject, folderData }) {
         }
     };
     return (
-        <article className={`${styles.folder} browse-folder`}>
-            <button
-                hidden={editing}
-                type="button"
-                className={styles.open}
-                onClick={() => navigate(`/browse/${courseCode}/${folderData._id}`)}
-            >
-                <span className="name">{name || "Untitled folder"}</span>
-                <span className={styles.count}>
-                    {count === 0 ? "Empty" : `${count} ${count === 1 ? "file" : "files"}`}
-                </span>
-            </button>
-            {canManage && (
-                <div className={styles.actions} hidden={editing}>
+        <Card as="article" className={`${styles.folder} browse-folder`}>
+            <div className={styles.heading} hidden={editing}>
+                <Button
+                    hidden={editing}
+                    type="button"
+                    className={styles.open}
+                    variant="ghost"
+                    onClick={() => navigate(`/browse/${courseCode}/${folderData._id}`)}
+                >
+                    <span className="name">{name || "Untitled folder"}</span>
+                </Button>
+                {canManage && (
                     <IconButton
                         size="sm"
                         label="Rename"
-                        className="rename-tick"
+                        className={`${styles.renameTrigger} rename-tick`}
                         variant="ghost"
                         onClick={() => setEditing(true)}
                     >
                         <Icon name="edit" />
                     </IconButton>
-                    <IconButton
-                        size="sm"
-                        label={folderData.affectedCourses?.length > 1 ? "Remove" : "Delete"}
-                        className="delete"
-                        title="Delete folder"
-                        variant="ghost"
-                        onClick={() => {
-                            setError("");
-                            setDeleting(true);
-                        }}
-                    >
-                        <Icon name="trash" />
-                    </IconButton>
-                </div>
-            )}
+                )}
+            </div>
             {editing && (
                 <InlineRename
                     resource="folder"
@@ -75,6 +60,28 @@ export default function BrowseFolder({ name, subject, folderData }) {
                     onSave={(value) => renameFolder(folderData._id, value, courseCode)}
                 />
             )}
+            <span className={styles.count}>
+                {count === 0 ? "EMPTY" : `${count} ${count === 1 ? "FILE" : "FILES"}`}
+            </span>
+            <div className={styles.footer}>
+                {canManage && (
+                    <IconButton
+                        size="sm"
+                        label={folderData.affectedCourses?.length > 1 ? "Remove" : "Delete"}
+                        className={`${styles.deleteTrigger} delete`}
+                        hidden={editing}
+                        title="Delete folder"
+                        variant="ghost"
+                        onClick={() => {
+                            setError("");
+                            setDeleting(true);
+                        }}
+                    >
+                        <Icon name="trash" />
+                    </IconButton>
+                )}
+                <span className={styles.subject}>{courseCode}</span>
+            </div>
             <ResourceConfirmation
                 resource="folder"
                 isOpen={deleting}
@@ -85,6 +92,6 @@ export default function BrowseFolder({ name, subject, folderData }) {
                 isLoading={busy}
                 error={error}
             />
-        </article>
+        </Card>
     );
 }

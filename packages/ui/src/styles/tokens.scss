@@ -49,6 +49,10 @@
     --ch-shadow-raised: 0 12px 30px #00000026;
     --ch-shadow-dialog: 0 20px 70px #0004;
     --ch-target: 2.75rem;
+    --ch-target-compact: var(--ch-target);
+    @include hover-capable {
+        --ch-target-compact: 1.75rem;
+    }
 
     // Motion
     --ch-duration-fast: 160ms;

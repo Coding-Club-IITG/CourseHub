@@ -55,9 +55,11 @@ export async function exerciseCourseAdministration(t, origin) {
             assert.equal((await get("?q=" + encodeURIComponent(".*"))).total, 0);
             assert.equal((await get("?q=QA.PAGE3")).total, 1);
             assert.equal((await get("?q=Pagination&duplicates=true")).total, 2);
+            assert.equal((await get("?q=Pagination&duplicates=true&withoutBR=true")).total, 2);
             assert.ok(
                 (await get("?nameless=true&q=QA.UNNAMED")).items.some((i) => i._id === unnamed.id),
             );
+            assert.equal((await get("?nameless=true&q=QA.UNNAMED&withoutBR=true")).total, 1);
         },
     );
     await t.test(

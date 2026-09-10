@@ -38,6 +38,9 @@ export default function Gallery() {
                     <IconButton label="Close preview" variant="secondary">
                         <CloseIcon />
                     </IconButton>
+                    <IconButton size="sm" label="Compact close" variant="ghost">
+                        <CloseIcon />
+                    </IconButton>
                     <Button disabled>Unavailable</Button>
                     <Button busy busyLabel="Saving…">
                         Save

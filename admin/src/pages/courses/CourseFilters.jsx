@@ -1,4 +1,5 @@
-import { Button, FormField } from "@coursehub/ui";
+import { FormField } from "@coursehub/ui";
+import { FilterButton, ResetFiltersButton } from "../../components/ListControls";
 import styles from "@/styles/layout.module.scss";
 export default function CourseFilters({ filters, search, setSearch, update, reset }) {
     return (
@@ -15,20 +16,23 @@ export default function CourseFilters({ filters, search, setSearch, update, rese
                 {[
                     ["nameless", "Without names"],
                     ["duplicates", "Duplicate codes"],
+                    ["withoutBR", "Without BR"],
                 ].map(([key, label]) => (
-                    <Button
+                    <FilterButton
                         key={key}
-                        variant={filters[key] ? "primary" : "secondary"}
-                        aria-pressed={filters[key]}
+                        active={filters[key]}
                         onClick={() => update({ [key]: !filters[key], page: 1 })}
                     >
                         {label}
-                    </Button>
+                    </FilterButton>
                 ))}
-                <Button variant="link" onClick={reset}>
-                    Reset filters
-                </Button>
+                <ResetFiltersButton onClick={reset} />
             </div>
+            {filters.withoutBR && (
+                <p className={styles.muted}>
+                    Courses without a registered BR with a current or historical course allotment.
+                </p>
+            )}
         </div>
     );
 }

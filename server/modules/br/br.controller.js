@@ -5,7 +5,6 @@ import { assignBR } from "../../services/brAssignments.js";
 import { normalizeEmail, isEmail } from "@coursehub/domain";
 
 import logger from "../../utils/logger.js";
-import { coursesWithoutBR } from "../../services/brCoverage.js";
 
 const createBR = async (req, res) => {
     res.status(201).json({
@@ -56,6 +55,5 @@ const deleteBR = async (req, res) => {
 };
 
 const getBRs = async (req, res) => res.json(await listStudents(req.query, { brOnly: true }));
-const getCoursesWithoutBR = async (req, res) => res.json(await coursesWithoutBR());
 
-export { createBR, getAll, deleteBR, getBRs, getCoursesWithoutBR };
+export { createBR, getAll, deleteBR, getBRs };

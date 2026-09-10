@@ -11,8 +11,7 @@
     color: var(--ch-ink);
     text-align: center;
     strong {
-        font-size: 1.8rem;
-        line-height: 1.1;
+        @include ui.stat-number;
     }
     span {
         font-size: 1.4rem;
@@ -24,9 +23,6 @@
         width: 110px;
         min-height: 95px;
         padding: var(--ch-space-3);
-        strong {
-            font-size: 1.4rem;
-        }
         span {
             font-size: 1.1rem;
         }
@@ -36,9 +32,6 @@
     .card {
         width: 90px;
         min-height: 85px;
-        strong {
-            font-size: 1.25rem;
-        }
         span {
             font-size: 0.95rem;
         }

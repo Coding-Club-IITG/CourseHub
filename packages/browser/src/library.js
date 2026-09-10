@@ -28,12 +28,7 @@ export function createLibraryCache(session, transport, role) {
         return client.invalidateQueries({
             predicate: (query) => {
                 if (query.queryKey[0] !== "library") return false;
-                if (
-                    !normalized.length ||
-                    query.queryKey[4] === "courses" ||
-                    query.queryKey[4] === "without-br"
-                )
-                    return true;
+                if (!normalized.length || query.queryKey[4] === "courses") return true;
                 if (normalized.includes(query.queryKey[5])) return true;
                 if (
                     normalized.includes(

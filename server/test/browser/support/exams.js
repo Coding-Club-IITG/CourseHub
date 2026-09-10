@@ -47,7 +47,6 @@ export async function examFixture(
             Object.assign(data.exams[type], {
                 status: "partial",
                 missingCourses: [{ code: "QA999", name: "Course awaiting an exam slot" }],
-                nextExam: null,
             });
     }
     if (scenario === "complete")

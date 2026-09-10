@@ -1,7 +1,9 @@
 import Course from "../modules/course/course.model.js";
 import AppError from "../utils/appError.js";
+import { coveredCourseCodes } from "./brCoverage.js";
 import { listParameters, escapeSearch, pageFacet, pageResult } from "../utils/pagination.js";
-// Match the whitespace removed by the environment-neutral course normalizer.
+
+// Match the whitespace removed by the environment-neutral course normalizer
 const normalizedCode = {
     $reduce: {
         input: {
@@ -16,7 +18,7 @@ const normalizedCode = {
 };
 export async function listCourses(query) {
     const parameters = listParameters(query);
-    for (const key of ["nameless", "duplicates"])
+    for (const key of ["nameless", "duplicates", "withoutBR"])
         if (query[key] !== undefined && !["true", "false"].includes(query[key]))
             throw new AppError(400, `${key} must be true or false`, "INVALID_FILTER");
     const pipeline = [
@@ -39,6 +41,8 @@ export async function listCourses(query) {
         },
     ];
     if (query.duplicates === "true") pipeline.push({ $match: { duplicate: true } });
+    if (query.withoutBR === "true")
+        pipeline.push({ $match: { normalizedCode: { $nin: await coveredCourseCodes() } } });
     if (query.nameless === "true")
         pipeline.push({
             $match: { $or: [{ name: { $in: [null, "", "Name Unavailable"] } }, { name: /^\s*$/ }] },

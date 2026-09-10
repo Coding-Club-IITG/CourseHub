@@ -12,6 +12,7 @@ import {
 import { library } from "../session";
 import AddBRs from "../components/AddBRs";
 import Pagination from "../components/Pagination";
+import { RefreshButton } from "../components/ListControls";
 import StudentTable from "./students/StudentTable";
 import StudentFilters from "./students/StudentFilters";
 import ManagementDialog from "./students/ManagementDialog";
@@ -45,12 +46,9 @@ export default function Students() {
                                 Add BRs
                             </Button>
                         )}
-                        <Button
-                            variant="secondary"
-                            onClick={() => setAction({ type: "refresh-all" })}
-                        >
-                            <Icon name="refresh" /> Refresh all courses
-                        </Button>
+                        <RefreshButton onClick={() => setAction({ type: "refresh-all" })}>
+                            Refresh all courses
+                        </RefreshButton>
                     </div>
                 </div>
                 <StudentFilters {...{ filters, search, setSearch, update, reset }} />

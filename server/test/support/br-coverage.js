@@ -53,18 +53,54 @@ export async function exerciseBRCoverage(t, origin) {
             Allotment.deleteMany({ _id: { $in: allotments.map((item) => item._id) } }),
         ]);
     });
-    const response = await fetch(origin + "/api/br/coursesWithoutBR", {
-        headers: await sessionHeaders(admin.id, "admin"),
-    });
-    assert.equal(response.status, 200);
-    const data = await response.json(),
-        uncovered = data.coursesWithoutBR
-            .filter((course) => codes.includes(course.code))
-            .map((course) => course.code)
-            .sort();
-    assert.deepEqual(uncovered, [codes[2], codes[3], codes[4]].sort());
+    const uncovered = [codes[2], codes[3], codes[4]].sort();
     const actor = await actorFor({ user });
     assert.deepEqual(actor.managed.sort(), [codes[0], codes[1]].sort());
-    assert.ok(data.coursesWithoutBR.every((item) => !("children" in item)));
-    assert.equal((await fetch(origin + "/api/br/coursesWithoutBR")).status, 401);
+    const headers = await sessionHeaders(admin.id, "admin");
+    const list = async (query) => {
+        const result = await fetch(origin + "/api/admin/dbcourses?q=QA.COVER&" + query, {
+            headers,
+        });
+        assert.equal(result.status, 200);
+        return result.json();
+    };
+    await t.test("the course filter uses the same BR coverage before pagination", async () => {
+        const first = await list("withoutBR=true&pageSize=2"),
+            second = await list("withoutBR=true&pageSize=2&page=2");
+        assert.equal(first.total, 3);
+        assert.equal(second.total, 3);
+        assert.equal(first.items.length, 2);
+        assert.equal(second.items.length, 1);
+        assert.deepEqual(
+            [...first.items, ...second.items].map((item) => item.code).sort(),
+            uncovered,
+        );
+        assert.ok(first.items.every((item) => !("children" in item) && !("books" in item)));
+        assert.equal((await list("withoutBR=false")).total, 5);
+        for (const value of ["yes", "1", ""]) {
+            assert.equal(
+                (await fetch(origin + "/api/admin/dbcourses?withoutBR=" + value, { headers }))
+                    .status,
+                400,
+            );
+        }
+        assert.equal((await fetch(origin + "/api/admin/dbcourses?withoutBR=true")).status, 401);
+        assert.equal(
+            (
+                await fetch(origin + "/api/admin/dbcourses?withoutBR=true", {
+                    headers: await sessionHeaders(user.id, "student"),
+                })
+            ).status,
+            403,
+        );
+    });
+    await t.test(
+        "coverage follows registry changes without trusting editable profile roles",
+        async () => {
+            await BR.deleteOne({ _id: br._id });
+            assert.equal((await list("withoutBR=true")).total, 5);
+            await BR.create({ _id: br._id, email: br.email });
+            assert.equal((await list("withoutBR=true")).total, 3);
+        },
+    );
 }

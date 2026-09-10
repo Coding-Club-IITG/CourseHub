@@ -10,6 +10,21 @@
         box-sizing: border-box;
     }
 }
+@mixin stat-number {
+    font-family: var(--ch-font-body);
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1;
+    @include below(mobile) {
+        font-size: 2.8rem;
+    }
+    @include below(small) {
+        font-size: 2.2rem;
+    }
+    @include below(tiny) {
+        font-size: 2rem;
+    }
+}
 @mixin focus-ring {
     &:focus-visible {
         outline: 2px solid var(--ch-ink);

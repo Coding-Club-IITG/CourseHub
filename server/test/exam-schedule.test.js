@@ -41,7 +41,7 @@ test("normalization and duplicate registrations preserve each course's exact slo
         ],
     );
 });
-test("an unmapped course is unavailable, and partial data cannot claim an earliest countdown", () => {
+test("unmapped courses retain their status without suppressing the next listed exam", () => {
     const allMissing = calculateExamSchedule(
         input({ allotment: { ...period, courses: ["QA999"] } }),
     );
@@ -53,7 +53,36 @@ test("an unmapped course is unavailable, and partial data cannot claim an earlie
     assert.equal(partial.exams.midSem.status, "partial");
     assert.equal(partial.exams.midSem.items.length, 1);
     assert.deepEqual(partial.exams.midSem.missingCourses, [{ code: "QA999", name: "QA999" }]);
-    assert.equal(partial.exams.midSem.nextExam, null);
+    assert.equal(partial.exams.midSem.nextExam.code, "RT5022");
+    assert.equal(partial.exams.midSem.nextExam.daysUntil, 4);
+    assert.equal(partial.exams.endSem.nextExam.daysUntil, 66);
+});
+test("a partial schedule advances through listed exams and clears each completed countdown independently", () => {
+    const allotment = { ...period, courses: ["RT5022", "BM5101H", "QA999"] };
+    for (const [instant, code, state, days] of [
+        ["2026-09-12T18:29:59Z", "RT5022", "upcoming", 1],
+        ["2026-09-12T18:30:00Z", "RT5022", "upcoming", 0],
+        ["2026-09-13T03:30:00Z", "RT5022", "ongoing", 0],
+        ["2026-09-13T05:30:00Z", "BM5101H", "upcoming", 1],
+    ]) {
+        const { nextExam } = calculateExamSchedule(input({ allotment, now: new Date(instant) }))
+            .exams.midSem;
+        assert.equal(nextExam.code, code);
+        assert.equal(nextExam.state, state);
+        assert.equal(nextExam.daysUntil, days);
+    }
+    const afterMid = calculateExamSchedule(
+        input({ allotment, now: new Date("2026-09-14T05:30:00Z") }),
+    );
+    assert.equal(afterMid.exams.midSem.status, "partial");
+    assert.equal(afterMid.exams.midSem.nextExam, null);
+    assert.ok(afterMid.exams.midSem.items.every(({ state }) => state === "finished"));
+    assert.equal(afterMid.exams.endSem.nextExam.code, "RT5022");
+    const afterEnd = calculateExamSchedule(
+        input({ allotment, now: new Date("2026-11-15T06:30:00Z") }),
+    );
+    assert.equal(afterEnd.exams.endSem.nextExam, null);
+    assert.deepEqual(afterEnd.exams.endSem.missingCourses, [{ code: "QA999", name: "QA999" }]);
 });
 test("empty registrations and explicit no-exam mappings differ from missing registrations", () => {
     for (const courses of [[], ["LAB001"], ["RT5022"]]) {

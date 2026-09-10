@@ -18,9 +18,15 @@
     color: inherit;
     text-align: left;
     cursor: pointer;
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+    }
 }
 .remove {
     position: absolute;
+    z-index: 1;
     top: 0;
     right: 0;
 }

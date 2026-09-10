@@ -37,18 +37,18 @@
     font-size: 2rem;
     margin-top: 0.75rem;
 }
-.form {
-    @include ui.stack(0.75rem);
-    max-width: 32rem;
-    label {
-        color: var(--ch-paper);
+.form.form {
+    max-width: 40rem;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--ch-paper);
+    :focus-visible {
+        @include ui.focus-ring-inverse;
     }
     p[role="alert"] {
         color: var(--ch-yellow);
     }
-}
-.actions {
-    @include ui.actions;
 }
 @media (max-width: 1182px) {
     .banner {
@@ -76,12 +76,7 @@
     .branch {
         font-size: 1.125rem;
     }
-}
-@include ui.below(small) {
-    .banner:has(form) {
-        flex-wrap: wrap;
-    }
-    .banner:has(form) .text {
-        flex-basis: 100%;
+    .form.form {
+        font-size: 1.8rem;
     }
 }

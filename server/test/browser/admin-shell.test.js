@@ -16,7 +16,6 @@ for (const width of [320, 390, 768, 1024, 1440])
             "courses",
             "course-dashboard",
             "course-linking",
-            "courses-without-br",
             "operations",
         ]) {
             const f = await adminExperienceFixture(browser, { width, scenario });

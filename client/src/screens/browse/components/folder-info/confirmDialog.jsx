@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { Button, Dialog, FormField } from "@coursehub/ui";
+import styles from "./styles.module.scss";
 export function ConfirmDialog({
     show,
     inputValue = "",
@@ -34,6 +35,7 @@ export function ConfirmDialog({
         >
             <form
                 id={id}
+                className={styles.createForm}
                 onSubmit={(event) => {
                     event.preventDefault();
                     onConfirm();

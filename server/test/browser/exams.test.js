@@ -21,6 +21,7 @@ for (const width of [1440, 390]) {
             .getByText("4", { exact: true })
             .waitFor();
         assert.equal(await page.locator('[data-exam-type="endSem"] .days').innerText(), "66");
+        assert.match(await page.locator('[data-exam-type="midSem"]').innerText(), /Days for/);
         const schedule = page.getByRole("region", { name: "Exam schedule" });
         assert.deepEqual(await schedule.locator("time").allTextContents(), [
             "13 Sept 2026",
@@ -41,7 +42,7 @@ for (const width of [1440, 390]) {
         assert.equal(exams.length, 1);
         assert.match(exams[0].cookie, /token=synthetic/);
     });
-    test(`missing mappings retain known exams and suppress a misleading countdown at ${width}px`, async (t) => {
+    test(`missing mappings retain known exams and their countdowns at ${width}px`, async (t) => {
         const { page, frontend } = await examFixture(browser, t, { width, scenario: "partial" });
         await page.goto(frontend + "/dashboard");
         await page.locator(".exam-item-card").first().waitFor();
@@ -57,8 +58,10 @@ for (const width of [1440, 390]) {
             0,
         );
         assert.equal(await page.locator(".exam-item-card").count(), 2);
-        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
-        assert.match(await page.locator('[data-exam-type="midSem"]').innerText(), /Listed exams/);
+        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "4");
+        assert.equal(await page.locator('[data-exam-type="endSem"] .days').innerText(), "66");
+        assert.match(await page.locator('[data-exam-type="midSem"]').innerText(), /Days for/);
+        assert.equal(await page.getByText("Listed exams", { exact: true }).count(), 0);
         assert.equal(await page.getByText(/No Mid-Sem exams scheduled/).count(), 0);
     });
     test(`unavailable, empty and excluded exam data are distinct at ${width}px`, async (t) => {
@@ -75,17 +78,17 @@ for (const width of [1440, 390]) {
                 await page
                     .getByText("No Mid-Sem exams scheduled for your courses.", { exact: true })
                     .waitFor();
-            else if (scenario === "complete") {
+            else if (scenario === "complete")
                 await page.getByText("All listed Mid-Sem exams have finished.").waitFor();
-                assert.equal(
-                    await page.locator('[data-exam-type="midSem"] .days').innerText(),
-                    "-",
-                );
-            } else
+            else
                 assert.equal(
                     await page.locator('[data-exam-type="midSem"] .days').innerText(),
                     "Today",
                 );
+            if (scenario !== "today") {
+                assert.equal(await page.locator(".exam-card").count(), 0);
+                assert.equal(await page.locator(".exam-card-container").count(), 0);
+            }
         }
     });
     test(`loading and failed requests never show zero days, and retry restores the schedule at ${width}px`, async (t) => {
@@ -95,7 +98,7 @@ for (const width of [1440, 390]) {
         });
         await page.goto(frontend + "/dashboard");
         await page.getByText("Loading exam schedule…", { exact: true }).waitFor();
-        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
+        assert.equal(await page.locator(".exam-card").count(), 0);
         state.status = 503;
         state.loading = false;
         state.release();
@@ -103,13 +106,40 @@ for (const width of [1440, 390]) {
             .getByRole("alert")
             .getByText("Exam schedule could not be loaded.", { exact: true })
             .waitFor();
-        assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
+        assert.equal(await page.locator(".exam-card").count(), 0);
         state.status = 200;
         await page.getByRole("button", { name: "Try again" }).click();
         await page
             .locator('[data-exam-type="midSem"] .days')
             .getByText("4", { exact: true })
             .waitFor();
+    });
+    test(`a completed or unlisted exam type hides only its own countdown at ${width}px`, async (t) => {
+        const { page, frontend, state } = await examFixture(browser, t, {
+            width,
+            scenario: "partial",
+        });
+        state.data.refreshAfterMs = 1000;
+        await page.goto(frontend + "/dashboard", { waitUntil: "networkidle" });
+        assert.equal(await page.locator(".exam-card").count(), 2);
+        state.data.exams.midSem.nextExam.daysUntil = 1;
+        await page.clock.fastForward(1001);
+        await page.getByText("Day for", { exact: true }).waitFor();
+        state.data.exams.midSem.nextExam = null;
+        for (const item of state.data.exams.midSem.items) item.state = "finished";
+        await page.clock.fastForward(1001);
+        await page.locator('[data-exam-type="midSem"]').waitFor({ state: "detached" });
+        assert.equal(await page.locator('[data-exam-type="endSem"] .days').innerText(), "66");
+        assert.equal(await page.locator(".exam-item-card").count(), 2);
+        state.data.exams.endSem = {
+            status: "unavailable",
+            items: [],
+            missingCourses: [{ code: "QA999", name: "Unknown date" }],
+            nextExam: null,
+        };
+        await page.clock.fastForward(1001);
+        await page.locator(".exam-card-container").waitFor({ state: "detached" });
+        assert.equal(await page.locator(".exam-card").count(), 0);
     });
 }
 test("an open dashboard refreshes countdown boundaries and discards a timetable after semester rollover", async (t) => {
@@ -138,7 +168,7 @@ test("an open dashboard refreshes countdown boundaries and discards a timetable 
     await page.clock.fastForward(1001);
     await page.getByText("Mid-Sem schedule unavailable.", { exact: true }).waitFor();
     assert.equal(await page.locator(".exam-item-card").count(), 0);
-    assert.equal(await page.locator('[data-exam-type="midSem"] .days').innerText(), "-");
+    assert.equal(await page.locator(".exam-card").count(), 0);
     assert.ok(requests.filter((request) => request.path === "/api/event/examdates").length >= 4);
 });
 test("a different browser timezone does not change the returned exam date or countdown", async (t) => {

@@ -1,4 +1,7 @@
 @use "@coursehub/ui/mixins" as ui;
+.createForm {
+    @include ui.stack(var(--ch-space-4));
+}
 .root {
     @include ui.typography;
     @include ui.actions;
@@ -26,7 +29,7 @@
             overflow-wrap: anywhere;
         }
         .folder-header-count-badge {
-            font-size: 0.875rem;
+            font-size: var(--ch-text-body);
             font-weight: 700;
             color: var(--ch-muted);
         }

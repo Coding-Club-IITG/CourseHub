@@ -83,7 +83,6 @@ export async function adminExperienceFixture(
             data = { item: users.find((item) => p.endsWith(item._id)) };
         else if (p === "/api/br/allBRs")
             data = { items: users.filter((s) => s.isBR), page: 1, pageSize: 20, total: 1 };
-        else if (p === "/api/br/coursesWithoutBR") data = { coursesWithoutBR: [courses[1]] };
         else if (p.endsWith("/dashboard"))
             data = {
                 course: managed(course),

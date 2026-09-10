@@ -8,11 +8,13 @@ export async function courseAdministrationFixture(browser, { width = 1440, count
             code: "QA" + String(i + 1).padStart(3, "0"),
             name: `Course [literal] ${i + 1}`,
             duplicate: false,
+            withoutBR: i % 2 === 1,
         })),
         lists: [],
         failure: false,
         hold: null,
         saves: 0,
+        listFailure: false,
     };
     await page.route("**/api/admin/dbcourses?*", async (route) => {
         const q = new URL(route.request().url()).searchParams,
@@ -20,11 +22,17 @@ export async function courseAdministrationFixture(browser, { width = 1440, count
             page = Number(q.get("page")),
             pageSize = Number(q.get("pageSize"));
         state.lists.push(Object.fromEntries(q));
+        if (state.listFailure)
+            return route.fulfill({
+                status: 503,
+                json: { message: "Course coverage is unavailable." },
+            });
         const items = state.items.filter(
             (item) =>
                 (item.code + " " + item.name).toLowerCase().includes(search) &&
                 (q.get("duplicates") !== "true" || item.duplicate) &&
-                (q.get("nameless") !== "true" || !item.name),
+                (q.get("nameless") !== "true" || !item.name) &&
+                (q.get("withoutBR") !== "true" || item.withoutBR),
         );
         await route.fulfill({
             json: {

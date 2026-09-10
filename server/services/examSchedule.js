@@ -105,18 +105,18 @@ export function calculateExamSchedule({
               : items.length
                 ? "complete"
                 : "none";
-        const nextExam =
-            next && !missingCourses.length
-                ? {
-                      ...next,
-                      courseCodes: items
-                          .filter((item) => item.startsAt === next.startsAt)
-                          .map((item) => item.code),
-                      daysUntil: Math.round(
-                          (Date.parse(next.date) - Date.parse(localDate(now))) / dayMs,
-                      ),
-                  }
-                : null;
+        // Count down to the next listed exam
+        const nextExam = next
+            ? {
+                  ...next,
+                  courseCodes: items
+                      .filter((item) => item.startsAt === next.startsAt)
+                      .map((item) => item.code),
+                  daysUntil: Math.round(
+                      (Date.parse(next.date) - Date.parse(localDate(now))) / dayMs,
+                  ),
+              }
+            : null;
         response.exams[type] = { status, items, missingCourses, nextExam };
         for (const item of items)
             for (const boundary of [item.startsAt, item.endsAt]) {

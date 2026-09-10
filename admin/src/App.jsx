@@ -5,7 +5,6 @@ import RouteBoundary from "./router_utils/RouteBoundary";
 import PrivateRoute from "./router_utils/PrivateRoutes";
 import Sidebar from "./components/Sidebar";
 import OperationNotice from "./components/OperationNotice";
-import CoursesWithoutBR from "./pages/CoursesWithoutBR";
 import Students from "./pages/Students";
 import Courses from "./pages/Courses";
 import CourseLinking from "./pages/CourseLinking";
@@ -46,10 +45,6 @@ export default function App() {
                             <Route path="/admin/courses" element={<Courses />} />
                             <Route path="/admin/courses/:code" element={<CourseDashboard />} />
                             <Route path="/admin/course-linking" element={<CourseLinking />} />
-                            <Route
-                                path="/admin/courses-without-br"
-                                element={<CoursesWithoutBR />}
-                            />
                             <Route path="/admin/operations" element={<Operations />} />
                             <Route
                                 path="*"

@@ -88,7 +88,22 @@
     flex-shrink: 0;
     padding: 0.5rem;
     &[data-size="sm"] {
-        padding: 0.4rem;
+        width: var(--ch-target-compact);
+        min-width: var(--ch-target-compact);
+        min-height: var(--ch-target-compact);
+        height: var(--ch-target-compact);
+        padding: 0;
+        border-radius: var(--ch-radius-sm);
+        &,
+        &:hover,
+        &:active {
+            transform: none;
+        }
+        svg,
+        img {
+            width: 16px;
+            height: 16px;
+        }
     }
 }
 .field {

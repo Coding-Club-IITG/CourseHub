@@ -3,13 +3,21 @@ import { API_BASE_URL } from "./server.js";
 import { waitForOperation } from "./operations";
 
 export async function fetchCourses(
-    { q = "", nameless = false, duplicates = false, page = 1, pageSize = 20 } = {},
+    {
+        q = "",
+        nameless = false,
+        duplicates = false,
+        withoutBR = false,
+        page = 1,
+        pageSize = 20,
+    } = {},
     signal,
 ) {
     const params = new URLSearchParams({
         q,
         nameless: String(nameless),
         duplicates: String(duplicates),
+        withoutBR: String(withoutBR),
         page: String(page),
         pageSize: String(pageSize),
     });

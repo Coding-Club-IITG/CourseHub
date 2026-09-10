@@ -9,6 +9,27 @@ before(async () => {
     });
 });
 after(async () => browser?.close());
+for (const touch of [false, true]) {
+    test(`small icon controls use compact mouse targets and full touch targets (touch=${touch})`, async (t) => {
+        const context = await browser.newContext({
+            viewport: { width: 390, height: 900 },
+            hasTouch: touch,
+        });
+        t.after(() => context.close());
+        const page = await context.newPage();
+        await page.goto(process.env.BROWSER_UI_ORIGIN || "http://127.0.0.1:48233");
+        const compact = page.getByRole("button", { name: "Compact close" });
+        for (const action of ["hover", "focus"]) {
+            await compact[action]();
+            const rect = await compact.boundingBox();
+            assert.equal(Math.round(rect.width), touch ? 44 : 28);
+            assert.equal(Math.round(rect.height), touch ? 44 : 28);
+            assert.equal(await compact.locator("svg").count(), 1);
+        }
+        const regular = await page.getByRole("button", { name: "Close preview" }).boundingBox();
+        assert.equal(Math.round(regular.width), 44);
+    });
+}
 async function fixture(t, width = 390) {
     const context = await browser.newContext({
         viewport: { width, height: 900 },

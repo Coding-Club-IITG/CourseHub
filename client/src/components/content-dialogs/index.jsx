@@ -45,6 +45,9 @@ export function InlineRename({
     onCancel,
     onSave,
     affectedCourses = [],
+    label = resource === "file" ? "File name" : "Folder name",
+    maxLength = 255,
+    className = "",
 }) {
     const [name, setName] = useState(initialName),
         [busy, setBusy] = useState(false),
@@ -82,7 +85,7 @@ export function InlineRename({
     };
     return (
         <form
-            className={styles.rename}
+            className={`${styles.rename} ${className}`}
             onSubmit={save}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => {
@@ -93,7 +96,8 @@ export function InlineRename({
             }}
         >
             <FormField
-                label={`${resource === "file" ? "File" : "Folder"} name`}
+                className={styles.field}
+                label={label}
                 error={error}
                 hint={
                     affectedCourses.length > 1
@@ -106,11 +110,11 @@ export function InlineRename({
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     disabled={busy}
-                    maxLength={255}
+                    maxLength={maxLength}
                 />
             </FormField>
             <div className={styles.actions}>
-                <IconButton size="sm" label="Save name" type="submit" busy={busy}>
+                <IconButton size="sm" label="Save name" variant="ghost" type="submit" busy={busy}>
                     {!busy && <Icon name="check" />}
                 </IconButton>
                 <IconButton

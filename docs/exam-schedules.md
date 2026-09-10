@@ -1,8 +1,8 @@
 # Exam schedules and countdowns
 
-A countdown means the number of calendar days until the next applicable exam in that timetable.
+A countdown means the number of calendar days until the next listed exam for the student's current registered courses. A countdown card is shown only while that exam type has an upcoming or ongoing exam.
 
-For example, suppose a student is registered for `RT5022` in slot G and `BM5101H` in slot A. In the July-November 2026 timetable, their Mid-Sem exams start on 13 and 14 September respectively. On 9 September, the dashboard shows **4 days until Mid-Sem Exam**, and the first timetable card shows **13 Sept 2026, 09:00-11:00**. After that exam finishes, the countdown moves to the next exam in the student's list.
+For example, suppose a student is registered for `RT5022` in slot G and `BM5101H` in slot A. In the July-November 2026 timetable, their Mid-Sem exams start on 13 and 14 September respectively. On 9 September, the dashboard shows **4 Days for Mid-Sem Exam**, and the first timetable card shows **13 Sept 2026, 09:00-11:00**. After that exam finishes, the countdown moves to the next exam in the student's list. Once both Mid-Sem exams finish, that countdown card disappears. The End-Sem countdown remains until its own listed exams finish.
 
 ## 1. Where the information comes from
 
@@ -42,20 +42,21 @@ Missing information is never interpreted as a confirmed absence of an exam:
 
 ## 3. What the dashboard shows
 
-When every registered course is accounted for, the countdown points to the first exam that has not finished. Timetable cards are sorted by start time, with course code breaking ties. Courses with the same start time share that next-exam date.
+The countdown points to the first listed exam that has not finished. Timetable cards are sorted by start time, with course code breaking ties. Courses with the same start time share that next-exam date. The normal caption is **Days for** (or **Day for** when one day remains).
 
-If some dates are missing, the known cards remain visible and the missing course codes are listed. The summary says **Dates incomplete**, because an unmapped course might have an earlier exam. It does not present the first known date as a confirmed earliest countdown.
+An unmapped course does not suppress the countdown for other courses with valid exam dates. For example, a student's registration can include lab courses without entries in the maintained timetable.
 
-| Situation                                       | Summary and timetable behavior                                               |
-| ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| Complete schedule with an upcoming exam         | Show the calendar-day countdown and dated course cards.                      |
-| Exam later today                                | Show **Today**, rather than a zero that could be confused with missing data. |
-| Exam has started but has not ended              | Show **Now**, and mark its timetable card **In progress**.                   |
-| Some registered courses have no confirmed dates | Show **Dates incomplete**, retain known cards and identify missing codes.    |
-| Timetable or current registrations unavailable  | Explain what is unavailable and provide a retry action.                      |
-| Empty registrations or explicitly no exams      | Show **No exam scheduled** and the existing no-exam illustration.            |
-| Every listed exam has finished                  | Show **Exams finished**, retaining dated cards marked **Finished**.          |
-| Request still loading or has failed             | Show a loading/unavailable state, never an initial zero-day countdown.       |
+| Situation                                       | Summary and timetable behavior                                                         |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Complete schedule with an upcoming exam         | Show the calendar-day countdown and dated course cards.                                |
+| Exam later today                                | Show **Today**, rather than a zero that could be confused with missing data.           |
+| Exam has started but has not ended              | Show **Now**, and mark its timetable card **In progress**.                             |
+| Some registered courses have no confirmed dates | Count down to the next listed exam and retain known timetable cards.                   |
+| No listed upcoming or ongoing exam of one type  | Hide that countdown card, independently of the other exam type.                        |
+| Timetable or current registrations unavailable  | Hide countdowns; explain the unavailable data in the timetable section.                |
+| Empty registrations or explicitly no exams      | Hide countdowns; retain the no-exam illustration in the timetable section.             |
+| Every listed exam has finished                  | Hide countdowns; retain dated timetable cards marked **Finished**.                     |
+| Initial request still loading or has failed     | Hide countdowns; keep loading/error states and failure retry in the timetable section. |
 
 Mid-Sem and End-Sem remain separate views of the same response. The toggle controls are keyboard-operable buttons, and switching between them does not make another request.
 
@@ -79,7 +80,7 @@ Timetables are reviewed server data. To provide the next academic period:
 
 ## 6. API and deployment details
 
-A successful response includes `status`, `period`, `timeZone`, `generatedAt`, `refreshAfterMs` and `exams`. The top-level status is `ready`, `excluded` or `unavailable`. For a ready response, `exams.midSem` and `exams.endSem` each contain their own status, `items`, `missingCourses` and `nextExam`. `nextExam` is `null` when a countdown cannot be confirmed.
+A successful response includes `status`, `period`, `timeZone`, `generatedAt`, `refreshAfterMs` and `exams`. The top-level status is `ready`, `excluded` or `unavailable`. For a ready response, `exams.midSem` and `exams.endSem` each contain their own status, `items`, `missingCourses` and `nextExam`. `nextExam` is the first upcoming or ongoing listed exam, including for a `partial` schedule. It is `null` when no such exam exists.
 
 Unavailable or excluded schedule data is a valid `200` response describing the current state. Missing authentication returns `401`. A database failure uses the shared safe error response, and the UI offers retry. The response is private and must not be cached by an intermediary.
 
@@ -90,5 +91,5 @@ Unavailable or excluded schedule data is a valid `200` response describing the c
 | [`server/services/examSchedule.js`](../server/services/examSchedule.js)                                                               | Select the period and registered courses, validate windows, calculate the list and summaries. |
 | [`server/data/examSchedules/july-nov-2026.js`](../server/data/examSchedules/july-nov-2026.js)                                         | Preserve the supplied 2026 course mappings and exam windows.                                  |
 | [`client/src/queries/exams.js`](../client/src/queries/exams.js)                                                                       | Own the actor-scoped schedule request and revalidation.                                       |
-| [`client/src/screens/dashboard/components/examcard/index.jsx`](../client/src/screens/dashboard/components/examcard/index.jsx)         | Display the server's countdown or availability state.                                         |
+| [`client/src/screens/dashboard/components/examcard/index.jsx`](../client/src/screens/dashboard/components/examcard/index.jsx)         | Display the server's next listed countdown, Today or Now.                                     |
 | [`client/src/screens/dashboard/components/examschedule/index.jsx`](../client/src/screens/dashboard/components/examschedule/index.jsx) | Display the course timetable, missing-data explanations and retries.                          |

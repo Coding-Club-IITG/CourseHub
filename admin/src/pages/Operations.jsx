@@ -5,6 +5,7 @@ import { listOperations } from "../apis/operations";
 import { activeOperation, useOperation } from "../queries/useOperation";
 import { useWorkflowLocation } from "../queries/useWorkflowLocation";
 import OperationCard from "../components/operations/OperationCard";
+import { RefreshButton } from "../components/ListControls";
 import styles from "../styles/layout.module.scss";
 const statuses = [
     "failed",
@@ -61,14 +62,7 @@ export default function Operations() {
                         ))}
                     </select>
                 </FormField>
-                <Button
-                    variant="secondary"
-                    onClick={refresh}
-                    busy={query.isFetching}
-                    busyLabel="Refreshing…"
-                >
-                    Refresh
-                </Button>
+                <RefreshButton onClick={refresh} busy={query.isFetching} />
             </div>
             {(query.error || selected.error) && (
                 <ErrorState

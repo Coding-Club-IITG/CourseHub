@@ -28,6 +28,9 @@
     @include ui.actions;
     justify-content: flex-end;
 }
+.approve:not(:disabled) {
+    border-color: var(--ch-black);
+}
 @include ui.below(mobile) {
     .card {
         flex-wrap: wrap;

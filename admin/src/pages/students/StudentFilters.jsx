@@ -1,4 +1,5 @@
-import { Button, Icon, FormField } from "@coursehub/ui";
+import { FormField } from "@coursehub/ui";
+import { FilterButton, ResetFiltersButton } from "../../components/ListControls";
 import styles from "@/styles/layout.module.scss";
 export default function StudentFilters({ filters, search, setSearch, update, reset }) {
     return (
@@ -12,23 +13,16 @@ export default function StudentFilters({ filters, search, setSearch, update, res
                 />
             </FormField>
             <div className={styles.toolbar} role="group" aria-label="Student filter">
-                <Button
-                    variant={filters.isBR ? "secondary" : "primary"}
-                    aria-pressed={!filters.isBR}
+                <FilterButton
+                    active={!filters.isBR}
                     onClick={() => update({ isBR: false, page: 1 })}
                 >
                     All Students
-                </Button>
-                <Button
-                    variant={filters.isBR ? "primary" : "secondary"}
-                    aria-pressed={filters.isBR}
-                    onClick={() => update({ isBR: true, page: 1 })}
-                >
+                </FilterButton>
+                <FilterButton active={filters.isBR} onClick={() => update({ isBR: true, page: 1 })}>
                     BRs Only
-                </Button>
-                <Button variant="link" onClick={reset}>
-                    <Icon name="refresh" /> Reset filters
-                </Button>
+                </FilterButton>
+                <ResetFiltersButton onClick={reset} />
             </div>
         </div>
     );

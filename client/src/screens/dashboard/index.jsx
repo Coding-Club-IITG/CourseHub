@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 
 import formatName from "../../utils/formatName";
 import formatBranch from "../../utils/formatBranch";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getColors } from "../../utils/colors";
 
 import AddCourseModal from "./components/addcoursemodal";
@@ -31,6 +31,25 @@ const Dashboard = () => {
     const user = useSession().data;
 
     const examQuery = useExamSchedule();
+    const examSchedule = useRef(null);
+    const [activeExamType, setActiveExamType] = useState("midSem");
+    const showExamSchedule = (type) => {
+        setActiveExamType(type);
+        examSchedule.current?.focus({ preventScroll: true });
+        examSchedule.current?.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "instant"
+                : "smooth",
+            block: "start",
+        });
+    };
+    const countdowns =
+        !examQuery.isError && examQuery.data?.status === "ready"
+            ? [
+                  { type: "midSem", name: "Mid-Sem Exam" },
+                  { type: "endSem", name: "End-Sem Exam" },
+              ].filter(({ type }) => examQuery.data.exams[type].nextExam)
+            : [];
     const [openSemesters, setOpenSemesters] = useState({});
 
     const toggleSemester = (semIndex) => {
@@ -94,10 +113,17 @@ const Dashboard = () => {
                                 color="light"
                             />
                         </div>
-                        {examQuery.data?.status !== "excluded" && (
+                        {countdowns.length > 0 && (
                             <div className="exam-card-container">
-                                <ExamCard query={examQuery} type="midSem" name="Mid-Sem Exam" />
-                                <ExamCard query={examQuery} type="endSem" name="End-Sem Exam" />
+                                {countdowns.map(({ type, name }) => (
+                                    <ExamCard
+                                        key={type}
+                                        next={examQuery.data.exams[type].nextExam}
+                                        type={type}
+                                        name={name}
+                                        onSelect={showExamSchedule}
+                                    />
+                                ))}
                             </div>
                         )}
                     </div>
@@ -201,7 +227,12 @@ const Dashboard = () => {
                         )}
                     </section>
                 </Container>
-                <ExamScheduleWidget query={examQuery} />
+                <ExamScheduleWidget
+                    query={examQuery}
+                    activeTab={activeExamType}
+                    onTabChange={setActiveExamType}
+                    sectionRef={examSchedule}
+                />
                 <ContributionBanner />
             </main>
             <Footer />

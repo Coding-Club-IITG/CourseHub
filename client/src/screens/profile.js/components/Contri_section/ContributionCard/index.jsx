@@ -64,6 +64,7 @@ export default function ContributionCard({
                     <>
                         {!file.isVerified && (
                             <Button
+                                className={styles.approve}
                                 onClick={() => {
                                     setError("");
                                     setAction("verify");

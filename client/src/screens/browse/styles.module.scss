@@ -9,6 +9,16 @@
 }
 .sidebar {
     grid-area: sidebar;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: calc(100dvh - var(--ch-navbar-height));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
     border-right: 1px solid var(--ch-border);
     min-width: 0;
     h2 {
@@ -17,10 +27,36 @@
         color: var(--ch-ink);
         font-size: 1.125rem;
     }
-    h3 {
+    summary {
+        @include ui.control;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ch-space-2);
         padding: 0.75rem 1.25rem;
         font-size: 0.875rem;
+        font-weight: 700;
         color: var(--ch-muted);
+        cursor: pointer;
+        list-style: none;
+        &::-webkit-details-marker {
+            display: none;
+        }
+        &:hover {
+            background: var(--ch-surface);
+            color: var(--ch-ink);
+        }
+        svg {
+            flex: 0 0 auto;
+            transform: rotate(-90deg);
+            transition: transform var(--ch-duration-fast) ease;
+        }
+        &:focus-visible {
+            outline-offset: -2px;
+        }
+    }
+    details[open] > summary svg {
+        transform: rotate(0deg);
     }
 }
 .main {
@@ -29,6 +65,7 @@
 }
 .years {
     grid-area: years;
+    border-inline-start: 1px solid var(--ch-border);
     background: var(--ch-black);
     color: var(--ch-paper);
     min-width: 0;
@@ -58,6 +95,12 @@
 }
 .empty {
     width: 100%;
+    padding: 0;
+    > p {
+        font-size: 1.125rem;
+        font-weight: 400;
+        color: var(--ch-muted);
+    }
 }
 @include ui.below(tablet) {
     .layout {
@@ -84,7 +127,12 @@
         gap: 0.75rem;
         padding: 1rem var(--browse-inline);
     }
+    .empty {
+        text-align: center;
+    }
     .years {
+        border-inline-start: 0;
+        border-block-end: 1px solid var(--ch-border);
         background: var(--ch-paper);
         color: var(--ch-ink);
     }

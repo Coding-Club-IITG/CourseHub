@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Brand, Button, Dialog, IconButton } from "@coursehub/ui";
-import {
-    FaBook,
-    FaLayerGroup,
-    FaLink,
-    FaUserGraduate,
-    FaExclamationTriangle,
-    FaBars,
-} from "react-icons/fa";
+import { FaBook, FaLayerGroup, FaLink, FaUserGraduate, FaBars } from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
 import styles from "./Sidebar.module.scss";
 const items = [
@@ -16,7 +9,6 @@ const items = [
     ["Students", "/admin/students", FaUserGraduate],
     ["Courses", "/admin/courses", FaBook],
     ["Course Linking", "/admin/course-linking", FaLink],
-    ["Courses Without BR", "/admin/courses-without-br", FaExclamationTriangle],
 ];
 function Navigation({ onNavigate }) {
     const location = useLocation();

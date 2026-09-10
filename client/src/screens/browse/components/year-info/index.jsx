@@ -68,6 +68,7 @@ export default function YearInfo({ courseCode, course, currYear }) {
                         </button>
                         {canManage && (
                             <IconButton
+                                size="sm"
                                 label={`Delete year ${year.name}`}
                                 title="Delete Year"
                                 variant="ghost"

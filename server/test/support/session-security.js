@@ -87,31 +87,46 @@ export async function exerciseSessionSecurity(t, origin) {
         async () => {
             const studentHeaders = await sessionHeaders(person.id);
             const adminHeaders = await sessionHeaders(admin.id, "admin");
-            for (const [path, headers] of [["/api/admin/", studentHeaders], ["/api/user", adminHeaders]]) {
+            for (const [path, headers] of [
+                ["/api/admin/", studentHeaders],
+                ["/api/user", adminHeaders],
+            ]) {
                 const response = await send(path, { headers });
                 assert.equal(response.status, 403);
                 assert.equal(response.headers.get("set-cookie"), null);
             }
             const cookie = studentHeaders.cookie + "; " + adminHeaders.cookie;
-            const studentResponse = await send("/api/user", { headers: { ...studentHeaders, cookie } });
+            const studentResponse = await send("/api/user", {
+                headers: { ...studentHeaders, cookie },
+            });
             assert.equal(studentResponse.status, 200);
             const studentData = await studentResponse.json();
             assert.equal(studentData._id, person.id);
             assert.equal(studentData.csrfToken, studentHeaders["x-csrf-token"]);
-            const adminResponse = await send("/api/admin/", { headers: { ...adminHeaders, cookie } });
+            const adminResponse = await send("/api/admin/", {
+                headers: { ...adminHeaders, cookie },
+            });
             assert.equal(adminResponse.status, 200);
             const adminData = await adminResponse.json();
             assert.equal(adminData.user.userId, admin.userId);
             assert.equal(adminData.csrfToken, adminHeaders["x-csrf-token"]);
             assert.notEqual(studentData.csrfToken, adminData.csrfToken);
-            for (const [role, headers] of [["student", studentHeaders], ["admin", adminHeaders]]) {
-                const csrf = await send(`/api/auth/csrf?role=${role}`, { headers: { ...headers, cookie } });
+            for (const [role, headers] of [
+                ["student", studentHeaders],
+                ["admin", adminHeaders],
+            ]) {
+                const csrf = await send(`/api/auth/csrf?role=${role}`, {
+                    headers: { ...headers, cookie },
+                });
                 assert.equal((await csrf.json()).csrfToken, headers["x-csrf-token"]);
             }
             const login = await send("/api/admin/auth/login", {
                 method: "POST",
                 headers: jsonHeaders(studentHeaders),
-                body: JSON.stringify({ userId: admin.userId, password: "session-admin-test-password" }),
+                body: JSON.stringify({
+                    userId: admin.userId,
+                    password: "session-admin-test-password",
+                }),
             });
             assert.equal(login.status, 200);
             assert.equal(login.headers.getSetCookie().length, 1);
@@ -130,12 +145,24 @@ export async function exerciseSessionSecurity(t, origin) {
                 };
                 const cookie = headers.student.cookie + "; " + headers.admin.cookie;
                 const path = role === "student" ? "/api/auth/logout" : "/api/admin/auth/logout";
-                const response = await send(path, { method: "POST", headers: { ...headers[role], cookie } });
+                const response = await send(path, {
+                    method: "POST",
+                    headers: { ...headers[role], cookie },
+                });
                 assert.equal(response.status, 200);
                 assert.equal(response.headers.getSetCookie().length, 1);
-                assert.ok(response.headers.get("set-cookie").startsWith(role === "student" ? "token=" : "adminToken="));
-                for (const [requested, readPath] of [["student", "/api/user"], ["admin", "/api/admin/"]]) {
-                    const read = await send(readPath, { headers: { ...headers[requested], cookie } });
+                assert.ok(
+                    response.headers
+                        .get("set-cookie")
+                        .startsWith(role === "student" ? "token=" : "adminToken="),
+                );
+                for (const [requested, readPath] of [
+                    ["student", "/api/user"],
+                    ["admin", "/api/admin/"],
+                ]) {
+                    const read = await send(readPath, {
+                        headers: { ...headers[requested], cookie },
+                    });
                     assert.equal(read.status, requested === role ? 403 : 200);
                 }
             }

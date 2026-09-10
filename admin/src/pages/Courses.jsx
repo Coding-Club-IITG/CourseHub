@@ -13,6 +13,7 @@ import { fetchCourses } from "../apis/courses";
 import { library } from "../session";
 import { usePagedList } from "../queries/usePagedList";
 import Pagination from "../components/Pagination";
+import { RefreshButton } from "../components/ListControls";
 import CourseFilters from "./courses/CourseFilters";
 import CourseTable from "./courses/CourseTable";
 import CourseEditor from "./courses/CourseEditor";
@@ -21,7 +22,7 @@ import ImportDialog from "../components/imports/ImportDialog";
 import styles from "@/styles/layout.module.scss";
 import courseStyles from "./courses/styles.module.scss";
 export default function Courses() {
-    const state = usePagedList("courses", fetchCourses, ["nameless", "duplicates"]);
+    const state = usePagedList("courses", fetchCourses, ["nameless", "duplicates", "withoutBR"]);
     const { query, filters, update } = state;
     const location = useLocation();
     const [editing, setEditing] = useState(null),
@@ -42,10 +43,13 @@ export default function Courses() {
                         <h1 className={styles.heading}>Courses</h1>
                         <p>Manage course titles, codes and library content.</p>
                     </div>
-                    <Button onClick={() => setImporting(true)}>
-                        <Icon name="plus" />
-                        Add Courses
-                    </Button>
+                    <div className={styles.toolbar}>
+                        <RefreshButton onClick={() => query.refetch()} busy={query.isFetching} />
+                        <Button onClick={() => setImporting(true)}>
+                            <Icon name="plus" />
+                            Add Courses
+                        </Button>
+                    </div>
                 </div>
                 <CourseFilters {...state} />
             </header>
