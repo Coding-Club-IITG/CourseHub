@@ -1,6 +1,9 @@
 @use "@coursehub/ui/mixins" as ui;
 .card {
     @include ui.typography;
+    @include ui.control-motion;
+    @include ui.enters;
+    @include ui.card-interactive;
     position: relative;
     box-sizing: border-box;
     width: 200px;
@@ -8,14 +11,14 @@
     align-self: flex-start;
     background: var(--ch-paper);
     color: var(--ch-ink);
-    border: 2px solid #aaa;
-    border-radius: 4px;
+    border: 2px solid var(--ch-border);
+    border-radius: var(--ch-radius-card);
     overflow: hidden;
     &:global(.verified) {
-        border-color: #4caf50;
+        border-color: var(--ch-success);
     }
     &:global(.unverified) {
-        border-color: #f44336;
+        border-color: var(--ch-danger);
     }
     &:global(.selected) {
         border-color: var(--ch-ink);
@@ -28,7 +31,7 @@
     :global(.img-preview) {
         height: 140px;
         position: relative;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid var(--ch-border);
         :global(.file-thumbnail) {
             position: absolute;
             inset: 0;
@@ -67,12 +70,12 @@
             z-index: 2;
             right: 4px;
             top: 4px;
-            width: 44px;
+            width: var(--ch-target);
             display: grid;
             place-items: center;
             background: #e4f6ea;
             border: 1px solid #17693c;
-            border-radius: 4px;
+            border-radius: var(--ch-radius-card);
             color: #17693c;
             font-size: 1.5rem;
             cursor: pointer;
@@ -88,10 +91,10 @@
         display: grid;
         grid-template-columns: 36px minmax(0, 1fr) 36px;
         align-items: center;
-        min-height: 44px;
+        min-height: var(--ch-target);
         gap: 2px;
         @media (pointer: coarse) {
-            grid-template-columns: 44px minmax(0, 1fr) 44px;
+            grid-template-columns: var(--ch-target) minmax(0, 1fr) var(--ch-target);
         }
     }
     :global(.title-text) {
@@ -141,10 +144,10 @@
         button {
             @include ui.control;
             flex-shrink: 0;
-            width: 44px;
-            height: 44px;
+            width: var(--ch-target);
+            height: var(--ch-target);
             border: 1px solid transparent;
-            border-radius: 4px;
+            border-radius: var(--ch-radius-card);
             background: white center/21px no-repeat;
             cursor: pointer;
         }
@@ -181,7 +184,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        min-height: 44px;
+        min-height: var(--ch-target);
         padding: 4px 8px;
         border: 0;
         background: var(--ch-ink);
@@ -196,16 +199,18 @@
         height: auto;
         min-height: 126px;
     }
-    @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
-        &:hover,
-        &:focus-within {
-            box-shadow: 0 8px 16px #0002;
-            :global(.content) {
-                height: auto;
-                min-height: 126px;
-            }
-            :global(.title-text) {
-                -webkit-line-clamp: unset;
+    @include ui.above(mobile) {
+        @include ui.hover-capable {
+            &:hover,
+            &:focus-within {
+                box-shadow: 0 8px 16px #0002;
+                :global(.content) {
+                    height: auto;
+                    min-height: 126px;
+                }
+                :global(.title-text) {
+                    -webkit-line-clamp: unset;
+                }
             }
         }
     }
@@ -267,10 +272,10 @@
 }
 
 .notice button {
-    min-height: 44px;
+    min-height: var(--ch-target);
 }
 
-@media (max-width: 360px) {
+@include ui.below(tiny) {
     .card {
         width: 100%;
     }

@@ -1,11 +1,26 @@
-@import "@coursehub/ui/legacy-fonts.css";
-
 * {
     margin: 0;
     padding: 0;
     list-style: none;
     box-sizing: border-box;
-    font-family: "Regular", Arial, sans-serif;
+}
+
+body {
+    font-family: var(--ch-font-body);
+    font-size: var(--ch-text-body);
+    line-height: 1.5;
+    color: var(--ch-ink);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+a {
+    color: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {

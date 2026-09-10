@@ -34,7 +34,7 @@
         margin: 0;
     }
     summary {
-        min-height: 44px;
+        min-height: var(--ch-target);
         display: list-item;
         cursor: pointer;
         @include ui.focus-ring;

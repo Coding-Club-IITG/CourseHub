@@ -42,6 +42,11 @@ for (const width of [390, 1440]) {
         assert.equal(await page.evaluate(() => getComputedStyle(document.body).overflow), "hidden");
         await page.keyboard.press("Escape");
         await dialog.waitFor({ state: "hidden" });
+        // Focus returns on the frame after the dialog unmounts, so settle first
+        // (same pattern as the nested-confirmation case below).
+        await page.waitForFunction(
+            () => document.activeElement?.textContent?.trim() === "Open dialog",
+        );
         assert.equal(await opener.evaluate((el) => el === document.activeElement), true);
     });
     test(`nested confirmation keeps failures open and returns focus to its parent at ${width}px`, async (t) => {

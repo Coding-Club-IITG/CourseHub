@@ -47,7 +47,8 @@
                 min-width: 0;
                 overflow-wrap: anywhere;
                 font-size: 1rem;
-                font-family: "Bold";
+                font-family: var(--ch-font-body);
+                font-weight: 700;
                 cursor: pointer;
                 transition: color 0.15s ease;
 
@@ -56,11 +57,13 @@
                 }
 
                 &:global(.nobold) {
-                    font-family: "Regular";
+                    font-family: var(--ch-font-body);
+                    font-weight: 400;
                 }
                 :global(.tree-file-count) {
                     font-size: 0.8rem;
-                    font-family: "Regular", sans-serif;
+                    font-family: var(--ch-font-body);
+                    font-weight: 400;
                     color: #6b7280;
                     margin-left: 5px;
                     font-weight: normal;

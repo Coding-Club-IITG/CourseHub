@@ -4,13 +4,15 @@ import { useRef } from "react";
 import { Button, IconButton, CloseIcon } from "./controls";
 import styles from "./primitives.module.scss";
 
-// Controlled dialogs can be opened from URL state or a provider without a Radix Trigger.
-// Capture the active opener before Radix moves focus; restore it only while it survives.
+// Controlled dialogs can be opened from URL state or a provider without a Radix Trigger
+// Capture the active opener before Radix moves focus; restore it only while it survives
+const focusable = (node) =>
+    node && node !== document.body && node !== document.documentElement ? node : null;
 function useDialogFocus(initialFocusRef, returnFocusRef) {
     const opener = useRef(null);
     return {
         onOpenAutoFocus(event) {
-            opener.current = document.activeElement;
+            opener.current = focusable(document.activeElement);
             if (initialFocusRef?.current) {
                 event.preventDefault();
                 initialFocusRef.current.focus();

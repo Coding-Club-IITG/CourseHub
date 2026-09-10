@@ -6,8 +6,7 @@
     "exports": {
         ".": "./src/index.js",
         "./tokens.scss": "./src/styles/tokens.scss",
-        "./mixins": "./src/styles/_mixins.scss",
-        "./legacy-fonts.css": "./src/styles/legacy-fonts.css"
+        "./mixins": "./src/styles/_mixins.scss"
     },
     "peerDependencies": {
         "react": "^19.2.8",

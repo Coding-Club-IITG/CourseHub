@@ -8,7 +8,7 @@
     justify-content: space-between;
     gap: 2rem;
     min-height: 260px;
-    color: white;
+    color: var(--ch-paper);
     background: url(./Assets/banner.svg) 85% center / contain no-repeat;
     h1 {
         font-size: 1.5rem;
@@ -30,7 +30,7 @@
         overflow-wrap: anywhere;
     }
     button {
-        color: white;
+        color: var(--ch-paper);
     }
 }
 .branch {
@@ -41,7 +41,7 @@
     @include ui.stack(0.75rem);
     max-width: 32rem;
     label {
-        color: white;
+        color: var(--ch-paper);
     }
     p[role="alert"] {
         color: var(--ch-yellow);
@@ -49,9 +49,6 @@
 }
 .actions {
     @include ui.actions;
-    button[data-variant="ghost"] {
-        color: white;
-    }
 }
 @media (max-width: 1182px) {
     .banner {

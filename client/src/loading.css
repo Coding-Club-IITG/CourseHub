@@ -4,60 +4,73 @@
     align-items: center;
     justify-content: center;
     min-height: 100dvh;
-    padding: 24px;
+    padding: var(--ch-space-6);
     box-sizing: border-box;
-    background: #000;
-    color: #fff;
+    background: var(--ch-black);
+    color: var(--ch-paper);
 }
 .loading-page .course-sync-spinner {
-    border: 3px solid #ffd500;
+    border: 3px solid var(--ch-yellow);
     border-top-color: transparent;
     border-radius: 50%;
     width: 48px;
     height: 48px;
-    animation: course-sync-spin 1s linear infinite;
+    animation: var(--ch-anim-spin) 1s linear infinite;
 }
 .loading-page .loading-text {
-    margin-top: 24px;
+    margin-top: var(--ch-space-6);
     text-align: center;
     max-width: 440px;
 }
 .loading-page h1 {
-    font-size: 22px;
-    font-weight: 600;
-    margin: 0 0 12px;
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin: 0 0 var(--ch-space-3);
 }
 .loading-page p {
-    font-size: 16px;
+    font-size: var(--ch-text-body);
     line-height: 1.5;
-    color: #ddd;
+    color: var(--ch-border);
 }
 .loading-page button,
 .loading-page a {
-    display: block;
-    margin: 20px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ch-target);
+    margin: var(--ch-space-5) auto 0;
     font: inherit;
+    font-weight: 700;
 }
 .loading-page button {
-    background: #ffd500;
+    background: var(--ch-yellow);
     border: 0;
-    border-radius: 6px;
-    padding: 10px 20px;
-    color: #000;
+    border-radius: var(--ch-radius-control);
+    padding: 0.55rem 1.25rem;
+    color: var(--ch-ink);
+    box-shadow: var(--ch-shadow-control);
     cursor: pointer;
+    transition:
+        background-color var(--ch-duration-fast) ease,
+        box-shadow var(--ch-duration-fast) ease,
+        transform var(--ch-duration-fast) ease;
+}
+.loading-page button:hover {
+    background: var(--ch-yellow-hover);
+    box-shadow: var(--ch-shadow-control-hover);
+    transform: translateY(var(--ch-lift));
+}
+.loading-page button:active {
+    transform: scale(var(--ch-press));
 }
 .loading-page a {
-    color: #ffd500;
+    padding-inline: var(--ch-space-2);
+    color: var(--ch-yellow);
     text-underline-offset: 4px;
 }
 .loading-page :focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: 4px;
-}
-@keyframes course-sync-spin {
-    to {
-        transform: rotate(360deg);
-    }
+    outline: 2px solid var(--ch-yellow);
+    outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
     .loading-page .course-sync-spinner {

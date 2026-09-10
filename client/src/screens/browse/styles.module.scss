@@ -3,7 +3,9 @@
     display: grid;
     grid-template-columns: minmax(200px, 300px) minmax(0, 1fr) 164px;
     grid-template-areas: "sidebar main years";
-    min-height: calc(100dvh - 72px);
+    width: 100%;
+    min-height: calc(100dvh - var(--ch-navbar-height));
+    --browse-inline: 1.5rem;
 }
 .sidebar {
     grid-area: sidebar;
@@ -38,10 +40,24 @@
     @include ui.actions;
     align-items: flex-start;
     gap: 1rem;
-    padding: 1.25rem;
+    padding: 1.25rem var(--browse-inline);
 }
 .back {
-    padding: 0.25rem 1rem 0;
+    padding: 0.75rem var(--browse-inline) 0;
+}
+.backButton {
+    @include ui.enters($duration: var(--ch-duration-base), $easing: var(--ch-ease-entrance));
+    gap: 0.35rem;
+    margin-inline-start: -0.75rem;
+    svg {
+        transition: transform var(--ch-duration-fast) ease;
+    }
+    &:hover svg {
+        transform: translateX(-3px);
+    }
+}
+.empty {
+    width: 100%;
 }
 @include ui.below(tablet) {
     .layout {
@@ -53,6 +69,7 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
+        --browse-inline: var(--ch-gutter);
     }
     .sidebar {
         display: none;
@@ -61,23 +78,19 @@
         display: grid;
         grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
         gap: 0.75rem;
-        padding: 1rem var(--ch-gutter);
+        padding: 1rem var(--browse-inline);
     }
     .files {
-        gap: 1rem;
-        padding: 1rem var(--ch-gutter);
+        gap: 0.75rem;
+        padding: 1rem var(--browse-inline);
     }
     .years {
         background: var(--ch-paper);
         color: var(--ch-ink);
     }
-    .back {
-        padding-inline: var(--ch-gutter);
-    }
 }
-@include ui.below(mobile) {
+@include ui.below(small) {
     .files {
         gap: 0.5rem;
-        padding: 0.5rem;
     }
 }

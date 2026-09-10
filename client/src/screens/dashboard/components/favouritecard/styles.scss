@@ -1,14 +1,16 @@
+@use "@coursehub/ui/mixins" as ui;
 .favourites-section {
-    color: #181818;
+    color: var(--ch-ink);
     h2 {
-        font-family: "bold", sans-serif;
+        font-family: var(--ch-font-body);
         font-size: 1.5rem;
-        margin-bottom: 16px;
+        font-weight: 700;
+        margin-bottom: var(--ch-space-4);
     }
     .favourites-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 200px));
-        gap: 20px;
+        gap: var(--ch-space-5);
     }
     .favourite-card .file-display {
         width: 100%;
@@ -17,37 +19,36 @@
     .favourite-location {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        color: #181818;
-        margin-bottom: 8px;
+        gap: var(--ch-space-1);
+        color: inherit;
+        margin-bottom: var(--ch-space-2);
         overflow-wrap: anywhere;
     }
     .favourite-location span {
-        font-size: 0.9rem;
-        color: #555;
+        font-size: var(--ch-text-small);
+        color: var(--ch-muted);
     }
     .favourite-unavailable {
-        border: 1px solid #bbb;
-        background: white;
-        border-radius: 4px;
-        padding: 16px;
+        @include ui.surface;
+        padding: var(--ch-space-4);
+        box-shadow: var(--ch-shadow-card);
     }
     .favourite-unavailable p {
-        margin: 12px 0;
+        margin: var(--ch-space-3) 0;
     }
     .favourite-unavailable button {
+        @include ui.control;
+        @include ui.interactive;
         background: transparent;
         border: 0;
+        color: inherit;
         text-decoration: underline;
         text-underline-offset: 0.2em;
-        padding: 8px;
-        min-height: 44px;
-        border-radius: 4px;
+        padding: var(--ch-space-2);
         font: inherit;
         cursor: pointer;
-    }
-    :focus-visible {
-        outline: 2px solid #181818;
-        outline-offset: 3px;
+        &:hover {
+            @include ui.tinted-hover;
+        }
     }
 }

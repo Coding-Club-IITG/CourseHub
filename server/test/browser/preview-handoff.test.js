@@ -3,6 +3,7 @@ import { before, after, test } from "node:test";
 import { createServer } from "node:http";
 import { chromium } from "playwright";
 import { fileAccessFixture, fileIds } from "./support/file-access.js";
+import { experienceFixture } from "./support/student-experience.js";
 
 let browser;
 before(async () => {
@@ -51,6 +52,38 @@ for (const width of [1440, 390]) {
             false,
         );
         assert.equal(await page.locator('[data-tone="error"]').count(), 0);
+    });
+}
+
+for (const width of [1440, 390]) {
+    test(`profile contribution previews keep their file and course destination at ${width}px`, async (t) => {
+        const { page, context, frontend, api, submissions } = await experienceFixture(browser, t, {
+            width,
+            scenario: "other-user",
+        });
+        await context.route("**/api/files/preview/**", (route) =>
+            route.fulfill({
+                contentType: "text/html",
+                body: "<!doctype html><title>Contribution preview</title><p>Contribution preview</p>",
+            }),
+        );
+        await page.goto(frontend + "/profile");
+        const file = submissions[1].files[0];
+        const link = page.getByRole("link", { name: file.name, exact: true });
+        const destination = `${api}/api/files/preview/${file._id}?courseCode=CS101`;
+        assert.equal(await link.getAttribute("href"), destination);
+        assert.equal(await page.getByRole("button", { name: "Approve", exact: true }).count(), 0);
+        const opened = page.waitForEvent("popup");
+        await link.focus();
+        await link.press("Enter");
+        const popup = await opened;
+        await popup.waitForLoadState();
+        assert.equal(popup.url(), destination);
+        assert.equal(await popup.evaluate(() => window.opener), null);
+        assert.equal(await popup.title(), "Contribution preview");
+        await popup.close();
+        await link.focus();
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     });
 }
 

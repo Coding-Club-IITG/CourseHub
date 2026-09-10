@@ -1,23 +1,25 @@
+@use "@coursehub/ui/mixins" as ui;
 .contributionbanner {
-    background-color: #fecf6f;
+    background-color: var(--ch-yellow);
 
     .content {
         display: flex;
         align-items: flex-start;
-        gap: 32px;
+        gap: var(--ch-space-8);
 
         .left {
             flex: 1;
             min-width: 0;
 
             .title {
-                font-family: "Bold";
+                font-family: var(--ch-font-body);
+                font-weight: 700;
                 font-size: 1.5rem;
             }
 
             .para {
-                margin-top: 16px;
-                font-size: 1rem;
+                margin-top: var(--ch-space-4);
+                font-size: var(--ch-text-body);
                 line-height: 1.5;
             }
         }
@@ -30,10 +32,10 @@
         }
     }
 
-    @media screen and (max-width: 680px) {
+    @include ui.below(mobile) {
         .content {
             flex-direction: column;
-            gap: 24px;
+            gap: var(--ch-space-6);
 
             .middle {
                 flex: none;

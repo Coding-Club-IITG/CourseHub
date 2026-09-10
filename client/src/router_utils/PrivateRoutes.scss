@@ -1,10 +1,12 @@
+@use "@coursehub/ui/mixins" as ui;
 .session-gate {
+    @include ui.typography;
     min-height: 100vh;
     display: grid;
     place-items: center;
-    padding: 24px;
-    background: #f5f5f5;
-    color: #111;
+    padding: var(--ch-space-6);
+    background: var(--ch-surface);
+    color: var(--ch-ink);
     text-align: center;
 }
 
@@ -14,18 +16,20 @@
 }
 
 .session-gate-retry {
-    margin-top: 16px;
-    min-height: 44px;
-    padding: 10px 24px;
-    border: 2px solid #111;
-    border-radius: 8px;
-    background: #ffd700;
-    color: #111;
+    @include ui.control;
+    @include ui.interactive;
+    margin-top: var(--ch-space-4);
+    padding: 0.55rem 1.5rem;
+    border: 1px solid transparent;
+    background: var(--ch-yellow);
+    color: var(--ch-ink);
+    box-shadow: var(--ch-shadow-control);
     font: inherit;
+    font-weight: 700;
     cursor: pointer;
 
-    &:focus-visible {
-        outline: 3px solid #111;
-        outline-offset: 3px;
+    &:hover {
+        background: var(--ch-yellow-hover);
+        box-shadow: var(--ch-shadow-control-hover);
     }
 }

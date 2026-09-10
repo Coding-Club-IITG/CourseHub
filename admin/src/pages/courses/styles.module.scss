@@ -8,18 +8,14 @@
         @include ui.focus-ring;
         display: inline-flex;
         align-items: center;
-        min-height: 36px;
-        width: 36px;
+        min-height: var(--ch-target);
+        width: var(--ch-target);
         justify-content: center;
         border: 1px solid var(--ch-control-border);
         border-radius: var(--ch-radius-control);
-        @include ui.control-motion;
+        @include ui.interactive;
         &:hover {
             background: var(--ch-surface);
-        }
-        @media (pointer: coarse) {
-            min-height: 44px;
-            width: 44px;
         }
         font-weight: 700;
         color: inherit;

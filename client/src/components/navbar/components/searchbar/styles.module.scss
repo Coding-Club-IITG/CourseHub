@@ -21,7 +21,7 @@
 .results {
     @include ui.surface;
     position: absolute;
-    z-index: 30;
+    z-index: var(--ch-z-dropdown);
     top: calc(100% + 0.5rem);
     width: 100%;
     max-height: 50dvh;

@@ -20,7 +20,7 @@
 .host {
     position: fixed;
     inset: auto 1rem 1rem auto;
-    z-index: 1900;
+    z-index: var(--ch-z-toast);
     width: min(24rem, calc(100vw - 2rem));
     max-height: 45dvh;
     overflow-y: auto;
@@ -54,7 +54,7 @@
 .notice {
     @include notification;
     margin-top: 0.5rem;
-    animation: enter 160ms ease-out;
+    animation: var(--ch-anim-rise-in) var(--ch-duration-fast) ease-out;
     &[data-tone="success"] {
         --notice-tone: var(--ch-success);
     }
@@ -92,7 +92,7 @@
         @include ui.focus-ring;
         display: inline-flex;
         align-items: center;
-        min-height: 44px;
+        min-height: var(--ch-target);
         color: inherit;
         text-decoration: underline;
         text-underline-offset: 0.2em;
@@ -104,26 +104,10 @@
     }
 }
 .enter {
-    animation: enter 160ms ease-out;
+    animation: var(--ch-anim-rise-in) var(--ch-duration-fast) ease-out;
 }
 .exit {
-    animation: exit 160ms ease-in;
-}
-@keyframes enter {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: none;
-    }
-}
-@keyframes exit {
-    to {
-        opacity: 0;
-        transform: translateY(6px);
-    }
+    animation: var(--ch-anim-rise-out) var(--ch-duration-fast) ease-in;
 }
 @include ui.reduced-motion {
     .enter,

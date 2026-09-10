@@ -157,15 +157,83 @@ export function EmptyState({
     children,
     illustration,
     action,
+    plain = false,
     className = "",
 }) {
     return (
-        <div className={`${styles.state} ${className}`}>
+        <div data-plain={plain || undefined} className={`${styles.state} ${className}`}>
             {illustration && <div className={styles.illustration}>{illustration}</div>}
             <p className={styles.stateTitle}>{title}</p>
             {children}
             {action}
         </div>
+    );
+}
+
+export function Card({
+    children,
+    as: Tag = "div",
+    interactive = false,
+    tone,
+    className = "",
+    ...props
+}) {
+    return (
+        <Tag
+            {...props}
+            data-interactive={interactive || undefined}
+            data-tone={tone}
+            className={`${styles.card} ${className}`}
+        >
+            {children}
+        </Tag>
+    );
+}
+export function CardHeader({ children, className = "", ...props }) {
+    return (
+        <div {...props} className={`${styles.cardHeader} ${className}`}>
+            {children}
+        </div>
+    );
+}
+export function CardCode({ children, className = "", ...props }) {
+    return (
+        <span {...props} className={`${styles.cardCode} ${className}`}>
+            {children}
+        </span>
+    );
+}
+export function CardPill({ children, className = "", ...props }) {
+    return (
+        <span {...props} className={`${styles.cardPill} ${className}`}>
+            {children}
+        </span>
+    );
+}
+export function CardTitle({ children, lines = 3, className = "", ...props }) {
+    return (
+        <span
+            {...props}
+            style={{ WebkitLineClamp: lines, ...props.style }}
+            className={`${styles.cardTitle} ${className}`}
+        >
+            {children}
+        </span>
+    );
+}
+// 'items' is a list of [label, value] pairs
+export function CardDetails({ items = [], className = "", ...props }) {
+    const rows = items.filter(([, value]) => value !== undefined && value !== null && value !== "");
+    if (!rows.length) return null;
+    return (
+        <dl {...props} className={`${styles.cardDetails} ${className}`}>
+            {rows.map(([label, value]) => (
+                <div key={label} className={styles.cardDetailRow}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                </div>
+            ))}
+        </dl>
     );
 }
 

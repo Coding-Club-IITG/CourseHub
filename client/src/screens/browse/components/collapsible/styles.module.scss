@@ -26,7 +26,8 @@
             :global(.text) {
                 max-width: 90%;
                 :global(.code) {
-                    font-family: "Bold";
+                    font-family: var(--ch-font-body);
+                    font-weight: 700;
                     font-size: 1.05rem;
                 }
                 :global(.name) {

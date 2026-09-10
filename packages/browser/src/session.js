@@ -34,6 +34,12 @@ export function createSession({ transport, role, path, selectActor = (data) => d
             try {
                 return checkActor(selectActor(await transport.json(path, { signal })));
             } catch (error) {
+                // The bootstrap denies a cookie for the other app's role with 403
+                // It means this app needs sign-in
+                if (error.status === 403) {
+                    clear(false);
+                    return null;
+                }
                 if (error.status === 401) return null;
                 throw error;
             }

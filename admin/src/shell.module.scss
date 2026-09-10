@@ -17,10 +17,13 @@
 }
 .skip {
     position: fixed;
-    z-index: 100;
+    z-index: var(--ch-z-skip);
     top: -5rem;
     left: 1rem;
     padding: 0.75rem;
+    border-radius: var(--ch-radius-control);
+    box-shadow: var(--ch-shadow-raised);
+    font-weight: 700;
     background: var(--ch-yellow);
     color: var(--ch-ink);
     &:focus {
@@ -28,7 +31,18 @@
     }
 }
 .notFound {
+    @include ui.stack(var(--ch-space-4));
+    align-items: flex-start;
     padding: 2rem;
+    a {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--ch-target);
+        color: var(--ch-ink);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        @include ui.focus-ring;
+    }
 }
 @include ui.below(tablet) {
     .shell {

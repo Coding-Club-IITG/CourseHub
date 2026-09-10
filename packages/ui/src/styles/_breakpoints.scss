@@ -1,5 +1,7 @@
 @use "sass:map";
+@use "sass:math";
 $breakpoints: (
+    tiny: 360px,
     small: 480px,
     mobile: 768px,
     tablet: 1024px,
@@ -7,6 +9,21 @@ $breakpoints: (
 );
 @mixin below($size) {
     @media (max-width: map.get($breakpoints, $size)) {
+        @content;
+    }
+}
+@mixin above($size) {
+    @media (min-width: map.get($breakpoints, $size) + 1px) {
+        @content;
+    }
+}
+@mixin between($from, $to) {
+    @media (min-width: map.get($breakpoints, $from) + 1px) and (max-width: map.get($breakpoints, $to)) {
+        @content;
+    }
+}
+@mixin hover-capable {
+    @media (hover: hover) and (pointer: fine) {
         @content;
     }
 }

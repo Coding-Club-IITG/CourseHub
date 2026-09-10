@@ -69,7 +69,7 @@ A shared URL retains its selected course context. Unlinking that course can ther
 
 File cards in Favourites and the course browser use the same preview and download actions.
 
-Preview opens a tab from the user's click, checks the authenticated file metadata endpoint, and navigates to CourseHub's authorized preview endpoint. If the check fails, the blank tab closes and the original page explains the failure. The preview endpoint performs its own permission check before delivering content or using the configured Office viewer. Browsers that block the new tab receive an explicit pop-up message.
+Preview is a native link to CourseHub's authenticated preview endpoint. The browser opens it in a new tab with `noopener noreferrer`. The endpoint checks the current session and file visibility before delivering content or redirecting to the configured Office viewer.
 
 Individual downloads first request the authorized content URL, then fetch the bytes with the shared credentialed transport. Only a successful response is saved to the browser. An access or network failure leaves the file view available for retry. This currently buffers one file in the browser; the separately planned streamed archive work applies to folder ZIP downloads.
 

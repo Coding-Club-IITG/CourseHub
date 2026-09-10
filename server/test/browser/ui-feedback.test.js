@@ -107,7 +107,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
                 .getByRole("button", { name: "Rename file" })
                 .evaluate((node) => node === document.activeElement),
         );
-        await page.getByRole("button", { name: "← Back to 2026", exact: true }).click();
+        await page.getByRole("button", { name: "Back to 2026", exact: true }).click();
         const folder = page.locator(".browse-folder").first();
         await folder.waitFor();
         assert.equal(await folder.getByText("Shared folder", { exact: true }).count(), 0);

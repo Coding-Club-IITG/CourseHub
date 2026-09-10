@@ -56,7 +56,9 @@ A developer can have both the student and administrator apps open in the same br
 
 This header is a selector, not proof of privilege. Sending `admin` without a valid administrator session does not authorize the request.
 
-The student HTTP client sends cookies with `withCredentials: true`; the admin transport uses credentialed fetch requests. The authenticated bootstrap responses also return a `csrfToken`, which the transports keep in memory.
+Both applications use the shared credentialed fetch transport. The authenticated bootstrap responses also return a `csrfToken`, which each application's transport keeps in its own memory. When both cookies are present, the role's bootstrap returns its own identity and CSRF token.
+
+Having only the other role's cookie does not block sign-in. The API denies that role-specific bootstrap with 403, and the frontend treats it as an absent session for the requested application.
 
 ## 4. Protecting Requests That Change Data
 

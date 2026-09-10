@@ -2,28 +2,42 @@
 .folder {
     @include ui.typography;
     @include ui.stack(0.25rem);
+    @include ui.control-motion;
+    @include ui.enters;
     align-items: flex-start;
-    width: 200px;
     box-sizing: border-box;
+    width: 200px;
     min-width: 0;
-    min-height: 190px;
+    height: 210px;
     padding: 1.5rem 0.75rem 0.5rem;
     background: url(./folder.svg) top center / 100% 100% no-repeat;
     color: var(--ch-ink);
 }
+.folder:has(form) {
+    height: auto;
+    min-height: 210px;
+    padding-top: 1.75rem;
+}
 .open {
     @include ui.control;
     @include ui.stack(0.5rem);
-    text-align: left;
     width: 100%;
     min-height: 76px;
     border: 0;
     background: transparent;
     color: inherit;
+    text-align: left;
     font-weight: 700;
     font-size: 1.125rem;
     cursor: pointer;
     overflow-wrap: anywhere;
+    :global(.name) {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        min-height: 2.5em;
+    }
 }
 .open[hidden],
 .actions[hidden] {
@@ -32,48 +46,33 @@
 .count {
     font-weight: 400;
     color: var(--ch-muted);
-    font-size: 0.875rem;
+    font-size: var(--ch-text-small);
 }
 .actions {
     @include ui.actions;
     gap: 0.25rem;
     width: 100%;
+    margin-top: auto;
     button {
         padding-inline: 0.4rem;
-        font-size: 0.875rem;
+        font-size: var(--ch-text-small);
+    }
+}
+@include ui.above(mobile) {
+    @include ui.hover-capable {
+        .folder:hover,
+        .folder:focus-within {
+            height: auto;
+            min-height: 210px;
+            transform: translateY(var(--ch-lift));
+            .open :global(.name) {
+                -webkit-line-clamp: unset;
+            }
+        }
     }
 }
 @include ui.below(mobile) {
     .folder {
         width: calc(50% - 0.25rem);
-    }
-}
-
-.folder {
-    height: 210px;
-}
-.open :global(.name) {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-    min-height: 2.5em;
-}
-.actions {
-    margin-top: auto;
-}
-.folder:has(form) {
-    height: auto;
-    min-height: 210px;
-    padding-top: 1.75rem;
-}
-@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
-    .folder:hover,
-    .folder:focus-within {
-        height: auto;
-        min-height: 210px;
-        .open :global(.name) {
-            -webkit-line-clamp: unset;
-        }
     }
 }

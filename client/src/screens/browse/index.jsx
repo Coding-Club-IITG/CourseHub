@@ -2,7 +2,7 @@ import { useUploadDialog } from "../contributions/dialogContext";
 import FileSelectionNotice from "./components/file-display/FileSelectionNotice";
 import { useSession } from "../../session/context";
 import styles from "./styles.module.scss";
-import { Button, FormField } from "@coursehub/ui";
+import { Button, EmptyState, FormField } from "@coursehub/ui";
 import Container from "../../components/container";
 import Collapsible from "./components/collapsible";
 
@@ -179,22 +179,50 @@ function BrowseContent() {
                     )}
                     {canGoBack && (
                         <div className={styles.back}>
-                            <Button variant="link" onClick={handleBackClick}>
-                                ← Back to {parent.name}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={styles.backButton}
+                                onClick={handleBackClick}
+                            >
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="M19 12H5m0 0 7 7m-7-7 7-7" />
+                                </svg>
+                                Back to {parent.name}
                             </Button>
                         </div>
                     )}
                     <div className={styles.files}>
                         <FileSelectionNotice />
                         {!folderData ? (
-                            <p>{HeaderText}</p>
+                            <EmptyState plain title={HeaderText} className={styles.empty} />
                         ) : !folderData.children?.length ? (
                             !requestedFile && (
-                                <p>
-                                    {folderData.childType === "File"
-                                        ? "No files available."
-                                        : "No folders available."}
-                                </p>
+                                <EmptyState
+                                    plain
+                                    className={styles.empty}
+                                    title={
+                                        folderData.childType === "File"
+                                            ? "No files available."
+                                            : "No folders available."
+                                    }
+                                >
+                                    <p>
+                                        {folderData.childType === "File"
+                                            ? "Nothing has been uploaded to this folder yet."
+                                            : "This year has no folders yet."}
+                                    </p>
+                                </EmptyState>
                             )
                         ) : folderData.childType === "File" ? (
                             <FileController files={folderData.children} code={currCourseCode} />

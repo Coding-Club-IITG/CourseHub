@@ -1,4 +1,5 @@
-import "./styles.scss";
+import { Card } from "@coursehub/ui";
+import styles from "./styles.module.scss";
 const ExamCard = ({ query, type, name }) => {
     const schedule = query.data?.exams?.[type];
     const next = schedule?.nextExam;
@@ -18,22 +19,24 @@ const ExamCard = ({ query, type, name }) => {
         }
     }
     return (
-        <div
-            className="exam-card"
+        <Card
+            interactive
+            className={`${styles.card} exam-card`}
             role="group"
             aria-label={`${name} countdown`}
             data-exam-type={type}
         >
-            <div className="ndays">
-                <p className={`days ${typeof value === "string" && value !== "-" ? "word" : ""}`}>
-                    {value}
-                </p>
+            <p
+                className={`${styles.value} days`}
+                data-word={typeof value === "string" && value !== "-"}
+            >
+                {value}
+            </p>
+            <div className={styles.caption}>
+                <p>{caption}</p>
+                <p>{name}</p>
             </div>
-            <div className="exam-name">
-                <p className="name">{caption}</p>
-                <p className="name">{name}</p>
-            </div>
-        </div>
+        </Card>
     );
 };
 

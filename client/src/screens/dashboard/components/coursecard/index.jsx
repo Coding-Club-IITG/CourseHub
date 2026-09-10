@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { CloseIcon, IconButton, ConfirmDialog } from "@coursehub/ui";
+import {
+    Card,
+    CardCode,
+    CardHeader,
+    CardTitle,
+    CloseIcon,
+    IconButton,
+    ConfirmDialog,
+} from "@coursehub/ui";
 import { capitalise } from "../../../../utils/capitalise";
 import { DeleteCourseAPI } from "../../../../api/User";
 import styles from "./styles.module.scss";
@@ -30,20 +38,23 @@ export default function CourseCard({
         }
     };
     return type === "ADD" ? (
-        <button
-            type="button"
-            className={`${styles.card} ${styles.add} coursecard ADD`}
-            onClick={setClicked}
-        >
+        <button type="button" className={`${styles.add} coursecard ADD`} onClick={setClicked}>
             <span aria-hidden="true">+</span>Add Course
         </button>
     ) : (
-        <article className={`${styles.card} coursecard`} style={{ backgroundColor: color }}>
+        <Card
+            as="article"
+            interactive
+            className={`${styles.card} coursecard`}
+            style={{ backgroundColor: color }}
+        >
             <button type="button" className={styles.open} onClick={setClicked} title={name}>
-                <span className={styles.code}>{code}</span>
-                <span className={`${styles.name} name`}>
+                <CardHeader>
+                    <CardCode>{code}</CardCode>
+                </CardHeader>
+                <CardTitle lines={3} className={`${styles.title} name`}>
                     {name ? capitalise(name) : "Name unavailable"}
-                </span>
+                </CardTitle>
             </button>
             {isReadOnly && (
                 <IconButton
@@ -68,6 +79,6 @@ export default function CourseCard({
                 busy={busy}
                 error={error}
             />
-        </article>
+        </Card>
     );
 }

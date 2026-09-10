@@ -69,7 +69,7 @@
     color: var(--ch-muted);
 }
 .mono {
-    font-family: var(--ch-font-mono, monospace);
+    font-family: var(--ch-font-mono);
 }
 .wrap {
     overflow-wrap: anywhere;
@@ -80,7 +80,7 @@
     white-space: nowrap;
 }
 .action {
-    min-width: 44px;
+    min-width: var(--ch-target);
     max-width: 100%;
     svg {
         width: 1rem;
@@ -153,7 +153,7 @@
 .row {
     border-bottom: 1px solid var(--ch-border);
     &:hover {
-        background: #fff9eb;
+        background: var(--ch-warning-surface);
     }
 }
 .table td,
@@ -222,6 +222,9 @@
     color: var(--ch-warning);
 }
 .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ch-target);
     color: var(--ch-ink);
     text-decoration: underline;
     text-underline-offset: 0.2em;
@@ -236,42 +239,22 @@
 .overlay {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: var(--ch-z-overlay);
     background: #0009;
+    backdrop-filter: blur(4px);
     display: grid;
     place-items: center;
     padding: 1rem;
+    animation: var(--ch-anim-fade-in) var(--ch-duration-base) var(--ch-ease-entrance) both;
     > div {
         width: min(100%, 30rem);
     }
 }
 .spinner {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    flex-shrink: 0;
-}
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-@include ui.reduced-motion {
-    .spinner {
-        animation: none;
-    }
+    @include ui.spinner(1rem);
 }
 .visuallyHidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    @include ui.visually-hidden;
 }
 .hidden {
     display: none;
@@ -308,8 +291,8 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    width: 44px;
-    height: 44px;
+    width: var(--ch-target);
+    height: var(--ch-target);
     border-radius: var(--ch-radius-control);
     background: var(--ch-yellow);
 }
@@ -344,7 +327,7 @@
     background: var(--ch-paper);
     border-bottom: 1px solid var(--ch-border);
     font-size: 0.875rem;
-    min-height: 44px;
+    min-height: var(--ch-target);
 }
 .conflict {
     background: var(--ch-warning-surface);

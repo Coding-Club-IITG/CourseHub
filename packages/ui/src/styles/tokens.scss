@@ -13,12 +13,17 @@
     --ch-success: #25613d;
     --ch-success-surface: #eaf4ed;
     --ch-danger: #a21c1c;
+    --ch-danger-hover: #801616;
     --ch-danger-surface: #fff0f0;
     --ch-warning: #704b00;
     --ch-warning-surface: #fff3d6;
     --ch-info: #254c70;
     --ch-info-surface: #edf4fc;
+    --ch-disabled-surface: #eee;
+    --ch-disabled-ink: #676767;
+
     --ch-font-body: "Proxima Nova", Arial, sans-serif;
+    --ch-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --ch-text-small: 0.875rem;
     --ch-text-body: 1rem;
     --ch-text-title: 1.75rem;
@@ -32,12 +37,46 @@
     --ch-space-12: 3rem;
     --ch-section-padding: 32px;
     --ch-gutter: 64px;
-    --ch-radius-control: 0.375rem;
+    --ch-page-max: 1400px;
+    --ch-navbar-height: 88px;
+    --ch-radius-sm: 0.25rem;
+    --ch-radius-control: 0.5rem;
     --ch-radius-card: 0.75rem;
     --ch-radius-pill: 999px;
     --ch-shadow-card: 0 2px 8px #0000000d;
+    --ch-shadow-control: 0 2px 8px #0000001a;
+    --ch-shadow-control-hover: 0 4px 12px #00000033;
+    --ch-shadow-raised: 0 12px 30px #00000026;
     --ch-shadow-dialog: 0 20px 70px #0004;
     --ch-target: 2.75rem;
+
+    // Motion
+    --ch-duration-fast: 160ms;
+    --ch-duration-base: 220ms;
+    --ch-duration-slow: 350ms;
+    --ch-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ch-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+    --ch-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ch-lift: -1px;
+    --ch-press: 0.97;
+
+    // Stacking order
+    --ch-z-raised: 10;
+    --ch-z-sticky: 20;
+    --ch-z-dropdown: 30;
+    --ch-z-overlay: 1000;
+    --ch-z-dialog: 1100;
+    --ch-z-toast: 1200;
+    --ch-z-skip: 1300;
+
+    // Keyframe names
+    --ch-anim-slide-in: ch-slide-in;
+    --ch-anim-drop-in: ch-drop-in;
+    --ch-anim-rise-in: ch-rise-in;
+    --ch-anim-rise-out: ch-rise-out;
+    --ch-anim-fade-in: ch-fade-in;
+    --ch-anim-pop-in: ch-pop-in;
+    --ch-anim-spin: ch-spin;
     @include below(mobile) {
         --ch-section-padding: 24px;
         --ch-gutter: 16px;
@@ -45,7 +84,58 @@
     @include below(small) {
         --ch-gutter: 12px;
     }
-    @media (max-width: 360px) {
+    @include below(tiny) {
         --ch-gutter: 8px;
+    }
+}
+
+// Shared entrance keyframes
+@keyframes ch-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-14px);
+    }
+}
+@keyframes ch-drop-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+@keyframes ch-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+@keyframes ch-rise-out {
+    to {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+@keyframes ch-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes ch-pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.93) translateY(16px);
+    }
+}
+@keyframes ch-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --ch-duration-fast: 0.01ms;
+        --ch-duration-base: 0.01ms;
+        --ch-duration-slow: 0.01ms;
+        --ch-lift: 0px;
+        --ch-press: 1;
     }
 }

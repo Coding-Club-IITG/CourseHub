@@ -4,7 +4,7 @@
     @include ui.actions;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem var(--browse-inline, 1.5rem);
     background: var(--ch-yellow);
     color: var(--ch-ink);
     :global {
@@ -18,6 +18,7 @@
         }
         .curr-folder {
             @include ui.actions;
+            @include ui.enters;
         }
         .folder-name {
             font-size: 1.5rem;
@@ -34,7 +35,7 @@
         }
         .btn {
             @include ui.control;
-            @include ui.control-motion;
+            @include ui.interactive;
             display: inline-flex;
             flex-direction: column;
             align-items: center;
@@ -45,13 +46,15 @@
             border: 0;
             background: var(--ch-black);
             color: var(--ch-paper);
+            box-shadow: var(--ch-shadow-control);
             cursor: pointer;
             font-size: 0.75rem;
             &:hover {
                 background: var(--ch-ink);
+                box-shadow: var(--ch-shadow-control-hover);
             }
             &:disabled {
-                color: #ccc;
+                color: var(--ch-border);
                 cursor: wait;
             }
         }
@@ -73,7 +76,6 @@
         }
     }
     @include ui.below(mobile) {
-        padding: 0.75rem var(--ch-gutter);
         :global(.info) {
             flex-basis: 100%;
         }

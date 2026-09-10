@@ -56,8 +56,6 @@ Long-running operations need a second refresh when their results become availabl
 
 Same-origin tabs exchange invalidation notices through BroadcastChannel. These notices contain course codes and change/logout signals, not file trees, tokens or user records. A shared rename therefore updates another open tab promptly. Deployments on separate origins cannot use the same browser channel; their views catch up through the ordinary focus, reconnect and periodic checks.
 
-If the browser does not support cross-tab messaging, the ordinary revalidation paths still work. No Redis service, service worker or persistent browser cache is required.
-
 ## Switching courses, errors and logout
 
 Course query functions consume the cancellation signal supplied by TanStack Query. Leaving a course while its request is pending aborts that read. A late response from CS101 cannot become the selected MA101 tree. Queries are keyed by actor and capabilities, so they cannot be reused as another user's authorized view.

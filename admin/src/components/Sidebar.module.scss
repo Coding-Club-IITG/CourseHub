@@ -15,6 +15,8 @@
     flex-direction: column;
     gap: 0.25rem;
     padding: 1.5rem 1.25rem;
+    justify-content: center;
+    min-height: var(--ch-target);
     color: inherit;
     text-decoration: none;
     small {
@@ -30,10 +32,12 @@
     overflow-y: auto;
     a {
         @include ui.control;
+        @include ui.control-motion;
+        @include ui.focus-ring-inverse;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        padding: 0.75rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--ch-radius-control);
         text-decoration: none;
         color: inherit;
@@ -43,14 +47,17 @@
             width: 1rem;
             height: 1rem;
         }
+        &:hover {
+            @include ui.tinted-hover;
+        }
         &[aria-current],
         &.active {
             background: var(--ch-yellow);
             color: var(--ch-ink);
         }
-        &:hover {
-            background: var(--ch-surface);
-            color: var(--ch-ink);
+        &[aria-current]:hover,
+        &.active:hover {
+            background: var(--ch-yellow-hover);
         }
     }
 }

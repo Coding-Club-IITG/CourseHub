@@ -18,7 +18,7 @@
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
+    min-height: var(--ch-target);
 }
 .operation {
     @include ui.stack(1rem);

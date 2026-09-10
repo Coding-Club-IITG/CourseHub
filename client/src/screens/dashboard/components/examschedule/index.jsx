@@ -1,10 +1,18 @@
 import { useState } from "react";
+import {
+    Button,
+    Card,
+    CardCode,
+    CardDetails,
+    CardHeader,
+    CardPill,
+    CardTitle,
+    EmptyState,
+} from "@coursehub/ui";
 import Container from "../../../../components/container";
-import Space from "../../../../components/space";
 import { getColors } from "../../../../utils/colors";
 import { capitalise } from "../../../../utils/capitalise";
-import formatLongText from "../../../../utils/formatLongText";
-import "./styles.scss";
+import styles from "./styles.module.scss";
 
 const displayDate = (value) =>
     new Intl.DateTimeFormat("en-GB", {
@@ -22,26 +30,21 @@ const ExamScheduleWidget = ({ query }) => {
     const label = activeTab === "midSem" ? "Mid-Sem" : "End-Sem";
     const unavailable = data?.status === "unavailable" || schedule?.status === "unavailable";
     const retry = (
-        <button
-            className="schedule-retry"
-            type="button"
-            disabled={query.isFetching}
-            onClick={() => query.refetch()}
-        >
+        <Button disabled={query.isFetching} onClick={() => query.refetch()}>
             Try again
-        </button>
+        </Button>
     );
     return (
         <Container color="dark" className="dashboard-section">
-            <section className="exam-schedule-container" aria-label="Exam schedule">
-                <div className="schedule-header">
+            <section className={styles.root} aria-label="Exam schedule">
+                <div className={styles.header}>
                     <h2>Exam schedule</h2>
-                    <div className="schedule-toggle-group" aria-label="Exam type">
+                    <div className={styles.toggleGroup} aria-label="Exam type">
                         {["midSem", "endSem"].map((type) => (
                             <button
                                 key={type}
                                 type="button"
-                                className={`toggle-tab ${activeTab === type ? "active" : ""}`}
+                                className={styles.tab}
                                 aria-pressed={activeTab === type}
                                 onClick={() => setActiveTab(type)}
                             >
@@ -50,19 +53,18 @@ const ExamScheduleWidget = ({ query }) => {
                         ))}
                     </div>
                 </div>
-                <Space amount={20} />
                 {query.isPending ? (
-                    <div className="schedule-state-box" role="status">
-                        <p className="state-text">Loading exam schedule…</p>
+                    <div className={styles.stateBox} role="status">
+                        <p className={styles.stateText}>Loading exam schedule…</p>
                     </div>
                 ) : query.isError ? (
-                    <div className="schedule-state-box" role="alert">
-                        <p className="state-text">Exam schedule could not be loaded.</p>
+                    <div className={styles.stateBox} role="alert">
+                        <p className={styles.stateText}>Exam schedule could not be loaded.</p>
                         {retry}
                     </div>
                 ) : unavailable ? (
-                    <div className="schedule-state-box" role="status">
-                        <p className="state-text">
+                    <div className={styles.stateBox} role="status">
+                        <p className={styles.stateText}>
                             {data?.reason === "REGISTRATION_UNAVAILABLE"
                                 ? "Current course registrations are unavailable."
                                 : data.status === "ready"
@@ -78,61 +80,56 @@ const ExamScheduleWidget = ({ query }) => {
                 ) : (
                     <>
                         {schedule?.status === "none" && (
-                            <div className="schedule-empty-state">
-                                <p className="empty-message">
-                                    No {label} exams scheduled for your courses.
-                                </p>
-                                <div className="no-exam-graphic" aria-hidden="true" />
-                            </div>
+                            <EmptyState
+                                plain
+                                className={styles.emptyState}
+                                title={`No ${label} exams scheduled for your courses.`}
+                                illustration={<div className={styles.graphic} aria-hidden="true" />}
+                            />
                         )}
                         {schedule?.status === "complete" && (
-                            <p className="schedule-complete">
+                            <p className={styles.stateText}>
                                 All listed {label} exams have finished.
                             </p>
                         )}
                         {!!schedule?.items?.length && (
-                            <div className="examcard-list" key={activeTab}>
+                            <div className={styles.list} key={activeTab}>
                                 {schedule.items.map((exam, index) => (
-                                    <div
+                                    <Card
                                         key={exam.code}
-                                        className="exam-item-card"
+                                        interactive
+                                        className={`${styles.item} exam-item-card`}
                                         style={{
                                             backgroundColor: getColors(index),
                                             animationDelay: `${index * 45}ms`,
                                         }}
                                     >
-                                        <div className="card-top">
-                                            <span className="course-code">{exam.code}</span>
-                                            <span className="slot-pill">Slot {exam.slot}</span>
-                                        </div>
-                                        <div className="card-middle">
-                                            <p className="course-name" title={exam.name}>
-                                                {formatLongText(
-                                                    capitalise(exam.name || exam.code),
-                                                    36,
-                                                )}
+                                        <CardHeader>
+                                            <CardCode>{exam.code}</CardCode>
+                                            <CardPill>Slot {exam.slot}</CardPill>
+                                        </CardHeader>
+                                        <CardTitle lines={2} title={exam.name}>
+                                            {capitalise(exam.name || exam.code)}
+                                        </CardTitle>
+                                        <CardDetails
+                                            items={[
+                                                [
+                                                    "Date",
+                                                    <time key="d" dateTime={exam.startsAt}>
+                                                        {displayDate(exam.startsAt)}
+                                                    </time>,
+                                                ],
+                                                ["Time", exam.time],
+                                            ]}
+                                        />
+                                        {exam.state !== "upcoming" && (
+                                            <p className={styles.itemState}>
+                                                {exam.state === "ongoing"
+                                                    ? "In progress"
+                                                    : "Finished"}
                                             </p>
-                                        </div>
-                                        <div className="card-bottom">
-                                            <div className="exam-detail-row">
-                                                <span className="label">DATE</span>
-                                                <time className="value" dateTime={exam.startsAt}>
-                                                    {displayDate(exam.startsAt)}
-                                                </time>
-                                            </div>
-                                            <div className="exam-detail-row">
-                                                <span className="label">TIME</span>
-                                                <span className="value">{exam.time}</span>
-                                            </div>
-                                            {exam.state !== "upcoming" && (
-                                                <p className="exam-state">
-                                                    {exam.state === "ongoing"
-                                                        ? "In progress"
-                                                        : "Finished"}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
+                                        )}
+                                    </Card>
                                 ))}
                             </div>
                         )}

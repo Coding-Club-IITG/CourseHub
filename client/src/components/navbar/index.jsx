@@ -39,7 +39,7 @@ export default function NavBar({ compact = false }) {
     };
     return (
         <nav
-            className={`${styles.navbar} ${compact ? styles.compact : ""}`}
+            className={styles.navbar}
             aria-label="Main navigation"
             onKeyDown={(event) => {
                 if (event.key === "Escape" && open) {
