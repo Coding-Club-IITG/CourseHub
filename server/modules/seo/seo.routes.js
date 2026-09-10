@@ -3,7 +3,7 @@ import CourseModel from "../course/course.model.js";
 import config from "../../config/default.js";
 
 const router = express.Router();
-const BASE_URL = config.clientURL;
+const BASE_URL = config.clientURL || "https://coursehub.codingclub.in";
 
 // 1 sitemap.xml
 
