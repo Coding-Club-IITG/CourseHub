@@ -26,6 +26,8 @@ import fileRoutes from "./modules/file/file.routes.js";
 import folderRoutes from "./modules/folder/folder.routes.js";
 import yearRoutes from "./modules/year/year.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
+import seoRoutes from "./modules/seo/seo.routes.js";
+import seoMiddleware from "./middleware/seo.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -61,6 +63,8 @@ app.use("/api/files", fileRoutes);
 app.use("/api/folder", folderRoutes);
 app.use("/api/year", yearRoutes);
 app.use("/api/student", studentRoutes);
+app.use(seoRoutes);
+
 app.use(
     "/homepage",
     catchAsync(async (req, res) => {
@@ -69,6 +73,10 @@ app.use(
         return res.json(user);
     }),
 );
+
+app.use("/browse", seoMiddleware);
+
+app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
 app.use((error, req, res, next) => {
     logger.error("Unhandled request error", {
@@ -83,7 +91,6 @@ app.use((error, req, res, next) => {
     const { status = 500, message = "Something went wrong!" } = error;
     return res.status(status).json({ error: true, message });
 });
-app.get("*", (req, res) => res.sendFile(path.resolve(__dirname, "static", "index.html")));
 
 async function closeServer() {
     if (!server.listening) return;
@@ -128,6 +135,8 @@ process.once("SIGINT", () => void terminate({ signal: "SIGINT", exitCode: 0 }));
 process.once("SIGTERM", () => void terminate({ signal: "SIGTERM", exitCode: 0 }));
 process.once("uncaughtException", (error) => void terminate({ error, exitCode: 1 }));
 process.once("unhandledRejection", (error) => void terminate({ error, exitCode: 1 }));
+
+
 
 export async function start() {
     await connectDatabase();

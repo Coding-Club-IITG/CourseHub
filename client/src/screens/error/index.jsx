@@ -1,6 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const ErrorScreen = () => {
+    useEffect(() => {
+        document.title = "Page Not Found | CourseHub";
+        return () => {
+            document.title = "CourseHub";
+        };
+    }, []);
+
     return (
         <div
             style={{
