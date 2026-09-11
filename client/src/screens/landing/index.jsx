@@ -15,7 +15,9 @@ const LandingPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-
+    useEffect(() => {
+        document.title = "CourseHub";
+    }, []);
     useEffect(() => {
         clearLegacySessionLocalCoursesCache();
     }, []);
