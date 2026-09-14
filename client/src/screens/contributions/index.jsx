@@ -31,7 +31,7 @@ const stateLabels = {
     cancelled: "Cancelled",
 };
 const Contributions = () => {
-    const { open, setOpen } = useUploadDialog();
+    const { open, setOpen, returnFocusRef } = useUploadDialog();
     const [selectedFiles, setSelectedFiles] = useState([]);
     const isOpen = useRef(open);
     isOpen.current = open;
@@ -336,6 +336,7 @@ const Contributions = () => {
         <Dialog
             open={open}
             onOpenChange={setOpen}
+            returnFocusRef={returnFocusRef}
             data-upload-dialog
             title={isBR ? "Upload Files" : "Share Your Files"}
             description={"To " + (currentFolder?.name || "this folder")}

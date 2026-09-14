@@ -11,7 +11,7 @@ import FolderInfo from "./components/folder-info";
 
 import BrowseFolder from "./components/browsefolder";
 import NavBar from "../../components/navbar";
-import Contributions from "../contributions";
+import DeferredContributions from "../contributions/DeferredContributions";
 import { getColors } from "../../utils/colors";
 import { getSubtreeFileCount } from "../../utils/folderUtils";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -38,7 +38,9 @@ function PreviousSemester({ semester, currentCourseCode }) {
         <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
             <summary>
                 <span>
-                    Semester {semester.semester} ({semester.year})
+                    {semester.semester
+                        ? `Semester ${semester.semester}${semester.year ? ` (${semester.year})` : ""}`
+                        : "Earlier courses"}
                 </span>
                 <Icon name="chevron" size={16} />
             </summary>
@@ -250,7 +252,7 @@ function BrowseContent() {
                     </div>
                 </main>
             </div>
-            <Contributions key={currCourseCode + "/" + (folderData?._id || "")} />
+            <DeferredContributions key={currCourseCode + "/" + (folderData?._id || "")} />
         </Container>
     );
 }

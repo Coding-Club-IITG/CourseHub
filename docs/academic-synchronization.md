@@ -20,6 +20,8 @@ Several lists mention courses, but they serve different purposes:
 
 A student cannot make themselves a BR by changing a profile field or a browser-side course list. The server combines the BR registry with academic allotments when deciding what they can manage.
 
+Older accounts may have previous courses stored as a flat list. Reads preserve those references under **Earlier courses** when no semester information is available.
+
 ## 2. Ordinary Refresh and Force Refresh
 
 CourseHub keeps validated copies of academic data in MongoDB so every login does not need a separate request to the academic portal. This saved copy is the **cache**.

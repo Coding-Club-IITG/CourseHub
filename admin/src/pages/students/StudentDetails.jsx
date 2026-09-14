@@ -59,7 +59,9 @@ export default function StudentDetails({ id }) {
                     {item.previousCourses.map((term, index) => (
                         <details key={index}>
                             <summary>
-                                Semester {term.semester} ({term.year})
+                                {term.semester
+                                    ? `Semester ${term.semester}${term.year ? ` (${term.year})` : ""}`
+                                    : "Earlier courses"}
                             </summary>
                             <ul>
                                 {term.courses?.map((course) => (

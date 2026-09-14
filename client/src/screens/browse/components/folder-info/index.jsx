@@ -1,6 +1,5 @@
 import { useCourseBrowser } from "../../../../queries/browserContext";
 import { transport } from "../../../../api/http";
-import { getFileDownloadLink } from "../../../../api/File";
 import styles from "./styles.module.scss";
 import { toast } from "../../../../notifications/toast";
 import { useShare } from "../../../share/context";
@@ -10,8 +9,6 @@ import { createFolder } from "../../../../api/Folder";
 
 import { ConfirmDialog } from "./confirmDialog";
 
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
@@ -82,7 +79,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
     const downloadFolder = async (id, folderPath = "", failures = []) => {
         try {
             const data = await fetchFolder(id, courseCode);
-
+            const { default: JSZip } = await import("jszip");
             const zip = new JSZip();
 
             const childType = data.childType || "File";
@@ -117,9 +114,9 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
                     }
                 } else {
                     try {
-                        const downloadLink = await getFileDownloadLink(child._id, courseCode);
-
-                        const curfile = await transport.request(downloadLink);
+                        const curfile = await transport.request(
+                            `/api/files/content/${encodeURIComponent(child._id)}?download=1`,
+                        );
                         const fileBlob = await curfile.blob();
 
                         const filePath = folderPath ? `${folderPath}/${child.name}` : child.name;
@@ -158,6 +155,7 @@ const FolderInfo = ({ path, name, canDownload, contributionHandler, folderId, co
                 compressionOptions: { level: 6 },
             });
 
+            const { saveAs } = await import("file-saver");
             saveAs(zipBlob, `${folderName}.zip`);
 
             if (failures.length)

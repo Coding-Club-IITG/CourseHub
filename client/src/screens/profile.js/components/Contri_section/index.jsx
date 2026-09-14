@@ -11,8 +11,9 @@ export default function ContributionsSection() {
     const isBR = useSession().data?.isBR === true,
         navigate = useNavigate();
     const query = useQuery({
-        queryKey: library.key("contributions", isBR ? "moderation" : "own"),
-        queryFn: ({ signal }) => (isBR ? GetBrContribution(signal) : GetMyContributions(signal)),
+        ...library.options("contributions", isBR ? "moderation" : "own", ({ signal }) =>
+            isBR ? GetBrContribution(signal) : GetMyContributions(signal),
+        ),
         retry: false,
     });
     const submissions = isBR ? query.data?.unverifiedContributions || [] : query.data || [];

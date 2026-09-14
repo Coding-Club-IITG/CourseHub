@@ -1,6 +1,7 @@
 import { createUpload } from "../../services/uploads.js";
 import { presentOperation } from "../operation/operation.controller.js";
 import Contribution from "./contribution.model.js";
+import { FileModel } from "../course/course.model.js";
 import AppError from "../../utils/appError.js";
 import {
     actorFor,
@@ -8,8 +9,11 @@ import {
     requireFile,
     presentFile,
     libraryGraph,
+    resourceReadRequest,
+    fileReadRequest,
 } from "../../services/authorization.js";
 import { normalizeCourseCode } from "../../utils/course.js";
+import { treeId } from "../../services/folderTrees.js";
 
 async function CreateNewContribution(req, res) {
     const operation = await createUpload(req);
@@ -24,8 +28,8 @@ export async function presentContribution(
     const files = [];
     for (const file of contribution.files) {
         try {
-            await requireFile(req, String(file._id), contextCode);
-            files.push(await presentFile(req, file, contextCode));
+            const context = await requireFile(req, treeId(file), contextCode);
+            files.push(await presentFile(req, context.file, contextCode));
         } catch (error) {
             if (error.status !== 404) throw error;
         }
@@ -39,9 +43,10 @@ export async function presentContribution(
 }
 
 async function GetMyContributions(req, res) {
-    const contributions = await Contribution.find({ uploadedBy: String(req.user._id) }).populate(
-        "files",
-    );
+    const contributions = await Contribution.find({ uploadedBy: String(req.user._id) });
+    if (!contributions.length) return res.json([]);
+    const fileIds = contributions.flatMap((c) => c.files.map(treeId));
+    if (fileIds.length) req = resourceReadRequest(req, { fileIds });
     res.json(await Promise.all(contributions.map((c) => presentContribution(req, c))));
 }
 
@@ -56,6 +61,10 @@ async function GetBrContribution(req, res) {
     );
     if (courses?.some((code) => !code || (!actor.admin && !actor.managed.includes(code))))
         throw new AppError(403, "You do not have permission for this course");
+    if (courses?.length === 0 || (!actor.admin && !actor.managed.length))
+        return res.json({ unverifiedContributions: [] });
+    if (courses || !actor.admin)
+        req = resourceReadRequest(req, { courseCodes: courses || actor.managed });
     const graph = await libraryGraph(req);
     const allowed = new Set(courses || (actor.admin ? [...graph.courses.keys()] : actor.managed));
     const folders = new Map(
@@ -63,9 +72,25 @@ async function GetBrContribution(req, res) {
             .map(([id, codes]) => [id, [...codes].filter((code) => allowed.has(code))])
             .filter(([, codes]) => codes.length),
     );
+    const pendingFiles = await FileModel.find({
+        _id: {
+            $in: [...graph.fileCourses]
+                .filter(([, codes]) => [...codes].some((code) => allowed.has(code)))
+                .map(([id]) => id),
+        },
+        isVerified: { $ne: true },
+    })
+        .select("_id")
+        .lean();
+    if (!pendingFiles.length) return res.json({ unverifiedContributions: [] });
     const contributions = await Contribution.find({
         parentFolder: { $in: [...folders.keys()] },
-    }).populate("files");
+        files: { $in: pendingFiles.map((file) => file._id) },
+    });
+    req = fileReadRequest(
+        req,
+        contributions.flatMap((c) => c.files.map(treeId)),
+    );
     const visible = [];
     for (const contribution of contributions) {
         try {

@@ -1,6 +1,7 @@
 import User from "../modules/user/user.model.js";
 import BR from "../modules/br/br.model.js";
 import AppError from "../utils/appError.js";
+import { normalizeCourseHistory } from "./courseHistory.js";
 import { escapeSearch, listParameters, pageFacet, pageResult } from "../utils/pagination.js";
 const emailLower = (field) => ({ $toLower: { $ifNull: [field, ""] } });
 const brLookup = {
@@ -71,7 +72,7 @@ export async function listStudents(query, { brOnly = false } = {}) {
                   },
               },
           ]
-        : [brLookup, { $project: listProjection }];
+        : [{ $project: { ...listProjection, isBR: { $literal: false } } }];
     if (parameters.q) {
         const literal = escapeSearch(parameters.q);
         pipeline.push({
@@ -92,7 +93,14 @@ export async function listStudents(query, { brOnly = false } = {}) {
             },
         });
     }
-    pipeline.push({ $sort: { isRegistered: -1, rollNumber: -1, _id: 1 } }, pageFacet(parameters));
+    const page = pageFacet(parameters);
+    if (!brOnly)
+        page.$facet.items.push(
+            brLookup,
+            { $set: { isBR: { $gt: [{ $size: "$registry" }, 0] } } },
+            { $unset: "registry" },
+        );
+    pipeline.push({ $sort: { isRegistered: -1, rollNumber: -1, _id: 1 } }, page);
     const [result] = await (brOnly ? BR : User).aggregate(pipeline);
     return pageResult(result, parameters);
 }
@@ -103,6 +111,7 @@ export async function studentDetails(id) {
         )
         .lean();
     if (!item) throw new AppError(404, "Student not found");
+    item.previousCourses = normalizeCourseHistory(item.previousCourses);
     item.isBR = !!(await BR.exists({ email: item.email }).collation({ locale: "en", strength: 2 }));
     item.isRegistered = true;
     return { item };

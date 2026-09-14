@@ -189,7 +189,9 @@ const Dashboard = () => {
                                             <span aria-hidden="true">
                                                 {openSemesters[index] ? "▾" : "▸"}
                                             </span>
-                                            Semester {group.semester} ({group.year})
+                                            {group.semester
+                                                ? `Semester ${group.semester}${group.year ? ` (${group.year})` : ""}`
+                                                : "Earlier courses"}
                                         </button>
                                         <div
                                             id={"semester-" + index}

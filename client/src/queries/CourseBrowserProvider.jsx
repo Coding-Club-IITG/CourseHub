@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { useMemo } from "react";
 import { normalizeCourseCode } from "@coursehub/domain";
 import { RequestError } from "@coursehub/browser/react";
 import { useCourse } from "./course";
@@ -9,16 +10,31 @@ import Loader from "../components/Loader";
 export default function CourseBrowserProvider({ children }) {
     const { code, folderId } = useParams();
     const query = useCourse(code);
-    const years = query.data?.children || [];
-    const index = folderId ? findYearIndexForFolder(years, folderId) : years.length - 1;
-    const selected = folderId ? findFolderById(years, folderId) : years[index];
-    const currentFolder =
-        selected?.childType === "File"
-            ? {
-                  ...selected,
-                  children: [...selected.children].sort((a, b) => a.name.localeCompare(b.name)),
-              }
-            : selected;
+    const { years, index, selected, currentFolder } = useMemo(() => {
+        const years = query.data?.children || [];
+        const index = folderId ? findYearIndexForFolder(years, folderId) : years.length - 1;
+        const selected = folderId ? findFolderById(years, folderId) : years[index];
+        const currentFolder =
+            selected?.childType === "File"
+                ? {
+                      ...selected,
+                      children: [...selected.children].sort((a, b) => a.name.localeCompare(b.name)),
+                  }
+                : selected;
+        return { years, index, selected, currentFolder };
+    }, [query.data, folderId]);
+    const value = useMemo(
+        () => ({
+            currentCourse: code ? years : null,
+            currentCourseCode: normalizeCourseCode(query.data?.code || code),
+            currentFolder: currentFolder || null,
+            currentYear: index >= 0 ? index : null,
+            currentYearFolderStructure: years[index]?.children || [],
+            course: query.data,
+            refresh: query.refetch,
+        }),
+        [code, years, query.data, query.refetch, currentFolder, index],
+    );
     if (code && (query.isPending || query.isError || (folderId && !selected)))
         return (
             <>
@@ -39,19 +55,5 @@ export default function CourseBrowserProvider({ children }) {
                 )}
             </>
         );
-    return (
-        <BrowserContext
-            value={{
-                currentCourse: code ? years : null,
-                currentCourseCode: normalizeCourseCode(query.data?.code || code),
-                currentFolder: currentFolder || null,
-                currentYear: index >= 0 ? index : null,
-                currentYearFolderStructure: years[index]?.children || [],
-                course: query.data,
-                refresh: query.refetch,
-            }}
-        >
-            {children}
-        </BrowserContext>
-    );
+    return <BrowserContext value={value}>{children}</BrowserContext>;
 }

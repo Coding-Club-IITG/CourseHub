@@ -11,10 +11,19 @@ import {
 } from "./user.model.js";
 import { updateUserData } from "./user.model.js";
 import { synchronizationStatus, scheduleStudentSync } from "../../services/academicSync.js";
-import { actorFor, requireCourse, libraryGraph } from "../../services/authorization.js";
+import {
+    actorFor,
+    requireCourse,
+    libraryGraph,
+    resourceReadRequest,
+} from "../../services/authorization.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 
 async function visibleFavourites(req, user) {
+    const ids = (user.favourites || [])
+        .map((favourite) => favourite.id)
+        .filter((id) => typeof id === "string" && /^[a-f0-9]{24}$/i.test(id));
+    if (ids.length) req = resourceReadRequest(req, { fileIds: ids });
     const favourites = [];
     for (const favourite of user.favourites || []) {
         try {

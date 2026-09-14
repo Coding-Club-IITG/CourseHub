@@ -9,6 +9,8 @@ import {
     requireFolder,
     courseContext,
     libraryGraph,
+    resourceReadRequest,
+    fileReadRequest,
 } from "../../services/authorization.js";
 import { scheduleCourseLink } from "../../services/courseLinking.js";
 import { scheduleDeletion } from "../../services/deletions.js";
@@ -27,16 +29,21 @@ export async function getDBCourses(req, res) {
     res.json(await listCourses(req.query));
 }
 export async function getCourseDashboardData(req, res) {
+    req = resourceReadRequest(req, { courseCode: req.params.code });
     const course = await presentCourse(req, req.params.code);
     const codeRegex = getCourseCodeCaseInsensitiveRegex(course.code);
-    const studentCount = await User.countDocuments({ "courses.code": codeRegex });
     const graph = await libraryGraph(req);
     const folderIds = [...graph.folderCourses]
         .filter(([, codes]) => codes.has(normalizeCourseCode(course.code)))
         .map(([id]) => id);
-    const records = await Contribution.find({ parentFolder: { $in: folderIds } })
-        .sort({ createdAt: -1 })
-        .populate("files");
+    const [studentCount, records] = await Promise.all([
+        User.countDocuments({ "courses.code": codeRegex }),
+        Contribution.find({ parentFolder: { $in: folderIds } }).sort({ createdAt: -1 }),
+    ]);
+    req = fileReadRequest(
+        req,
+        records.flatMap((c) => c.files.map(String)),
+    );
     const contributions = await Promise.all(
         records.map((c) => presentContribution(req, c, normalizeCourseCode(course.code))),
     );

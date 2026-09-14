@@ -67,7 +67,7 @@ export function walkFolderTree(graph, roots, code, { operationId } = {}) {
     return { folders, files, order };
 }
 
-export function buildLibraryGraph(courses, folders, files, { operationId } = {}) {
+export function buildLibraryGraph(courses, folders, files, { operationId, courseCodes } = {}) {
     const graph = {
         courses: new Map(),
         aliases: new Map(),
@@ -113,6 +113,7 @@ export function buildLibraryGraph(courses, folders, files, { operationId } = {})
     };
     for (const [code, course] of graph.courses) {
         if (
+            (courseCodes && !courseCodes.has(code)) ||
             graph.errors.has(code) ||
             (course.deletingOperation && course.deletingOperation !== operationId) ||
             (course.changingOperation && course.changingOperation !== operationId)

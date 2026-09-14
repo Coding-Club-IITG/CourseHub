@@ -10,7 +10,11 @@ Both applications use TanStack Query. The student provider starts the session qu
 
 The student bootstrap is `GET /api/user`. It returns the authenticated student, capabilities and academic synchronization information. The administrator bootstrap is `GET /api/admin/`. The browser never creates permissions from a course dropdown, local storage or an editable BR flag. Controls still use the capabilities returned by the API, and every resource request still passes server authorization.
 
+The bootstrap loads the favourites' relevant trees and file records together within the request, avoiding a whole-library scan and separate file queries. Older accounts with a flat previous-course list are presented as **Earlier courses** when semester information is unavailable. Reading an account does not migrate its stored history or invent semester assignments.
+
 Session data is fresh for one minute. An active session query rechecks once a minute and revalidates when stale on focus or reconnect. An API response with status 401 ends the browser session immediately. The route gate hides protected content and saves its current pathname, query and hash in the sign-in destination.
+
+Session credentials and bootstrap responses are not persisted. On a full reload, the student application checks the session before restoring saved course trees from `sessionStorage`. Matching trees can then render while their API requests run in the background. Logout, failed session checks and changed account/capability scopes discard those saved trees; see [course caching](frontend-caching.md).
 
 A failed session check shows a retryable message, including when it was a background check. Protected content is not left usable while the session cannot be confirmed. A successful retry restores the page. A 403 or 404 from a resource request does not sign out a valid user.
 

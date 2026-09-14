@@ -1,6 +1,7 @@
 import { replaceEqualDeep } from "@tanstack/react-query";
 
 import { normalizeCourseCode as normalize } from "@coursehub/domain";
+import { persistCourseQueries } from "./coursePersistence.js";
 const actorScope = (actor) => [
     actor?._id || actor?.userId || "anonymous",
     actor?.capabilities || {},
@@ -21,36 +22,41 @@ export function createLibraryCache(session, transport, role) {
         kind,
         normalize(code),
     ];
+    const persistence =
+        role === "student" && transport.baseUrl
+            ? persistCourseQueries({ session, key, namespace: `${role}:${transport.baseUrl}` })
+            : null;
     const invalidate = (codes = [], broadcast = true) => {
         const normalized = codes.filter((value) => typeof value === "string").map(normalize);
         if (role === "student") client.invalidateQueries({ queryKey: session.options.queryKey });
         if (broadcast) channel?.postMessage({ type: "changed", codes: normalized });
-        return client.invalidateQueries({
-            predicate: (query) => {
-                if (query.queryKey[0] !== "library") return false;
-                if (!normalized.length || query.queryKey[4] === "courses") return true;
-                if (normalized.includes(query.queryKey[5])) return true;
+        const predicate = (query) => {
+            if (query.queryKey[0] !== "library") return false;
+            if (query.queryKey[4] === "contributions") return true;
+            if (!normalized.length || query.queryKey[4] === "courses") return true;
+            if (normalized.includes(query.queryKey[5])) return true;
+            if (
+                normalized.includes(
+                    normalize(query.state.data?.code || query.state.data?.course?.code),
+                )
+            )
+                return true;
+            // Existing cached trees also identify siblings of a shared resource
+            const pending = [query.state.data?.course || query.state.data];
+            while (pending.length) {
+                const item = pending.pop();
                 if (
-                    normalized.includes(
-                        normalize(query.state.data?.code || query.state.data?.course?.code),
+                    (item?.affectedCourses || item?.courses || []).some((code) =>
+                        normalized.includes(normalize(code)),
                     )
                 )
                     return true;
-                // Existing cached trees also identify siblings of a shared resource
-                const pending = [query.state.data?.course || query.state.data];
-                while (pending.length) {
-                    const item = pending.pop();
-                    if (
-                        (item?.affectedCourses || item?.courses || []).some((code) =>
-                            normalized.includes(normalize(code)),
-                        )
-                    )
-                        return true;
-                    if (item?.childType !== "File") pending.push(...(item?.children || []));
-                }
-                return false;
-            },
-        });
+                if (item?.childType !== "File") pending.push(...(item?.children || []));
+            }
+            return false;
+        };
+        persistence?.invalidate(predicate);
+        return client.invalidateQueries({ predicate });
     };
     if (channel)
         channel.onmessage = (event) => {
@@ -98,17 +104,21 @@ export function createLibraryCache(session, transport, role) {
                 queryKey: key(kind, code),
                 queryFn,
                 staleTime: 15_000,
+                gcTime: 30 * 60_000,
                 refetchInterval: 30_000,
-                refetchOnMount: "always",
-                refetchOnWindowFocus: "always",
-                refetchOnReconnect: "always",
+                refetchOnMount: true,
+                refetchOnWindowFocus: true,
+                refetchOnReconnect: true,
                 structuralSharing: (previous, next) =>
-                    next?.revision && next.revision === previous?.revision
+                    next?.revision &&
+                    next.revision === previous?.revision &&
+                    !persistence?.isRestored(previous)
                         ? previous
                         : replaceEqualDeep(previous, next),
             };
         },
         dispose() {
+            persistence?.dispose();
             unsubscribe();
             channel?.close();
         },

@@ -5,6 +5,7 @@ import { graph } from "../../services/graphClient.js";
 import { getRandomColor } from "../../utils/generateRandomColor.js";
 import { normalizeCourseCode } from "../../utils/course.js";
 import { courseReference, semesterReference } from "./courseReference.schema.js";
+import { normalizeCourseHistory } from "../../services/courseHistory.js";
 
 const userSchema = Schema({
     name: { type: String, required: true },
@@ -32,6 +33,10 @@ const userSchema = Schema({
         historyPeriod: String,
         lastSucceededAt: Date,
     },
+});
+
+userSchema.pre("init", function (record) {
+    record.previousCourses = normalizeCourseHistory(record.previousCourses);
 });
 
 userSchema.pre("save", function () {

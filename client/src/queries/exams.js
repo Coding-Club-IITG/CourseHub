@@ -5,9 +5,13 @@ import { GetExamSchedule } from "../api/User";
 export function useExamSchedule() {
     const actor = useSession().data;
     return useQuery({
-        queryKey: ["exam-schedule", actor?._id, actor?.courseSync?.lastSucceededAt || null],
+        queryKey: [
+            "exam-schedule",
+            actor?._id,
+            actor?.synchronization?.lastSucceededAt || actor?.courseSync?.lastSucceededAt || null,
+        ],
         enabled: !!actor?._id,
-        staleTime: 0,
+        staleTime: 30_000,
         refetchInterval: (query) =>
             Math.max(1000, Math.min(60_000, query.state.data?.refreshAfterMs || 60_000)),
         queryFn: async ({ signal }) => {

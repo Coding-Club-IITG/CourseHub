@@ -1,6 +1,11 @@
 import { resolveFileLocation } from "../../services/fileLocation.js";
 import Contribution from "../contribution/contribution.model.js";
-import { requireFile, presentFile, visibleFiles } from "../../services/authorization.js";
+import {
+    requireFile,
+    presentFile,
+    visibleFiles,
+    resourceReadRequest,
+} from "../../services/authorization.js";
 import { scheduleDeletion } from "../../services/deletions.js";
 import { mutateContent } from "../../services/contentMutation.js";
 import AppError from "../../utils/appError.js";
@@ -31,9 +36,11 @@ export async function getAllFiles(req, res) {
     res.json(await visibleFiles(req));
 }
 export async function getFileLink(req, res) {
+    req = resourceReadRequest(req, { fileId: req.params.id });
     res.json(await resolveFileLocation(req, req.params.id, req.query.courseCode));
 }
 export async function downloadFiles(req, res) {
+    req = resourceReadRequest(req, { fileId: req.body.fileId });
     const { file } = await requireFile(req, req.body.fileId, req.body.courseCode);
     res.json({ downloadLink: `/api/files/content/${file._id}?download=1` });
 }

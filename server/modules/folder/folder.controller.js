@@ -1,5 +1,10 @@
 import { FolderModel } from "../course/course.model.js";
-import { requireFolder, presentFolder, libraryGraph } from "../../services/authorization.js";
+import {
+    requireFolder,
+    presentFolder,
+    libraryGraph,
+    resourceReadRequest,
+} from "../../services/authorization.js";
 import { validateTreeChange } from "../../services/folderTrees.js";
 import { scheduleDeletion } from "../../services/deletions.js";
 import { mutateContent } from "../../services/contentMutation.js";
@@ -47,6 +52,10 @@ export async function deleteFolder(req, res) {
     );
 }
 export async function getFolderContent(req, res) {
+    req = resourceReadRequest(req, {
+        folderId: req.params.folderId,
+        courseCode: req.query.courseCode,
+    });
     const context = await requireFolder(req, req.params.folderId, req.query.courseCode);
     res.json(await presentFolder(req, context.folder._id, context.code));
 }

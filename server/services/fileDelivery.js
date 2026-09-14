@@ -1,10 +1,11 @@
 import { pipeline } from "node:stream/promises";
-import { requireFile } from "./authorization.js";
+import { requireFile, resourceReadRequest } from "./authorization.js";
 import { storage } from "./storage.js";
 import { thumbnailStream } from "./thumbnails.js";
 import AppError from "../utils/appError.js";
 
 export async function filePreview(req, res) {
+    req = resourceReadRequest(req, { fileId: req.params.id });
     const { file } = await requireFile(req, req.params.id, req.query.courseCode);
     // Keep Office's viewer for existing provider links after the visibility check.
     if (!/\.(pdf|png|jpe?g|webp|gif)$/i.test(file.name)) {
@@ -32,6 +33,7 @@ export async function filePreview(req, res) {
 }
 
 export async function fileContent(req, res) {
+    req = resourceReadRequest(req, { fileId: req.params.id });
     const { file } = await requireFile(req, req.params.id, req.query.courseCode);
     const controller = new AbortController();
     res.once("close", () => controller.abort());
@@ -58,6 +60,7 @@ export async function fileContent(req, res) {
 }
 
 export async function fileThumbnail(req, res) {
+    req = resourceReadRequest(req, { fileId: req.params.id });
     const { file } = await requireFile(req, req.params.id, req.query.courseCode);
     const controller = new AbortController();
     res.once("close", () => controller.abort());

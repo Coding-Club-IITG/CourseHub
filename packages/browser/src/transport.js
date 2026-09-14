@@ -37,6 +37,7 @@ export function createTransport({
         pending = undefined;
         generation++;
     };
+
     const setCsrfToken = (value) => {
         if (typeof value === "string") token = value;
     };
@@ -48,16 +49,19 @@ export function createTransport({
         endSession();
         for (const listener of listeners) listener();
     };
+
     const checkResponse = (status, data) => {
         if (status === 401) unauthorized();
         if (status < 200 || status >= 300) throw new ApiError(status, data);
     };
+
     const resolve = (path) => {
         const url = new URL(path, base);
         if (url.origin !== base.origin || !url.pathname.startsWith(base.pathname))
             throw new ApiError(400, { message: "Invalid API destination." });
         return url;
     };
+
     async function request(path, options = {}) {
         await Promise.resolve();
         options.signal?.throwIfAborted();
@@ -115,6 +119,7 @@ export function createTransport({
             throw new ApiError(response.status, data, response.headers.get("X-Request-ID"));
         }
     }
+
     async function json(path, options) {
         const epoch = generation;
         const sessionEpoch = sessionGeneration;
@@ -134,6 +139,7 @@ export function createTransport({
         if (epoch === generation) setCsrfToken(data?.csrfToken);
         return data;
     }
+
     async function getCsrfToken(refresh = false, signal) {
         if (refresh) clearCsrfToken();
         signal?.throwIfAborted();
@@ -151,7 +157,7 @@ export function createTransport({
                     });
                 pending = work;
             }
-            // A cancelled consumer must not cancel another request's shared token refresh.
+            // A cancelled consumer must not cancel another request's shared token refresh
             const current = pending;
             if (!signal) return current;
             return new Promise((resolve, reject) => {
@@ -169,6 +175,7 @@ export function createTransport({
         return token;
     }
     return {
+        baseUrl: base.href,
         request,
         json,
         getCsrfToken,

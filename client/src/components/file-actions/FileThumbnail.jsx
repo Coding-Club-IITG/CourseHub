@@ -12,6 +12,8 @@ export default function FileThumbnail({ file }) {
                         new URL(`/api/files/thumbnail/${encodeURIComponent(file._id)}`, server).href
                     }
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     onError={() => setFailed(true)}
                 />
             )}

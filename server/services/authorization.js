@@ -3,6 +3,7 @@ import { FileModel } from "../modules/course/course.model.js";
 import CourseAllotment from "../modules/course/courseAllotment.model.js";
 import BR from "../modules/br/br.model.js";
 import Contribution from "../modules/contribution/contribution.model.js";
+import { loadResourceGraph } from "./resourceGraph.js";
 import AppError from "../utils/appError.js";
 import { normalizeCourseCode } from "../utils/course.js";
 
@@ -96,6 +97,38 @@ export async function libraryGraph(req) {
     return req.authorizationGraph;
 }
 
+export function resourceReadRequest(req, resource) {
+    if (resource.courseCode !== undefined) courseContext(resource.courseCode);
+    if (resource.courseCodes) resource.courseCodes.forEach(courseContext);
+    if (resource.fileIds) resource = { ...resource, fileIds: resource.fileIds.map(resourceId) };
+    for (const key of ["folderId", "fileId"])
+        if (resource[key] !== undefined)
+            resource = { ...resource, [key]: resourceId(resource[key]) };
+    const scope = JSON.stringify(resource);
+    if (req.authorizationReadScope === scope) return req;
+    const read = Object.assign(Object.create(req), {
+        authorizationReadScope: scope,
+        authorizationGraph: loadResourceGraph(resource),
+        authorizationVisibleFiles: undefined,
+    });
+    return resource.fileIds ? fileReadRequest(read, resource.fileIds) : read;
+}
+
+export function fileReadRequest(req, ids) {
+    return Object.assign(Object.create(req), {
+        authorizationReadFileIds: new Set(ids.map(resourceId)),
+        authorizationReadFiles: undefined,
+    });
+}
+
+async function readFile(req, id) {
+    if (!req.authorizationReadFileIds?.has(id)) return FileModel.findById(id);
+    req.authorizationReadFiles ||= FileModel.find({
+        _id: { $in: [...req.authorizationReadFileIds] },
+    }).then((files) => new Map(files.map((file) => [idOf(file), file])));
+    return (await req.authorizationReadFiles).get(id) || null;
+}
+
 export async function requireFolder(req, id, value, action = "read") {
     id = resourceId(id);
     const graph = await libraryGraph(req);
@@ -147,7 +180,7 @@ export async function canReadFile(req, file) {
 export async function requireFile(req, id, value, action = "read") {
     id = resourceId(id);
     const [file, graph, actor] = await Promise.all([
-        FileModel.findById(id),
+        action === "read" ? readFile(req, id) : FileModel.findById(id),
         libraryGraph(req),
         actorFor(req),
     ]);
@@ -192,29 +225,27 @@ export async function presentFile(req, file, code) {
     };
 }
 
-async function visibleFileMap(req) {
-    if (!req.authorizationVisibleFiles)
-        req.authorizationVisibleFiles = (async () => {
-            const graph = await libraryGraph(req);
-            const files = await FileModel.find({
-                _id: { $in: [...graph.fileCourses.keys()] },
-            }).lean();
-            const visible = await Promise.all(
-                files.map(async (file) => ((await canReadFile(req, file)) ? file : null)),
-            );
-            return new Map(visible.filter(Boolean).map((file) => [idOf(file), file]));
-        })();
+async function visibleFileMap(req, ids) {
+    const read = async (wanted) => {
+        if (!wanted.length) return new Map();
+        const files = await FileModel.find({ _id: { $in: wanted } }).lean();
+        const visible = await Promise.all(
+            files.map(async (file) => ((await canReadFile(req, file)) ? file : null)),
+        );
+        return new Map(visible.filter(Boolean).map((file) => [idOf(file), file]));
+    };
+    if (ids) return read([...ids]);
+    req.authorizationVisibleFiles ||= libraryGraph(req).then((graph) =>
+        read([...graph.fileCourses.keys()]),
+    );
     return req.authorizationVisibleFiles;
 }
 
 async function presentTree(req, roots, code) {
-    const [graph, files, actor] = await Promise.all([
-        libraryGraph(req),
-        visibleFileMap(req),
-        actorFor(req),
-    ]);
+    const [graph, actor] = await Promise.all([libraryGraph(req), actorFor(req)]);
     assertValidCourseTree(graph, code);
     const tree = walkFolderTree(graph, roots, code);
+    const files = await visibleFileMap(req, tree.files);
     const rendered = new Map(),
         presentedFiles = new Map();
     for (const id of tree.order) {

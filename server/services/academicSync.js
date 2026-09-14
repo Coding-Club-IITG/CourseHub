@@ -22,6 +22,7 @@ import { acquireCourseLocks } from "./courseLocks.js";
 import { journalStep, completeOperation } from "./operationJournal.js";
 import { getCourseTitle, normalizeCourseCode } from "../utils/course.js";
 import AppError from "../utils/appError.js";
+import { normalizeCourseHistory } from "./courseHistory.js";
 
 const active = ["planning", "queued", "running"];
 const brFor = (user) =>
@@ -275,12 +276,13 @@ async function prepareSync(operation, checkpoint) {
             .map((course) => [course.code, course.name || getCourseTitle(course.code)]),
     );
     const updates = people.map(({ user, history, records: userRecords }) => {
+        const savedHistory = normalizeCourseHistory(user.previousCourses);
         if (
             !Array.isArray(user.courses) ||
-            !Array.isArray(user.previousCourses) ||
+            !Array.isArray(savedHistory) ||
             !Array.isArray(user.readOnly) ||
             user.readOnly.some((entry) => !entry || typeof entry.code !== "string") ||
-            user.previousCourses.some(
+            savedHistory.some(
                 (semester) =>
                     !Array.isArray(semester?.courses) ||
                     semester.courses.some((entry) => typeof entry?.code !== "string"),
@@ -294,7 +296,7 @@ async function prepareSync(operation, checkpoint) {
         const current = recordMap.get(`${user.rollNumber}:${periodKey(period)}`);
         const savedEntries = [
             ...user.courses,
-            ...user.previousCourses.flatMap((semester) =>
+            ...savedHistory.flatMap((semester) =>
                 Array.isArray(semester?.courses) ? semester.courses : [],
             ),
         ];
@@ -315,7 +317,7 @@ async function prepareSync(operation, checkpoint) {
                           recordMap.get(`${user.rollNumber}:${periodKey(record)}`).courses,
                       ),
                   }))
-            : user.previousCourses;
+            : savedHistory;
         const registered = new Set([
             ...current.courses,
             ...previousCourses.flatMap((semester) =>

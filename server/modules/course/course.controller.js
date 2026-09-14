@@ -1,7 +1,8 @@
 import Course from "./course.model.js";
-import { presentCourse } from "../../services/authorization.js";
+import { presentCourse, resourceReadRequest } from "../../services/authorization.js";
 import logger from "../../utils/logger.js";
 export const getCourse = async (req, res) => {
+    req = resourceReadRequest(req, { courseCode: req.params.code });
     const course = await presentCourse(req, req.params.code);
     logger.metric?.("course_opened", {
         value: 1,
