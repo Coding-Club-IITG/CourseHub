@@ -3,7 +3,7 @@ import FileSelectionNotice from "./components/file-display/FileSelectionNotice";
 import { useSession } from "../../session/context";
 import styles from "./styles.module.scss";
 import { useEffect, useState } from "react";
-import { Button, EmptyState, FormField, Icon } from "@coursehub/ui";
+import { Button, EmptyState, ErrorState, LoadingState, FormField, Icon } from "@coursehub/ui";
 import Container from "../../components/container";
 import Collapsible from "./components/collapsible";
 
@@ -14,7 +14,7 @@ import NavBar from "../../components/navbar";
 import DeferredContributions from "../contributions/DeferredContributions";
 import { getColors } from "../../utils/colors";
 import { getSubtreeFileCount } from "../../utils/folderUtils";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import FileController from "./components/collapsible/components/file-controller";
 import YearInfo from "./components/year-info";
 import CourseBrowserProvider from "../../queries/CourseBrowserProvider";
@@ -61,6 +61,12 @@ function BrowseContent() {
         currentCourseCode: currCourseCode,
         currentYear: currYear,
         course,
+        courseReady,
+        loading,
+        error,
+        folderUnavailable,
+        retrying,
+        refresh,
     } = useCourseBrowser();
     const registered = [
         ...(user?.courses || []),
@@ -134,6 +140,10 @@ function BrowseContent() {
                             <option value="" disabled>
                                 Select Course
                             </option>
+                            {currCourseCode &&
+                                !allCourses.some(
+                                    (item) => normalizeCourseCode(item.code) === currCourseCode,
+                                ) && <option value={currCourseCode}>{currCourseCode}</option>}
                             {allCourses.map((item) => (
                                 <option key={item.code} value={item.code}>
                                     {item.code}: {item.name || item.code}
@@ -182,77 +192,108 @@ function BrowseContent() {
                         ))}
                 </aside>
                 <aside className={styles.years} aria-label="Year navigation">
-                    <YearInfo courseCode={currCourseCode} course={currCourse} currYear={currYear} />
-                </aside>
-                <main className={styles.main} aria-label="Course resources">
-                    {folderData && (
-                        <FolderInfo
-                            path={folderData.path || ""}
-                            name={folderData.name || HeaderText}
-                            canDownload={folderData.childType === "File"}
-                            contributionHandler={contributionHandler}
-                            folderId={folderData._id}
+                    {courseReady && (
+                        <YearInfo
                             courseCode={currCourseCode}
+                            course={currCourse}
+                            currYear={currYear}
                         />
                     )}
-                    {canGoBack && (
-                        <div className={styles.back}>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className={styles.backButton}
-                                onClick={handleBackClick}
-                            >
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    aria-hidden="true"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M19 12H5m0 0 7 7m-7-7 7-7" />
-                                </svg>
-                                Back to {parent.name}
-                            </Button>
+                </aside>
+                <main className={styles.main} aria-label="Course resources" aria-busy={loading}>
+                    {loading ? (
+                        <LoadingState className={styles.courseState} title="Loading course data…" />
+                    ) : error || folderUnavailable ? (
+                        <div className={styles.courseState}>
+                            <ErrorState
+                                title={
+                                    folderUnavailable
+                                        ? "This folder is unavailable."
+                                        : "Could not load course data."
+                                }
+                                error={error}
+                                onRetry={refresh}
+                                retrying={retrying}
+                            />
+                            <Link to={"/browse/" + currCourseCode}>Open course</Link>
                         </div>
+                    ) : (
+                        <>
+                            {folderData && (
+                                <FolderInfo
+                                    path={folderData.path || ""}
+                                    name={folderData.name || HeaderText}
+                                    canDownload={folderData.childType === "File"}
+                                    contributionHandler={contributionHandler}
+                                    folderId={folderData._id}
+                                    courseCode={currCourseCode}
+                                />
+                            )}
+                            {canGoBack && (
+                                <div className={styles.back}>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className={styles.backButton}
+                                        onClick={handleBackClick}
+                                    >
+                                        <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M19 12H5m0 0 7 7m-7-7 7-7" />
+                                        </svg>
+                                        Back to {parent.name}
+                                    </Button>
+                                </div>
+                            )}
+                            <div className={styles.files}>
+                                <FileSelectionNotice />
+                                {!folderData ? (
+                                    <EmptyState plain title={HeaderText} className={styles.empty} />
+                                ) : !folderData.children?.length ? (
+                                    !requestedFile && (
+                                        <EmptyState
+                                            plain
+                                            className={styles.empty}
+                                            title={
+                                                folderData.childType === "File"
+                                                    ? "No files available."
+                                                    : "No folders available."
+                                            }
+                                        />
+                                    )
+                                ) : folderData.childType === "File" ? (
+                                    <FileController
+                                        files={folderData.children}
+                                        code={currCourseCode}
+                                    />
+                                ) : (
+                                    folderData.children.map((item, index) => (
+                                        <BrowseFolder
+                                            key={item._id}
+                                            name={item.name}
+                                            subject={currCourseCode}
+                                            folderData={item}
+                                            index={index}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </>
                     )}
-                    <div className={styles.files}>
-                        <FileSelectionNotice />
-                        {!folderData ? (
-                            <EmptyState plain title={HeaderText} className={styles.empty} />
-                        ) : !folderData.children?.length ? (
-                            !requestedFile && (
-                                <EmptyState
-                                    plain
-                                    className={styles.empty}
-                                    title={
-                                        folderData.childType === "File"
-                                            ? "No files available."
-                                            : "No folders available."
-                                    }
-                                />
-                            )
-                        ) : folderData.childType === "File" ? (
-                            <FileController files={folderData.children} code={currCourseCode} />
-                        ) : (
-                            folderData.children.map((item, index) => (
-                                <BrowseFolder
-                                    key={item._id}
-                                    name={item.name}
-                                    subject={currCourseCode}
-                                    folderData={item}
-                                    index={index}
-                                />
-                            ))
-                        )}
-                    </div>
                 </main>
             </div>
-            <DeferredContributions key={currCourseCode + "/" + (folderData?._id || "")} />
+            {courseReady && !folderUnavailable && (
+                <DeferredContributions key={currCourseCode + "/" + (folderData?._id || "")} />
+            )}
         </Container>
     );
 }

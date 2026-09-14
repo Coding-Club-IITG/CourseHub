@@ -295,7 +295,12 @@ const Contributions = () => {
             if (mounted.current) {
                 setBusy(false);
                 try {
-                    await library.invalidate([currentCourseCode]);
+                    if (
+                        !["completed", "partial", "failed", "cancelled"].includes(
+                            operationRef.current?.status,
+                        )
+                    )
+                        await library.invalidate([currentCourseCode]);
                 } catch {
                     /* The operation result is retained when the folder cannot refresh. */
                 }

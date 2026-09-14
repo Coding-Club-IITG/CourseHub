@@ -14,6 +14,7 @@
     align-self: start;
     max-height: calc(100dvh - var(--ch-navbar-height));
     overflow-y: auto;
+    overflow-anchor: none;
     overscroll-behavior-y: contain;
     scrollbar-width: none;
     &::-webkit-scrollbar {
@@ -62,6 +63,9 @@
 .main {
     grid-area: main;
     min-width: 0;
+}
+.courseState {
+    padding: 1.25rem var(--browse-inline);
 }
 .years {
     grid-area: years;

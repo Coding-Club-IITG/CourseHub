@@ -92,8 +92,11 @@ export function createTransport({
             if (sessionEpoch !== sessionGeneration)
                 throw new DOMException("The session changed.", "AbortError");
             if (response.ok) {
+                const interested = [...responses].filter(
+                    ({ matches }) => !matches || matches({ url, method }),
+                );
                 if (
-                    responses.size &&
+                    interested.length &&
                     response.headers.get("content-type")?.includes("application/json")
                 ) {
                     const data = await response
@@ -103,8 +106,9 @@ export function createTransport({
                     options.signal?.throwIfAborted();
                     if (sessionEpoch !== sessionGeneration)
                         throw new DOMException("The session changed.", "AbortError");
-                    for (const listener of responses)
-                        listener({ url, method, data, body: options.body });
+                    for (const subscription of interested)
+                        if (responses.has(subscription))
+                            subscription.listener({ url, method, data, body: options.body });
                 }
                 return response;
             }
@@ -129,11 +133,13 @@ export function createTransport({
         try {
             data = await response.json();
         } catch {
+            options?.signal?.throwIfAborted();
             throw new ApiError(502, {
                 code: "INVALID_RESPONSE",
                 message: "The server returned an unreadable response. Please try again.",
             });
         }
+        options?.signal?.throwIfAborted();
         if (sessionEpoch !== sessionGeneration)
             throw new DOMException("The session changed.", "AbortError");
         if (epoch === generation) setCsrfToken(data?.csrfToken);
@@ -187,9 +193,10 @@ export function createTransport({
             "X-Session-Role": role,
             "X-CSRF-Token": await getCsrfToken(false, signal),
         }),
-        onResponse(listener) {
-            responses.add(listener);
-            return () => responses.delete(listener);
+        onResponse(listener, { matches } = {}) {
+            const subscription = { listener, matches };
+            responses.add(subscription);
+            return () => responses.delete(subscription);
         },
         onUnauthorized(listener) {
             listeners.add(listener);

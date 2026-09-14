@@ -1,17 +1,16 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 import { normalizeCourseCode } from "@coursehub/domain";
-import { RequestError } from "@coursehub/browser/react";
 import { useCourse } from "./course";
 import { BrowserContext } from "./browserContext";
 import { findFolderById, findYearIndexForFolder } from "../utils/folderUtils";
-import NavBar from "../components/navbar";
-import Loader from "../components/Loader";
 export default function CourseBrowserProvider({ children }) {
     const { code, folderId } = useParams();
     const query = useCourse(code);
+    const course = query.isError ? undefined : query.data;
+    const retrying = query.isError && query.isFetching;
     const { years, index, selected, currentFolder } = useMemo(() => {
-        const years = query.data?.children || [];
+        const years = course?.children || [];
         const index = folderId ? findYearIndexForFolder(years, folderId) : years.length - 1;
         const selected = folderId ? findFolderById(years, folderId) : years[index];
         const currentFolder =
@@ -22,38 +21,37 @@ export default function CourseBrowserProvider({ children }) {
                   }
                 : selected;
         return { years, index, selected, currentFolder };
-    }, [query.data, folderId]);
+    }, [course, folderId]);
     const value = useMemo(
         () => ({
             currentCourse: code ? years : null,
-            currentCourseCode: normalizeCourseCode(query.data?.code || code),
+            currentCourseCode: normalizeCourseCode(course?.code || code),
             currentFolder: currentFolder || null,
             currentYear: index >= 0 ? index : null,
             currentYearFolderStructure: years[index]?.children || [],
-            course: query.data,
+            course,
+            courseReady: !!code && query.isSuccess,
+            loading: !!code && query.isPending,
+            error: code && query.isError ? query.error : null,
+            folderUnavailable: !!(code && folderId && query.isSuccess && !selected),
+            retrying,
             refresh: query.refetch,
         }),
-        [code, years, query.data, query.refetch, currentFolder, index],
+        [
+            code,
+            years,
+            course,
+            query.isSuccess,
+            query.isPending,
+            query.isError,
+            query.error,
+            retrying,
+            query.refetch,
+            currentFolder,
+            index,
+            folderId,
+            selected,
+        ],
     );
-    if (code && (query.isPending || query.isError || (folderId && !selected)))
-        return (
-            <>
-                <NavBar compact />
-                {query.isError ? (
-                    <RequestError error={query.error} onRetry={query.refetch} />
-                ) : query.isPending ? (
-                    <div className="session-gate">
-                        <Loader text="Loading course data..." />
-                    </div>
-                ) : (
-                    <RequestError title="This folder is unavailable." onRetry={query.refetch} />
-                )}
-                {!query.isPending && (
-                    <p style={{ margin: "24px" }}>
-                        <Link to={"/browse/" + code}>Open course</Link>
-                    </p>
-                )}
-            </>
-        );
     return <BrowserContext value={value}>{children}</BrowserContext>;
 }

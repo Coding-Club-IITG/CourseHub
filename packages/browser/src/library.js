@@ -26,12 +26,15 @@ export function createLibraryCache(session, transport, role) {
         role === "student" && transport.baseUrl
             ? persistCourseQueries({ session, key, namespace: `${role}:${transport.baseUrl}` })
             : null;
-    const invalidate = (codes = [], broadcast = true) => {
+    const invalidate = (codes = [], broadcast = true, kinds = []) => {
         const normalized = codes.filter((value) => typeof value === "string").map(normalize);
+        const references = kinds.filter((kind) => ["students", "student-detail"].includes(kind));
         if (role === "student") client.invalidateQueries({ queryKey: session.options.queryKey });
-        if (broadcast) channel?.postMessage({ type: "changed", codes: normalized });
+        if (broadcast)
+            channel?.postMessage({ type: "changed", codes: normalized, kinds: references });
         const predicate = (query) => {
             if (query.queryKey[0] !== "library") return false;
+            if (references.includes(query.queryKey[4])) return true;
             if (query.queryKey[4] === "contributions") return true;
             if (!normalized.length || query.queryKey[4] === "courses") return true;
             if (normalized.includes(query.queryKey[5])) return true;
@@ -61,7 +64,11 @@ export function createLibraryCache(session, transport, role) {
     if (channel)
         channel.onmessage = (event) => {
             if (event.data?.type === "changed")
-                invalidate(Array.isArray(event.data.codes) ? event.data.codes : [], false);
+                invalidate(
+                    Array.isArray(event.data.codes) ? event.data.codes : [],
+                    false,
+                    Array.isArray(event.data.kinds) ? event.data.kinds : [],
+                );
             if (event.data?.type === "logout" && event.data.role === role) session.clear();
         };
     const completed = new Map();
@@ -79,22 +86,35 @@ export function createLibraryCache(session, transport, role) {
         if (completed.get(operation.id) === revision) return;
         completed.set(operation.id, revision);
         if (completed.size > 100) completed.delete(completed.keys().next().value);
-        invalidate(operation.affectedCourses || operation.courseCodes || []);
-        if (["academic-sync", "rename", "delete"].includes(operation.kind))
+        const changesReferences = ["academic-sync", "rename", "delete"].includes(operation.kind);
+        invalidate(
+            operation.affectedCourses || operation.courseCodes || [],
+            true,
+            changesReferences ? ["students", "student-detail"] : [],
+        );
+        if (role !== "student" && changesReferences)
             client.invalidateQueries({ queryKey: session.options.queryKey });
     };
-    const unsubscribe = transport.onResponse(({ url, method, data }) => {
-        if (url.pathname.includes("/operations/")) observeOperation(data);
-        if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
-        if (/\/auth\/logout$/.test(url.pathname)) channel?.postMessage({ type: "logout", role });
-        if (
-            /\/(folder|year)(\/|$)|\/files\/(verify|unverify|rename)\/|\/course\/(create|[^/]+\/(delete|link|dashboard))|\/admin\/(course|contribution|node)|\/br\//.test(
-                url.pathname,
-            )
-        ) {
-            invalidate(data?.affectedCourses || data?.file?.affectedCourses || []);
-        }
-    });
+    const unsubscribe = transport.onResponse(
+        ({ url, method, data }) => {
+            if (url.pathname.includes("/operations/")) observeOperation(data);
+            if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
+            if (/\/auth\/logout$/.test(url.pathname))
+                channel?.postMessage({ type: "logout", role });
+            if (
+                /\/(folder|year)(\/|$)|\/files\/(verify|unverify|rename)\/|\/course\/(create|[^/]+\/(delete|link|dashboard))|\/admin\/(course|contribution|node)|\/br\//.test(
+                    url.pathname,
+                )
+            ) {
+                invalidate(data?.affectedCourses || data?.file?.affectedCourses || []);
+            }
+        },
+        {
+            matches: ({ url, method }) =>
+                url.pathname.includes("/operations/") ||
+                !["GET", "HEAD", "OPTIONS"].includes(method),
+        },
+    );
     return {
         key,
         invalidate,

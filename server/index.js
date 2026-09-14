@@ -31,6 +31,7 @@ import { AuthRateLimit } from "./middleware/authThrottle.js";
 import operationRoutes from "./modules/operation/operation.routes.js";
 import { OperationModel, CourseLock, StorageLease } from "./modules/operation/operation.model.js";
 import { startOperationWorker } from "./services/operationWorker.js";
+import { FolderModel } from "./modules/course/course.model.js";
 
 import importRoutes from "./modules/import/import.routes.js";
 
@@ -126,9 +127,15 @@ process.once("unhandledRejection", (error) => void terminate({ error, exitCode: 
 export async function start() {
     await connectDatabase();
     await Promise.all(
-        [Session, OAuthAttempt, AuthRateLimit, OperationModel, CourseLock, StorageLease].map(
-            (model) => model.createIndexes(),
-        ),
+        [
+            Session,
+            OAuthAttempt,
+            AuthRateLimit,
+            OperationModel,
+            CourseLock,
+            StorageLease,
+            FolderModel,
+        ].map((model) => model.createIndexes()),
     );
     operationWorker = startOperationWorker();
     scheduler = initScheduler();

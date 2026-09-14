@@ -54,7 +54,6 @@ export default function ContributionsSection() {
                                 managementCourseCode={submission.managementCourseCode}
                                 uploadDate={submission.updatedAt}
                                 file={file}
-                                onChanged={() => query.refetch()}
                             />
                         ))}
                     </div>

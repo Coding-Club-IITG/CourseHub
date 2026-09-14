@@ -9,6 +9,9 @@ import {
 } from "./folderTrees.js";
 
 const folderFields = "_id name courses childType children deletingOperation";
+const courseFields =
+    "_id code name children books createdAt updatedAt deletingOperation changingOperation aliases";
+const identitySignature = (course) => JSON.stringify([course.code, course.aliases || []]);
 const objectIds = (values) => [...values].filter((id) => /^[a-f0-9]{24}$/i.test(id));
 
 // Read a resource's trees using indexed IDs
@@ -19,12 +22,9 @@ export async function loadResourceGraph({
     fileId,
     fileIds: requestedFileIds,
 }) {
-    const courses = await Course.find()
-        .select(
-            "_id code name children books createdAt updatedAt deletingOperation changingOperation aliases",
-        )
-        .lean();
+    const courses = await Course.find().select("_id code aliases").lean();
     const identities = buildLibraryGraph(courses, [], [], { courseCodes: new Set() });
+    const positions = new Map(courses.map((course, index) => [course, index]));
     const selected = new Set();
     const folders = new Map();
     const fileIds = new Set();
@@ -56,6 +56,24 @@ export async function loadResourceGraph({
         for (const parent of await fileParents(requestedFiles)) addCodes(parent.courses);
 
     const loadTrees = async (codes) => {
+        const wanted = [...codes]
+            .filter((code) => !identities.errors.has(code))
+            .map((code) => identities.courses.get(code))
+            .filter(Boolean);
+        if (wanted.length) {
+            const documents = await Course.find({ _id: { $in: wanted.map(treeId) } })
+                .select(courseFields)
+                .lean();
+            const byId = new Map(documents.map((course) => [treeId(course), course]));
+            for (const identity of wanted) {
+                const course = byId.get(treeId(identity));
+                // A rename or deletion between reads needs the complete validator
+                if (!course || identitySignature(course) !== identitySignature(identity))
+                    return false;
+                courses[positions.get(identity)] = course;
+                identities.courses.set(normalizeCourseCode(course.code), course);
+            }
+        }
         let pending = new Map();
         const visited = new Map([...codes].map((code) => [code, new Set()]));
         const enqueue = (queue, id, code) => {

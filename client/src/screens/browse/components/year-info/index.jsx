@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, IconButton, Icon } from "@coursehub/ui";
 import { useSession } from "../../../../session/context";
-import { library } from "../../../../session/runtime";
 import { canManageCourse } from "../../../../utils/capabilities";
 import { addYear, deleteYear } from "../../../../api/Year";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
@@ -26,7 +25,6 @@ export default function YearInfo({ courseCode, course, currYear }) {
         try {
             await addYear({ name, course: courseCode });
             setAdding(false);
-            await library.invalidate([courseCode]);
         } catch (failure) {
             setError(failure.message || "Failed to add year.");
         } finally {
@@ -40,7 +38,6 @@ export default function YearInfo({ courseCode, course, currYear }) {
         try {
             await deleteYear({ folderId: deleting._id, courseCode });
             setDeleting(null);
-            await library.invalidate([courseCode]);
             if (years[currYear]?._id === deleting._id) navigate("/browse/" + courseCode);
         } catch (failure) {
             setError(failure.message || "Failed to remove year.");

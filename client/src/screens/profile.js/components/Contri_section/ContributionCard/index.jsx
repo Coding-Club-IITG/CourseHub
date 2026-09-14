@@ -3,13 +3,7 @@ import { Button, ButtonLink, Badge } from "@coursehub/ui";
 import { verifyFile, unverifyFile, getFilePreviewUrl } from "../../../../../api/File";
 import { ResourceConfirmation } from "../../../../../components/content-dialogs";
 import styles from "./styles.module.scss";
-export default function ContributionCard({
-    file,
-    courseCode,
-    managementCourseCode,
-    uploadDate,
-    onChanged,
-}) {
+export default function ContributionCard({ file, courseCode, managementCourseCode, uploadDate }) {
     const [action, setAction] = useState(null),
         [busy, setBusy] = useState(false),
         [error, setError] = useState("");
@@ -22,7 +16,6 @@ export default function ContributionCard({
             if (action === "verify") await verifyFile(file._id, context);
             else await unverifyFile(file._id, context, file.affectedCourses);
             setAction(null);
-            await onChanged();
         } catch (failure) {
             setError(failure.message || "The action could not finish. Please retry.");
         } finally {

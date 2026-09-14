@@ -31,7 +31,6 @@ export default function CourseDashboard() {
             setResult("");
         } else {
             setResult(message);
-            library.invalidate([code]);
         }
     };
     return (

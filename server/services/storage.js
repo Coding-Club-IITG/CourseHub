@@ -71,9 +71,16 @@ export function createStorage({ client = graph, root = storageRoot, sleep = dela
         });
     }
     async function thumbnail(id, options = {}) {
+        const load = await thumbnailSource(id, options);
+        return load(options);
+    }
+    // Keep this validated reader within the request that obtained it.
+    async function thumbnailSource(id, options = {}) {
         await withinRoot(id, options);
-        const thumbnails = await client.collection(`${itemPath(id)}/thumbnails`, options);
-        return thumbnails.find((entry) => entry.medium?.url)?.medium.url;
+        return async (lookupOptions = {}) => {
+            const thumbnails = await client.collection(`${itemPath(id)}/thumbnails`, lookupOptions);
+            return thumbnails.find((entry) => entry.medium?.url)?.medium.url;
+        };
     }
     async function findUpload(name, size, options = {}) {
         if (!/^[a-f0-9-]{36}(\.[a-zA-Z0-9]{1,15})?$/.test(name))
@@ -213,6 +220,7 @@ export function createStorage({ client = graph, root = storageRoot, sleep = dela
         remove,
         content,
         thumbnail,
+        thumbnailSource,
         upload,
         findUpload,
         cancelSession,

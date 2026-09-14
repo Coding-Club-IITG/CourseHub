@@ -27,9 +27,9 @@ export default function Students() {
         [adding, setAdding] = useState(() => new URLSearchParams(location.search).has("import")),
         [success, setSuccess] = useState("");
     useEffect(() => setExpanded(null), [filters.q, filters.isBR, filters.page, filters.pageSize]);
-    const changed = (message) => {
+    const changed = (message, refresh = false) => {
         if (message) setSuccess(message);
-        library.invalidate();
+        if (refresh) library.invalidate();
     };
     return (
         <section className={styles.page}>
@@ -102,7 +102,7 @@ export default function Students() {
                     key={action.type + (action.item?._id || "")}
                     action={action}
                     onClose={() => setAction(null)}
-                    onSuccess={changed}
+                    onSuccess={(message) => changed(message, action.type === "delete")}
                 />
             )}
         </section>

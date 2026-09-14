@@ -10,6 +10,11 @@ const FolderSchema = Schema({
     totalFileCount: { type: Number, min: 0, validate: Number.isSafeInteger, default: 0 },
 });
 
+FolderSchema.index(
+    { children: 1, childType: 1 },
+    { name: "folder_children_child_type", collation: { locale: "simple" } },
+);
+
 export const FolderModel = model("Folder", FolderSchema);
 
 const FileSchema = Schema({

@@ -10,7 +10,6 @@ import {
     EmptyState,
 } from "@coursehub/ui";
 import { fetchCourses } from "../apis/courses";
-import { library } from "../session";
 import { usePagedList } from "../queries/usePagedList";
 import Pagination from "../components/Pagination";
 import { RefreshButton } from "../components/ListControls";
@@ -35,7 +34,6 @@ export default function Courses() {
         [result, setResult] = useState("");
     const changed = (message) => {
         setResult(message);
-        library.invalidate();
     };
     return (
         <section className={styles.page}>
