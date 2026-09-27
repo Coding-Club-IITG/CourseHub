@@ -264,3 +264,23 @@ export const getFileDownloadUrl = async (fileId) => {
         throw error;
     }
 };
+
+
+export const fetchAllPendingContributions = async()=>
+{
+    try 
+    {
+        const response = await fetch(`${API_BASE_URL}api/admin/contribution/pending`, {
+            headers: {Authorization: "Bearer admin-coursehub-cc23-golang"},
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to get pending contributions");
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching pending contributions:", error);
+        throw error;
+    }
+}

@@ -284,14 +284,16 @@ export default function CourseDashboard() {
                                     </div>
                                     <div className="flex flex-shrink-0 gap-2">
                                         <button
-                                            onClick={() => handleContributionAction(contribution.contributionId, 'approve')}
-                                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                                            onClick={() => onAction(contribution.contributionId, "approve")}
+                                            disabled={processingId === contribution.contributionId}
+                                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
                                         >
                                             <FiCheck /> Approve
                                         </button>
                                         <button
-                                            onClick={() => handleContributionAction(contribution.contributionId, 'reject')}
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50"
+                                            onClick={() => onAction(contribution.contributionId, "reject")}
+                                            disabled={processingId === contribution.contributionId}
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50 disabled:opacity-60"
                                         >
                                             <FiX /> Reject
                                         </button>
