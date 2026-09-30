@@ -207,12 +207,18 @@ const ExamSchedulePanel = ({ midSemDays, endSemDays }) => {
         day: today.toLocaleDateString("en-GB", { day: "numeric" }),
     };
 
+    // Auto-pick the tab once when the schedule first loads, so later user
+    // updates (e.g. adding a course) don't override the user's own choice.
+    const hasAutoSelectedTab = useRef(false);
+
     useEffect(() => {
         const midSemExams = examsByTab.midSem;
 
-        if (midSemExams.length === 0) {
+        if (hasAutoSelectedTab.current || midSemExams.length === 0) {
             return;
         }
+
+        hasAutoSelectedTab.current = true;
 
         const lastMidSemExam = midSemExams[midSemExams.length - 1];
 
@@ -230,6 +236,12 @@ const ExamSchedulePanel = ({ midSemDays, endSemDays }) => {
         }
     }, [examsByTab]);
 
+    const closePanel = () => {
+        setIsOpen(false);
+
+        window.setTimeout(() => triggerRef.current?.focus(), 0);
+    };
+
     useEffect(() => {
         if (!isOpen) return undefined;
 
@@ -237,7 +249,7 @@ const ExamSchedulePanel = ({ midSemDays, endSemDays }) => {
 
         const handleKeyDown = (event) => {
             if (event.key === "Escape") {
-                setIsOpen(false);
+                closePanel();
             }
         };
 
@@ -253,12 +265,6 @@ const ExamSchedulePanel = ({ midSemDays, endSemDays }) => {
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, [isOpen]);
-
-    const closePanel = () => {
-        setIsOpen(false);
-
-        window.setTimeout(() => triggerRef.current?.focus(), 0);
-    };
 
     const handleOverlayClick = (event) => {
         if (event.target === event.currentTarget) {
@@ -444,7 +450,7 @@ const ExamSchedulePanel = ({ midSemDays, endSemDays }) => {
                         <footer className="exam-schedule-panel__footer">
                             <p>
                                 <span aria-hidden="true">ⓘ</span>
-                                Remember to take your institue ID card to the exam hall.
+                                Remember to take your institute ID card to the exam hall.
                             </p>
                         </footer>
                     </aside>

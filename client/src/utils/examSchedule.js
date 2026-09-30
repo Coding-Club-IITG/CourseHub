@@ -74,7 +74,7 @@ export function getExamScheduleForCourses(
 
         const examInfo = slotSchedule[slot][examType];
         const courseName =
-            typeof course === "object" && course?.name ? course.name : "Name Not Available";
+            typeof course === "object" && course?.name ? course.name : normalizedCode;
 
         scheduledExams.push({
             code: normalizedCode,
