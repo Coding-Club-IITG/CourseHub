@@ -9,7 +9,7 @@ import CourseCard from "./components/coursecard";
 import ContributionBanner from "./components/contributionbanner";
 import Footer from "../../components/footer";
 import FavouriteCard from "./components/favouritecard";
-import ExamScheduleWidget from "./components/examschedule";
+import ExamSchedulePanel from "./components/examschedulepanel";
 
 import { ChangeCurrentCourse, ResetFileBrowserState } from "../../actions/filebrowser_actions";
 import { useDispatch, useSelector } from "react-redux";
@@ -268,9 +268,6 @@ const Dashboard = () => {
                     )}
                     <Space amount={50} />
                 </Container>
-                <Space amount={50} />
-                <ExamScheduleWidget />
-                <Space amount={50} />
                 <ContributionBanner contributionHandler={contributionHandler} />
             </div>
             <div>
@@ -278,6 +275,7 @@ const Dashboard = () => {
             </div>
             <Contributions />
             <AddCourseModal handleAddCourse={handleAddCourse} />
+            <ExamSchedulePanel midSemDays={midSem} endSemDays={endSem} />
         </div>
     );
 };
