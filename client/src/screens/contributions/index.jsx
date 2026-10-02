@@ -1,6 +1,9 @@
 import Wrapper from "./components/wrapper";
 import SectionC from "./components/sectionC";
 import { FilePond } from "react-filepond";
+import FilePondPluginFileValidateSize from "filepond-plugin-file-validate-size";
+import { registerPlugin } from "react-filepond";
+registerPlugin(FilePondPluginFileValidateSize);
 import "filepond/dist/filepond.min.css";
 import { useEffect, useRef, useState } from "react";
 import "./styles.scss";
@@ -94,6 +97,10 @@ const Contributions = () => {
                     <FilePond
                         name="file"
                         allowMultiple={true}
+                        maxFileSize="50MB"
+                        labelMaxFileSizeExceeded="File is too large"
+                        labelMaxFileSize="Maximum file size is 50 MB"
+                        labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span> <br/> (Max file size: 50MB)'
                         onupdatefiles={handleUpdateFiles}
                         maxFiles={40}
                         server={{
