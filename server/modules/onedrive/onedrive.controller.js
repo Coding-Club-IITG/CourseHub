@@ -2,7 +2,7 @@ import axios from "axios";
 import qs from "querystring";
 import AppError from "../../utils/appError.js";
 import settings from "../../config/onedrive.js";
-import fs from "fs";
+import OneDriveCredential, { ONEDRIVE_CREDENTIAL_ID } from "./OneDriveCredential.js";
 import { extractGraphErrorDetails, formatGraphErrorMessage } from "../../utils/graphError.js";
 import { normalizeCourseCode, getCourseCodeCaseInsensitiveRegex } from "../../utils/course.js";
 import { uploadThumbnail, isImageKitUrl } from "../../services/imagekit.js";
@@ -39,9 +39,7 @@ export async function thumbnail(req, res) {
     // which breaks the `typeof === "string"` check below).
     const file = await FileModel.findOne({ fileId }).select("thumbnail").lean();
     const storedThumbnailUrl =
-        typeof file?.thumbnail === "string"
-            ? file.thumbnail
-            : file?.thumbnail?.url;
+        typeof file?.thumbnail === "string" ? file.thumbnail : file?.thumbnail?.url;
 
     if (storedThumbnailUrl && isImageKitUrl(storedThumbnailUrl)) {
         return res.status(200).json(storedThumbnailUrl);
@@ -51,14 +49,18 @@ export async function thumbnail(req, res) {
     const access_token = await getAccessToken();
     const thumbnaildata = await axios.get(
         `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/thumbnails`,
-        { headers: { Authorization: `Bearer ${access_token}` } }
+        { headers: { Authorization: `Bearer ${access_token}` } },
     );
     const thumbnailurl = thumbnaildata.data.value?.[0]?.medium?.url;
     if (!thumbnailurl) throw new AppError(404, "Thumbnail not found");
 
     // 3. Download raw image bytes and upload to ImageKit as WebP permanently
     const imgResponse = await axios.get(thumbnailurl, { responseType: "arraybuffer" });
-    const { url: permanentUrl, fileId: imagekitFileId, path: imagekitPath } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
+    const {
+        url: permanentUrl,
+        fileId: imagekitFileId,
+        path: imagekitPath,
+    } = await uploadThumbnail(fileId, Buffer.from(imgResponse.data));
 
     // 4. Persist permanent URL to DB so this file never hits Graph API again
     await FileModel.updateOne(
@@ -71,7 +73,7 @@ export async function thumbnail(req, res) {
                     path: imagekitPath,
                 },
             },
-        }
+        },
     );
 
     return res.status(200).json(permanentUrl);
@@ -148,32 +150,34 @@ async function visitAllFiles() {
         return folder_data;
     });
     const resolved_folders = await Promise.all(folders);
-    await Promise.all(resolved_folders.map(async (folder) => {
-        const courseCode = getCourseCodeFromFolderName(folder.name);
-        const courseName = getCourseNameFromFolderName(folder.name);
-        await CourseModel.create({
-            name: courseName,
-            code: courseCode,
-            children: folder.children,
-        });
-        const searchDocument = await SearchResults.findOne({
-            code: getCourseCodeCaseInsensitiveRegex(courseCode),
-        });
-        if (!searchDocument) {
-            await SearchResults.create({
+    await Promise.all(
+        resolved_folders.map(async (folder) => {
+            const courseCode = getCourseCodeFromFolderName(folder.name);
+            const courseName = getCourseNameFromFolderName(folder.name);
+            await CourseModel.create({
                 name: courseName,
                 code: courseCode,
-                isAvailable: true,
+                children: folder.children,
             });
-        } else {
-            await SearchResults.updateOne(
-                { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
-                {
+            const searchDocument = await SearchResults.findOne({
+                code: getCourseCodeCaseInsensitiveRegex(courseCode),
+            });
+            if (!searchDocument) {
+                await SearchResults.create({
+                    name: courseName,
+                    code: courseCode,
                     isAvailable: true,
-                }
-            );
-        }
-    }));
+                });
+            } else {
+                await SearchResults.updateOne(
+                    { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
+                    {
+                        isAvailable: true,
+                    },
+                );
+            }
+        }),
+    );
     return "ok";
 }
 
@@ -211,7 +215,7 @@ export async function visitCourseById(id) {
             { code: getCourseCodeCaseInsensitiveRegex(courseCode) },
             {
                 isAvailable: true,
-            }
+            },
         );
     }
 
@@ -269,16 +273,11 @@ async function visitFile(file, currCourse) {
     return NewFile._id;
 }
 
-
 let cachedAccessToken = null;
 let tokenExpiry = 0;
 let refreshPromise = null;
 export async function getAccessToken() {
-
-    if (
-        cachedAccessToken &&
-        Date.now() < tokenExpiry
-    ) {
+    if (cachedAccessToken && Date.now() < tokenExpiry) {
         return cachedAccessToken;
     }
     if (refreshPromise) {
@@ -286,18 +285,11 @@ export async function getAccessToken() {
     }
 
     refreshPromise = (async () => {
-        let data;
-
-        if (!fs.existsSync("./onedrive-refresh-token.token")) {
-            throw new AppError(503, "OneDrive authorization is not provisioned");
-        }
-        data = await refreshAccessToken();
+        const data = await refreshAccessToken();
 
         cachedAccessToken = data.access_token;
 
-        tokenExpiry =
-            Date.now() +
-            (data.expires_in - 60) * 1000;
+        tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
 
         return cachedAccessToken;
     })();
@@ -306,7 +298,6 @@ export async function getAccessToken() {
     } finally {
         refreshPromise = null;
     }
-
 }
 
 export function clearAccessTokenCache() {
@@ -316,10 +307,21 @@ export function clearAccessTokenCache() {
 }
 
 async function refreshAccessToken() {
+    let credential;
+    try {
+        credential = await OneDriveCredential.findById(ONEDRIVE_CREDENTIAL_ID)
+            .select("+refreshToken")
+            .lean();
+    } catch {
+        throw new AppError(503, "OneDrive authorization storage is unavailable");
+    }
+    if (!credential?.refreshToken) {
+        throw new AppError(503, "OneDrive authorization is not provisioned");
+    }
     const data = qs.stringify({
         client_id: settings.clientId,
         client_secret: settings.clientSecret,
-        refresh_token: `${fs.readFileSync("./onedrive-refresh-token.token", "utf-8")}`,
+        refresh_token: credential.refreshToken,
         grant_type: "refresh_token",
     });
 
@@ -332,15 +334,31 @@ async function refreshAccessToken() {
         },
         data,
     };
-    const response = await axios.post(config.url, config.data, {
-        headers: config.headers,
-    });
-
-    if (!response.data) throw new AppError(500, "Something went wrong");
-
-    fs.writeFileSync("./onedrive-access-token.token", response.data.access_token, "utf-8");
+    let response;
+    try {
+        response = await axios.post(config.url, config.data, { headers: config.headers });
+    } catch {
+        throw new AppError(502, "OneDrive authorization refresh failed");
+    }
+    if (
+        typeof response.data?.access_token !== "string" ||
+        !response.data.access_token ||
+        !Number.isFinite(Number(response.data.expires_in)) ||
+        Number(response.data.expires_in) <= 0
+    ) {
+        throw new AppError(502, "OneDrive authorization refresh failed");
+    }
     if (response.data.refresh_token) {
-        fs.writeFileSync("./onedrive-refresh-token.token", response.data.refresh_token, "utf-8");
+        try {
+            const result = await OneDriveCredential.updateOne(
+                { _id: ONEDRIVE_CREDENTIAL_ID },
+                { $set: { refreshToken: response.data.refresh_token } },
+                { runValidators: true },
+            );
+            if (result.matchedCount !== 1) throw new Error("Credential disappeared");
+        } catch {
+            throw new AppError(503, "OneDrive authorization could not be saved");
+        }
     }
 
     return response.data;
@@ -365,7 +383,7 @@ export async function getRequest(url, headers) {
         const details = extractGraphErrorDetails(error);
         const appError = new AppError(
             details.status || 502,
-            formatGraphErrorMessage(details, "Microsoft Graph GET request failed")
+            formatGraphErrorMessage(details, "Microsoft Graph GET request failed"),
         );
         appError.graphDetails = details;
         throw appError;
@@ -393,7 +411,7 @@ export async function postRequest(url, headers, params) {
         const details = extractGraphErrorDetails(error);
         const appError = new AppError(
             details.status || 502,
-            formatGraphErrorMessage(details, "Microsoft Graph POST request failed")
+            formatGraphErrorMessage(details, "Microsoft Graph POST request failed"),
         );
         appError.graphDetails = details;
         throw appError;
