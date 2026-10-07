@@ -22,6 +22,7 @@ import UserUpdate from "../user/userUpdate.model.js";
 import BR from "../br/br.model.js";
 import CourseAllotment from "../course/courseAllotment.model.js";
 import logger from "../../utils/logger.js";
+import { needsPreviousCourseSync } from "../../utils/courseHistory.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
@@ -156,7 +157,7 @@ function calculateCourseSemesterNumber(rollNumber, courseYear, courseSession) {
     return Math.max(1, sem);
 }
 
-export const fetchCoursesForBr = async (rollNumber) => {
+export const fetchPreviousCourses = async (rollNumber) => {
     const roll = parseInt(rollNumber);
     const rollstring = rollNumber.toString();
     const currentYear = parseInt(academic.currentYear);
@@ -252,7 +253,7 @@ export const fetchCoursesForBr = async (rollNumber) => {
                         { upsert: true }
                     );
                 } catch (err) {
-                    logger.error("BR course cache failed", { error: err, attributes: { dependency: "mongodb", operation: "cache-br-courses", outcome: "failure", retryable: true } });
+                    logger.error("Previous course cache failed", { error: err, attributes: { dependency: "mongodb", operation: "cache-previous-courses", outcome: "failure", retryable: true } });
                 }
             }
         }
@@ -260,10 +261,15 @@ export const fetchCoursesForBr = async (rollNumber) => {
 
     previousCourses.sort((a, b) => a.semester - b.semester);
 
-    await User.updateOne({ rollNumber }, { $set: { previousCourses } });
+    await User.updateOne({ rollNumber }, {
+        $set: { previousCourses, previousCoursesSyncedAt: new Date() },
+    });
 
     return previousCourses;
 };
+
+// Keep existing BR refresh callers compatible with the shared course history fetcher.
+export const fetchCoursesForBr = fetchPreviousCourses;
 
 const getDepartment = async (access_token, roll) => {
     let rollstring = roll.toString();
@@ -378,7 +384,7 @@ export const redirectHandler = async (req, res, next) => {
             courses: [],
             department: department,
             isBR: br ? true : false,
-            previousCourses: br ? [] : [],
+            previousCourses: [],
             readOnly: [],
         };
 
@@ -420,9 +426,7 @@ export const redirectHandler = async (req, res, next) => {
         return res.redirect(`${appConfig.clientURL}/loading`);
     }
 
-    const needsCourseSync =
-        !!existingUser?.isBR &&
-        (!Array.isArray(existingUser.previousCourses) || existingUser.previousCourses.length === 0);
+    const needsCourseSync = needsPreviousCourseSync(existingUser);
 
     if (needsCourseSync) {
         return res.redirect(`${appConfig.clientURL}/loading`);

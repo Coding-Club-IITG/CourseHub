@@ -64,7 +64,6 @@ const FileDisplay = ({ file, path, code, isMobileView = false, index = 0 }) => {
             (c) => c.code.toLowerCase() === currCourseCode?.toLowerCase()
         ) &&
         !(
-            currentUser?.isBR &&
             currentUser?.previousCourses?.some((sem) =>
                 sem.courses.some((c) => c.code.toLowerCase() === currCourseCode?.toLowerCase())
             )

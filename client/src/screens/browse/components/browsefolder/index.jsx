@@ -31,7 +31,6 @@ const BrowseFolder = ({
         user?.readOnly?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
         !user?.courses?.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase()) &&
         !(
-            user?.isBR &&
             user?.previousCourses?.some((sem) =>
                 sem.courses.some((c) => c.code.toLowerCase() === courseCode?.toLowerCase())
             )

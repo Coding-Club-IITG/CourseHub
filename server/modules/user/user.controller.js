@@ -6,6 +6,7 @@ import { updateUserData } from "./user.model.js";
 import UserUpdate from "./userUpdate.model.js";
 import BR from "../br/br.model.js";
 import { normalizeCourseCode } from "../../utils/course.js";
+import { needsPreviousCourseSync } from "../../utils/courseHistory.js";
 
 const normalizeEmail = (email) => email?.toString().trim().toLowerCase();
 
@@ -92,7 +93,7 @@ export const getUser = async (req, res, next) => {
     const isBranchRep = !!user.isBR || !!brDoc;
 
     const previousCourses = Array.isArray(user.previousCourses) ? user.previousCourses : [];
-    const needsCourseSync = isBranchRep && previousCourses.length === 0;
+    const needsCourseSync = needsPreviousCourseSync(user);
 
     const responseUser = {
         _id: user._id,
@@ -107,12 +108,9 @@ export const getUser = async (req, res, next) => {
         deviceToken: user.deviceToken,
         isBR: isBranchRep,
         readOnly: user.readOnly,
+        previousCourses,
         needsCourseSync,
     };
-
-    if (isBranchRep) {
-        responseUser.previousCourses = previousCourses;
-    }
 
     return res.status(200).json(responseUser);
 };

@@ -209,7 +209,7 @@ const Dashboard = () => {
 
                     <Space amount={50} />
 
-                    {user.user.isBR && user.user.previousCourses?.length > 0 && (
+                    {user.user.previousCourses?.length > 0 && (
                         <>
                             <div
                                 onClick={() => setShowPrevious(!showPrevious)}

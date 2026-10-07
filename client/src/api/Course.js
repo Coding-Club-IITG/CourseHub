@@ -20,19 +20,23 @@ export const getUserCourses = async (courses) => {
 };
 
 export const fetchUserCoursesData = async (user) => {
-    const [coursesRes, prevCoursesRes] = await Promise.all([
+    const [coursesResult, previousCoursesResult] = await Promise.allSettled([
         axios.post(`${root}/api/auth/fetchCourses`, {
             rollNumber: user.rollNumber,
         }),
-        user.isBR
-            ? axios.post(`${root}/api/auth/fetchCoursesForBr`, {
-                  rollNumber: user.rollNumber,
-              })
-            : Promise.resolve({ data: { courses: [] } }),
+        axios.post(`${root}/api/auth/fetchPreviousCourses`),
     ]);
 
+    if (coursesResult.status === "rejected" && previousCoursesResult.status === "rejected") {
+        throw coursesResult.reason;
+    }
+
     return {
-        courses: coursesRes.data.courses,
-        previousCourses: prevCoursesRes.data.courses,
+        courses: coursesResult.status === "fulfilled"
+            ? coursesResult.value.data.courses
+            : user.courses || [],
+        previousCourses: previousCoursesResult.status === "fulfilled"
+            ? previousCoursesResult.value.data.courses
+            : user.previousCourses || [],
     };
 };

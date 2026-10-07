@@ -344,7 +344,7 @@ const BrowseScreen = () => {
         ...(user.user?.courses || []),
         ...(user.localCourses || []),
         ...(user.user?.readOnly || []),
-        ...(user.user?.isBR && user.user?.previousCourses ? user.user.previousCourses.flatMap(sem => sem.courses) : []),
+        ...(user.user?.previousCourses?.flatMap(sem => sem.courses) || []),
     ];
     const allYears = currCourse || [];
     const handleCourseChange = async (e) => {
@@ -541,11 +541,10 @@ const BrowseScreen = () => {
                             />
                         ))}
 
-                        {user.user?.isBR && user.user?.previousCourses?.length > 0 && (
+                        {user.user?.previousCourses?.length > 0 && (
                             <h4 className="heading">PREVIOUS COURSES</h4>
                         )}
-                        {user.user?.isBR &&
-                            user.user?.previousCourses?.length > 0 &&
+                        {user.user?.previousCourses?.length > 0 &&
                             user.user?.previousCourses?.map((semesterGroup, semIdx) => (
                                 <div key={semIdx}>
                                     <h5 className="semester-subheading">
