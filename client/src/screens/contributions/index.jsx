@@ -30,11 +30,20 @@ const Contributions = () => {
 
     const [submitEnabled, setSubmitEnabled] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [totalFiles, setTotalFiles] = useState(0);
+    const [validFiles, setValidFiles] = useState(0);
 
     let pond = useRef();
 
     const handleUpdateFiles = (fileItems) => {
-        if (fileItems.length > 0) setSubmitEnabled(true);
+        setTotalFiles(fileItems.length);
+        const validCount = fileItems.filter(
+            (item) => item.file.size <= 50*1024*1024
+        ).length;
+        setValidFiles(validCount);
+        if (fileItems.length>0 && fileItems.length== validCount){
+            setSubmitEnabled(true);
+        }
         else setSubmitEnabled(false);
     };
 
@@ -59,7 +68,7 @@ const Contributions = () => {
                 description: "default",
                 approved: false,
                 contributionId,
-                uploadedBy,
+                uploadedBy
             });
             await pond.current.processFiles();
             pond.current.removeFiles();
@@ -94,10 +103,15 @@ const Contributions = () => {
                         : "Your files will be added to this folder"}
                 </div>
                 <div className="file_pond">
+                    {totalFiles >0 && (
+                        <div className="file-status">
+                            Valid files:{validFiles} out of {totalFiles}
+                        </div>
+                    )}
                     <FilePond
                         name="file"
                         allowMultiple={true}
-                        maxFileSize="50MB"
+                        maxFileSize={50*1024*1024}
                         labelMaxFileSizeExceeded="File is too large"
                         labelMaxFileSize="Maximum file size is 50 MB"
                         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span> <br/> (Max file size: 50MB)'
@@ -115,26 +129,25 @@ const Contributions = () => {
                         instantUpload={false}
                         allowProcess={false}
                         allowRevert={false}
+                        allowBrowse={!isUploading}
+                        allowDrop={!isUploading}
+                        allowPaste={!isUploading}
+                        allowRemove={!isUploading}
                         ref={(ref) => {
                             pond.current = ref;
                         }}
                     />
                 </div>
-                <div id="disclaimer-container">
-                    <div id="uploaded-container">
-                        <div>Note:</div>
-                        <div>Do not close this window while files are being uploaded.</div>
-                    </div>
-                    {!isBR ? (
-                        <div id="uploaded-container">
-                            <div>Note:</div>
-                            <div>
-                                Files require approval from a Branch Representative before becoming
-                                visible to other users.
-                            </div>
+                <div id="disclaimer-container" className="disclaimer">
+                    
+                    <div>Note:</div>
+                    <div>→ Do not close this window while files are being uploaded.</div>
+                    
+                    {!isBR && (
+                        <div>
+                            → Files require approval from a Branch Representative before becoming
+                            visible to other users.
                         </div>
-                    ) : (
-                        <></>
                     )}
                 </div>
                 <div className={`button ${submitEnabled && !isUploading}`} onClick={handleSubmit}>

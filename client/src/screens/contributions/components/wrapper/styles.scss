@@ -5,7 +5,9 @@
     background-color: white;
     height: auto;
     position: absolute;
-
+    max-height:90vh;
+    overflow-y: auto;
+    
     z-index: 200;
     opacity: 1;
 
