@@ -30,6 +30,13 @@ export default function PendingApprovals() {
 
     const onAction = async (contributionId, action) => {
         if (processingId) return;
+
+        const confirmMessage =
+            action === "reject"
+                ? "Reject this contribution? Its files will be permanently deleted from storage. This cannot be undone."
+                : "Approve this contribution and publish its files?";
+        if (!window.confirm(confirmMessage)) return;
+
         try {
             setProcessingId(contributionId);
             await handleContribution(contributionId, action);

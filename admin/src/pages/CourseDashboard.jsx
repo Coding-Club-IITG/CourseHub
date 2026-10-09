@@ -76,6 +76,8 @@ export default function CourseDashboard() {
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
+    
+    const [processingId, setProcessingId] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -100,6 +102,8 @@ export default function CourseDashboard() {
     const handleContributionAction = async(contributionId, action) =>
     {
         const isApprove = action === "approve";
+        if(processingId)
+            return;
         if(!window.confirm(`Are you sure you want to ${action} this contribution`))
         {
             return;
@@ -107,15 +111,20 @@ export default function CourseDashboard() {
 
         try
         {
+            setProcessingId(contributionId);
             await handleContribution(contributionId,action);
             alert(`Contribution ${isApprove ? 'Approved' : 'Rejected'} succesfully!`);
-            loadData();
+            await loadData();
         }
         catch(error)
         {
             console.log(error);
             alert("error");
         }   
+        finally
+        {
+            setProcessingId(null);
+        }
     }
 
    const handleDelete = async (type, id, name) => 
@@ -284,15 +293,15 @@ export default function CourseDashboard() {
                                     </div>
                                     <div className="flex flex-shrink-0 gap-2">
                                         <button
-                                            onClick={() => onAction(contribution.contributionId, "approve")}
-                                            disabled={processingId === contribution.contributionId}
+                                            onClick={() => handleContributionAction(contribution.contributionId, "approve")}
+                                            disabled = {processingId === contribution.contributionId}
                                             className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
                                         >
                                             <FiCheck /> Approve
                                         </button>
                                         <button
-                                            onClick={() => onAction(contribution.contributionId, "reject")}
-                                            disabled={processingId === contribution.contributionId}
+                                            onClick={() => handleContributionAction(contribution.contributionId, "reject")}
+                                            disabled = {processingId === contribution.contributionId}
                                             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50 disabled:opacity-60"
                                         >
                                             <FiX /> Reject
