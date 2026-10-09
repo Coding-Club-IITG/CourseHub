@@ -1,57 +1,20 @@
-.wrapper {
-    margin: auto;
-    width: 40%;
-    padding: 3rem 4rem;
-    background-color: white;
+.contri .upload-dialog {
+    width: min(552px, calc(100vw - 24px));
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 6px;
+    padding: 0;
+    margin: 0;
     height: auto;
-    position: absolute;
-    max-height:90vh;
-    overflow-y: auto;
-    
+    position: relative;
+    overflow: hidden;
+    color: #151515;
+    box-sizing: border-box;
+    font-size: 10px;
     z-index: 200;
-    opacity: 1;
 
-    div {
-        margin-bottom: 1rem;
-    }
-}
-
-@media screen and (max-width:1270px) {
-    .wrapper {
-        width: 50%;
-    }
-}
-
-@media screen and (max-width:1024px) {
-    .wrapper {
-        width: 55%;
-    }
-}
-
-@media screen and (max-width:960px) {
-    .wrapper {
-        width: 65%;
-        padding: 2rem 3rem;
-    }
-}
-
-@media screen and (max-width:760px) {
-    .wrapper {
-        width: 65%;
-        padding: 2rem 3rem;
-    }
-}
-
-@media screen and (max-width:720px) {
-    .wrapper {
-        width: 70%;
-        padding: 1rem 2rem;
-    }
-}
-
-@media screen and (max-width:400px) {
-    .wrapper {
-        width: 90%;
-        padding: 1rem 2rem;
-    }
+    &, * { font-family: Arial, sans-serif; }
 }
