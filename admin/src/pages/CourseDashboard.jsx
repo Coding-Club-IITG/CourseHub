@@ -1,6 +1,6 @@
 import { useParams} from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { fetchCourseDashboardData, deleteNode, handleContribution } from "@/apis/courses";
+import { fetchCourseDashboardData, deleteNode, handleContribution, getFileDownloadUrl } from "@/apis/courses";
 import {
     FiFolder,
     FiFile,
@@ -70,11 +70,14 @@ function LoadStructure({ node, onDelete, depth = 0 }) {
     );
 }
 
+
 export default function CourseDashboard() {
     const { code } = useParams();
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
+    
+    const [processingId, setProcessingId] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -99,6 +102,8 @@ export default function CourseDashboard() {
     const handleContributionAction = async(contributionId, action) =>
     {
         const isApprove = action === "approve";
+        if(processingId)
+            return;
         if(!window.confirm(`Are you sure you want to ${action} this contribution`))
         {
             return;
@@ -106,15 +111,20 @@ export default function CourseDashboard() {
 
         try
         {
+            setProcessingId(contributionId);
             await handleContribution(contributionId,action);
             alert(`Contribution ${isApprove ? 'Approved' : 'Rejected'} succesfully!`);
-            loadData();
+            await loadData();
         }
         catch(error)
         {
             console.log(error);
             alert("error");
         }   
+        finally
+        {
+            setProcessingId(null);
+        }
     }
 
    const handleDelete = async (type, id, name) => 
@@ -153,6 +163,23 @@ export default function CourseDashboard() {
     },0);
 
     const pendingContributions = data?.contributions?.filter(c => !c.approved) || [];
+
+    const handleDownload = async(fileId) =>
+    {
+        try
+        {
+            const data = await getFileDownloadUrl(fileId);
+            if(data?.url)
+            {
+                window.location.href = data.url;
+            }
+        }
+        catch(error)
+        {
+            console.log(error);
+            alert("Failed to get download ");
+        }
+    };
 
     return (
         <div className="min-h-full bg-slate-100 text-slate-900">
@@ -232,21 +259,50 @@ export default function CourseDashboard() {
                                         <FiFile />
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <div className="text-sm font-semibold">
-                                            {contribution.files?.map(f => f.name).join(", ") || contribution.contributionId}
+                                        <div className = "text-sm font-semibold">
+                                            {contribution.files && contribution.files.length > 0 ? (
+                                                <div className = "flex flex-col gap 1">
+                                                    {contribution.files.map((file) => (
+                                                        <div key={file._id} className="flex items-center gap-2">
+                                                            <span className="truncate">{file.name}</span>
+                                                            {file.webUrl && (
+                                                                <a
+                                                                    href={file.webUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-xs text-blue-600 hover:underline"
+                                                                >
+                                                                    View
+                                                                </a>
+                                                            )}
+                                                            {file.downloadUrl && (
+                                                                <button
+                                                                    onClick={() => handleDownload(file.fileId)}
+                                                                    className="text-xs text-blue-600 hover:underline"
+                                                                >
+                                                                    Download
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                contribution.contributionId
+                                            )}
                                         </div>
-                                        <div className="text-xs text-slate-600">Awaiting review</div>
                                     </div>
                                     <div className="flex flex-shrink-0 gap-2">
                                         <button
-                                            onClick={() => handleContributionAction(contribution.contributionId, 'approve')}
-                                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                                            onClick={() => handleContributionAction(contribution.contributionId, "approve")}
+                                            disabled = {processingId === contribution.contributionId}
+                                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
                                         >
                                             <FiCheck /> Approve
                                         </button>
                                         <button
-                                            onClick={() => handleContributionAction(contribution.contributionId, 'reject')}
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50"
+                                            onClick={() => handleContributionAction(contribution.contributionId, "reject")}
+                                            disabled = {processingId === contribution.contributionId}
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 hover:border-red-200 hover:bg-red-50 disabled:opacity-60"
                                         >
                                             <FiX /> Reject
                                         </button>

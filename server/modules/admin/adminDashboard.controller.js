@@ -870,3 +870,17 @@ export async function syncCoursesCacheController(req, res, next) {
         next(new AppError(500, `Cache sync failed: ${err.message}`));
     }
 }
+
+
+export async function getAllPendingContributions(req, res, next)
+{
+    try
+    {
+        const contributions = await Contribution.find({ approved: false }).sort({ createdAt: -1 }).populate("files");
+        res.json({pending:contributions});
+    }
+    catch(error)
+    {
+        next(new AppError(500, `Failed to fetch pending contributions: ${error.message}`));
+    }
+}
