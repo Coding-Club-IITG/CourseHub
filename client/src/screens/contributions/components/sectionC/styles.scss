@@ -20,7 +20,7 @@
                 visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1),
                 backdrop-filter 0.25s ease;
 
-    .wrapper {
+    .upload-dialog {
         transform: scale(0.93) translateY(16px);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                     box-shadow 0.3s ease;
@@ -32,7 +32,7 @@
         visibility: visible;
         pointer-events: auto;
 
-        .wrapper {
+        .upload-dialog {
             transform: scale(1) translateY(0);
         }
     }
