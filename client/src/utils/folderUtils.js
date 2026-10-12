@@ -49,3 +49,22 @@ export const findYearIndexForFolder = (years, targetFolderId) => {
         (y) => y?._id === targetFolderId || findFolderById(y?.children, targetFolderId)
     );
 };
+
+/**
+ * Recursively finds the parent folder of a given folderId in the course tree.
+ */
+export const findParentFolder = (folders, targetId) => {
+    if (!folders || !Array.isArray(folders) || !targetId) return null;
+
+    for (const folder of folders) {
+        if (folder?.children?.some((child) => child?._id === targetId)) {
+            return folder;
+        }
+        if (folder?.children?.length) {
+            const found = findParentFolder(folder.children, targetId);
+            if (found) return found;
+        }
+    }
+    return null;
+};
+
