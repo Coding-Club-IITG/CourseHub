@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import CourseDashboard from "./pages/CourseDashboard";
+import PendingApprovals from "./pages/PendingContributions";
 
 function App() {
     return (
@@ -72,6 +73,14 @@ function App() {
                                             Page Not Found
                                         </div>
                                     </div>
+                                }
+                            />
+                            <Route
+                                path = "/admin/pending-approvals"
+                                element = {
+                                    <PrivateRoute>
+                                        <PendingApprovals/> 
+                                    </PrivateRoute>
                                 }
                             />
                         </Routes>
