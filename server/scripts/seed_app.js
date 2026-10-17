@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 import config from "../config/default.js";
-import EventModel from "../modules/event/event.model.js";
+import EventModel, { EXAM_DATES_ID } from "../modules/event/event.model.js";
 import BR from "../modules/br/br.model.js";
 import Admin from "../modules/admin/admin.model.js";
 
@@ -25,6 +25,7 @@ const addDaysAtUtcMidnight = (baseDate, daysToAdd) => {
 
 const buildExamDateSeed = (today = new Date()) => {
     return {
+        _id: EXAM_DATES_ID,
         firstYearDates: {
             midSem: addDaysAtUtcMidnight(today, 45),
             endSem: addDaysAtUtcMidnight(today, 110),
