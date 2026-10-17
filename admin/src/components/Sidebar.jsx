@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
+import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle, FaCalendarAlt } from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
     { label: "Courses", to: "/admin/courses", icon: FaBook },
     { label: "Course Linking", to: "/admin/course-linking", icon: FaLink },
     { label: "Courses Without BR", to: "/admin/courses-without-br", icon: FaExclamationTriangle },
+    { label: "Exam Dates", to: "/admin/exam-dates", icon: FaCalendarAlt },
 ];
 
 const Sidebar = () => {
