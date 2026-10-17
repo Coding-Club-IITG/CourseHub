@@ -250,23 +250,40 @@ export async function handleContribution(req,res,next)
     {
         const parentFolder = await FolderModel.findById(contribution.parentFolder);
         
-        for (const file of contribution.files) 
-        {
-            if(parentFolder)
-            {
-                parentFolder.children = parentFolder.children.filter(
-                    childId => childId.toString() !== file._id.toString()
-                );
-            }
+        const filesToReject = contribution.files.filter((file) => !file.isVerified);
 
-            await deleteFile(file);
+        if(filesToReject.length === 0)
+        {
+            return next(new AppError(400, "Every file in this contribution is already verified; there is nothing to reject."));
         }
+
+        const rejectedIds = new Set(filesToReject.map((file) => file._id.toString()));
 
         if(parentFolder)
         {
+            parentFolder.children = parentFolder.children.filter(
+                childId => !rejectedIds.has(childId.toString())
+            );
             await parentFolder.save();
         }
-        await Contribution.findByIdAndDelete(contribution._id);
+
+        for (const file of filesToReject)
+        {
+            await deleteFile(file);
+        }
+
+        const remainingFiles = contribution.files.filter((file) => !rejectedIds.has(file._id.toString()));
+
+        if(remainingFiles.length === 0)
+        {
+            await Contribution.findByIdAndDelete(contribution._id);
+        }
+        else
+        {
+            contribution.files = remainingFiles.map((file) => file._id);
+            await contribution.save();
+        }
+
         return res.json({ success: true, message: "Contribution denied files rejected."});
     }
 
@@ -876,8 +893,12 @@ export async function getAllPendingContributions(req, res, next)
 {
     try
     {
-        const contributions = await Contribution.find({ approved: false }).sort({ createdAt: -1 }).populate("files");
-        res.json({pending:contributions});
+        const unverifiedFiles = await FileModel.find({isVerified: false}).select("_id");
+        const unverifiedFilesId = unverifiedFiles.map((file) => file._id);
+
+        const contributions = await Contribution.find({files: {$in:unverifiedFilesId}}).sort({createdAt: -1}).populate("files");
+
+        res.json({pending: contributions});
     }
     catch(error)
     {

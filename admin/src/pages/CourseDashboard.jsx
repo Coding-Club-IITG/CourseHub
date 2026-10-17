@@ -156,14 +156,14 @@ export default function CourseDashboard() {
     }
 
     const studentCount = data?.studentCount || 0;
-    const approvedContributions =  data?.contributions?.filter(c => c.approved) || [];
-    const verifiedFilesCount = approvedContributions.reduce((total,contribution) =>
-    {
-        return total + (contribution.files?.length || 0);
-    },0);
+    const allContributions = data?.contributions || [];
 
-    const pendingContributions = data?.contributions?.filter(c => !c.approved) || [];
+    const verifiedFilesCount = allContributions.reduce(
+        (total, contribution) => total + (contribution.files || []).filter((file) => file.isVerified).length,0);
 
+    const pendingContributions = allContributions.filter(
+        (contribution) => (contribution.files || []).some((file) => !file.isVerified));
+        
     const handleDownload = async(fileId) =>
     {
         try

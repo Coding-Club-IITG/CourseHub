@@ -5,20 +5,23 @@ import {
     getFileDownloadUrl,
 } from "@/apis/courses";
 import { toast } from "react-toastify";
-import { FiFile, FiCheck, FiX, FiEye, FiDownload, FiInbox } from "react-icons/fi";
+import { FiFile, FiCheck, FiX, FiEye, FiDownload, FiInbox, FiAlertTriangle} from "react-icons/fi";
 
 export default function PendingApprovals() {
     const [pending, setPending] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
+    const [loadError, setLoadError] = useState(null);
 
     const loadPending = async () => {
         try {
             setLoading(true);
+            setLoadError(null);
             const response = await fetchAllPendingContributions();
             setPending(response.pending || []);
         } catch (err) {
-            toast.error(err.message || "Failed to load pending approvals.");
+            setLoadError(err.message || "Failed to load pending approvals");
+            toast.error(err.message || "Failed to load pending approvals");
         } finally {
             setLoading(false);
         }
@@ -41,7 +44,6 @@ export default function PendingApprovals() {
             setProcessingId(contributionId);
             await handleContribution(contributionId, action);
             toast.success(action === "approve" ? "Contribution approved." : "Contribution rejected.");
-            // Drop the handled row without a full refetch.
             setPending((prev) => prev.filter((c) => c.contributionId !== contributionId));
         } catch (err) {
             toast.error(err.message || `Failed to ${action} contribution.`);
@@ -49,6 +51,11 @@ export default function PendingApprovals() {
             setProcessingId(null);
         }
     };
+
+    const pendingFileCount = pending.reduce(
+        (total,contribution) =>
+            total + (contribution.files || []).filter((file) => !file.isVerified).length,0
+    );
 
     const onDownload = async (fileId) => {
         try {
@@ -70,9 +77,9 @@ export default function PendingApprovals() {
                         All unverified files across every course, awaiting review.
                     </p>
                 </div>
-                {!loading && (
+                {!loading && !loadError && (
                     <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
-                        {pending.length} pending
+                        {pendingFileCount} pending
                     </span>
                 )}
             </div>
@@ -80,6 +87,22 @@ export default function PendingApprovals() {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/60 p-6">
                 {loading ? (
                     <p className="text-sm text-slate-500">Loading pending approvals...</p>
+                ) : loadError ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <FiAlertTriangle className="mb-3 text-3xl text-red-300" />
+                        <div className="text-sm font-semibold text-slate-900">
+                            Couldn't load pending approvals
+                        </div>
+                        <div className="mt-0.5 text-sm text-slate-500">
+                            {loadError} The review queue may not be empty.
+                        </div>
+                        <button
+                            onClick={loadPending}
+                            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+                        >
+                            Retry
+                        </button>
+                    </div>
                 ) : pending.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <FiInbox className="mb-3 text-3xl text-slate-300" />
@@ -98,7 +121,6 @@ export default function PendingApprovals() {
                                 <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-amber-50 text-base text-amber-700">
                                     <FiFile />
                                 </span>
-
                                 <div className="min-w-0 flex-1">
                                     <div className="text-xs font-semibold uppercase text-blue-700">
                                         {contribution.courseCode}
@@ -113,6 +135,15 @@ export default function PendingApprovals() {
                                                     <span className="truncate text-sm font-medium text-slate-900">
                                                         {file.name}
                                                     </span>
+                                                    {file.isVerified ? (
+                                                        <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                                            Published
+                                                        </span>
+                                                    ) : (
+                                                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                                                            Pending
+                                                        </span>
+                                                    )}
                                                     {file.webUrl && (
                                                         <a
                                                             href={file.webUrl}
