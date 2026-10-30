@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import CourseDashboard from "./pages/CourseDashboard";
+import ExamDates from "./pages/ExamDates";
 import PendingApprovals from "./pages/PendingContributions";
 
 function App() {
@@ -62,6 +63,14 @@ function App() {
                                 element={
                                     <PrivateRoute>
                                         <CoursesWithoutBR />
+                                    </PrivateRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/exam-dates"
+                                element={
+                                    <PrivateRoute>
+                                        <ExamDates />
                                     </PrivateRoute>
                                 }
                             />

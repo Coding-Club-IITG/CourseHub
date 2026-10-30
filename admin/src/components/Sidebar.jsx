@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle, FaClock } from "react-icons/fa";
+import { FaBook, FaUsers, FaLayerGroup, FaLink, FaUserGraduate, FaExclamationTriangle, FaCalendarAlt, FaClock } from "react-icons/fa";
 import { adminLogout } from "@/apis/auth";
 import { FcAlarmClock } from "react-icons/fc";
 
@@ -10,6 +10,7 @@ const navItems = [
     { label: "Course Linking", to: "/admin/course-linking", icon: FaLink },
     { label: "Courses Without BR", to: "/admin/courses-without-br", icon: FaExclamationTriangle },
     { label: "Pending Approvals", to: "/admin/pending-approvals", icon: FaClock },
+    { label: "Exam Dates", to: "/admin/exam-dates", icon: FaCalendarAlt },
 ];
 
 const Sidebar = () => {
