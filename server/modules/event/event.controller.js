@@ -30,16 +30,21 @@ function formatDates(dates) {
     };
 }
 
+// Falls back to the legacy record until the fixed-_id migration has run.
+async function findExamDates() {
+    return (await EventModel.findById(EXAM_DATES_ID)) ?? (await EventModel.findOne());
+}
+
 async function GetExamDates(req, res, next) {
     const semester = req.user.semester;
-    const examDates = await EventModel.findById(EXAM_DATES_ID);
+    const examDates = await findExamDates();
     if (!examDates) return next(new AppError(404, "Data not available"));
     if (semester === 1) return res.json({ dates: examDates.firstYearDates });
     return res.json({ dates: examDates.otherDates });
 }
 
 async function GetAdminExamDates(req, res) {
-    const event = await EventModel.findById(EXAM_DATES_ID);
+    const event = await findExamDates();
     return res.json({
         firstYearDates: formatDates(event?.firstYearDates),
         otherDates: formatDates(event?.otherDates),

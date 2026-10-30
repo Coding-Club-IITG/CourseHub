@@ -15,18 +15,18 @@ async function migrate() {
             process.exit(0);
         }
 
-        // ObjectIds embed their creation time, so the highest _id is the newest record.
-        const records = await EventModel.find().sort({ _id: -1 }).lean();
+        const records = await EventModel.find().lean();
         console.log(`Found ${records.length} existing Event record(s).`);
         if (records.length === 0) {
             console.log("Nothing to migrate.");
             process.exit(0);
         }
 
-        const newest = records[0];
-        console.log(`Newest record: ${newest._id}`);
-        console.log(`  firstYearDates: ${JSON.stringify(newest.firstYearDates)}`);
-        console.log(`  otherDates: ${JSON.stringify(newest.otherDates)}`);
+        // Keep the record the old findOne() read returned, so students keep seeing the same dates.
+        const current = await EventModel.findOne().lean();
+        console.log(`Current record: ${current._id}`);
+        console.log(`  firstYearDates: ${JSON.stringify(current.firstYearDates)}`);
+        console.log(`  otherDates: ${JSON.stringify(current.otherDates)}`);
 
         if (dryRun) {
             console.log(`Would create record ${EXAM_DATES_ID} with these dates.`);
@@ -36,8 +36,8 @@ async function migrate() {
 
         await EventModel.create({
             _id: EXAM_DATES_ID,
-            firstYearDates: newest.firstYearDates,
-            otherDates: newest.otherDates,
+            firstYearDates: current.firstYearDates,
+            otherDates: current.otherDates,
         });
         console.log(`Created record ${EXAM_DATES_ID}.`);
 
