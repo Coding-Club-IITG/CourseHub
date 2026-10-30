@@ -9,7 +9,7 @@ import { ConfirmDialog } from "./confirmDialog";
 import { FolderRename } from "./folderRename.jsx";
 import { getSubtreeFileCount } from "../../../../utils/folderUtils";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const BrowseFolder = ({
     name,
@@ -21,6 +21,7 @@ const BrowseFolder = ({
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const currentFolder = useSelector((state) => state.fileBrowser.currentFolder);
     const isBR = useSelector((state) => state.user.user.isBR);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -62,7 +63,10 @@ const BrowseFolder = ({
         }
         dispatch(ChangeFolder(folderData));
         if (courseCode && folderData?._id) {
-            navigate(`/browse/${courseCode}/${folderData._id}`);
+            // Carry the ancestor path in router state so the back button survives refreshes.
+            const parentPath = [...(location.state?.parentPath || [])];
+            if (currentFolder?._id) parentPath.push(currentFolder._id);
+            navigate(`/browse/${courseCode}/${folderData._id}`, { state: { parentPath } });
         }
     };
 

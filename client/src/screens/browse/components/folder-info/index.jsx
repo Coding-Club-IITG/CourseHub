@@ -12,7 +12,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
 import { getSubtreeFileCount , findParentFolder } from "../../../../utils/folderUtils";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const FolderInfo = ({
     isBR,
@@ -33,8 +33,13 @@ const FolderInfo = ({
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const currentCourse = useSelector((state) => state.fileBrowser.currentCourse);
-    const parentFolder = findParentFolder(currentCourse, folderId);
+    const parentPath = location.state?.parentPath || [];
+    // Links opened directly have no router state, so fall back to searching the course tree.
+    const parentFolderId = parentPath.length
+        ? parentPath[parentPath.length - 1]
+        : findParentFolder(currentCourse, folderId)?._id;
 
     const user = useSelector((state) => state.user.user);
     const isReadOnlyCourse =
@@ -218,8 +223,10 @@ const FolderInfo = ({
     };
     
     const handleBackButton = () => {
-        if(!parentFolder) return ;
-        navigate(`/browse/${courseCode}/${parentFolder._id}`);
+        if (!parentFolderId) return;
+        navigate(`/browse/${courseCode}/${parentFolderId}`, {
+            state: { parentPath: parentPath.slice(0, -1) },
+        });
     };
 
     return (
@@ -229,7 +236,7 @@ const FolderInfo = ({
                     <p className="path">{path}</p>
                     <div className="curr-folder" key={folderId || name}>
 
-                        {parentFolder && (
+                        {parentFolderId && (
                             <button
                                 type="button"
                                 className="folder-back-btn"
