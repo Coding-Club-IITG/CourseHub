@@ -7,7 +7,7 @@ import multer from "multer";
 import { adminLogin, adminLogout } from "./auth.controller.js";
 import { uploadCourses, renameCourse, deleteCourse, linkLegacyCourse, bulkLinkCourses, syncCoursesCacheController } from "./adminDashboard.controller.js";
 import {getCourseDashboardData, handleContribution, deleteNode} from "./adminDashboard.controller.js"
-
+import { getAllPendingContributions } from "./adminDashboard.controller.js";
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
@@ -44,6 +44,7 @@ router.post(
     isAdmin,    
     catchAsync(adminController.createNewCourseFolders)
 );
+router.get("/contribution/pending", isAdmin, catchAsync(getAllPendingContributions));
 
 router.post("/courses/upload", isAdmin, upload.single("file"), uploadCourses);
 router.post("/courses/bulk-link", isAdmin, upload.single("file"), bulkLinkCourses);
