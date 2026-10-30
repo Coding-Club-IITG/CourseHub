@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import tick from "../assets/tick.svg";
 import cross from "../assets/cross.svg";
 
@@ -125,7 +126,9 @@ const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false })
         return isDelete ? "Delete" : "Verify";
     };
 
-    return (
+    // Portal to <body>: the file card uses CSS transforms for its hover/press
+    // animations, which would otherwise trap this fixed overlay inside the card.
+    return createPortal(
         <div style={styles.overlay}>
             <div style={styles.dialog}>
                 <img
@@ -148,7 +151,8 @@ const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false })
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
