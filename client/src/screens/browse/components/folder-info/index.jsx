@@ -11,7 +11,8 @@ import server from "../../../../api/server";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { fetchFolder } from "../../../../api/Folder";
-import { getSubtreeFileCount } from "../../../../utils/folderUtils";
+import { getSubtreeFileCount , findParentFolder } from "../../../../utils/folderUtils";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const FolderInfo = ({
     isBR,
@@ -31,6 +32,14 @@ const FolderInfo = ({
     const [childType, setChildType] = useState("File");
     const [isAdding, setIsAdding] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const currentCourse = useSelector((state) => state.fileBrowser.currentCourse);
+    const parentPath = location.state?.parentPath || [];
+    // Links opened directly have no router state, so fall back to searching the course tree.
+    const parentFolderId = parentPath.length
+        ? parentPath[parentPath.length - 1]
+        : findParentFolder(currentCourse, folderId)?._id;
 
     const user = useSelector((state) => state.user.user);
     const isReadOnlyCourse =
@@ -212,12 +221,44 @@ const FolderInfo = ({
             setIsDownloading(false);
         }
     };
+    
+    const handleBackButton = () => {
+        if (!parentFolderId) return;
+        navigate(`/browse/${courseCode}/${parentFolderId}`, {
+            state: { parentPath: parentPath.slice(0, -1) },
+        });
+    };
+
     return (
         <>
             <div className="folder-info">
                 <div className="info">
                     <p className="path">{path}</p>
                     <div className="curr-folder" key={folderId || name}>
+
+                        {parentFolderId && (
+                            <button
+                                type="button"
+                                className="folder-back-btn"
+                                onClick={handleBackButton}
+                                title="Go back"
+                                aria-label="Go back to previous folder"
+                            >
+                                <svg className="arrow-out" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                                    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                                    aria-hidden="true" focusable="false">
+                                    <path d="M19 12H5" />
+                                    <path d="M12 19l-7-7 7-7" />
+                                </svg>
+                                <svg className="arrow-in" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                                    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                                    aria-hidden="true" focusable="false">
+                                    <path d="M19 12H5" />
+                                    <path d="M12 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                        )}
+
                         <p className="folder-name">{name}</p>
                         {currentFolder && (
                             <span className="folder-header-count-badge" title={`${totalSubtreeFiles} total files in subtree`}>

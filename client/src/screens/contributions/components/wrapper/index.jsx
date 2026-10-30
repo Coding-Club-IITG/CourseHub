@@ -1,7 +1,7 @@
 import "./styles.scss";
 const Wrapper = (props) => {
     return (
-        <div className="wrapper" id="wrapper">
+        <div className={`upload-dialog ${props.className || ""}`} id="upload-dialog" role="dialog" aria-modal="true" aria-labelledby="upload-title">
             {props.children}
         </div>
     );
