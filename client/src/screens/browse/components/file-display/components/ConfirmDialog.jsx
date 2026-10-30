@@ -126,8 +126,6 @@ const ConfirmDialog = ({ isOpen, type, onConfirm, onCancel, isLoading = false })
         return isDelete ? "Delete" : "Verify";
     };
 
-    // Portal to <body>: the file card uses CSS transforms for its hover/press
-    // animations, which would otherwise trap this fixed overlay inside the card.
     return createPortal(
         <div style={styles.overlay}>
             <div style={styles.dialog}>
