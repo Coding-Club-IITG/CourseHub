@@ -183,6 +183,11 @@ const FolderInfo = ({
     const downloadAndSaveFolder = async (folderId, folderName = "folder") => {
         if (isDownloading) return;
 
+        if(totalSubtreeFiles === 0) {
+            toast.info("Folder is empty. Nothing to download.");
+            return;
+        }
+
         let toastId;
         try {
             setIsDownloading(true);
